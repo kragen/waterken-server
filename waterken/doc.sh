@@ -22,7 +22,8 @@ fi
 SLOGAN='defensive programming in Java'
 BOTTOM='<a href="https://lists.sourceforge.net/lists/listinfo/waterken-server">Submit a bug or feature, or get help</a><p>Copyright 1998-2007 Waterken Inc. under the terms of the <a href="http://www.opensource.org/licenses/mit-license.html">MIT X license</a>.</p>'
 
-rm -rf javadoc/*
+rm -rf javadoc/
+mkdir -p javadoc
 javadoc \
     -sourcepath $SRC \
     -d 'javadoc' \

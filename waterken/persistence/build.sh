@@ -7,6 +7,7 @@ else
 fi
 
 echo 'Building persistence project...'
-rm -rf bin/*
+rm -rf bin/
+mkdir -p bin
 javac -classpath $CLASSPATH -d bin/ `find src/ -name '*.java'` $@
 jar cmf REPORT.MF ../report.jar X.class
