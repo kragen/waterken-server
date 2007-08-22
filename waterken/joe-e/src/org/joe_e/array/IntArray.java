@@ -1,0 +1,202 @@
+// Copyright 2006 Regents of the University of California.  May be used 
+// under the terms of the revised BSD license.  See LICENSING for details.
+/** 
+ * @author Adrian Mettler 
+ */
+package org.joe_e.array;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Arrays;
+import java.lang.reflect.Array;
+
+
+/**
+ * An immutable array of <code>int</code>.
+ */
+public final class IntArray extends PowerlessArray<Integer> {
+    static private final long serialVersionUID = 1L;   
+    
+    private /* final */ transient int[] ints;
+
+    private IntArray(int... ints) {
+        // Use back door constructor that sets backing store to null.
+        // This lets ConstArray's methods know not to use the backing
+        // store for accessing this object.
+        super(null);
+        this.ints = ints;
+    }
+    
+    /**
+     * Constructs a {@link IntArray}.
+     * @param ints each <code>int</code>
+     */
+    static public IntArray array(final int... ints) {
+        return new IntArray(ints.clone());
+    }
+    
+    // java.io.Serializable interface
+    
+    /*
+     * Serialization hacks to prevent the contents from being serialized as a
+     * mutable array.  This improves efficiency for projects that serialize
+     * Joe-E objects using Java's serialization API by avoiding treatment of
+     * immutable state as mutable.  These methods can otherwise be ignored.
+     */
+    private void writeObject(final ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+
+        out.writeInt(ints.length);
+        for (int c : ints) {
+            out.writeInt(c);
+        }
+    }
+
+    private void readObject(final ObjectInputStream in) throws IOException, 
+    						                      ClassNotFoundException {
+        in.defaultReadObject();
+
+        final int length = in.readInt();
+        ints = new int[length];
+        for (int i = 0; i < length; ++i) {
+            ints[i] = in.readInt();
+        }
+    }
+    
+    /*
+     *  Methods that must be overriden, as the implementation in ConstArray
+     *  would try to use arr, which is null.
+     */
+    
+    // java.lang.Object interface
+    
+    /**
+     * Test for equality with another object
+     * @return true if the other object is a {@link ConstArray} with the same
+     *         contents as this array
+     */
+    public boolean equals(final Object other) {
+        if (other instanceof IntArray) {
+            // Simple case: just compare intArr fields
+            return Arrays.equals(ints, ((IntArray)other).ints);
+        } else if (other instanceof ConstArray) {
+            // Other array does not have contents in intArr:
+            // check that length matches, and then compare elements one-by-one
+            final ConstArray otherArray = (ConstArray)other;
+            if (otherArray.length() != ints.length) {
+                return false;
+            }            
+            for (int i = 0; i < ints.length; ++i) {
+                final Object otherElement = otherArray.get(i);
+                if (!(otherElement instanceof Integer) ||
+                    ((Integer)otherElement).intValue() != ints[i]) {
+                    return false;
+                }
+            }            
+            return true;
+        } else {
+            // Only a ConstArray can be equal to a IntArray
+            return false;
+        }
+    }
+
+    /**
+     * Computes a digest of the array for hashing.  The hash code is the same
+     * as <code>Arrays.hashCode()</code> called on a Java array containing the
+     * same elements.
+     * @return a hash code based on the contents of this array
+     */
+    public int hashCode() {
+        // Because wrappers for primitive types return the same hashCode as 
+        // their primitive values, a IntArray has the same hashCode as a
+        // ConstArray<Integer> with the same contents.
+        return Arrays.hashCode(ints);
+    }
+    
+    /**
+     * Return a string representation of the array
+     */    
+    public String toString() { 
+        return Arrays.toString(ints);
+    }
+    
+    // org.joe_e.ConstArray interface
+
+    /**
+     * Gets the length of the array.
+     */
+    public int length() { 
+        return ints.length;
+    }
+    
+    /**
+     * Creates a {@link Integer} for a specified <code>int</code>.
+     * @param i position of the <code>int</code> to return
+     * @throws ArrayIndexOutOfBoundsException <code>i</code> is out of bounds
+     */
+    public Integer get(int i) { 
+        return ints[i]; 
+    }
+    
+    /**
+     * Return a mutable copy of the array
+     * @param prototype prototype of the array to copy into
+     * @return an array containing the contents of this <code>ConstArray</code>
+     *     of the same type as <code>prototype</code>
+     * @throws ArrayStoreException if an element cannot be stored in the array
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T[] toArray(T[] prototype) {
+        final int len = length();
+        if (prototype.length < len) {
+            final Class t = prototype.getClass().getComponentType(); 
+            prototype = (T[])Array.newInstance(t, len);
+        }
+        
+        for (int i = 0; i < len; ++i) {
+            prototype[i] = (T) (Integer) ints[i];
+        }
+        return prototype;
+    }
+    
+    /**
+     * Creates a {@link IntArray} with an appended {@link Integer}.
+     * @param newInt   the {@link Integer} to append
+     * @throws NullPointerException <code>newInt</code> is null
+     */
+    public IntArray with(final Integer newInt) {
+        return with(newInt.intValue());
+    }
+           
+    /*
+     * Convenience (more efficient) methods with int
+     */
+        
+    /**
+     * Gets the <code>int</code> at a specified position.
+     * @param i position of the <code>int</code> to return
+     * @throws ArrayIndexOutOfBoundsException <code>i</code> is out of bounds
+     */
+    public int getInt(final int i) { 
+        return ints[i]; 
+    }
+
+    /**
+     * Creates a mutable copy of the <code>int</code> array
+     */
+    public int[] toIntArray() {
+        return ints.clone(); 
+    }
+    
+    /** 
+     * Creates a {@link IntArray} with an appended <code>int</code>.
+     * @param newInt   the <code>int</code> to append
+     */
+    public IntArray with(final int newInt) {
+        final int[] newInts = new int[ints.length + 1];
+        System.arraycopy(ints, 0, newInts, 0, ints.length);
+        newInts[ints.length] = newInt;
+        return new IntArray(newInts);
+    }
+}

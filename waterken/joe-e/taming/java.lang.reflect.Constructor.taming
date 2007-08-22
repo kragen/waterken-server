@@ -1,0 +1,8 @@
+Powerless Selfless
+getAnnotation(java.lang.Class<?>)
+getDeclaringClass()
+getGenericParameterTypes()
+getGenericExceptionTypes()
+getParameterAnnotations()
+getParameterTypes()
+isAnnotationPresent(java.lang.Class)

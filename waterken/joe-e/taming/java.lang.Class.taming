@@ -1,0 +1,13 @@
+Powerless Equatable
+getComponentType()
+getGenericInterfaces()
+getGenericSuperclass()
+getInterfaces()
+getModifiers()
+getName()
+getSuperclass()
+getTypeParameters()
+isAssignableFrom(java.lang.Class<?>)
+isInstance(java.lang.Object)
+isInterface()
+toString()

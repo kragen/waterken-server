@@ -1,0 +1,10 @@
+Powerless Selfless
+BigDecimal(java.lang.String)
+equals(java.lang.Object)
+hashCode()
+toString()
+intValue()
+longValue()
+floatValue()
+doubleValue()
+toPlainString()

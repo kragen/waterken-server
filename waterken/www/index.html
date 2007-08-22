@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<head>
+ <title>Installation Successful</title>
+ <link rel="StyleSheet" type="text/css" href="res/style.css"></link>
+ <link rel="icon" type="image/gif" href="res/icon.gif"></link>
+</head>
+<body>
+ <div class="navigation">
+  <img src="res/icon.gif" border="0" alt="home"></img>
+ </div>
+ <div class="main">
+  <h1>Waterken<font size="-1"><sup>TM</sup></font> Server is installed!</h1>
+  <p>You have successfully installed the
+  <a href="http://waterken.sourceforge.net/">Waterken<font size="-1"><sup>TM</sup></font> Server</a>.</p>
+  <h2>Configure an SSL key</h2>
+  <p>SSL key pairs for HTTPS must be stored in the <code>keys.jks</code> file.
+  Generate your own key using the following command from the root directory of
+  your installation:</p>
+  <p>
+   <kbd>keytool -keystore keys.jks -storepass nopass -genkey -keyalg rsa</kbd>
+  </p>
+  <h2>Static files</h2>
+  <p>This file, and other static web content, is served from the
+  <code>www/</code> sub-directory of your installation.</p>
+  <h2>Database creation</h2>
+  <p>Persistent, web-enabled, Java objects are stored under the <code>db</code>
+  directory. A new database can be created with a command like:</p>
+  <p>
+   <kbd>java -jar share.jar test org.waterken.bang.Main example</kbd>
+  </p>
+  <p>The first argument is the name for the new database. The second argument
+  is the fully qualified classname for the first object to construct and export
+  from the database. The third argument is the name of the sub directory
+  containing the corresponding class files.</p>
+ </div>
+ <p class="footer">
+  <span class="copyright comment">Copyright 2004-2007 Waterken Inc. All rights reserved.</span>
+  <span class="trademark comment"> Waterken is a registered trademark of Waterken Inc.</span>
+ </p>
+</body>
+</html>

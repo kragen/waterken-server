@@ -1,0 +1,11 @@
+Powerless Selfless
+BigInteger(java.lang.String)
+equals(java.lang.Object)
+hashCode()
+toString()
+intValue()
+longValue()
+floatValue()
+doubleValue()
+bitLength()
+signum()

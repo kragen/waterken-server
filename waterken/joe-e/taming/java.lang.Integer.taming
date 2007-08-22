@@ -1,0 +1,15 @@
+Powerless Selfless
+MAX_VALUE
+SIZE
+Integer(int)
+equals(java.lang.Object)
+hashCode()
+toString()
+byteValue()
+shortValue()
+intValue()
+longValue()
+floatValue()
+doubleValue()
+parseInt(java.lang.String)
+toHexString(int)

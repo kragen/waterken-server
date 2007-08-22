@@ -1,0 +1,9 @@
+Powerless Selfless
+Character(char)
+equals(java.lang.Object)
+hashCode()
+toString()
+charValue()
+isISOControl(char)
+isUpperCase(char)
+toLowerCase(char)

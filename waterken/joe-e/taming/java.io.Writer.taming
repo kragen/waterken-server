@@ -1,0 +1,11 @@
+
+append(char)
+append(java.lang.CharSequence)
+append(java.lang.CharSequence, int, int)
+write(int)
+write(char[])
+write(char[], int, int)
+write(java.lang.String, int, int)
+write(java.lang.String)
+flush()
+close()

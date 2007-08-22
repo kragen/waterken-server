@@ -1,0 +1,8 @@
+
+close()
+getInputStream()
+getOutputStream()
+getRemoteSocketAddress()
+getSendBufferSize()
+setTcpNoDelay(boolean)
+setSoTimeout(int)

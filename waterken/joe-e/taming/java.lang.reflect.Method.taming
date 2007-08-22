@@ -1,0 +1,13 @@
+Powerless Selfless
+getAnnotation(java.lang.Class)
+getDeclaringClass()
+getGenericParameterTypes()
+getGenericExceptionTypes()
+getGenericReturnType()
+getModifiers()
+getName()
+getParameterAnnotations()
+getParameterTypes()
+getReturnType()
+equals(java.lang.Object)
+isAnnotationPresent(java.lang.Class)

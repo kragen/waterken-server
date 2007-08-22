@@ -1,0 +1,4 @@
+
+getActualTypeArguments()
+getOwnerType()
+getRawType()

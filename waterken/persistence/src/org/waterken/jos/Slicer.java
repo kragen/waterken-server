@@ -1,0 +1,70 @@
+// Copyright 2002-2007 Waterken Inc. under the terms of the MIT X license
+// found at http://www.opensource.org/licenses/mit-license.html
+package org.waterken.jos;
+
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+import org.joe_e.JoeE;
+import org.ref_send.promise.Fulfilled;
+import org.waterken.model.Heap;
+
+/**
+ * Slices an object graph at selfish object references.
+ */
+final class
+Slicer extends ObjectOutputStream {
+    
+    private final Object value;
+    private final Heap loader;
+    
+    Slicer(final Object value,
+           final Heap loader,
+           final OutputStream out) throws IOException {
+        super(out);
+        this.value = value;
+        this.loader = loader;
+        enableReplaceObject(true);
+    }
+
+    protected Object
+    replaceObject(Object x) throws IOException {
+        final Class type = null != x ? x.getClass() : Void.class;
+        if (Field.class == type) {
+            x = new FieldWrapper((Field)x);
+        } else if (Method.class == type) {
+            x = new MethodWrapper((Method)x);
+        } else if (Constructor.class == type){
+            x = new ConstructorWrapper((Constructor)x);
+        } else if (value == x) {
+        } else if (null == x) {
+        } else if (Fulfilled.class == type) {
+            x = new Faulting(loader, loader.locate(((Fulfilled)x).cast()));
+        } else if (!inline(x)) {
+            if (value instanceof Throwable &&
+                StackTraceElement.class == x.getClass().getComponentType()) {
+                // This must be the stack trace. Just let it
+                // go by, since it acts like it's selfless.
+            } else {
+                x = new Splice(loader.locate(x));
+            }
+        }
+        return x;
+    }
+
+    /**
+     * Can the object's creation identity be ignored?
+     * @param x candidate object
+     * @return true if the object's creation identity need not be preserved,
+     *         false if it must be preserved
+     */
+    static boolean
+    inline(final Object x) {
+        return null == x || x instanceof Class ||
+               JoeE.instanceOf(x, org.joe_e.Selfless.class);
+    }
+}

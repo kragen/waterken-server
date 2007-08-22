@@ -1,0 +1,46 @@
+#! /bin/sh
+#
+# /etc/init.d/waterken: start and stop the Waterken Server daemon
+
+DAEMON="/usr/bin/java"
+HOME="/usr/local/waterken/"
+JAR="serve.jar"
+
+test -x $DAEMON || exit 0
+test -r "$HOME$JAR" || exit 0
+
+# Build the command.
+START="--start --background --make-pidfile --pidfile /var/run/waterken.pid --chdir $HOME --startas $DAEMON -- -jar $JAR max-age=3600 http=80 https=443"
+STOP="--stop --oknodo --pidfile /var/run/waterken.pid"
+
+# The action starts here.
+case "$1" in
+  start)
+    echo -n "Starting Waterken configuration: "
+    start-stop-daemon $START
+    echo "done"
+    ;;
+  stop)
+    echo -n "Stopping Waterken configuration: "
+    start-stop-daemon $STOP
+    rm -f /var/run/waterken.pid
+    echo "done"
+    ;;
+  restart|reload|force-reload)
+    echo -n "Reloading Waterken configuration: "
+    start-stop-daemon $STOP
+    rm -f /var/run/waterken.pid
+    start-stop-daemon $START
+    echo "done"
+    ;;
+  test)
+    start-stop-daemon --test $START
+    echo "done"
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|reload}"
+    exit 1
+    ;;
+esac
+
+exit 0

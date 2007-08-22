@@ -1,0 +1,13 @@
+Powerless Selfless
+SIZE
+Byte(byte)
+equals(java.lang.Object)
+hashCode()
+toString()
+byteValue()
+shortValue()
+intValue()
+longValue()
+floatValue()
+doubleValue()
+parseByte(java.lang.String)
