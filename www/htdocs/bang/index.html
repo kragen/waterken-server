@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<head>
+ <title>Bang Tutorial</title>
+ <link rel="StyleSheet" type="text/css" href="../res/style.css"></link>
+ <link rel="StyleSheet" type="text/css" href="shell.css"></link>
+ <link rel="icon" type="image/gif" href="../res/icon.gif"></link>
+</head>
+<body>
+ <div class="navigation">
+  <a href="../"><img src="../res/icon.gif" width="16" height="16" border="0" alt="home"></img></a>
+  <span class="heading">&rarr; Bang Tutorial</span>
+ </div>
+ <div class="main">
+ <h3>Instructions</h3>
+ <ol>
+  <li>install a Javascript shell, such as
+      <a href="http://www.squarefree.com/shell/">this one</a></li>
+  <li>visit the <a href="https://vsci.hpl.hp.com/db/bang/#key.hskufjbgi3frt7gj5l3euej65a">test page</a></li>
+  <li>open your javascript shell, with your browser still on the test page</li>
+  <li>try the commands listed below...</li>
+ </ol>
+<pre class="listing">
+<span class="comment">
+// The default toString implementation in Javascript is pretty useless,
+// so switch to using toJSONString</span>
+Object.prototype.toString = function () { return this.toJSONString(); }
+<span class="echo">
+function () { return this.toJSONString(); }</span>
+<span class="comment">
+// Turn the URL for the current page into a remote reference</span>
+var page_ = _.connect(window.location.toString())
+<span class="comment">
+// The test page is a factory object for constructing a <a
+// href="http://waterken.sourceforge.net/javadoc/org/waterken/bang/Drum.html">org.waterken.bang.Drum</a>
+// object. A Drum is just a counter object that can be incremented. We'll
+// create a new Drum by invoking the factory method.</span>
+var drum_ = page_.post('subject', [])
+<span class="comment">
+// By convention, the name of a variable holding a promise is suffixed
+// with an '_' character. When following this convention, you can recognize
+// ansynchronous operations by looking for the '_.' character sequence.</span>
+var hits_ = drum_.get('hits')
+<span class="comment">
+// Since I'm just typing in an interactive shell, the response to the GET
+// request sent above will already have been received and processed by the
+// time I hit the 'Enter' key.</span>
+hits_
+<span class="echo">
+0</span>
+<span class="comment">
+// Send a POST request to increment the counter...</span>
+drum_.post('bang', [ 1 ])
+<span class="echo">
+{"$":["org.ref_send.promise.Rejected"],"reason":{"$":["org.ref_send.promise.Indeterminate"]}}</span>
+<span class="comment">
+// The post() invocation above is an asynchronous invocation, meaning the
+// request was sent, but we didn't wait for the response. The shell echo line
+// above shows that the return promise doesn't yet have a resolved value.
+// We can send another message right away to query the counter. This GET
+// request will be processed after the preceeding POST request.</span>
+var hits_ = drum_.get('hits')
+
+hits_
+<span class="echo">
+1</span>
+
+drum_.post('bang', [ 2 ])
+<span class="echo">
+{"$":["org.ref_send.promise.Rejected"],"reason":{"$":["org.ref_send.promise.Indeterminate"]}}</span>
+<span class="comment">
+// If we weren't typing in an interactive shell, we might want to setup a
+// callback to be invoked after a promise is resolved. We can do this using the
+// when() method. Below, we setup two callbacks: one to be notified if the
+// promise is fulfilled with a value; and another to be notified if the promise
+// is not fulfilled. Each callback simply prints a message to stdout.</span>
+drum_.get('hits').when(function (value) {
+    print(value);
+}, function (reason) {
+    print('rejected: ' + reason);
+})
+<span class="stdout">
+3</span>
+<span class="comment">
+// A promise can also be used to queue up future messages. Below, the GET
+// request to query the counter is sent on the promise returned by the POST
+// request that increases the counter.</span>
+var hits_ = drum_.post('bang', [ 3 ]).get('hits')
+
+hits_
+<span class="echo">
+6</span>
+</pre>
+ </div>
+ <p class="footer">
+ </p>
+</body>
+</html>

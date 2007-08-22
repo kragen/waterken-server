@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<head>
+ <title>Waterken Server: capability-based security for the Web</title>
+ <link rel="StyleSheet" type="text/css" href="res/style.css"></link>
+ <link rel="icon" type="image/gif" href="res/icon.gif"></link>
+</head>
+<body>
+ <div class="navigation">
+  <img src="res/icon.gif" border="0" alt="home"></img>
+ </div>
+ <div class="main">
+  <a class="heading" href="http://sourceforge.net/projects/waterken/">project page</a>
+  <a class="heading" href="javadoc/overview-summary.html">javadoc</a>
+  <a class="heading" href="http://sourceforge.net/project/platformdownload.php?group_id=93988">download</a>
+  <a class="heading" href="http://lists.sourceforge.net/lists/listinfo/waterken-server">mailing list</a>
+  <h1>Waterken<font size="-1"><sup>TM</sup></font> Server</h1>
+  <p>Asynchronous invocation between event loops is a great model for building distributed applications. The Waterken
+  Server provides a platform for building such applications in Java and making them accessible to HTTP-based clients.</p>
+  <p>Server-side Java code is written to the <a href="javadoc/overview-summary.html">ref_send API</a>, which defines the
+  asynchronous invocation interface. The Waterken Server implementation of the ref_send API provides orthogonal
+  persistence and across-the-network transport of asynchronous invocations. Each invocation is sent as an HTTP request:
+  either a <code>POST</code> for an update, or a <code>GET</code> for a query. The request URL fully identifies the
+  invocation target and any arguments are carried in the request body, encoded in <a href="http://json.org/">JSON</a>. A
+  JavaScript implementation of the ref_send API facilitates interaction with server-side objects from within the browser.
+  For an example interaction, see the <a href="bang/">Bang Tutorial</a>. </p>
+  <p>
+  The Waterken Server supports use of capability-based security to control the actions of both server-side objects and
+  remote clients. The ref_send API is designed for use by code that passes the <a href="http://joe-e.org/">Joe-E</a>
+  verifier. Using this verifier, capability-based auditing techniques can be applied to bound the possible effects that
+  can be caused by a server-side object. The Waterken Server implementation itself also passes the Joe-E verifier.
+  A remote client can only access a server-side object via a cryptographically protected capability URL, called a
+  web-key. By reasoning about what web-keys a remote client may come to possess, the possible effects on server-side
+  objects can be bounded. Though the Waterken Server is designed for use with the Joe-E verifier, it can still be used
+  with code that does not pass the verifier.</p>
+ </div>
+ <p class="footer">
+  <span class="copyright comment">Copyright 2004-2007 Waterken Inc. All rights reserved.</span>
+  <span class="trademark comment"> Waterken is a registered trademark of Waterken Inc.</span>
+ </p>
+</body>
+</html>
