@@ -6,6 +6,7 @@ else
     CLASSPATH='../joe-e/bin:../ref_send/bin'
 fi
 
+echo 'Building web_send project...'
 rm -rf bin/
 mkdir -p bin
 javac -classpath $CLASSPATH -d bin/ `find src/ -name '*.java'` $@
