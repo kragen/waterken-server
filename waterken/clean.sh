@@ -1,6 +1,6 @@
 #!/bin/sh
 
-rm -rf javadoc/*
+rm -rf javadoc/
 (cd joe-e/; ./clean.sh $@)
 (cd ref_send/; ./clean.sh $@)
 (cd example/; ./clean.sh $@)
