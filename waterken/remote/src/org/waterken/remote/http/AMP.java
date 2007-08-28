@@ -31,6 +31,7 @@ import org.waterken.model.Root;
 import org.waterken.model.Transaction;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
+import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 import org.web_send.graph.Framework;
 import org.web_send.graph.Host;
@@ -56,6 +57,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
             serve(final String resource,
                   final Volatile<Request> requestor,
                   final Do<Response,?> respond) throws Exception {
+                String httpRequestVersion;
                 Promise<Request> buffered;
                 boolean extend;
                 try {
@@ -64,18 +66,46 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                         q = new Request(q.version, q.method, q.URI, q.header,
                             Buffer.copy(Limited.limit(maxContentSize, q.body)));
                     }
+                    httpRequestVersion = q.version;
                     buffered = ref(q);
                     extend = !("POST".equals(q.method)||"PUT".equals(q.method));
                 } catch (final Exception e) {
+                    httpRequestVersion = "HTTP/1.1";
                     buffered = new Rejected<Request>(e);
                     extend = true;
                 }
+                final String httpVersion = httpRequestVersion;
                 final Promise<Request> requested = buffered;
                 model.enter(extend, new Transaction<Void>() {
                     public Void
                     run(final Root local) throws Exception {
                         new Callee(bootstrap, local).
-                            serve(resource, requested, respond);
+                            serve(resource, requested, new Do<Response,Void>() {
+
+                                public Void
+                                fulfill(Response r) throws Exception {
+                                    if ("HTTP/1.0".equals(httpVersion) &&
+                                            null != r.body) {
+                                        // enable a persistent connection by
+                                        // creating a self-delimited response
+                                        final Buffer body = Buffer.copy(Limited.
+                                            limit(maxContentSize, r.body));
+                                        r = new Response(r.version, r.status,
+                                            r.phrase, r.header.with(
+                                                new Header("Content-Length",
+                                                           "" + body.length)),
+                                            body);
+                                    }
+                                    respond.fulfill(r);
+                                    return null;
+                                }
+                                
+                                public Void
+                                reject(final Exception e) throws Exception {
+                                    respond.reject(e);
+                                    return null;
+                                }
+                            });
                         return null;
                     }
                 });
