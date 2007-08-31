@@ -22,6 +22,9 @@ Variable<T> {
     
     /**
      * Assigns a new value.
+     * <p>The implementation of this method is expected to be idempotent,
+     * meaning the effect of calling it multiple times in a row with the same
+     * argument must be the same as calling it once.</p>
      * @param value new value
      * @throws Exception    any problem
      */

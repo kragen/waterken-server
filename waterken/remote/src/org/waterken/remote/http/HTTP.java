@@ -93,11 +93,11 @@ HTTP extends Struct implements Messenger, Serializable {
         final String peer = scheme + "://" + host.toLowerCase() +
                             (standardPort == port ? "" : ":" + port);
         final String peerKey = ".-" + URLEncoding.encode(peer);
-        Messenger r = (Messenger)local.fetch(null, peerKey);
-        if (null == r) {
-            r = new Caller(local, peer);
-            local.store(peerKey, r);
+        Pipeline msgs = (Pipeline)local.fetch(null, peerKey);
+        if (null == msgs) {
+            msgs = new Pipeline(local, peer);
+            local.store(peerKey, msgs);
         }
-        return r;
+        return new Callez(local, msgs);
     }
 }

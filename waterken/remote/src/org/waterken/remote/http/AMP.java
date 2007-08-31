@@ -177,7 +177,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
         run(final Root local) throws Exception {
             final Outbound outbound = (Outbound)local.fetch(null, AMP.outbound);
             for (final Outbound.Entry x : outbound.getPending()) {
-                x.caller.restart(false, 0);
+                x.msgs.resend();
             }
             return null;
         }

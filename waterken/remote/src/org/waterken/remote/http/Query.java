@@ -9,12 +9,4 @@ package org.waterken.remote.http;
 abstract class
 Query extends Message {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * Constructs an instance.
-     * @param id    {@link #id}
-     */
-    Query(final int id) {
-        super(id);
-    }
 }

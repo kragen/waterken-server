@@ -8,12 +8,4 @@ package org.waterken.remote.http;
 abstract class
 Update extends Message {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * Constructs an instance.
-     * @param id    {@link #id}
-     */
-    Update(final int id) {
-        super(id);
-    }
 }

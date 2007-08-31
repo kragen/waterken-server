@@ -14,19 +14,6 @@ import org.waterken.http.Response;
 abstract class
 Message extends Do<Response,Void> implements Serializable {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * serial number
-     */
-    final int id;
-    
-    /**
-     * Constructs an instance.
-     * @param id    {@link #id}
-     */
-    Message(final int id) {
-        this.id = id;
-    }
     
     /**
      * Render the request. 

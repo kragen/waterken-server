@@ -32,18 +32,18 @@ Outbound implements Serializable {
         /**
          * corresponding request queue
          */
-        public final Caller caller;
+        public final Pipeline msgs;
        
         /**
          * Constructs an instance.
-         * @param peer      {@link #peer}
-         * @param caller    {@link #caller}
+         * @param peer  {@link #peer}
+         * @param msgs  {@link #msgs}
          */
         public @deserializer
         Entry(@name("peer") final String peer,
-              @name("caller") final Caller caller) {
+              @name("msgs") final Pipeline msgs) {
             this.peer = peer;
-            this.caller = caller;
+            this.msgs = msgs;
         }
     }
     
@@ -64,17 +64,17 @@ Outbound implements Serializable {
     ConstArray<Entry>
     getPending() { return pending; }
 
-    Caller
+    Pipeline
     find(final String peer) {
         for (final Entry x : pending) {
-            if (x.peer.equals(peer)) { return x.caller; }
+            if (x.peer.equals(peer)) { return x.msgs; }
         }
         return null;
     }
     
     void
-    add(final String peer, final Caller caller) {
-        pending = pending.with(new Entry(peer, caller));
+    add(final String peer, final Pipeline msgs) {
+        pending = pending.with(new Entry(peer, msgs));
     }
     
     void
