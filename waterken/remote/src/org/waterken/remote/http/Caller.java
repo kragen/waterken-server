@@ -45,7 +45,7 @@ import org.waterken.uri.URI;
  * Client-side of the HTTP web-amp protocol.
  */
 final class
-Callez extends Struct implements Messenger, Serializable {
+Caller extends Struct implements Messenger, Serializable {
     static private final long serialVersionUID = 1L;
 
     private final Root local;
@@ -53,7 +53,7 @@ Callez extends Struct implements Messenger, Serializable {
     
     private final Eventual _;
     
-    Callez(final Root local, final Pipeline msgs) {
+    Caller(final Root local, final Pipeline msgs) {
         this.local = local;
         this.msgs = msgs;
         

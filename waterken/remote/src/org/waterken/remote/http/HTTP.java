@@ -98,6 +98,6 @@ HTTP extends Struct implements Messenger, Serializable {
             msgs = new Pipeline(local, peer);
             local.store(peerKey, msgs);
         }
-        return new Callez(local, msgs);
+        return new Caller(local, msgs);
     }
 }
