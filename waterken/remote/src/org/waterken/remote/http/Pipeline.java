@@ -125,12 +125,12 @@ Pipeline implements Serializable {
                 --queries;
             } else {
                 for (final Entry x : pending) {
-                    if (x.msg instanceof Query) { break; }
                     if (x.msg instanceof Update) {
                         --halts;
                         restart(true, x.id);
                         break;
                     }
+                    if (x.msg instanceof Query) { break; }
                 }
             }
         }

@@ -6,7 +6,5 @@ package org.waterken.remote.http;
  * An idempotent {@link Message} whose return may be affected by a subsequent
  * {@link Update}.
  */
-abstract class
-Query extends Message {
-    static private final long serialVersionUID = 1L;
-}
+interface
+Query {}

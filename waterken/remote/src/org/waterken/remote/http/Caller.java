@@ -128,7 +128,7 @@ Caller extends Struct implements Messenger, Serializable {
         final Resolver<R> resolver = r.resolver;
         final String target = URI.resolve(URL,
             "?s=" + Exports.key(URL) + "&p=" + Java.property(method));
-        class GET extends Query {
+        class GET extends Message implements Query {
             static private final long serialVersionUID = 1L;
 
             Request
@@ -221,7 +221,7 @@ Caller extends Struct implements Messenger, Serializable {
             "?s=" + Exports.key(URL) + "&p=" + method.getName() + "&m=" + m);
         final ConstArray<?> argv =
             ConstArray.array(null == arg ? new Object[0] : arg);
-        class POST extends Update {
+        class POST extends Message implements Update {
             static private final long serialVersionUID = 1L;
 
             Request
