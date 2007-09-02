@@ -132,17 +132,18 @@ Java {
         final String name = method.getName();
         String r =
             name.startsWith("get") &&
-            name.length() != "get".length() &&
-            Character.isUpperCase(name.charAt("get".length())) &&
+            (name.length() == "get".length() ||
+             Character.isUpperCase(name.charAt("get".length()))) &&
             method.getParameterTypes().length == 0
                 ? name.substring("get".length())
             : (name.startsWith("is") &&
-               name.length() != "is".length() &&
-               Character.isUpperCase(name.charAt("is".length())) &&
+               (name.length() != "is".length() ||
+                Character.isUpperCase(name.charAt("is".length()))) &&
                method.getParameterTypes().length == 0
                 ? name.substring("is".length())
             : null);
-        if (null!=r && !(r.length()>1 && Character.isUpperCase(r.charAt(1)))) {
+        if (null != r && 0 != r.length() &&
+                (1 == r.length() || !Character.isUpperCase(r.charAt(1)))) {
             r = Character.toLowerCase(r.charAt(0)) + r.substring(1);
         }
         return r;

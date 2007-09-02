@@ -250,7 +250,6 @@ Callee extends Struct implements Server, Serializable {
                 respond.fulfill(new Response(
                     "HTTP/1.1", "200", "OK",
                     PowerlessArray.array(
-                        new Header("Cache-Control", "max-age=0"),
                         new Header("Content-Type", MediaType.json.name)
                     ), serialize(Serializer.render, value)));
             } else {
@@ -286,17 +285,18 @@ Callee extends Struct implements Server, Serializable {
                     ), "HEAD".equals(request.method)
                         ? null
                     : serialize(Serializer.render, value)));
-            } else if ("PUT".equals(request.method) && mutable) {
+            } else if ("POST".equals(request.method) && mutable) {
                 final Object value = deserialize(request,
                         PowerlessArray.array(field.getGenericType()));
                 Reflection.set(field, target, value);
                 respond.fulfill(new Response(
-                    "HTTP/1.1", "204", "OK",
-                    PowerlessArray.array(new Header[] {}),
-                    null));
+                    "HTTP/1.1", "200", "OK",
+                    PowerlessArray.array(
+                        new Header("Content-Type", MediaType.json.name)
+                    ), serialize(Serializer.render, null)));
             } else {
                 final String allow = mutable
-                    ? "TRACE, OPTIONS, GET, HEAD, PUT"
+                    ? "TRACE, OPTIONS, GET, HEAD, POST"
                 : "TRACE, OPTIONS, GET, HEAD";
                 if ("OPTIONS".equals(request.method)) {
                     respond.fulfill(new Response(

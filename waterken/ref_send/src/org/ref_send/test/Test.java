@@ -15,5 +15,5 @@ Test {
      * @return promise for the test result
      */
     Promise<Boolean>
-    start();
+    start() throws Exception;
 }

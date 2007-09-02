@@ -68,7 +68,10 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                     }
                     httpRequestVersion = q.version;
                     buffered = ref(q);
-                    extend = !("POST".equals(q.method)||"PUT".equals(q.method));
+                    extend = "GET".equals(q.method) ||
+                             "HEAD".equals(q.method) ||
+                             "OPTIONS".equals(q.method) ||
+                             "TRACE".equals(q.method);
                 } catch (final Exception e) {
                     httpRequestVersion = "HTTP/1.1";
                     buffered = new Rejected<Request>(e);

@@ -12,6 +12,7 @@ import org.joe_e.Struct;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
+import org.ref_send.Variable;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
@@ -80,12 +81,12 @@ Caller extends Struct implements Messenger, Serializable {
                     ? (R)x.promise : _.cast(R, x.promise);
             resolver = x.resolver;
         }
-        final String target = URI.resolve(URL, "?o=" + Exports.key(URL));
         class When extends Message {
             static private final long serialVersionUID = 1L;
 
             Request
             send() throws Exception {
+                final String target = URI.resolve(URL, "?o="+Exports.key(URL));
                 final String authority = URI.authority(target);
                 final String location = Authority.location(authority);
                 return new Request("HTTP/1.1", "GET", URI.request(target),
@@ -97,7 +98,7 @@ Caller extends Struct implements Messenger, Serializable {
             public Void
             fulfill(final Response response) {
                 final Type P = Typedef.value(DoP, observer.getClass());
-                final Volatile<P> value = deserialize(P, target, response);
+                final Volatile<P> value = deserialize(P, URL, response);
                 final R r = _.when(value, observer);
                 if (null != resolver) {resolver.resolve(Eventual.promised(r));}
                 return null;
@@ -114,25 +115,71 @@ Caller extends Struct implements Messenger, Serializable {
         return r_;
     }
    
-    public Object
+    @SuppressWarnings("unchecked") public Object
     invoke(final String URL, final Object proxy,
            final Method method, final Object... arg) {
-        return null != Java.property(method)
+        return "put".equals(method.getName()) && proxy instanceof Variable &&
+               null != arg && 1 == arg.length 
+            ? put(URL, (Variable)proxy, arg[0])
+        : (null != Java.property(method)
             ? get(URL, proxy, method)
-        : post(URL, proxy, method, arg);
+        : post(URL, proxy, method, arg));
+    }
+    
+    private <T> Void
+    put(final String URL, final Variable<T> proxy, final T arg) {
+        class PUT extends Message implements Update, Query {
+            static private final long serialVersionUID = 1L;
+
+            @SuppressWarnings("unchecked") Request
+            send() throws Exception {
+                final String target =
+                    URI.resolve(URL, "?p=put&s=" + Exports.key(URL));
+                final String authority = URI.authority(target);
+                final String location = Authority.location(authority);
+                final Buffer content = serialize(target, ConstArray.array(arg));
+                return new Request("HTTP/1.1", "POST", URI.request(target),
+                    PowerlessArray.array(
+                        new Header("Host", location),
+                        new Header("Content-Type", MediaType.json.name),
+                        new Header("Content-Length", "" + content.length)
+                    ), content);
+            }
+
+            public Void
+            fulfill(final Response response) throws Exception {
+                if ("404".equals(response.status) && null != Exports.src(URL)) {
+                    class Retry extends Do<Variable<T>,Void>
+                                implements Serializable {
+                        static private final long serialVersionUID = 1L;
+
+                        public Void
+                        fulfill(final Variable<T> object) throws Exception {
+                            // AUDIT: call to untrusted application code
+                            object.put(arg);
+                            return null;
+                        }
+                    }
+                    _.when(proxy, new Retry());
+                }
+                return null;
+            }
+        }
+        msgs.enqueue(new PUT());
+        return null;
     }
     
     @SuppressWarnings("unchecked") private <R> R
     get(final String URL, final Object proxy, final Method method) {
         final Channel<R> r = _.defer();
         final Resolver<R> resolver = r.resolver;
-        final String target = URI.resolve(URL,
-            "?s=" + Exports.key(URL) + "&p=" + Java.property(method));
         class GET extends Message implements Query {
             static private final long serialVersionUID = 1L;
 
             Request
             send() throws Exception {
+                final String target = URI.resolve(URL,
+                    "?p=" + Java.property(method) + "&s=" + Exports.key(URL));
                 final String authority = URI.authority(target);
                 final String location = Authority.location(authority);
                 return new Request("HTTP/1.1", "GET", URI.request(target),
@@ -172,7 +219,7 @@ Caller extends Struct implements Messenger, Serializable {
                 }
                 final Type R = Typedef.bound(method.getGenericReturnType(),
                                              proxy.getClass());
-                final Volatile<R> value = deserialize(R, target, response);
+                final Volatile<R> value = deserialize(R, URL, response);
                 return resolver.resolve(value);
             }
             
@@ -217,8 +264,6 @@ Caller extends Struct implements Messenger, Serializable {
         }
         
         // schedule the message
-        final String target = URI.resolve(URL,
-            "?s=" + Exports.key(URL) + "&p=" + method.getName() + "&m=" + m);
         final ConstArray<?> argv =
             ConstArray.array(null == arg ? new Object[0] : arg);
         class POST extends Message implements Update {
@@ -226,13 +271,11 @@ Caller extends Struct implements Messenger, Serializable {
 
             Request
             send() throws Exception {
+                final String target = URI.resolve(URL, "?p=" +
+                    method.getName() + "&s=" + Exports.key(URL) + "&m=" + m);
                 final String authority = URI.authority(target);
                 final String location = Authority.location(authority);
-                final Buffer content = Buffer.copy(new JSONSerializer().
-                    run(Serializer.render, Java.bind(ID.bind(Base.relative(
-                        URI.resolve(target, "."), Base.absolute(
-                            (String)local.fetch(null, Remoting.here),
-                            Remote.bind(local, Exports.bind(local)))))), argv));
+                final Buffer content = serialize(target, argv);
                 return new Request("HTTP/1.1", "POST", URI.request(target),
                     PowerlessArray.array(
                         new Header("Host", location),
@@ -274,7 +317,7 @@ Caller extends Struct implements Messenger, Serializable {
                 if (null != resolver) {
                     final Type R = Typedef.bound(method.getGenericReturnType(),
                                                  proxy.getClass());
-                    final Volatile<R> value = deserialize(R, target, response);
+                    final Volatile<R> value = deserialize(R, URL, response);
                     resolver.resolve(value);
                 }
                 return null;
@@ -287,6 +330,14 @@ Caller extends Struct implements Messenger, Serializable {
         }
         msgs.enqueue(new POST());
         return r_;
+    }
+    
+    private Buffer
+    serialize(final String target, final ConstArray<?> argv) throws Exception {
+        return Buffer.copy(new JSONSerializer().run(Serializer.render,
+            Java.bind(ID.bind(Base.relative(URI.resolve(target, "."),
+                Base.absolute((String)local.fetch(null, Remoting.here),
+                    Remote.bind(local, Exports.bind(local)))))), argv));
     }
     
     @SuppressWarnings("unchecked") private <R> Volatile<R>

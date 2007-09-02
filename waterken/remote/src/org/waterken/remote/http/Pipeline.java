@@ -25,7 +25,7 @@ import org.waterken.model.Transaction;
 import org.waterken.remote.Remoting;
 
 /**
- * Manages a pending request queue for a specific peer.
+ * Manages a pending request queue for a specific host.
  */
 final class
 Pipeline implements Serializable {
@@ -58,14 +58,14 @@ Pipeline implements Serializable {
     }
 
     void
-    resend() { restart(false, 0); }
+    resend() { restart(pending.getSize(), false, 0); }
     
     /*
      * Message sending is halted when an Update follows a Query. Sending resumes
      * once the response to the preceeding Query has been received.
      */
     
-    @SuppressWarnings("unchecked") void
+    void
     enqueue(final Message message) {
         if (pending.isEmpty()) {
             ((Outbound)local.fetch(null, AMP.outbound)).add(peer, this);
@@ -79,42 +79,15 @@ Pipeline implements Serializable {
             }
         }
         if (message instanceof Query) { ++queries; }
-        if (0 != halts) { return; }
-
-        // Create a transaction effect that will schedule a new extend
-        // transaction that actually puts the message on the wire.
-        final Loop<Effect> effect = (Loop)local.fetch(null, Root.effect);
-        final Model model = (Model)local.fetch(null, Root.model);
-        final String peer = this.peer;
-        effect.run(new Effect() {
-           public void
-           run() throws Exception {
-               model.service.run(new Service() {
-                   public void
-                   run() throws Exception {
-                       model.enter(Model.extend, new Transaction<Void>() {
-                           public Void
-                           run(final Root local) throws Exception {
-                               final Pipeline msgs = ((Outbound)local.
-                                       fetch(null, AMP.outbound)).find(peer);
-                               for (final Entry x : msgs.pending) {
-                                   if (mid == x.id) {
-                                       msgs.send(x);
-                                       break;
-                                   }
-                               }
-                               return null;
-                           }
-                       });
-                   }
-               });
-           }
-        });
+        if (0 == halts) { restart(1, true, mid); }
     }
     
     private Message
     dequeue(final int mid) {
-        if (mid != pending.getFront().id) { throw new RuntimeException(); }
+        if (pending.getFront().id != mid) {
+            if (pending.getFront().id - mid > 0) { return null; }
+            throw new Error();
+        }
         
         final Entry front = pending.pop();
         if (pending.isEmpty()) {
@@ -124,13 +97,15 @@ Pipeline implements Serializable {
             if (0 == halts) {
                 --queries;
             } else {
+                int max = pending.getSize();
                 for (final Entry x : pending) {
                     if (x.msg instanceof Update) {
                         --halts;
-                        restart(true, x.id);
+                        restart(max, true, x.id);
                         break;
                     }
                     if (x.msg instanceof Query) { break; }
+                    --max;
                 }
             }
         }
@@ -138,10 +113,9 @@ Pipeline implements Serializable {
     }
     
     @SuppressWarnings("unchecked") private void
-    restart(final boolean skipTo, final int mid) {
+    restart(final int max, final boolean skipTo, final int mid) {
         // Create a transaction effect that will schedule a new extend
         // transaction that actually puts the messages on the wire.
-        final int max = pending.getSize();
         final Loop<Effect> effect = (Loop)local.fetch(null, Root.effect);
         final Model model = (Model)local.fetch(null, Root.model);
         final String peer = this.peer;
@@ -160,7 +134,6 @@ Pipeline implements Serializable {
                                boolean q = false;
                                int n = max;
                                for (final Entry x : msgs.pending) {
-                                   if (0 == n--) { break; }
                                    if (!found) {
                                        if (mid == x.id) {
                                            found = true;
@@ -168,9 +141,10 @@ Pipeline implements Serializable {
                                            continue;
                                        }
                                    }
+                                   if (0 == n--) { break; }
                                    if (q && x.msg instanceof Update) { break; }
                                    if (x.msg instanceof Query) { q = true; }
-                                   msgs.send(x);
+                                   send(local, peer, x);
                                }
                                return null;
                            }
@@ -181,8 +155,8 @@ Pipeline implements Serializable {
         });
     }
     
-    @SuppressWarnings("unchecked") private void
-    send(final Entry x) {
+    @SuppressWarnings("unchecked") static private void
+    send(final Root local, final String peer, final Entry x) {
         Promise<Request> rendered;
         try {
             rendered = Fulfilled.ref(x.msg.send());
@@ -193,7 +167,6 @@ Pipeline implements Serializable {
         final Server client = (Server)local.fetch(null, Remoting.client);
         final Loop<Effect> effect = (Loop)local.fetch(null, Root.effect);
         final Model model = (Model)local.fetch(null, Root.model);
-        final String peer = this.peer;
         final int mid = x.id;
         effect.run(new Effect() {
            public void
@@ -243,6 +216,7 @@ Pipeline implements Serializable {
                         (Outbound)local.fetch(null, AMP.outbound);
                     final Pipeline msgs = outbound.find(peer);
                     final Message respond = msgs.dequeue(mid);
+                    if (null == respond) { return null; }
                     Response value;
                     try {
                         value = response.cast();
