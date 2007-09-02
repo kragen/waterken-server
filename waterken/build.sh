@@ -1,5 +1,7 @@
 #!/bin/sh
 
+mkdir -p db
+touch db/.persistent-object-store
 (cd joe-e/; ./build.sh $@)
 (cd ref_send/; ./build.sh $@)
 (cd example/; ./build.sh $@)

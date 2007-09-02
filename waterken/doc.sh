@@ -8,10 +8,10 @@ fi
 if [ "$1" = 'ref_send' ]
 then
     NAME="ref_send"
-    VERSION="1.2"
+    VERSION="1.3"
 else
     NAME="waterken server"
-    VERSION="4.10"
+    VERSION="4.11"
     if [ "$OS" = 'Windows_NT' ]
     then
         SRC="$SRC;network\src;web_send\src;persistence\src;remote\src;server\src"
@@ -40,7 +40,7 @@ javadoc \
     -group 'Pass-By-Construction' 'org.ref_send' \
     -group 'Eventual Control Flow' 'org.ref_send.promise*' \
     -group 'Example Applications' \
-        'org.waterken.bang:org.waterken.factorial:org.waterken.serial:org.ref_send.test' \
+        'org.waterken.bang:org.waterken.factorial:org.waterken.put:org.waterken.serial:org.ref_send.test' \
     -group 'Collection' 'org.joe_e.array:org.ref_send.list' \
     -group 'Reflection' 'org.joe_e.reflect:org.ref_send.type' \
     -group 'I/O' 'org.joe_e.charset:org.joe_e.file' \
