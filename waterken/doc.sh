@@ -8,15 +8,15 @@ fi
 if [ "$1" = 'ref_send' ]
 then
     NAME="ref_send"
-    VERSION="1.3"
+    VERSION="1.4"
 else
     NAME="waterken server"
-    VERSION="4.11"
+    VERSION="4.12"
     if [ "$OS" = 'Windows_NT' ]
     then
-        SRC="$SRC;network\src;web_send\src;persistence\src;remote\src;server\src"
+        SRC="$SRC;network\src;web_send\src;persistence\src;remote\src;dns\src;server\src"
     else
-        SRC="$SRC:network/src:web_send/src:persistence/src:remote/src:server/src"
+        SRC="$SRC:network/src:web_send/src:persistence/src:remote/src:dns/src:server/src"
     fi
 fi
 SLOGAN='defensive programming in Java'

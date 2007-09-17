@@ -9,4 +9,5 @@ touch db/.persistent-object-store
 (cd web_send/; ./build.sh $@)
 (cd persistence/; ./build.sh $@)
 (cd remote/; ./build.sh $@)
+(cd dns/; ./build.sh $@)
 (cd server/; ./build.sh $@)

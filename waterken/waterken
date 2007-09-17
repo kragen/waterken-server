@@ -10,7 +10,7 @@ test -x $DAEMON || exit 0
 test -r "$HOME$JAR" || exit 0
 
 # Build the command.
-START="--start --background --make-pidfile --pidfile /var/run/waterken.pid --chdir $HOME --startas $DAEMON -- -jar $JAR max-age=3600 http=80 https=443"
+START="--start --background --make-pidfile --pidfile /var/run/waterken.pid --chdir $HOME --startas $DAEMON -- -jar $JAR max-age=3600 dns=53 http=80 https=443"
 STOP="--stop --oknodo --pidfile /var/run/waterken.pid"
 
 # The action starts here.

@@ -8,4 +8,5 @@ rm -rf javadoc/
 (cd web_send/; ./clean.sh $@)
 (cd persistence/; ./clean.sh $@)
 (cd remote/; ./clean.sh $@)
+(cd dns/; ./clean.sh $@)
 (cd server/; ./clean.sh $@)
