@@ -1,0 +1,7 @@
+
+ByteArrayOutputStream()
+ByteArrayOutputStream(int)
+size()
+toByteArray()
+write(byte[], int, int)
+write(int)
