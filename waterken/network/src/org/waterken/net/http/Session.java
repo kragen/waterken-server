@@ -5,6 +5,7 @@ package org.waterken.net.http;
 import static org.joe_e.array.PowerlessArray.array;
 import static org.ref_send.promise.Fulfilled.ref;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -27,7 +28,7 @@ import org.waterken.uri.URI;
 /**
  * An HTTP protocol server session.
  */
-public final class
+final class
 Session implements Task {
 
     private final String scheme;
@@ -43,21 +44,17 @@ Session implements Task {
      * implementation further attempts to not give the remote client a DOS force
      * multiplier.
      * </p>
-     * <p>
-     * The caller is responsible for closing the socket.
-     * </p>
      * @param scheme    URL scheme, trusted to be the correct scheme identifier
      * @param server    HTTP server, untrusted
      * @param socket    connection socket, trusted to behave like a socket, but
      *                  not trusted to be connected to a trusted HTTP client
      */
-    public
     Session(final String scheme, final Server server,
-            final Socket socket, final Execution thread) {
+            final Execution thread, final Socket socket) {
         this.scheme = scheme;
         this.server = server;
-        this.socket = socket;
         this.thread = thread;
+        this.socket = socket;
     }
 
     // org.ref_send.promise.eventual.Task interface
@@ -151,7 +148,11 @@ Session implements Task {
                 : URI.resolve(scheme + "://" + host + "/", requestURI);
 
                 // process the request
-                server.serve(resource, ref(request), respond);
+                try {
+                    server.serve(resource, ref(request), respond);
+                } catch (final FileNotFoundException e) {
+                    respond.reject(Failure.gone);
+                }
             } catch (final TooMuchData e) {
                 done = true;
                 current.setClosing();

@@ -5,6 +5,7 @@ package org.waterken.jos;
 import static org.joe_e.file.Filesystem.file;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -110,13 +111,14 @@ JODB extends Model {
         }
 
         // find the cached classloader
-        final URL url = new File(project + File.separator +
-                                 "bin" + File.separator).toURI().toURL();
         synchronized (jars) {
             final SoftReference<ClassLoader> sr = jars.get(project);
             ClassLoader r = null != sr ? sr.get() : null;
             if (null == r) {
-                r = new URLClassLoader(new URL[] { url });
+                final File bin = new File(
+                    project + File.separator + "bin" + File.separator);
+                if (!bin.isDirectory()) { throw new IOException("no classes"); }
+                r = new URLClassLoader(new URL[] { bin.toURI().toURL() });
                 jars.put(project, new SoftReference<ClassLoader>(r));
             }
             return r;
@@ -137,30 +139,6 @@ JODB extends Model {
                 }
             }
         }
-    }
-    
-    /**
-     * Creates a new model.
-     * @param parent    parent model identifier
-     * @param name      new model name
-     * @param project   corresponding project name
-     * @return new model identifier
-     * @throws Exception    any problem
-     */
-    static public File
-    create(final File parent, final String name,
-           final String project) throws Exception {
-        JODB.connect(parent).enter(change, new Transaction<Void>() {
-            public Void
-            run(final Root local) throws Exception {
-                final Creator create = (Creator)local.fetch(null, Root.create);
-                return create.run(name, new Transaction<Void>() {
-                    public Void
-                    run(final Root local) { return null; }
-                }, project);
-            }
-        });
-        return file(parent, name);
     }
 
     /**
@@ -294,7 +272,7 @@ JODB extends Model {
     private <R> Promise<R>
     process(final boolean extend, final Transaction<R> body) throws Exception {
         // Is the current transaction still active?
-        final boolean[] active = new boolean[] { true };
+        final boolean[] active = { true };
 
         // Setup tables to keep track of what's been loaded from disk
         // and what needs to be written out to disk.
@@ -530,7 +508,7 @@ JODB extends Model {
                 xxx.add(key);
             }
         };
-        final boolean[] scheduled = new boolean[] { false };
+        final boolean[] scheduled = { false };
         final Loop<Task> enqueue = new Loop<Task>() {
             @SuppressWarnings("unchecked") public void
             run(final Task task) {
@@ -574,7 +552,7 @@ JODB extends Model {
                 });
             }
         };
-        final boolean[] modified = new boolean[] { false };
+        final boolean[] modified = { false };
         final File pending = file(folder, ".pending");
         final Creator create = new Creator() {
             public <T> T
@@ -585,20 +563,25 @@ JODB extends Model {
                 if (null == project || "".equals(project)) {
                     throw new NullPointerException();
                 }
+                if (name.startsWith(".")) { throw new RuntimeException(); }
 
                 if (!modified[0]) {
                     if (!pending.mkdir()) { throw new Error(); }
                     modified[0] = true;
                 }
+                final String key = name.toLowerCase();
+                if (file(folder, "." + key + ".was").isFile()) {
+                    throw new RuntimeException();
+                }
                 try {
-                    final String key = name.toLowerCase();
-                    if (file(folder, "." + key + ".was").isFile()) {
-                        throw new IOException();
-                    }
                     if (!file(pending, "." + key + ".was").createNewFile()) {
-                        throw new IOException();
+                        throw new RuntimeException();
                     }
-                    final File sub = file(pending, key);
+                } catch (final IOException e) {
+                    throw new ModelError(e);
+                }
+                final File sub = file(pending, key);
+                try {
                     if (!sub.mkdir()) { throw new IOException(); }
                     OutputStream out =
                         Filesystem.writeNew(file(sub, Root.project + ext));
@@ -621,12 +604,12 @@ JODB extends Model {
         };
 
         // Setup the pseudo-persistent objects.
-        final String[] name = new String[] {
+        final String[] name = {
             Root.nothing, Root.code, Root.prng, Root.heap,
             ".root", Root.enqueue, Root.effect, Root.destruct,
             Root.model, Root.create
         };
-        final Object[] value = new Object[] {
+        final Object[] value = {
             null, code, prng, loader,
             root, enqueue, effect, destruct,
             this, create
@@ -652,8 +635,9 @@ JODB extends Model {
         }
         
         // Check that the model has not been destructed.
-        if (Boolean.TRUE.equals(root.fetch(false, dead))) {
-            throw new IOException("dead");
+        if (!folder.isDirectory() ||
+                Boolean.TRUE.equals(root.fetch(false, dead))) {
+            return new Rejected<R>(new FileNotFoundException());
         }
 
         // Execute the transaction body.
@@ -712,7 +696,7 @@ JODB extends Model {
         } else {
             // No modifications were made, so just make sure all the reads
             // had valid state available.
-            if (!folder.isDirectory()) { throw new IOException("dead"); }
+            if (!folder.isDirectory()) { throw new FileNotFoundException(); }
         }
 
         // Run all the pending effects.
@@ -836,7 +820,7 @@ JODB extends Model {
     }
 
     /**
-     * Bit mask for turning an int into a long.
+     * bit mask for turning an int into a long
      */
     static private final long intBits = (1L << Integer.SIZE) - 1;
 

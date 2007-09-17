@@ -35,7 +35,7 @@ Fulfilled<T> implements Promise<T>, Selfless, Serializable {
      * @return promise that {@linkplain #cast refers} to the <code>value</code>,
      *         or <code>null</code> if <code>value</code> is <code>null</code>
      */
-    static public <T> Promise<T>
+    static public <T> Fulfilled<T>
     ref(final T value) { return null != value ? new Inline<T>(value) : null; }
 
     /**

@@ -1,4 +1,4 @@
-// Copyright 2002-2006 Waterken Inc. under the terms of the MIT X license
+// Copyright 2002-2007 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.uri;
 
@@ -19,7 +19,7 @@ Base32 {
      * @return base32 encoding
      */
     static public String
-    encode(byte[] bytes) {
+    encode(final byte[] bytes) {
         final StringBuilder r = new StringBuilder(bytes.length * 8 / 5 + 1);
         int buffer = 0;
         int bufferSize = 0;
@@ -50,21 +50,28 @@ Base32 {
      */
     static public byte[]
     decode(final String chars) throws InvalidBase32 {
-        final byte[] r = new byte[chars.length() * 5 / 8];
+        final int end = chars.length();
+        byte[] r = new byte[end * 5 / 8];
         int buffer = 0;
         int bufferSize = 0;
         int j = 0;
-        for (int i = 0; i != chars.length(); ++i) {
-            buffer <<= 5;
-            buffer |= locate(chars.charAt(i));
-            bufferSize += 5;
-            if (bufferSize >= 8) {
-                bufferSize -= 8;
-                r[j++] = (byte)(buffer >>> bufferSize);
+        for (int i = 0; i != end; ++i) {
+            final char c = chars.charAt(i);
+            if ('-' != c) {
+                buffer <<= 5;
+                buffer |= locate(c);
+                bufferSize += 5;
+                if (bufferSize >= 8) {
+                    bufferSize -= 8;
+                    r[j++] = (byte)(buffer >>> bufferSize);
+                }
             }
         }
         if (0 != (buffer & ((1 << bufferSize) - 1))) {
             throw new InvalidBase32();
+        }
+        if (r.length != j) {
+            System.arraycopy(r, 0, r = new byte[j], 0, j);
         }
         return r;
     }
@@ -73,11 +80,15 @@ Base32 {
     locate(final char c) throws InvalidBase32 {
         return 'a' <= c && 'z' >= c
             ? c - 'a'
-        : ('A' <= c && 'Z' >= c
-            ? c - 'A'
         : ('2' <= c && '7' >= c
             ? 26 + (c - '2')
-        : invalid()));
+        : ('A' <= c && 'Z' >= c
+            ? c - 'A'
+        : ('0' == c
+            ? 'o' - 'a'
+        : ('1' == c
+            ? 'l' - 'a'
+        : invalid()))));
     }
 
     static private int

@@ -1,28 +1,22 @@
 // Copyright 2007 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.put;
+package org.waterken.bounce;
 
-import static org.ref_send.Slot.var;
-import static org.ref_send.promise.Fulfilled.ref;
-import static org.ref_send.test.Logic.and;
 import static org.ref_send.test.Logic.was;
 
 import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
-import org.ref_send.Variable;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.test.Test;
 
 /**
- * @author tyler
- *
+ * An argument passing test.
  */
 public final class
 Main extends Struct implements Test, Serializable {
@@ -68,30 +62,28 @@ Main extends Struct implements Test, Serializable {
      * Starts a {@link #test test}.
      */
     public Promise<Boolean>
-    start() throws Exception { return test(subject(), (byte)0); }
+    start() { return test(subject()); }
     
-    // org.waterken.put.Main interface
+    // org.waterken.bang.Main interface
     
     /**
      * Creates a new test subject.
      */
-    public Variable<Volatile<Byte>>
-    subject() {
-        final Volatile<Byte> zero = ref((byte)0);
-        return var(zero);
-    }
+    public Wall
+    subject() { return Bounce.make(); }
     
     /**
-     * Tests a {@link Variable}.
+     * Tests a {@link Wall}.
      * @param x test subject
-     * @param n initial {@link Variable#get value}
      */
     public Promise<Boolean>
-    test(final Variable<Volatile<Byte>> x, final Byte n) throws Exception {
-        final Variable<Volatile<Byte>> x_ = _._(x);
-        final Promise<Boolean> zero = _.when(x_.get(), was(n));
-        x_.put(ref((byte)1));
-        final Promise<Boolean> one = _.when(x_.get(), was((byte)1));
-        return and(_, zero, one);
+    test(final Wall x) {
+        final Wall x_ = _._(x);
+        final AllTypes a = new AllTypes(
+            true, Byte.MAX_VALUE, '?',
+            Double.MAX_VALUE, Float.MAX_VALUE,
+            Integer.MAX_VALUE, Long.MAX_VALUE, Short.MAX_VALUE,
+            "Hello World!");
+        return _.when(x_.bounce(a), was(a));
     }
 }

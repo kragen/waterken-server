@@ -75,7 +75,7 @@ JSONParser {
             }
         };
         push(done);
-        final ConstArray[] root = new ConstArray[] { null };
+        final ConstArray[] root = { null };
         push(parseStart(parameters, new Do<ConstArray<?>,Void>() {
             public Void
             fulfill(final ConstArray<?> referent) {
@@ -166,7 +166,7 @@ JSONParser {
             run(final char c) throws Exception {
                 switch (c) {
                 case '\"':
-                    to(parseString(out));
+                    to(parseString(implicit, out));
                     break;
                 case '{':
                     to(parseObject(implicit, out));
@@ -259,9 +259,9 @@ JSONParser {
                     pop();
                     out.fulfill(Reflection.construct(make, argv));
                 } else if ('\"' == c) {
-                    push(parseString(new Do<String,Void>() {
+                    push(parseString(String.class, new Do<Object,Void>() {
                         public Void
-                        fulfill(final String name) throws Exception {
+                        fulfill(final Object name) throws Exception {
                             if ("$".equals(name)) {
                                 if (null != actual) { throw new Exception(); }
                                 push(parseContinuation('}'));
@@ -455,6 +455,10 @@ JSONParser {
                         out.fulfill(Short.parseShort(text));
                     } else if (BigInteger.class == implicit) {
                         out.fulfill(new BigInteger(text));
+                    } else if (double.class==implicit||Double.class==implicit) {
+                        out.fulfill(Double.valueOf(text));
+                    } else if (float.class==implicit || Float.class==implicit) {
+                        out.fulfill(Float.valueOf(text));
                     } else if (BigDecimal.class == implicit) {
                         out.fulfill(new BigDecimal(text));
                     } else {
@@ -497,6 +501,7 @@ JSONParser {
                     } else {
                         out.fulfill(new BigDecimal(text));
                     }
+                    current().run(c);
                 }
             }
         };
@@ -519,14 +524,19 @@ JSONParser {
     }
     
     private State
-    parseString(final Do<? super String,?> out) {
+    parseString(final Type implicit, final Do<Object,?> out) {
         final StringBuilder buffer = new StringBuilder();
         return new State() {
             public void
             run(final char c) throws Exception {
                 if ('\"' == c) {
                     pop();
-                    out.fulfill(buffer.toString());
+                    if (char.class == implicit || Character.class == implicit) {
+                        if (1 != buffer.length()) { throw new Exception(); }
+                        out.fulfill(buffer.charAt(0));
+                    } else {
+                        out.fulfill(buffer.toString());
+                    }
                 } else if ('\\' == c) {
                     push(parseEscape(buffer));
                 } else {

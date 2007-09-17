@@ -6,16 +6,16 @@ import static org.joe_e.file.Filesystem.file;
 import static org.waterken.io.MediaType.MIME;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
+import java.net.DatagramSocket;
 import java.net.ServerSocket;
-import java.net.Socket;
 
+import org.waterken.dns.udp.NameServer;
 import org.waterken.http.Server;
 import org.waterken.http.mirror.Mirror;
 import org.waterken.http.trace.Trace;
 import org.waterken.jos.JODB;
-import org.waterken.net.http.Session;
+import org.waterken.net.http.HTTPD;
 import org.waterken.remote.http.AMP;
 import org.waterken.remote.mux.Mux;
 
@@ -46,7 +46,7 @@ Serve {
         int maxAge = 0;
         int soTimeout = 60 * 1000;
         if (args.length == 0) {
-            // The default arguments if none are specified.
+            // the default arguments if none are specified
             if (keys.isFile()) {
                 args = new String[] { "http=80", "https=443" };
             } else {
@@ -87,59 +87,30 @@ Serve {
             final String protocol = service.substring(0, eq);
             final int portNumber = Integer.parseInt(service.substring(eq + 1));
 
-            final ServerSocket port;
+            final Runnable listener;
             if ("http".equals(protocol)) {
                 Proxy.protocols.put("http", Loopback.client(80));
-                port = new ServerSocket(portNumber, backlog, Loopback.addr);
+                listener = new TCP(err, new ThreadGroup(service), "http",
+                    HTTPD.make("http", server, Proxy.thread), soTimeout,
+                    new ServerSocket(portNumber, backlog, Loopback.addr));
             } else if ("https".equals(protocol)) {
                 final Credentials credentials=SSL.keystore("TLS",keys,"nopass");
                 Proxy.protocols.put("https", SSL.client(443, credentials));
-                port = credentials.getContext().getServerSocketFactory().
-                            createServerSocket(portNumber, backlog);
+                listener = new TCP(err, new ThreadGroup(service), "https",
+                    HTTPD.make("https", server, Proxy.thread), soTimeout,
+                    credentials.getContext().getServerSocketFactory().
+                        createServerSocket(portNumber, backlog));
+            } else if ("dns".equals(protocol)) {
+                listener = new UDP(err, "dns",
+                    NameServer.make(file(db, "dns")),
+                    new DatagramSocket(portNumber));
             } else {
                 err.println("Unrecognized protocol: " + protocol);
                 return;
             }
 
-            // Run the corresponding protocol.
-            final ThreadGroup threads = new ThreadGroup(service);
-            final int soTimeoutX = soTimeout;
-            new Thread(new Runnable() {
-                private long count = 0;
-                
-                public void
-                run() {
-                    err.println("Running " + protocol +
-                                " at " + port.getLocalSocketAddress() + " ...");
-                    while (true) {
-                        final Socket socket;
-                        try {
-                            socket = port.accept();
-                        } catch (final IOException e) {
-                            // Something strange happened.
-                            e.printStackTrace();
-                            continue;
-                        }
-                        final String name = "" + count++;
-                        new Thread(threads, new Runnable() {
-                            public void
-                            run() {
-                                final String prefix = service + "." + name;
-                                try {
-                                    err.println(prefix + ": processing...");
-                                    socket.setSoTimeout(soTimeoutX);
-                                    new Session(protocol, server,
-                                                socket, Proxy.thread).run();        
-                                } catch (final Exception e) {
-                                    err.println(prefix + ": " + e.getMessage());
-                                } finally {
-                                    try {socket.close();} catch (Exception e) {}
-                                }
-                            }
-                        }, name).start();
-                    }
-                }
-            }, service).start();
+            // run the corresponding daemon
+            new Thread(listener, service).start();
         }
     }
 }

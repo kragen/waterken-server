@@ -30,7 +30,7 @@ Mux {
     static public final String dbPathPrefix = JODB.dbDirName + "/";
     
     /**
-     * Constructs a <code>Mux</code>.
+     * Constructs an instance.
      * @param db        persistence directory
      * @param remoting  remoting protocol
      * @param next      default server
@@ -57,7 +57,7 @@ Mux {
                         folder = Filesystem.file(folder, name);
                     }
 
-                    // Check that folder still exists.
+                    // check that folder still exists
                     if (!folder.isDirectory()) {
                         respond.reject(Failure.gone);
                         return;

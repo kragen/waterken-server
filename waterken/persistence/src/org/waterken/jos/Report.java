@@ -59,7 +59,7 @@ Report {
             // Determine the type of object stored in the file.
             String typename;
             try {
-                final Class[] type = new Class[] { Void.class };
+                final Class[] type = { Void.class };
                 final SubstitutionStream in = new SubstitutionStream(true,
                         code, Filesystem.read(file)) {
                     protected Object

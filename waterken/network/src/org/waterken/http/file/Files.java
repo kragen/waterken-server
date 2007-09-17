@@ -61,6 +61,12 @@ Files {
                     return;
                 }
 
+                // Check that folder still exists.
+                if (!folder.isDirectory()) {
+                    respond.reject(Failure.gone);
+                    return;
+                }
+
                 // We made it to the final processor, so bounce a TRACE.
                 if ("TRACE".equals(request.method)) {
                     respond.fulfill(new Response(
@@ -69,12 +75,6 @@ Files {
                             new Header("Content-Type",
                                        "message/http; charset=iso-8859-1")
                         ), request));
-                    return;
-                }
-
-                // Check that folder still exists.
-                if (!folder.isDirectory()) {
-                    respond.reject(Failure.gone);
                     return;
                 }
 

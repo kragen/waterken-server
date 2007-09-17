@@ -61,7 +61,7 @@ Caller extends Struct implements Messenger, Serializable {
         _ = (Eventual)local.fetch(null, Remoting._);
     }
 
-    // org.waterken.remote.Messenger interface
+    // org.waterken.remote.http.Messenger interface
 
     /**
      * {@link Do} block parameter type

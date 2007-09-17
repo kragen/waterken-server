@@ -10,7 +10,7 @@ import org.ref_send.deserializer;
  * Signals an identifier collision.
  */
 public class
-Collision extends Exception implements Powerless, Record {
+Collision extends RuntimeException implements Powerless, Record {
     static private final long serialVersionUID = 1L;
 
     /**

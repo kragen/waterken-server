@@ -14,7 +14,6 @@ import java.lang.reflect.Method;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
-import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
@@ -102,19 +101,7 @@ Java {
             final Class declarer = load(code, typename);
             if (-1 == dash) { return declarer; }
             final String p = name.substring(dash + "--".length());
-            if (p.equals("new")) {
-                final PowerlessArray<Constructor> c =
-                    Reflection.constructors(declarer);
-                if (c.length() == 1) { return c.get(0); }
-            }
-            try {
-                return Reflection.field(declarer, p);
-            } catch (final NoSuchFieldException e) {}
-            for (final Method m : Reflection.methods(declarer)) {
-                String mn = property(m);
-                if (null == mn) { mn = m.getName(); }
-                if (mn.equals(p)) { return m; }
-            }
+            return (AnnotatedElement)dispatch(declarer, p);
         } catch (final ClassNotFoundException e) {}
         return null;
     }
@@ -148,6 +135,19 @@ Java {
         }
         return r;
     }
+    
+    /**
+     * synthetic modifier
+     */
+    static private final int synthetic = 0x1000;
+    
+    /**
+     * Is the synthetic flag set?
+     * @param flags Java modifiers
+     * @return <code>true</code> if synthetic, else <code>false</code>
+     */
+    static public boolean
+    isSynthetic(final int flags) { return 0 != (flags & synthetic); }
 
     /**
      * Finds a named instance member.
@@ -157,19 +157,25 @@ Java {
      */
     static public Member
     dispatch(final Class<?> type, final String name) {
+        Member r = null;
         for (final Method m : Reflection.methods(type)) {
-            if (!isStatic(m.getModifiers())) {
+            final int flags = m.getModifiers();
+            if (!isStatic(flags) && !isSynthetic(flags)) {
                 String mn = property(m);
                 if (null == mn) {
                     mn = m.getName();
                 }
                 if (name.equals(mn)) {
-                    final Method r = bubble(m.getName(), m.getParameterTypes(),
+                    final Method c = bubble(m.getName(), m.getParameterTypes(),
                                             m.getDeclaringClass(), m);
-                    if (null != r) { return r; }
+                    if (null != c) {
+                        if (null != r) { return null; }
+                        r = c;
+                    }
                 }
             }
         }
+        if (null != r) { return r; }
         try {
             final Field f = Reflection.field(type, name);
             if (!isStatic(f.getModifiers()) &&

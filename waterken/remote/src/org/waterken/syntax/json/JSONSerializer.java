@@ -305,7 +305,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 }
             }
             for (final Method m : Reflection.methods(actual)) {
-                if (!Modifier.isStatic(m.getModifiers())) {
+                final int flags = m.getModifiers();
+                if (!Modifier.isStatic(flags) && !Java.isSynthetic(flags)) {
                     out.write(separator);
                     out.write(inset);
                     out.write("\"");

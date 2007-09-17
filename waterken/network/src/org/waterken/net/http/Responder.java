@@ -55,7 +55,7 @@ Responder {
 
             public Void
             fulfill(final Response response) throws Exception {
-                if (null == out) { throw new RuntimeException(); }
+                if (null == out) { throw new Exception(); }
                 if (started) { return null; }
                 started = true;
                 try {

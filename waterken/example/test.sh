@@ -8,6 +8,7 @@ fi
 
 echo 'Testing example project...'
 java -classpath $CLASSPATH org.waterken.bang.Main
+java -classpath $CLASSPATH org.waterken.bounce.Main
 java -classpath $CLASSPATH org.waterken.factorial.Main
 java -classpath $CLASSPATH org.waterken.put.Main
 java -classpath $CLASSPATH org.waterken.serial.Main

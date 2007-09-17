@@ -1,3 +1,4 @@
 Powerless
 RuntimeException()
 RuntimeException(java.lang.String)
+RuntimeException(java.lang.Throwable)

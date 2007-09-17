@@ -18,7 +18,7 @@ import org.waterken.remote.mux.Mux;
 import org.waterken.uri.URI;
 
 /**
- * 
+ * Command line program to create a new database.
  */
 final class
 Share {
@@ -27,10 +27,15 @@ Share {
     Share() {}
     
     /**
-     * @param args
+     * @param args  command line arguments
      */
     static public void
     main(String[] args) throws Exception {
+        if (args.length != 3) {
+            System.err.println("use: java -jar share.jar " +
+                "<database-label> <factory-typename> <project-name>");
+            return;
+        }
         
         // extract the arguments
         final String label = args[0];
