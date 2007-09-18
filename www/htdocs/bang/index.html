@@ -32,8 +32,7 @@ function () { return this.toJSONString(); }</span>
 // Turn the URL for the current page into a remote reference</span>
 var page_ = _.connect(window.location.toString())
 <span class="comment">
-// The test page is a factory object for constructing a <a
-// href="http://waterken.sourceforge.net/javadoc/org/waterken/bang/Drum.html">org.waterken.bang.Drum</a>
+// The test page is a factory object for constructing a <a href="../javadoc/org/waterken/bang/Drum.html">org.waterken.bang.Drum</a>
 // object. A Drum is just a counter object that can be incremented. We'll
 // create a new Drum by invoking the factory method.</span>
 var drum_ = page_.post('subject', [])

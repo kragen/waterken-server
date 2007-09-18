@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<head>
+ <title>Waterken Subclipse Setup</title>
+ <link rel="StyleSheet" type="text/css" href="../res/style.css"></link>
+ <link rel="StyleSheet" type="text/css" href="shell.css"></link>
+ <link rel="icon" type="image/gif" href="../res/icon.gif"></link>
+</head>
+<body>
+ <div class="navigation">
+  <a href="../"><img src="../res/icon.gif" width="16" height="16" border="0" alt="home"></img></a>
+  <span class="heading">&rarr; Subclipse Setup</span>
+ </div>
+ <div class="main">
+ <h1>Using Subversion with the Waterken<font size="-1"><sup>TM</sup></font> Server under Eclipse</h1>
+ <h2>Introduction</h2>
+ <p>This tutorial explains how to build a new Eclipse workspace for the
+ Waterken Server with the server code integrated with the Subversion source
+ control system.</p>
+ <p>The Waterken Server uses the Joe-E verifier to ensure that it uses
+ authority in a way that minimizes the risk of breach. This tutorial does not
+ include how to install the Joe-E verifier plugin and to use it to examine
+ your own code for dangerous uses of authority. It does cover installation of
+ the Joe-E files because the Waterken Server uses some Joe-E libraries
+ internally.</p>
+ <h2>Step by step</h2>
+ <h3>Start new workspace for Waterken under Eclipse</h3>
+ <p>Start Eclipse. Go to "File/Switch Workspace/Other". You may want to check
+ "Copy Settings/WorkBench Layout" if you have a custom layout you like.</p>
+ <p>Eclipse will restart with an empty workspace. Click the right-most icon to
+ go to the workspace view.</p>
+ <h3>Configure proxies</h3>
+ <p>If you are working behind a firewall, you may need to configure the proxy
+ in Eclipse. In Eclipse 3.2, go to "Window/Preferences/Install_Update" and
+ configure the proxy hostname and port. Under Eclipse 3.3, go to
+ "Window/Preferences/General/Network Connection".</p>
+ <p>Reboot Eclipse if you had to set a proxy.</p>
+ <h3>Install Subversion plugin into Eclipse</h3>
+ <p>The Subclipse development team has an excellent
+ <a href="http://subclipse.tigris.org/install.html">step by step description</a>
+ of installing their plugin at their site.</p>
+ <ol>
+  <li>Click "Help/software Updates/Find and Install.../Search" for new features
+      to install. Click "Next".</li>
+  <li>Click "New Remote Site". In the dialog, use name "Subclipse", URL
+      <code>&lt;http://subclipse.tigris.org/update_1.2.x&gt;</code></li>
+  <li>Select the Subclipse plugin and its subcomponents (you do not need the
+      Integrations subcomponent).</li>
+  <li>Click ok to the rest of the stuff: the license agreement, the "Finish",
+      the "Go Ahead Even though Nobody Put a Silly Signature on the Code"
+      button.</li>
+  <li>Reboot Eclipse.</li>
+ </ol>
+ <h3>Yet another proxy setting</h3>
+ <p>Subversion has its own place to look for proxy settings. Now that you have
+ installed the plugin, the subversion software itself has been automagically
+ installed. It needs its proxy settings configured as well. Find the "servers"
+ file, in Windows it can be found in your Application Data folder under
+ Subversion. In Linux, it can be found in <code>~/.subversion</code>.</p>
+ <p>In the servers file, go to the <code>[global]</code> section. Find the two
+ lines (they show up in other sections as well, do not set the wrong
+ ones!),</p>
+<pre>
+# http-proxy-host = proxy2.some-domain-name.com
+# http-proxy-port = 9000
+</pre>
+ <p>Remove the # at the beginning of the line, and put in the proxy info.</p>
+ <h3>Enter the Waterken repository</h3>	
+ <ol>
+  <li>Go to "Window/Open Perspective/ Other/ SVN Repository"</li>
+  <li>Right-click in the "SVN Repos" tab, click "New", enter the Waterken
+      Server repository:
+      <code>&lt;https://waterken.svn.sourceforge.net/svnroot/waterken/server/trunk/waterken&gt;</code>.
+      Click "Next".</li>
+  <li>Disregard the certificate warning, (i.e., click "ok, accept permanently").</li>
+ </ol>
+ <h3>Build the development environment</h3>
+ <ol>
+  <li>In the Subversion tab you should now have the waterken repository
+  listed. This brings you to all the individual project folders.</li>
+  <li>For each folder, right-click and choose "Checkout.../Checkout as a
+  project in the Workspace/Finish". Check them out in the following order (the
+  order is not important unless you try to do test-compiles during the
+  checkout process, the order is the order of compiler dependencies):</li>
+  <ol>
+   <li>joe-e</li>
+   <li>ref_send</li>
+   <li>example</li>
+   <li>persistence</li>
+   <li>network</li>
+   <li>web_send</li>
+   <li>remote</li>
+   <li>dns</li>
+   <li>server</li>
+  </ol>
+  <li>At this point, you should have all the sources for the Waterken Server
+      installed.  Switch from the Repository view to the Java view, and run
+      "Project/Clean..." to ensure it all builds.</li>
+  <li>Go back into the Subversion view and checkout the www folder 
+      <i>just underneath the web_send folder</i>.  This is not a source
+      folder, so you get additional dialogs. Simply choose "Checkout as a
+      Project in the Workspace". Click "Finish".</li>
+ </ol>
+ <h3>Updating from the repository</h3>
+ <p>To update, in the Java view, select the folders you want to sync/update,
+ right-click, choose "Team/Update". This makes all the setup effort worth it,
+ right?</p>
+ <h3>Running the Waterken Server </h3>
+ <p>To run the server under Eclipse, you need to configure the Run or Debug
+ window.  Click "Debug/Open Debug Window... Debug as a Java Application",
+ "Name" is "serve", "Main Project" is "server", "Main Class" is
+ "org.waterken.server.Serve". Go to the "Arguments" tab, set "Working
+ Directory" to "Other", click "Variables", choose "workspace_loc".  Press
+ "Debug". You should see server messages appearing in the Console. Open a
+ browser on <a href="http://localhost:8080/">http://localhost:8080/</a> to see
+ the welcome message from the server.</p>
+ <p>Congratulations! You are now on your own.</p>
+ </div>
+ <p class="footer">
+  <span class="comment">by Marc Stiegler, September 17th, 2007</span>
+ </p>
+</body>
+</html>
