@@ -13,9 +13,11 @@ Host {
     /**
      * Creates a new model.
      * <p>
-     * The <code>factory</code> class must have a method with signature:
-     * <code>static public T build({@link Framework} framework)</code>
-     * </p>
+     * The factory class specified by the given<code>typename</code> must have
+     * a method with signature:</p>
+     * <p><code>static public T build({@link Framework} framework)</code></p>
+     * <p>or, a public constructor with signature:</p>
+     * <p><code>T({@link Eventual} _)</code></p>
      * @param <T> exported object type
      * @param label     model label
      * @param typename  object factory typename
