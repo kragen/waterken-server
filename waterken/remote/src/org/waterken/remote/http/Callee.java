@@ -194,11 +194,10 @@ Callee extends Struct implements Server, Serializable {
         
         // to avoid proxying, strip down to a near reference
         final Object target;
-        final Volatile<?> pTarget = Eventual.promised(subject);
-        if (pTarget instanceof Fulfilled) {
+        try {
             // AUDIT: call to untrusted application code
-            target = ((Fulfilled)pTarget).cast();
-        } else {
+            target = Eventual.near(subject);
+        } catch (final Exception e) {
             // to preserve message order, force settling of a promise
             respond.reject(Failure.notFound);
             return;
