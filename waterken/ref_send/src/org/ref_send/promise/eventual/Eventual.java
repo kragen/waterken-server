@@ -701,6 +701,19 @@ Eventual implements Equatable, Serializable {
     when(final T reference, final Do<T,R> observer) {
         return when(promised(reference), observer);
     }
+    
+    /**
+     * Gets the corresponding immediate reference.
+     * <p>
+     * This method is the inverse of {@link #_(Object) _}; it gets the
+     * corresponding immediate reference for a given eventual reference.
+     * </p>
+     * @param <T> referent type
+     * @param reference possibly eventual reference for a local referent
+     * @return corresponding immediate reference
+     */
+    static public <T> T
+    near(final T reference) {return ((Fulfilled<T>)promised(reference)).cast();}
 
     /**
      * Gets the corresponding {@linkplain Volatile promise}.
