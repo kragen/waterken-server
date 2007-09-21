@@ -13,6 +13,7 @@ import java.net.SocketAddress;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.Principal;
+import java.security.cert.X509Certificate;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -21,6 +22,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509KeyManager;
 
 import org.joe_e.file.Filesystem;
 import org.waterken.net.Locator;
@@ -47,37 +49,63 @@ SSL {
         class KeystoreX implements Credentials, Serializable {
             static private final long serialVersionUID = 1L;
 
+            private transient String hostname;
             private transient SSLContext context;
+
+            public String
+            getHostname()  throws IOException, GeneralSecurityException {
+                init();
+                return hostname;
+            }
 
             public SSLContext
             getContext() throws IOException, GeneralSecurityException {
+                init();
+                return context;
+            }
+            
+            private void
+            init() throws IOException, GeneralSecurityException {
                 if (null == context) {
 
-                    // Load the key store.
+                    // load the key store
                     final KeyStore keys =
                         KeyStore.getInstance(KeyStore.getDefaultType());
                     final InputStream in = Filesystem.read(file);
                     keys.load(in, passphrase.toCharArray());
                     in.close();
 
-                    // Construct the key managers.
+                    // extract the keys and certs
                     final KeyManagerFactory kmf = KeyManagerFactory.getInstance(
                         KeyManagerFactory.getDefaultAlgorithm());
                     kmf.init(keys, passphrase.toCharArray());
-                    final KeyManager[] km = kmf.getKeyManagers();
+                    final KeyManager[] kms = kmf.getKeyManagers();
 
                     final TrustManagerFactory tmf =
                         TrustManagerFactory.getInstance(
                             TrustManagerFactory.getDefaultAlgorithm());
                     tmf.init(keys);
-                    final TrustManager[] tm = tmf.getTrustManagers();
+                    final TrustManager[] tms = tmf.getTrustManagers();
 
-                    // Build the SSL context.
+                    // build the SSL context
                     final SSLContext c = SSLContext.getInstance(protocol);
-                    c.init(km, tm, null);
+                    c.init(kms, tms, null);
                     context = c;
+                    
+                    // determine the local hostname
+                    for (final KeyManager km : kms) {
+                        if (km instanceof X509KeyManager) {
+                            final X509KeyManager x509 = (X509KeyManager)km;
+                            final X509Certificate[] chain =
+                                x509.getCertificateChain("mykey");
+                            if (null != chain && chain.length > 0) {
+                                hostname = cn(chain[0].
+                                        getSubjectX500Principal());
+                                if (null != hostname) { return; }
+                            }
+                        }
+                    }
                 }
-                return context;
             }
         }
         return new KeystoreX();
@@ -114,7 +142,7 @@ SSL {
                             final SSLSocket r =
                                 (SSLSocket)factory.createSocket(a, port);
 
-                            // Restrict the acceptable ciphersuites.
+                            // restrict the acceptable ciphersuites
                             r.setEnabledCipherSuites(new String[] {
                                 "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
                                 "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
@@ -124,23 +152,15 @@ SSL {
                                 "SSL_RSA_WITH_3DES_EDE_CBC_SHA"
                             });
 
-                            // Verify peer name and requested hostname match.
-                            final Principal peer =
-                                r.getSession().getPeerPrincipal();
-                            final String dn = peer.getName();
-                            final int cn = dn.indexOf("CN=");
-                            if (-1 == cn) { throw new IOException(); }
-                            final int start_cn = cn + "CN=".length();
-                            final int end_cn = dn.indexOf(',', start_cn);
-                            final String name = -1 == end_cn
-                                ? dn.substring(start_cn)
-                                : dn.substring(start_cn, end_cn);
-                            if (!host.equalsIgnoreCase(name)) {
+                            // verify peer name and requested hostname match
+                            final String authenticated =
+                                cn(r.getSession().getPeerPrincipal());
+                            if (!host.equalsIgnoreCase(authenticated)) {
                                 throw new IOException();
                             }
                             return r;
                         } catch (final IOException e) {
-                            reason = e; // Keep trying.
+                            reason = e; // keep trying
                         }
                     }
                     throw reason;
@@ -150,5 +170,20 @@ SSL {
             }
         }
         return new ClientX();
+    }
+    
+    /**
+     * Extracts the CN from a peer.
+     * @param peer  peer to identify
+     * @return CN value, or <code>null</code> if not specified
+     */
+    static private String
+    cn(final Principal peer) {
+        final String dn = peer.getName();
+        final int label = dn.indexOf("CN=");
+        if (-1 == label) { return null; }
+        final int startCN = label + "CN=".length();
+        final int endCN = dn.indexOf(',', startCN);
+        return -1==endCN ? dn.substring(startCN) : dn.substring(startCN, endCN);
     }
 }

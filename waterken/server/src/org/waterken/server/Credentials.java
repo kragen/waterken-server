@@ -12,6 +12,12 @@ import javax.net.ssl.SSLContext;
  */
 interface
 Credentials {
+    
+    /**
+     * Gets the default server hostname.
+     */
+    String
+    getHostname()  throws IOException, GeneralSecurityException;
 
     /**
      * Gets the SSL context.

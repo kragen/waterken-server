@@ -10,5 +10,4 @@ echo 'Building server project...'
 rm -rf bin/
 mkdir -p bin
 javac -classpath $CLASSPATH -d bin/ `find src/ -name '*.java'` $@
-jar cmf SERVE.MF ../serve.jar X.class
-jar cmf SHARE.MF ../share.jar X.class
+./jars.sh

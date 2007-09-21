@@ -3,7 +3,6 @@
 package org.waterken.server;
 
 import java.io.File;
-import java.net.InetAddress;
 
 import org.joe_e.Token;
 import org.ref_send.promise.eventual.Eventual;
@@ -47,11 +46,9 @@ Share {
         final File keys = new File(home, "keys.jks");
         final String hereValue;
         if (keys.isFile()) {
-            final InetAddress localhost = InetAddress.getLocalHost();
-            final String host = localhost.getCanonicalHostName();
-            hereValue = (host.equalsIgnoreCase("localhost")
-                ? "http://localhost/"
-                : "https://" + host + "/") + Mux.dbPathPrefix;
+            final Credentials credentials = SSL.keystore("TLS",keys,"nopass");
+            final String host = credentials.getHostname();
+            hereValue = "https://" + host + "/" + Mux.dbPathPrefix;
         } else {
             hereValue = "http://localhost:8080/" + Mux.dbPathPrefix;
         }
