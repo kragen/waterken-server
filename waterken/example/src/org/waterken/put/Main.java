@@ -21,8 +21,7 @@ import org.ref_send.promise.eventual.Task;
 import org.ref_send.test.Test;
 
 /**
- * @author tyler
- *
+ * A {@link Variable} test.
  */
 public final class
 Main extends Struct implements Test, Serializable {
