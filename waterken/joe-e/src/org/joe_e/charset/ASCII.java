@@ -23,7 +23,7 @@ public final class ASCII {
     static public String
     decode(final byte[] buffer, final int off, final int len) {
         try {
-            return new String(buffer, 0, len, "US-ASCII");
+            return new String(buffer, off, len, "US-ASCII");
         } catch (final UnsupportedEncodingException e) {
             // This should never happen, as US-ASCII is a required encoding
             throw new AssertionError("US-ASCII encoding not supported");
