@@ -2,8 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import static org.joe_e.array.ConstArray.array;
-
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
@@ -17,20 +15,18 @@ import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
-import org.waterken.http.Failure;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.id.Importer;
 import org.waterken.id.exports.Exports;
-import org.waterken.io.Content;
 import org.waterken.io.MediaType;
 import org.waterken.io.buffer.Buffer;
+import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Root;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
@@ -42,6 +38,7 @@ import org.waterken.uri.Header;
 import org.waterken.uri.Path;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
+import org.web_send.Entity;
 import org.web_send.graph.Namespace;
 
 /**
@@ -93,12 +90,7 @@ Callee extends Struct implements Server, Serializable {
 
         // made it to the final processor, so bounce a TRACE
         if ("TRACE".equals(request.method)) {
-            respond.fulfill(new Response(
-                "HTTP/1.1", "200", "OK",
-                PowerlessArray.array(
-                    new Header("Content-Type",
-                               "message/http; charset=iso-8859-1")
-                ), request));
+            respond.fulfill(request.trace());
             return;
         }
 
@@ -111,7 +103,7 @@ Callee extends Struct implements Server, Serializable {
             } else if ("".equals(name)) {
                 describe = Serializer.render;   // when block
             } else {
-                respond.reject(Failure.notFound);
+                respond.fulfill(notFound(request.method, forever));
                 return;
             }
             
@@ -126,26 +118,13 @@ Callee extends Struct implements Server, Serializable {
                 object = x;
             }
             if (null == object) {
-                respond.reject(Failure.notFound);
+                respond.fulfill(notFound(request.method, ephemeral));
                 return;
             }
             
-            if ("OPTIONS".equals(request.method)) {
-                respond.fulfill(new Response(
-                    "HTTP/1.1", "204", "OK",
-                    PowerlessArray.array(
-                        new Header("Allow", "TRACE, OPTIONS, GET, HEAD")
-                    ), null));
-                return;
-            }
             if (!("GET".equals(request.method) ||
                   "HEAD".equals(request.method))) {
-                respond.fulfill(new Response(
-                    "HTTP/1.1", "405", "Method Not Allowed",
-                    PowerlessArray.array(
-                        new Header("Allow", "TRACE, OPTIONS, GET, HEAD"),
-                        new Header("Content-Length", "0")
-                    ), null));
+                respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
                 return;
             }
             Object value;
@@ -154,19 +133,13 @@ Callee extends Struct implements Server, Serializable {
                 // AUDIT: call to untrusted application code
                 value = pValue.cast();
             } catch (final NullPointerException e) {
-                respond.reject(Failure.notFound);
+                respond.fulfill(notFound(request.method, ephemeral));
                 return;
             } catch (final Exception e) {
                 value = new Rejected(e);
             }
-            respond.fulfill(new Response(
-                "HTTP/1.1", "200", "OK",
-                PowerlessArray.array(
-                    new Header("Cache-Control", "max-age=" + forever),
-                    new Header("Content-Type", MediaType.json.name)
-                ), "HEAD".equals(request.method)
-                    ? null
-                : serialize(describe, value)));
+            respond.fulfill(serialize(request.method, "200", "OK", forever,
+                                      describe, value));
             return;
         }
         if (null == o && null != s && null != p) {
@@ -175,20 +148,20 @@ Callee extends Struct implements Server, Serializable {
             // implementation below...
         } else {
             // unknown request style
-            respond.reject(Failure.notFound);
+            respond.fulfill(notFound(request.method, forever));
             return;
         }
         
         // check that there is no path name
         if (!"".equals(name)) {
-            respond.reject(Failure.notFound);
+            respond.fulfill(notFound(request.method, forever));
             return;
         }
         
         // determine the invocation target
         final Object subject = exports.use(null, s);
         if (null == subject) {
-            respond.reject(Failure.notFound);
+            respond.fulfill(notFound(request.method, ephemeral));
             return;
         }
         
@@ -199,13 +172,13 @@ Callee extends Struct implements Server, Serializable {
             target = Eventual.near(subject);
         } catch (final Exception e) {
             // to preserve message order, force settling of a promise
-            respond.reject(Failure.notFound);
+            respond.fulfill(notFound(request.method, forever));
             return;
         }
         
         // prevent access to local implementation details
         if (null == target || Java.isPBC(target.getClass())) {
-            respond.reject(Failure.notFound);
+            respond.fulfill(notFound(request.method, forever));
             return;
         }
         
@@ -221,14 +194,8 @@ Callee extends Struct implements Server, Serializable {
                 } catch (final Exception e) {
                     value = new Rejected(e);
                 }
-                respond.fulfill(new Response(
-                    "HTTP/1.1", "200", "OK",
-                    PowerlessArray.array(
-                        new Header("Cache-Control", "max-age=0"),
-                        new Header("Content-Type", MediaType.json.name)
-                    ), "HEAD".equals(request.method)
-                        ? null
-                    : serialize(Serializer.render, value)));
+                respond.fulfill(serialize(request.method, "200", "OK",
+                                          ephemeral, Serializer.render, value));
             } else if ("POST".equals(request.method)) {
                 final String m = Query.arg(null, query, "m");
                 final String pipe = null == m ? null : Exports.pipeline(m);
@@ -246,88 +213,77 @@ Callee extends Struct implements Server, Serializable {
                     }
                     if (null != pipe) { local.store(pipe, value); }
                 }
-                respond.fulfill(new Response(
-                    "HTTP/1.1", "200", "OK",
-                    PowerlessArray.array(
-                        new Header("Content-Type", MediaType.json.name)
-                    ), serialize(Serializer.render, value)));
+                respond.fulfill(serialize(request.method, "200", "OK",
+                                          ephemeral, Serializer.render, value));
             } else {
-                final String allow = null == Java.property(lambda)
-                    ? "TRACE, OPTIONS, POST"
-                : "TRACE, OPTIONS, GET, HEAD";
-                if ("OPTIONS".equals(request.method)) {
-                    respond.fulfill(new Response(
-                        "HTTP/1.1", "204", "OK",
-                        PowerlessArray.array(
-                            new Header("Allow", allow)
-                        ), null));
-                } else {
-                    respond.fulfill(new Response(
-                        "HTTP/1.1", "405", "Method Not Allowed",
-                        PowerlessArray.array(
-                            new Header("Allow", allow),
-                            new Header("Content-Length", "0")
-                        ), null));
-                }
+                respond.fulfill(request.respond(null == Java.property(lambda)
+                    ? "TRACE, OPTIONS, POST" : "TRACE, OPTIONS, GET, HEAD"));
             }
         } else if (member instanceof Field) {
             final boolean mutable = !Modifier.isFinal(member.getModifiers());
             final Field field = (Field)member;
             if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
                 final Object value = Reflection.get(field, target);
-                respond.fulfill(new Response(
-                    "HTTP/1.1", "200", "OK",
-                    PowerlessArray.array(
-                        new Header("Cache-Control",
-                                   "max-age=" + (mutable ? 0 : forever)),
-                        new Header("Content-Type", MediaType.json.name)
-                    ), "HEAD".equals(request.method)
-                        ? null
-                    : serialize(Serializer.render, value)));
+                respond.fulfill(serialize(request.method, "200", "OK",
+                    mutable ? ephemeral : forever, Serializer.render, value));
             } else if ("POST".equals(request.method) && mutable) {
                 final Object value = deserialize(request,
                         PowerlessArray.array(field.getGenericType()));
                 Reflection.set(field, target, value);
-                respond.fulfill(new Response(
-                    "HTTP/1.1", "200", "OK",
-                    PowerlessArray.array(
-                        new Header("Content-Type", MediaType.json.name)
-                    ), serialize(Serializer.render, null)));
+                respond.fulfill(serialize(request.method, "200", "OK",
+                                          ephemeral, Serializer.render, null));
             } else {
-                final String allow = mutable
+                respond.fulfill(request.respond(mutable
                     ? "TRACE, OPTIONS, GET, HEAD, POST"
-                : "TRACE, OPTIONS, GET, HEAD";
-                if ("OPTIONS".equals(request.method)) {
-                    respond.fulfill(new Response(
-                        "HTTP/1.1", "204", "OK",
-                        PowerlessArray.array(
-                            new Header("Allow", allow)
-                        ), null));
-                } else {
-                    respond.fulfill(new Response(
-                        "HTTP/1.1", "405", "Method Not Allowed",
-                        PowerlessArray.array(
-                            new Header("Allow", allow),
-                            new Header("Content-Length", "0")
-                        ), null));
-                }
+                : "TRACE, OPTIONS, GET, HEAD"));
             }
         } else {
-            respond.reject(Failure.notFound);
+            respond.fulfill(notFound(request.method, forever));
         }
     }
     
-    private Content
-    serialize(final boolean describe, final Object value) {
-        return new JSONSerializer().run(describe, Java.bind(ID.bind(
-            Remote.bind(local, Exports.bind(local)))), array(value));        
+    /**
+     * Constructs a 404 response.
+     */
+    private Response
+    notFound(final String method, final int maxAge) {
+        return serialize(method, "404", forever == maxAge ? "never" : "not yet",
+          maxAge, Serializer.render, new Rejected(new NullPointerException()));
+    }
+    
+    private Response
+    serialize(final String method,
+              final String status, final String phrase, final int maxAge,
+              final boolean describe, final Object value) {
+        return value instanceof Entity
+            ? new Response("HTTP/1.1", status, phrase,
+                PowerlessArray.array(
+                    new Header("Cache-Control", "max-age=" + maxAge),
+                    new Header("Content-Type", ((Entity)value).type),
+                    new Header("Content-Length",
+                               "" + ((Entity)value).content.length())
+                ),
+                "HEAD".equals(method)
+                    ? null
+                : new Snapshot(((Entity)value).content))
+        : new Response("HTTP/1.1", status, phrase,
+            PowerlessArray.array(
+                new Header("Cache-Control", "max-age=" + maxAge),
+                new Header("Content-Type", MediaType.json.name)
+            ),
+            "HEAD".equals(method)
+                ? null
+            : new JSONSerializer().run(describe, Java.bind(ID.bind(Remote.bind(
+                local, Exports.bind(local)))), ConstArray.array(value)));        
     }
     
     private ConstArray<?>
     deserialize(final Request request,
                 final PowerlessArray<Type> parameters) throws Exception {
-        if (!MediaType.json.name.equals(request.getContentType())) {
-            throw Failure.unsupported;
+        final String contentType = request.getContentType();
+        if (!MediaType.json.name.equalsIgnoreCase(contentType)) {
+            return ConstArray.array(new Entity(contentType,
+                                               Snapshot.copy(request.body)));
         }
         final String here = (String)local.fetch(null, Remoting.here);
         final ClassLoader code = (ClassLoader)local.fetch(null, Root.code);

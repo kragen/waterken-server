@@ -46,7 +46,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
     /**
      * maximum number of bytes in a message entity
      */
-    static /* package */    final long maxContentSize = 32 * 1024;
+    static /* package */ final long maxContentSize = 64 * 1024;
     
     // org.waterken.remote.Remoting interface
 

@@ -29,6 +29,7 @@ import org.waterken.id.base.Base;
 import org.waterken.id.exports.Exports;
 import org.waterken.io.MediaType;
 import org.waterken.io.buffer.Buffer;
+import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Root;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
@@ -41,6 +42,7 @@ import org.waterken.uri.Authority;
 import org.waterken.uri.Base32;
 import org.waterken.uri.Header;
 import org.waterken.uri.URI;
+import org.web_send.Entity;
 
 /**
  * Client-side of the HTTP web-amp protocol.
@@ -133,17 +135,8 @@ Caller extends Struct implements Messenger, Serializable {
 
             @SuppressWarnings("unchecked") Request
             send() throws Exception {
-                final String target =
-                    URI.resolve(URL, "?p=put&s=" + Exports.key(URL));
-                final String authority = URI.authority(target);
-                final String location = Authority.location(authority);
-                final Buffer content = serialize(target, ConstArray.array(arg));
-                return new Request("HTTP/1.1", "POST", URI.request(target),
-                    PowerlessArray.array(
-                        new Header("Host", location),
-                        new Header("Content-Type", MediaType.json.name),
-                        new Header("Content-Length", "" + content.length)
-                    ), content);
+                return serialize(URI.resolve(URL, "?p=put&s="+Exports.key(URL)),
+                                 ConstArray.array(arg));
             }
 
             public Void
@@ -273,15 +266,7 @@ Caller extends Struct implements Messenger, Serializable {
             send() throws Exception {
                 final String target = URI.resolve(URL, "?p=" +
                     method.getName() + "&s=" + Exports.key(URL) + "&m=" + m);
-                final String authority = URI.authority(target);
-                final String location = Authority.location(authority);
-                final Buffer content = serialize(target, argv);
-                return new Request("HTTP/1.1", "POST", URI.request(target),
-                    PowerlessArray.array(
-                        new Header("Host", location),
-                        new Header("Content-Type", MediaType.json.name),
-                        new Header("Content-Length", "" + content.length)
-                    ), content);
+                return serialize(target, argv);
             }
 
             public Void
@@ -332,12 +317,30 @@ Caller extends Struct implements Messenger, Serializable {
         return r_;
     }
     
-    private Buffer
+    private Request
     serialize(final String target, final ConstArray<?> argv) throws Exception {
-        return Buffer.copy(new JSONSerializer().run(Serializer.render,
-            Java.bind(ID.bind(Base.relative(URI.resolve(target, "."),
-                Base.absolute((String)local.fetch(null, Remoting.here),
-                    Remote.bind(local, Exports.bind(local)))))), argv));
+        final String authority = URI.authority(target);
+        final String location = Authority.location(authority);
+        if (argv.length() == 1 && argv.get(0) instanceof Entity) {
+            final Entity x = (Entity)argv.get(0);
+            return new Request("HTTP/1.1", "POST", URI.request(target),
+                PowerlessArray.array(
+                    new Header("Host", location),
+                    new Header("Content-Type", x.type),
+                    new Header("Content-Length", "" + x.content.length())
+                ), new Snapshot(x.content));        
+        }
+        final Buffer content = Buffer.copy(new JSONSerializer().run(
+            Serializer.render, Java.bind(ID.bind(Base.relative(
+                URI.resolve(target, "."), Base.absolute((String)local.fetch(
+                    null, Remoting.here), Remote.bind(local,
+                        Exports.bind(local)))))), argv));
+        return new Request("HTTP/1.1", "POST", URI.request(target),
+            PowerlessArray.array(
+                new Header("Host", location),
+                new Header("Content-Type", MediaType.json.name),
+                new Header("Content-Length", "" + content.length)
+            ), content);        
     }
     
     @SuppressWarnings("unchecked") private <R> Volatile<R>
@@ -349,10 +352,12 @@ Caller extends Struct implements Messenger, Serializable {
             Java.use(base, code, ID.use(base, Remote.use(local)))); 
         if ("200".equals(response.status) || "201".equals(response.status) ||
             "202".equals(response.status) || "203".equals(response.status)) {
-            if (!MediaType.json.name.equals(response.getContentType())) {
-                return new Rejected<R>(Failure.unsupported);
-            }
             try {
+                final String contentType = response.getContentType();
+                if (!MediaType.json.name.equalsIgnoreCase(contentType)) {
+                    return (Volatile)new Entity(contentType,
+                                                Snapshot.copy(response.body));
+                }
                 return Eventual.promised((R)(new JSONDeserializer().
                     run(base, connect, code,
                         ((Buffer)response.body).open(),
