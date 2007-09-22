@@ -53,7 +53,7 @@ public final class ByteArray extends PowerlessArray<Byte> {
          * @param estimate  estimated array length
          */
         public
-        Generator(int estimate) {
+        Generator(final int estimate) {
             buffer = new byte[0 == estimate ? 32 : estimate];
             size = 0;
         }
