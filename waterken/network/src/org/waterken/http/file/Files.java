@@ -69,12 +69,7 @@ Files {
 
                 // We made it to the final processor, so bounce a TRACE.
                 if ("TRACE".equals(request.method)) {
-                    respond.fulfill(new Response(
-                        "HTTP/1.1", "200", "OK",
-                        PowerlessArray.array(
-                            new Header("Content-Type",
-                                       "message/http; charset=iso-8859-1")
-                        ), request));
+                    respond.fulfill(request.trace());
                     return;
                 }
 
@@ -188,22 +183,10 @@ Files {
                 }
 
                 // Determine the method.
-                if ("OPTIONS".equals(request.method)) {
-                    respond.fulfill(new Response(
-                        "HTTP/1.1", "204", "OK",
-                        PowerlessArray.array(
-                            new Header("Allow", "TRACE, OPTIONS, GET, HEAD")
-                        ), null));
-                    return;
-                }
                 if (!("GET".equals(request.method) ||
                       "HEAD".equals(request.method))) {
-                    respond.fulfill(new Response(
-                        "HTTP/1.1", "405", "Method Not Allowed",
-                        PowerlessArray.array(
-                            new Header("Allow", "TRACE, OPTIONS, GET, HEAD"),
-                            new Header("Content-Length", "0")
-                        ), null));
+                    respond.fulfill(
+                            request.respond("TRACE, OPTIONS, GET, HEAD"));
                     return;
                 }
 

@@ -6,6 +6,8 @@ import java.io.EOFException;
 import java.io.InputStream;
 import java.io.IOException;
 
+import org.joe_e.charset.ASCII;
+
 /**
  * An HTTP line reader.
  * <p>
@@ -53,6 +55,6 @@ LineInput {
         // Strip off any trailing CR.
         while (len != 0 && buffer[len - 1] == '\r') { --len; }
 
-        return new String(buffer, 0, len, "US-ASCII");
+        return ASCII.decode(buffer, 0, len);
     }
 }

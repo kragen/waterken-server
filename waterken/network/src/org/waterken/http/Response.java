@@ -67,8 +67,9 @@ Response extends Struct implements Record, Serializable {
 
     // org.waterken.http.Response interface
 
+    /**
+     * Gets the <code>Content-Type</code>.
+     */
     public String
-    getContentType() {
-        return Header.find("", header, "Content-Type").toLowerCase();
-    }
+    getContentType() { return Header.find(null, header, "Content-Type"); }
 }

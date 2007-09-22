@@ -105,7 +105,7 @@ MediaType implements Powerless, Selfless, Record, Serializable {
      */
     public boolean
     equals(final Object o) {
-        boolean r = null != o && MediaType.class == o.getClass();
+        boolean r = null != o && getClass() == o.getClass();
         if (r) {
             final MediaType x = (MediaType)o;
             r = (null != ext ? ext.equals(x.ext) : null == x.ext) &&
@@ -120,7 +120,8 @@ MediaType implements Powerless, Selfless, Record, Serializable {
      */
     public int
     hashCode() {
-        return (null != ext ? ext.hashCode() : 0) +
+        return 0x313E719E +
+               (null != ext ? ext.hashCode() : 0) +
                (null != name ? name.hashCode() : 0) +
                (null != encoding ? encoding.hashCode() : 0);
     }

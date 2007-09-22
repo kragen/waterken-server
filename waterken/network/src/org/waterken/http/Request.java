@@ -100,8 +100,38 @@ Request extends Struct implements Content, Record, Serializable {
     
     // org.waterken.http.Request interface
 
+    /**
+     * Gets the <code>Content-Type</code>.
+     */
     public String
-    getContentType() {
-        return Header.find("", header, "Content-Type").toLowerCase();
+    getContentType() { return Header.find(null, header, "Content-Type"); }
+    
+    /**
+     * Constructs a <code>TRACE</code> response.
+     */
+    public Response
+    trace() {
+        return new Response("HTTP/1.1", "200", "OK",
+            PowerlessArray.array(
+                new Header("Content-Type", "message/http; charset=iso-8859-1")
+            ), this);
+    }
+    
+    /**
+     * Constructs the default response.
+     * @param allow comma separated list of supported HTTP methods
+     */
+    public Response
+    respond(final String allow) {
+        return "OPTIONS".equals(method)
+            ? new Response("HTTP/1.1", "204", "OK",
+                PowerlessArray.array(
+                    new Header("Allow", allow)
+                ), null)
+        : new Response("HTTP/1.1", "405", "Method Not Allowed",
+            PowerlessArray.array(
+                new Header("Allow", allow),
+                new Header("Content-Length", "0")
+            ), null);
     }
 }

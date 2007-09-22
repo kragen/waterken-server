@@ -5,13 +5,11 @@ package org.waterken.http.trace;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.joe_e.array.PowerlessArray;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
-import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 
 /**
@@ -55,29 +53,11 @@ Trace {
                 if ("TRACE".equals(request.method) ||
                         "GET".equals(request.method) ||
                         "HEAD".equals(request.method)) {
-                    respond.fulfill(new Response(
-                        "HTTP/1.1", "200", "OK",
-                        PowerlessArray.array(
-                            new Header("Content-Type",
-                                       "message/http; charset=iso-8859-1")
-                        ), "HEAD".equals(request.method) ? null : request));
+                    respond.fulfill(request.trace());
                     return;
                 }
 
-                if ("OPTIONS".equals(request.method)) {
-                    respond.fulfill(new Response(
-                        "HTTP/1.1", "204", "OK",
-                        PowerlessArray.array(
-                            new Header("Allow", "TRACE, OPTIONS, GET, HEAD")
-                        ), null));
-                    return;
-                }
-                respond.fulfill(new Response(
-                    "HTTP/1.1", "405", "Method Not Allowed",
-                    PowerlessArray.array(
-                        new Header("Allow", "TRACE, OPTIONS, GET, HEAD"),
-                        new Header("Content-Length", "0")
-                    ), null));
+                respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
             }
         }
         return new ServerX();

@@ -15,6 +15,11 @@ Server {
      * cache-control max-age value for an immutable resource
      */
     int forever = 365 * 24 * 60 * 60;
+    
+    /**
+     * cache-control max-age value for a mutable resource
+     */
+    int ephemeral = 0;
 
     /**
      * Eventually process a request.
