@@ -1,4 +1,4 @@
-// Copyright 2006 Waterken Inc. under the terms of the MIT X license
+// Copyright 2006-2007 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.io.stream;
 
@@ -29,13 +29,24 @@ Stream extends Struct implements Content {
         this.bytes = bytes;
     }
     
-    public void
-    writeTo(final OutputStream out) throws IOException {
+    /**
+     * Copies bytes from a source stream to a destination stream.
+     * @param in    input stream
+     * @param out   output stream
+     * @throws IOException  any I/O problem
+     */
+    static public void
+    copy(final InputStream in, final OutputStream out) throws IOException {
         final byte[] buffer = new byte[chunkSize];
         while (true) {
-            final int n = bytes.read(buffer);
+            final int n = in.read(buffer);
             if (-1 == n) { break; }
             out.write(buffer, 0, n);
         }
     }
+    
+    // org.waterken.io.Content interface
+    
+    public void
+    writeTo(final OutputStream out) throws IOException { copy(bytes, out); }
 }

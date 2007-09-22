@@ -3,6 +3,7 @@
 package org.waterken.server;
 
 import java.io.File;
+import java.io.PrintStream;
 
 import org.joe_e.Token;
 import org.ref_send.promise.eventual.Eventual;
@@ -31,8 +32,11 @@ Share {
     static public void
     main(String[] args) throws Exception {
         if (args.length != 3) {
-            System.err.println("use: java -jar share.jar " +
+            final PrintStream log = System.err;
+            log.println("Creates a new database.");
+            log.println("use: java -jar share.jar " +
                 "<database-label> <factory-typename> <project-name>");
+            System.exit(-1);
             return;
         }
         

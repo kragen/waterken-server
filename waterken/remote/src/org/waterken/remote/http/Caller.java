@@ -354,9 +354,10 @@ Caller extends Struct implements Messenger, Serializable {
             "202".equals(response.status) || "203".equals(response.status)) {
             try {
                 final String contentType = response.getContentType();
-                if (!MediaType.json.name.equalsIgnoreCase(contentType)) {
-                    return (Volatile)new Entity(contentType,
-                                                Snapshot.copy(response.body));
+                if (!MediaType.json.name.equalsIgnoreCase(contentType) ||
+                        Entity.class == R) {
+                    return (Volatile)new Entity(contentType, Snapshot.snapshot(
+                        (int)((Buffer)response.body).length, response.body));
                 }
                 return Eventual.promised((R)(new JSONDeserializer().
                     run(base, connect, code,

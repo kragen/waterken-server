@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.io.snapshot;
 
-import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 
@@ -10,6 +9,7 @@ import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.waterken.io.Content;
+import org.waterken.io.stream.Stream;
 
 /**
  * Fixed binary content.
@@ -32,24 +32,22 @@ Snapshot extends Struct implements Content, Powerless, Serializable {
         this.content = content;
     }
     
+    /**
+     * Creates a snapshot of binary content.
+     * @param estimate  estimated content length
+     * @param stream    binary content to copy
+     */
+    static public ByteArray
+    snapshot(final int estimate, final Content stream) throws Exception {
+        final ByteArray.Generator out = new ByteArray.Generator(estimate);
+        stream.writeTo(out);
+        return out.snapshot();
+    }
+    
     // org.waterken.io.Content interface
-
-    // TODO: suggest changes to ByteArray interface to reduce copying
     
     public void
     writeTo(final OutputStream out) throws Exception {
-        out.write(content.toByteArray());
-    }
-    
-    // org.waterken.io.snapshot.Snapshot interface
-    
-    /**
-     * Creates a snapshot of binary content.
-     */
-    static public ByteArray
-    copy(final Content stream) throws Exception {
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        stream.writeTo(out);
-        return ByteArray.array(out.toByteArray());
+        Stream.copy(content.open(), out);
     }
 }

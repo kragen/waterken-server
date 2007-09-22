@@ -12,7 +12,7 @@ import org.ref_send.promise.Promise;
 /**
  * A MIME entity.
  */
-public class
+public final class
 Entity implements Promise<Entity>, Powerless, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
 
@@ -46,7 +46,7 @@ Entity implements Promise<Entity>, Powerless, Selfless, Serializable {
      */
     public boolean
     equals(final Object o) {
-        return null != o && getClass() == o.getClass() &&
+        return o instanceof Entity &&
                (null != type
                 ? type.equals(((Entity)o).type)
                 : null == ((Entity)o).type) &&

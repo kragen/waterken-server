@@ -281,15 +281,16 @@ Callee extends Struct implements Server, Serializable {
     deserialize(final Request request,
                 final PowerlessArray<Type> parameters) throws Exception {
         final String contentType = request.getContentType();
-        if (!MediaType.json.name.equalsIgnoreCase(contentType)) {
-            return ConstArray.array(new Entity(contentType,
-                                               Snapshot.copy(request.body)));
+        if (!MediaType.json.name.equalsIgnoreCase(contentType) ||
+            (parameters.length() == 1 && Entity.class == parameters.get(0))) {
+            return ConstArray.array(new Entity(contentType, Snapshot.snapshot(
+                    (int)((Buffer)request.body).length, request.body)));
         }
         final String here = (String)local.fetch(null, Remoting.here);
         final ClassLoader code = (ClassLoader)local.fetch(null, Root.code);
         final Importer connect = Exports.use(here, exports,
             Java.use(here, code, ID.use(here, Remote.use(local)))); 
-        return new JSONDeserializer().run(
-            here, connect, code, ((Buffer)request.body).open(), parameters);
+        return new JSONDeserializer().run(here, connect, code,
+                ((Buffer)request.body).open(), parameters);
     }
 }

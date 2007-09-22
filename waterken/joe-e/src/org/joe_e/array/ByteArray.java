@@ -5,11 +5,14 @@
  */
 package org.joe_e.array;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Arrays;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 
 
 /**
@@ -34,6 +37,62 @@ public final class ByteArray extends PowerlessArray<Byte> {
      */
     static public ByteArray array(final byte... bytes) {
         return new ByteArray(bytes.clone());
+    }
+    
+    /**
+     * A {@link ByteArray} factory.
+     */
+    static public final class
+    Generator extends OutputStream {
+        
+        private byte[] buffer;
+        private int size;
+        
+        /**
+         * Constructs an instance.
+         * @param estimate  estimated array length
+         */
+        public
+        Generator(int estimate) {
+            buffer = new byte[0 == estimate ? 32 : estimate];
+            size = 0;
+        }
+
+        // java.io.OutputStream interface
+        
+        public void
+        write(final int b) {
+            if (size == buffer.length) {
+                System.arraycopy(buffer, 0, buffer = new byte[2*size], 0, size);
+            }
+            buffer[size++] = (byte)b;
+        }
+
+        public void
+        write(final byte[] b, final int off, final int len) {
+            if (size + len > buffer.length) {
+                System.arraycopy(buffer,0, buffer = new byte[size+len],0, size);
+            }
+            System.arraycopy(b, off, buffer, size, len);
+            size += len;
+        }
+        
+        // org.joe_e.array.ByteArray.Generator interface
+        
+        /**
+         * Creates a snapshot of the current content.
+         */
+        public ByteArray
+        snapshot() {
+            final byte[] r;
+            if (size == buffer.length) {
+                r = buffer;
+            } else {
+                r = new byte[size];
+                System.arraycopy(buffer, 0, r, 0, size);
+            }
+            return new ByteArray(r);
+        }
     }
     
     // java.io.Serializable interface
@@ -198,4 +257,9 @@ public final class ByteArray extends PowerlessArray<Byte> {
         newBytes[bytes.length] = newByte;
         return new ByteArray(newBytes);
     }
+    
+    /**
+     * Views this array as an input stream.
+     */
+    public InputStream open() { return new ByteArrayInputStream(bytes); }
 }

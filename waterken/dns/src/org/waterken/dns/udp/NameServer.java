@@ -12,6 +12,7 @@ import java.net.SocketAddress;
 import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.PowerlessArray;
+import org.joe_e.charset.ASCII;
 import org.ref_send.promise.eventual.Do;
 import org.waterken.dns.Domain;
 import org.waterken.dns.Question;
@@ -109,7 +110,7 @@ NameServer {
                         } else {
                             if (0 == length) { break; }
                             if (0 != buffer.length()) { buffer.append('.'); }
-                            buffer.append(new String(in,j,length,"US-ASCII"));
+                            buffer.append(ASCII.decode(in, j, length));
                             j += length;
                         }
                     }
@@ -158,7 +159,7 @@ NameServer {
                             
                             if (0 == qp) {
                                 qp = (short)(0xC000 | response.size());
-                                final byte[] labels= qname.getBytes("US-ASCII");
+                                final byte[] labels = ASCII.encode(qname);
                                 int i = 0;
                                 for (int j = 0; true; ++j) {
                                     if (j == labels.length || '.' == labels[j]){
