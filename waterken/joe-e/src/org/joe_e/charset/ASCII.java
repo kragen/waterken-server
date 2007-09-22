@@ -15,6 +15,20 @@ import java.io.Writer;
  */
 public final class ASCII {
     private ASCII() {}
+    
+    /**
+     * Decodes a US-ASCII string.
+     * @return The corresponding string
+     */
+    static public String
+    decode(final byte[] buffer, final int off, final int len) {
+        try {
+            return new String(buffer, 0, len, "US-ASCII");
+        } catch (final UnsupportedEncodingException e) {
+            // This should never happen, as US-ASCII is a required encoding
+            throw new AssertionError("US-ASCII encoding not supported");
+        }
+    }
 
     /**
      * Encodes a string in US-ASCII.
