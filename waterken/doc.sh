@@ -8,10 +8,12 @@ fi
 if [ "$1" = 'ref_send' ]
 then
     NAME="ref_send"
-    VERSION="1.4"
+    VERSION="1.5"
 else
     NAME="waterken server"
-    VERSION="4.12"
+    MAJOR=4
+    MINOR=`cat minor-version.txt`
+    VERSION="$MAJOR.$MINOR"
     if [ "$OS" = 'Windows_NT' ]
     then
         SRC="$SRC;network\src;web_send\src;persistence\src;remote\src;dns\src;server\src"
