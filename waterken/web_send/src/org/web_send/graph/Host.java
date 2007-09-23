@@ -3,6 +3,7 @@
 package org.web_send.graph;
 
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.eventual.Eventual;
 
 /**
  * A model maker.
