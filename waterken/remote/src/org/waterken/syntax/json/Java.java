@@ -11,9 +11,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
+import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
@@ -166,8 +169,7 @@ Java {
                     mn = m.getName();
                 }
                 if (name.equals(mn)) {
-                    final Method c = bubble(m.getName(), m.getParameterTypes(),
-                                            m.getDeclaringClass(), m);
+                    final Method c = bubble(m);
                     if (null != c) {
                         if (null != r) { return null; }
                         r = c;
@@ -181,6 +183,31 @@ Java {
             if (!isStatic(f.getModifiers()) &&
                 isPublic(f.getDeclaringClass().getModifiers())) { return f; }
         } catch (final NoSuchFieldException e) {}
+        return null;
+    }
+
+    /**
+     * Finds the first invocable declaration of a public method.
+     */
+    static Method
+    bubble(final Method method) {
+        final Class<?> declarer = method.getDeclaringClass();
+        if (isPublic(declarer.getModifiers())) { return method; }
+        final String name = method.getName();
+        final Class[] param = method.getParameterTypes();
+        for (final Class i : declarer.getInterfaces()) {
+            try {
+                final Method r = bubble(Reflection.method(i, name, param));
+                if (null != r) { return r; }
+            } catch (final NoSuchMethodException e) {}
+        }
+        final Class parent = declarer.getSuperclass();
+        if (null != parent) {
+            try {
+                final Method r = bubble(Reflection.method(parent, name, param));
+                if (null != r) { return r; }
+            } catch (final NoSuchMethodException e) {}
+        }
         return null;
     }
     
@@ -210,58 +237,48 @@ Java {
             Float.class == type ||
             java.math.BigDecimal.class == type;
     }
-
-    /**
-     * Find the super most safe declaration of the given method.
-     */
-    static private Method
-    bubble(final String name, final Class[] param,
-           final Class declarer, Method method) {
-        if (!isPublic(declarer.getModifiers())) {
-            method = null;
+    
+    static private final class
+    Alias extends Struct implements Powerless {
+        final Class type;
+        final String name;
+        
+        Alias(final Class type, final String name) {
+            this.type = type;
+            this.name = name;
         }
-        final Class parent = declarer.getSuperclass();
-        if (null != parent) {
-            try {
-                final Method specification = bubble(name, param, parent,
-                    Reflection.method(parent, name, param));
-                if (null != specification) { return specification; }
-            } catch (final NoSuchMethodException e) {}
-        }
-        for (final Class i : declarer.getInterfaces()) {
-            try {
-                final Method specification = bubble(name, param, i,
-                    Reflection.method(i, name, param));
-                if (null != specification) { return specification; }
-            } catch (final NoSuchMethodException e) {}
-        }
-        return method;
     }
+    
+    /**
+     * custom typenames
+     */
+    static private final PowerlessArray<Alias> custom = PowerlessArray.array(
+        new Alias(Object.class, "object"),
+        new Alias(String.class, "string"),
+        new Alias(Number.class, "number"),
+        new Alias(RuntimeException.class, "Error"),
+        new Alias(Method.class, "function"),
+        new Alias(Type.class, "class"),
+        new Alias(Token.class, "org.ref_send.Permission"),
+        new Alias(ClassCastException.class, "org.ref_send.Forgery"),
+        new Alias(NullPointerException.class,
+                  "org.ref_send.promise.Indeterminate")
+    );
     
     static String
     name(final Class<?> type) {
-        return RuntimeException.class == type
-            ? "Error"
-        : (Token.class == type
-            ? "org.ref_send.Permission"
-        : (ClassCastException.class == type
-            ? "org.ref_send.Forgery"
-        : (NullPointerException.class == type
-            ? "org.ref_send.promise.Indeterminate"
-        : type.getName().replace('$', '-'))));
+        for (final Alias a : custom) {
+            if (type == a.type) { return a.name; }
+        }
+        return type.getName().replace('$', '-');
     }
     
     static Class
     load(final ClassLoader code,
          final String name) throws ClassNotFoundException {
-        return "Error".equals(name)
-            ? RuntimeException.class
-        : ("org.ref_send.Permission".equals(name)
-            ? Token.class
-        : ("org.ref_send.Forgery".equals(name)
-            ? ClassCastException.class
-        : ("org.ref_send.promise.Indeterminate".equals(name)
-            ? NullPointerException.class
-        : code.loadClass(name.replace('-', '$')))));
+        for (final Alias a : custom) {
+            if (a.name.equals(name)) { return a.type; }
+        }
+        return code.loadClass(name.replace('-', '$'));
     }
 }

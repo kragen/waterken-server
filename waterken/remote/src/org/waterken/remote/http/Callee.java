@@ -15,6 +15,7 @@ import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
+import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
@@ -24,7 +25,6 @@ import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.id.Importer;
 import org.waterken.id.exports.Exports;
-import org.waterken.io.MediaType;
 import org.waterken.io.buffer.Buffer;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Root;
@@ -69,10 +69,9 @@ Callee extends Struct implements Server, Serializable {
         final String query = URI.query("", resource);
         final String s = Query.arg(null, query, "s");
         final String p = Query.arg(null, query, "p");
-        final String o = Query.arg(null, query, "o");
 
         // check for web browser bootstrap request
-        if (null == s && null == o) {
+        if (null == s) {
             final String project = (String)local.fetch(null, Root.project);
             bootstrap.serve("file:///res/" + URLEncoding.encode(project) + "/",
                             requestor, respond);
@@ -93,88 +92,52 @@ Callee extends Struct implements Server, Serializable {
             respond.fulfill(request.trace());
             return;
         }
-
-        // determine the request style
-        final String name = Path.name(URI.path(resource));
-        if (null != o && null == s && null == p) {
-            final boolean describe;     // introspection request?
-            if ("describe".equals(name)) {
-                describe = Serializer.describe; // introspection
-            } else if ("".equals(name)) {
-                describe = Serializer.render;   // when block
-            } else {
-                respond.fulfill(notFound(request.method, forever));
-                return;
-            }
-            
-            final Object object;        // request target
+        
+        // check that there is no path name
+        if (!"".equals(Path.name(URI.path(resource)))) {
+            respond.fulfill(notFound(request.method, forever));
+            return;
+        }
+        
+        // determine the request subject
+        final Volatile<?> subject; {
             final Token pumpkin = new Token();
-            final Object x = exports.use(pumpkin, o);
+            Object x = exports.use(pumpkin, s);
             if (pumpkin == x) {
-                final ClassLoader code =
-                    (ClassLoader)local.fetch(null, Root.code);
-                object = Java.reflect(code, o);
-            } else {
-                object = x;
+                x = Java.reflect((ClassLoader)local.fetch(null, Root.code), s);
             }
-            if (null == object) {
-                respond.fulfill(notFound(request.method, ephemeral));
-                return;
-            }
-            
-            if (!("GET".equals(request.method) ||
-                  "HEAD".equals(request.method))) {
-                respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
-                return;
-            }
+            subject = Eventual.promised(x);
+        }
+        
+        // determine the request type
+        if (null == p || "*".equals(p)) {   // when block or introspection
             Object value;
-            final Volatile<?> pValue = Eventual.promised(object);
             try {
                 // AUDIT: call to untrusted application code
-                value = pValue.cast();
+                value = subject.cast();
             } catch (final NullPointerException e) {
-                respond.fulfill(notFound(request.method, ephemeral));
+                respond.fulfill(serialize(request.method, "404", "not yet",
+                    ephemeral, Serializer.render, new Rejected(e)));
                 return;
             } catch (final Exception e) {
                 value = new Rejected(e);
             }
-            respond.fulfill(serialize(request.method, "200", "OK", forever,
-                                      describe, value));
+            if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
+                respond.fulfill(serialize(request.method, "200", "OK", forever,
+                    null==p ? Serializer.render : Serializer.describe, value));
+            } else {
+                respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
+            }
             return;
-        }
-        if (null == o && null != s && null != p) {
-            // script driven invocation
-            
-            // implementation below...
-        } else {
-            // unknown request style
+        }                                   // member access
+
+        // to preserve message order, force settling of a promise
+        if (!(subject instanceof Fulfilled)) {
             respond.fulfill(notFound(request.method, forever));
             return;
         }
-        
-        // check that there is no path name
-        if (!"".equals(name)) {
-            respond.fulfill(notFound(request.method, forever));
-            return;
-        }
-        
-        // determine the invocation target
-        final Object subject = exports.use(null, s);
-        if (null == subject) {
-            respond.fulfill(notFound(request.method, ephemeral));
-            return;
-        }
-        
-        // to avoid proxying, strip down to a near reference
-        final Object target;
-        try {
-            // AUDIT: call to untrusted application code
-            target = Eventual.near(subject);
-        } catch (final Exception e) {
-            // to preserve message order, force settling of a promise
-            respond.fulfill(notFound(request.method, forever));
-            return;
-        }
+        // AUDIT: call to untrusted application code
+        final Object target = ((Fulfilled)subject).cast();
         
         // prevent access to local implementation details
         if (null == target || Java.isPBC(target.getClass())) {
@@ -182,20 +145,25 @@ Callee extends Struct implements Server, Serializable {
             return;
         }
         
-        // process the request
+        // determine the requested member
         final Member member = Java.dispatch(target.getClass(), p);
         if (member instanceof Method) {
             final Method lambda = (Method)member;
-            if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
-                Object value;
-                try {
-                    // AUDIT: call to untrusted application code
-                    value = Reflection.invoke(lambda, target);
-                } catch (final Exception e) {
-                    value = new Rejected(e);
+            if (null != Java.property(lambda)) {
+                if ("GET".equals(request.method) ||
+                        "HEAD".equals(request.method)) {
+                    Object value;
+                    try {
+                        // AUDIT: call to untrusted application code
+                        value = Reflection.invoke(lambda, target);
+                    } catch (final Exception e) {
+                        value = new Rejected(e);
+                    }
+                    respond.fulfill(serialize(request.method, "200", "OK",
+                            ephemeral, Serializer.render, value));
+                } else {
+                  respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
                 }
-                respond.fulfill(serialize(request.method, "200", "OK",
-                                          ephemeral, Serializer.render, value));
             } else if ("POST".equals(request.method)) {
                 final String m = Query.arg(null, query, "m");
                 final String pipe = null == m ? null : Exports.pipeline(m);
@@ -216,29 +184,28 @@ Callee extends Struct implements Server, Serializable {
                 respond.fulfill(serialize(request.method, "200", "OK",
                                           ephemeral, Serializer.render, value));
             } else {
-                respond.fulfill(request.respond(null == Java.property(lambda)
-                    ? "TRACE, OPTIONS, POST" : "TRACE, OPTIONS, GET, HEAD"));
+                respond.fulfill(request.respond("TRACE, OPTIONS, POST"));
             }
         } else if (member instanceof Field) {
-            final boolean mutable = !Modifier.isFinal(member.getModifiers());
             final Field field = (Field)member;
+            final boolean constant = Modifier.isFinal(field.getModifiers());
             if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
                 final Object value = Reflection.get(field, target);
                 respond.fulfill(serialize(request.method, "200", "OK",
-                    mutable ? ephemeral : forever, Serializer.render, value));
-            } else if ("POST".equals(request.method) && mutable) {
-                final Object value = deserialize(request,
+                    constant ? forever : ephemeral, Serializer.render, value));
+            } else if ("POST".equals(request.method) && !constant) {
+                final Object arg = deserialize(request,
                         PowerlessArray.array(field.getGenericType()));
-                Reflection.set(field, target, value);
+                Reflection.set(field, target, arg);
                 respond.fulfill(serialize(request.method, "200", "OK",
                                           ephemeral, Serializer.render, null));
             } else {
-                respond.fulfill(request.respond(mutable
-                    ? "TRACE, OPTIONS, GET, HEAD, POST"
-                : "TRACE, OPTIONS, GET, HEAD"));
+                respond.fulfill(request.respond(constant
+                    ? "TRACE, OPTIONS, GET, HEAD"
+                : "TRACE, OPTIONS, GET, HEAD, POST"));
             }
         } else {
-            respond.fulfill(notFound(request.method, forever));
+            respond.fulfill(request.respond("TRACE, OPTIONS"));
         }
     }
     
@@ -269,7 +236,7 @@ Callee extends Struct implements Server, Serializable {
         : new Response("HTTP/1.1", status, phrase,
             PowerlessArray.array(
                 new Header("Cache-Control", "max-age=" + maxAge),
-                new Header("Content-Type", MediaType.json.name)
+                new Header("Content-Type", AMP.contentType)
             ),
             "HEAD".equals(method)
                 ? null
@@ -281,8 +248,7 @@ Callee extends Struct implements Server, Serializable {
     deserialize(final Request request,
                 final PowerlessArray<Type> parameters) throws Exception {
         final String contentType = request.getContentType();
-        if (!MediaType.json.name.equalsIgnoreCase(contentType) ||
-            (parameters.length() == 1 && Entity.class == parameters.get(0))) {
+        if (!AMP.contentType.equalsIgnoreCase(contentType)) {
             return ConstArray.array(new Entity(contentType, Snapshot.snapshot(
                     (int)((Buffer)request.body).length, request.body)));
         }

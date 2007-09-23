@@ -49,14 +49,12 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private final String newLine = "\r\n";
     
     public Content
-    run(final boolean describe, final Exporter export,
-                                final ConstArray<?> object) {
+    run(final boolean mode, final Exporter export, final ConstArray<?> object) {
         return new Content() {
             public void
             writeTo(final OutputStream out) throws Exception {
                 final Writer text = UTF8.output(Open.output(out));
-                serializeArray(describe, ConstArray.class, object,
-                               export, "", text);
+                serializeArray(mode, ConstArray.class, object, export, "",text);
                 text.write(newLine);
                 text.flush();
                 text.close();
@@ -70,13 +68,13 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private final TypeVariable R = Typedef.name(Volatile.class, "T");
     
     static private void
-    serialize(final boolean describe, final Type implicit,
+    serialize(final boolean mode, final Type implicit,
               final Object object, final Exporter export,
               final String indent, final Writer out) throws Exception {
         final Class actual = null != object ? object.getClass() : Void.class;
         if (Inline.class == actual) {
             final Type r = Typedef.value(R, implicit);
-            serialize(describe, null != r ? r : Object.class,
+            serialize(mode, null != r ? r : Object.class,
                       ((Inline)object).cast(), export, indent, out);
         } else if (String.class == actual) {
             out.write("\"");
@@ -186,7 +184,12 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.write(newLine);
             out.write(indent);
             out.write("}");
-        } else if (describe && Field.class == actual) {
+        } else if (render == mode) {
+            out.write("{ \"@\" : ");
+            serialize(render, implicit, export.run(object), export, indent,out);
+            out.write(" }");
+        // rest is introspection support not used in normal messaging
+        } else if (Field.class == actual) {
             final Field f = (Field)object;
             final String inset = indent + "  ";
             final String comma = "," + newLine;
@@ -205,13 +208,13 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.write(separator);
             out.write(inset);
             out.write("\"out\" : ");
-            serialize(render, String.class, describeType(f.getGenericType()),
+            serialize(render, Class.class, jsonType(f.getGenericType()),
                       export, indent, out);
 
             out.write(newLine);
             out.write(indent);
             out.write("}");
-        } else if (describe && Method.class == actual) {
+        } else if (Method.class == actual) {
             final Method m = (Method)object;
             final String inset = indent + "  ";
             final String comma = "," + newLine;
@@ -227,16 +230,12 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             }
 
             // output the return type
-            final Type outType = m.getGenericReturnType();
-            final Type outTypeR = Typedef.value(R, outType);
-            final Class outClass =
-                Typedef.raw(null != outTypeR ? outTypeR : outType);
+            final Class outClass = jsonType(m.getGenericReturnType());
             if (void.class != outClass && Void.class != outClass) {
                 out.write(separator);
                 out.write(inset);
                 out.write("\"out\" : ");
-                serialize(render, String.class, describeType(outClass),
-                          export, indent, out);
+                serialize(render, Class.class, outClass, export, indent, out);
                 separator = comma;
             }
 
@@ -248,8 +247,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 String sp = "";
                 for (final Type p : m.getGenericParameterTypes()) {
                     out.write(sp);
-                    serialize(render, String.class, describeType(p),
-                              export, indent, out);
+                    serialize(render,Class.class,jsonType(p),export,indent,out);
                     sp = ", ";
                 }
                 out.write(" ]");
@@ -263,8 +261,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             String sp = "";
             for (final Type e : m.getGenericExceptionTypes()) {
                 out.write(sp);
-                serialize(render, String.class, describeType(e),
-                          export, indent, out);
+                serialize(render, Class.class, jsonType(e), export, indent,out);
                 sp = ", ";
             }
             out.write(" ]");
@@ -273,7 +270,54 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.write(newLine);
             out.write(indent);
             out.write("}");
-        } else if (describe) {
+        } else if (Class.class == actual) {
+            final Class c = (Class)object;
+            String separator = newLine;
+            final String comma = "," + newLine;
+            final String inset = indent + "  ";
+
+            out.write("{");
+            
+            if (Class.class != implicit) {
+                out.write(separator);
+                out.write(inset);
+                out.write("\"$\" : [ \"class\" ]");
+                separator = comma;
+            }
+
+            for (final Field f : Reflection.fields(c)) {
+                if (!Modifier.isStatic(f.getModifiers())) {
+                    out.write(separator);
+                    out.write(inset);
+                    out.write("\"");
+                    out.write(f.getName());
+                    out.write("\" : ");
+                    serialize(describe, Field.class, f, export, inset, out);
+                    separator = comma;
+                }
+            }
+            for (Method m : Reflection.methods(c)) {
+                final int flags = m.getModifiers();
+                if (!Modifier.isStatic(flags) && !Java.isSynthetic(flags)) {
+                    final Method spec = Java.bubble(m);
+                    if (null != spec) {
+                        m = spec;
+                    }
+                    out.write(separator);
+                    out.write(inset);
+                    out.write("\"");
+                    String name = Java.property(m);
+                    if (null == name) { name = m.getName(); }
+                    out.write(name);
+                    out.write("\" : ");
+                    serialize(describe, Method.class, m, export, inset, out);
+                    separator = comma;
+                }
+            }
+            out.write(newLine);
+            out.write(indent);
+            out.write("}");
+        } else {
             out.write("{");
             String separator = newLine;
             final String comma = "," + newLine;
@@ -293,68 +337,36 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                           export, inset, out);
                 separator = comma;
             }
-            for (final Field f : Reflection.fields(actual)) {
-                if (!Modifier.isStatic(f.getModifiers())) {
-                    out.write(separator);
-                    out.write(inset);
-                    out.write("\"");
-                    out.write(f.getName());
-                    out.write("\" : ");
-                    serialize(render, Field.class, f, export, inset, out);
-                    separator = comma;
-                }
-            }
-            for (final Method m : Reflection.methods(actual)) {
-                final int flags = m.getModifiers();
-                if (!Modifier.isStatic(flags) && !Java.isSynthetic(flags)) {
-                    out.write(separator);
-                    out.write(inset);
-                    out.write("\"");
-                    String name = Java.property(m);
-                    if (null == name) { name = m.getName(); }
-                    out.write(name);
-                    out.write("\" : ");
-                    serialize(render, Method.class, m, export, inset, out);
-                    separator = comma;
-                }
-            }
             out.write(newLine);
             out.write(indent);
             out.write("}");
-        } else {
-            out.write("{ \"@\" : ");
-            serialize(render, implicit, export.run(object), export, indent,out);
-            out.write(" }");
         }
     }
     
-    static private String
-    describeType(final Type p) {
+    static private Class
+    jsonType(final Type p) {
         final Type pR = Typedef.value(R, p);
-        final Class type = Typedef.raw(null != pR ? pR : p);
-        return String.class == type
-            ? "string"
-        : (Boolean.class == type || boolean.class == type
-            ? "boolean"
-        : (Object.class == type
-            ? "object"
-        : (byte.class == type || Byte.class == type ||
-           short.class == type || Short.class == type ||
-           int.class == type || Integer.class == type ||
-           long.class == type || Long.class == type ||
-           float.class == type || Float.class == type ||
-           double.class == type || Double.class == type ||
-           java.math.BigInteger.class == type ||
-           java.math.BigDecimal.class == type ||
-           Number.class == type
-             ? "number"
-        : (Class.class == type || Field.class == type ||
-           Method.class == type || Constructor.class == type ||
-           Member.class == type
-             ? "function"
-        : (Exception.class == type || RuntimeException.class == type
-            ? "Error"
-        : Java.name(type))))));
+        final Class pC = Typedef.raw(null != pR ? pR : p);
+        return Boolean.class == pC
+            ? boolean.class
+        : (byte.class == pC || Byte.class == pC ||
+           short.class == pC || Short.class == pC ||
+           int.class == pC || Integer.class == pC ||
+           long.class == pC || Long.class == pC ||
+           float.class == pC || Float.class == pC ||
+           double.class == pC || Double.class == pC ||
+           java.math.BigInteger.class == pC ||
+           java.math.BigDecimal.class == pC
+            ? Number.class
+        : (char.class == pC || Character.class == pC
+            ? String.class
+        : (Class.class == pC
+            ? Type.class
+        : (Field.class == pC || Member.class == pC || Constructor.class == pC
+             ? Method.class
+        : (Exception.class == pC
+            ? RuntimeException.class
+        : pC)))));
     }
     
     static private final TypeVariable T = Typedef.name(Iterable.class, "T");

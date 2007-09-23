@@ -45,8 +45,8 @@ public final class ByteArray extends PowerlessArray<Byte> {
     static public final class
     Generator extends OutputStream {
         
-        private byte[] buffer;
-        private int size;
+        private byte[] buffer;  // buffer.length >= 1
+        private int size;       // size <= buffer.length
         
         /**
          * Constructs an instance.
@@ -70,11 +70,15 @@ public final class ByteArray extends PowerlessArray<Byte> {
 
         public void
         write(final byte[] b, final int off, final int len) {
-            if (size + len > buffer.length) {
-                System.arraycopy(buffer,0, buffer = new byte[size+len],0, size);
+            if (0 > len) { throw new IndexOutOfBoundsException(); }
+            final int newSize = size + len;
+            if (0 > newSize) { throw new IndexOutOfBoundsException(); }
+            
+            if (newSize > buffer.length) {
+                System.arraycopy(buffer,0, buffer = new byte[newSize],0, size);
             }
             System.arraycopy(b, off, buffer, size, len);
-            size += len;
+            size = newSize;
         }
         
         // org.joe_e.array.ByteArray.Generator interface
@@ -85,7 +89,7 @@ public final class ByteArray extends PowerlessArray<Byte> {
         public ByteArray
         snapshot() {
             final byte[] r;
-            if (size == buffer.length) {
+            if (buffer.length == size) {
                 r = buffer;
             } else {
                 r = new byte[size];

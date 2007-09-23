@@ -106,7 +106,7 @@ var _ = function () {
         var p_ = new Tail();
         var r = new Head(p_);
         var target = this.value;
-        enqueue(function () { r.fulfill(target[noun]); });
+        enqueue(function () { r.fulfill("*"===noun ? target : target[noun]); });
         return p_;
     };
     Fulfilled.prototype.post = function (verb, argv) {
@@ -161,7 +161,7 @@ var _ = function () {
             http = new ActiveXObject('MSXML2.XMLHTTP.3.0');
         }
         var active = false;
-        var pending = [ ];  // [ Message ]
+        var pending = [ /* Message */ ];
         var output = function () {
             var m = pending[0];
             http.open(m.method, m.URL, true);
@@ -178,7 +178,7 @@ var _ = function () {
             if (null === m.argv) {
                 http.send(null);
             } else {
-                http.setRequestHeader('Content-Type', 'application/json');
+                http.setRequestHeader('Content-Type','application/jsonrequest');
                 http.send(m.argv.toJSONString());
             }
         };
@@ -247,66 +247,60 @@ var _ = function () {
         });
     }
 
-    Remote.prototype.describe = function () {
-        var urlref = this['@'];
-        var iFragment = urlref.indexOf('#');
-        var url = -1 !== iFragment ? urlref.substring(0, iFragment) : urlref;
-        var iQuery = url.indexOf('?');
-        var path = -1 !== iQuery ? url.substring(0, iQuery) : url;
-        var iName = path.lastIndexOf('/') + 1;
-        var base = path.substring(0, iName);
-        var o;
-        if (-1 === iFragment) {
-            o = path.substring(iName);
-        } else {
-            o = urlref.substring(iFragment + 1);
-        }
-        var query = -1 === iQuery ? '?' : url.substring(iQuery) + '&';
-        var target = base + 'describe' + query + 'o=' + o;
-
-        var p_ = new Tail();
-        var r = new Head(p_);
-        origin.send(new Message('GET', target, null, function (http) {
-            var base = target.substring(0, target.indexOf('?'));
-            r.fulfill(deserialize(base, http));
-        }));
-        return p_;
-    };
     Remote.prototype.when = function (fulfill, reject) {
-        var urlref = this['@'];
+        var proxy = this;
+        var urlref = proxy['@'];
         var iFragment = urlref.indexOf('#');
-        var url = -1 !== iFragment ? urlref.substring(0, iFragment) : urlref;
+        var url = -1 === iFragment ? urlref : urlref.substring(0, iFragment);
         var iQuery = url.indexOf('?src=');
-        if (-1 === iQuery || -1 === iFragment) {
-            var value = this;
-            enqueue(function () { fulfill(value); });
+        if (-1 === iQuery) {
+            enqueue(function () { fulfill(proxy); });
         } else {
             var i = iQuery + '?src='.length;
             var j = url.indexOf('&', i);
             var src = -1 !== j ? url.substring(i, j) : url.substring(i);
-            var base = resolveURI(url.substring(0, iQuery),
-                                  decodeURIComponent(src));
-            var o = urlref.substring(iFragment + 1);
-            var target = resolveURI(base, '?o=' + encodeURIComponent(o));
+            var path = url.substring(0, iQuery);
+            var iFolder = path.lastIndexOf('/') + 1;
+            var folder = path.substring(0, iFolder);
+            var target = resolveURI(folder, decodeURIComponent(src));
+            target += '?s=';
+            if (-1 === iFragment) {
+                target += path.substring(iFolder);
+            } else {
+                target += urlref.substring(iFragment + 1);
+            }
             origin.send(new Message('GET', target, null, function (http) {
+                var base = target.substring(0, target.indexOf('?'));
                 ref(deserialize(base, http)).when(fulfill, reject);
             }));
         }
     };
+    function request(urlref, p) {
+        var iFragment = urlref.indexOf('#');
+        var url = -1 === iFragment ? urlref : urlref.substring(0, iFragment);
+        var iQuery = url.indexOf('?');
+        var path = -1 === iQuery ? url : url.substring(0, iQuery);
+        var iFolder = path.lastIndexOf('/') + 1;
+        var folder = path.substring(0, iFolder);
+        var target = folder + '?';
+        if (undefined !== p) {
+            target += 'p=' + encodeURIComponent(p) + '&';
+        }
+        target += 's=';
+        if (-1 === iFragment) {
+            target += path.substring(iFolder);
+        } else {
+            target += urlref.substring(iFragment + 1);
+        }
+        return target;
+    }
     Remote.prototype.get = function (noun) {
         var proxy = this;
-        var urlref = proxy['@'];
-        var iFragment = urlref.indexOf('#');
-        if (-1 === iFragment) { return indeterminate_; }
-        var target = urlref.substring(0, iFragment);
-        target += -1 === target.indexOf('?') ? '?' : '&';
-        target += 'p=' + encodeURIComponent(noun);
-        target += '&s=' + encodeURIComponent(urlref.substring(iFragment + 1));
-
+        var target = request(proxy['@'], noun);
         var p_ = new Tail();
         var r = new Head(p_);
         origin.send(new Message('GET', target, null, function (http) {
-            if (404 === http.status && -1 !== urlref.indexOf('?src=')) {
+            if (404 === http.status && -1 !== proxy['@'].indexOf('?src=')) {
                 proxy.when(function (value) {
                     r.resolve(ref(value).get(noun));
                 }, function (reason) { r.reject(reason); });
@@ -319,18 +313,11 @@ var _ = function () {
     };
     Remote.prototype.post = function (verb, argv) {
         var proxy = this;
-        var urlref = proxy['@'];
-        var iFragment = urlref.indexOf('#');
-        if (-1 === iFragment) { return indeterminate_; }
-        var target = urlref.substring(0, iFragment);
-        target += -1 === target.indexOf('?') ? '?' : '&';
-        target += 'p=' + encodeURIComponent(verb);
-        target += '&s=' + encodeURIComponent(urlref.substring(iFragment + 1));
-
+        var target = request(proxy['@'], verb);
         var p_ = new Tail();
         var r = new Head(p_);
         origin.send(new Message('POST', target, argv, function (http) {
-            if (404 === http.status && -1 !== urlref.indexOf('?src=')) {
+            if (404 === http.status && -1 !== proxy['@'].indexOf('?src=')) {
                 proxy.when(function (value) {
                     r.resolve(ref(value).post(verb, argv));
                 }, function (reason) { r.reject(reason); });

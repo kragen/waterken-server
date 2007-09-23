@@ -27,7 +27,6 @@ import org.waterken.http.Response;
 import org.waterken.id.Importer;
 import org.waterken.id.base.Base;
 import org.waterken.id.exports.Exports;
-import org.waterken.io.MediaType;
 import org.waterken.io.buffer.Buffer;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Root;
@@ -88,7 +87,7 @@ Caller extends Struct implements Messenger, Serializable {
 
             Request
             send() throws Exception {
-                final String target = URI.resolve(URL, "?o="+Exports.key(URL));
+                final String target = URI.resolve(URL, "?s="+Exports.key(URL));
                 final String authority = URI.authority(target);
                 final String location = Authority.location(authority);
                 return new Request("HTTP/1.1", "GET", URI.request(target),
@@ -257,8 +256,7 @@ Caller extends Struct implements Messenger, Serializable {
         }
         
         // schedule the message
-        final ConstArray<?> argv =
-            ConstArray.array(null == arg ? new Object[0] : arg);
+        final ConstArray<?> argv= ConstArray.array(null==arg?new Object[0]:arg);
         class POST extends Message implements Update {
             static private final long serialVersionUID = 1L;
 
@@ -338,7 +336,7 @@ Caller extends Struct implements Messenger, Serializable {
         return new Request("HTTP/1.1", "POST", URI.request(target),
             PowerlessArray.array(
                 new Header("Host", location),
-                new Header("Content-Type", MediaType.json.name),
+                new Header("Content-Type", AMP.contentType),
                 new Header("Content-Length", "" + content.length)
             ), content);        
     }
@@ -354,8 +352,7 @@ Caller extends Struct implements Messenger, Serializable {
             "202".equals(response.status) || "203".equals(response.status)) {
             try {
                 final String contentType = response.getContentType();
-                if (!MediaType.json.name.equalsIgnoreCase(contentType) ||
-                        Entity.class == R) {
+                if (!AMP.contentType.equalsIgnoreCase(contentType)) {
                     return (Volatile)new Entity(contentType, Snapshot.snapshot(
                         (int)((Buffer)response.body).length, response.body));
                 }

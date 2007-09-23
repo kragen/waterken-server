@@ -48,7 +48,7 @@ HTML.dispatch = function () {
 };
 HTML.display = function () {
     var fill = function (value) { HTML.dispatch(value).fill(value); };
-    _.connect(document.location.toString()).describe().when(fill, fill);
+    _.connect(document.location.toString()).get('*').when(fill, fill);
 };
 HTML.renderers['string'] = {
     fill: function (value) {
@@ -76,7 +76,10 @@ HTML.renderers['@'] = {
         window.location = value['@'];
     },
     render: function (value) {
-        return '<a href="' + value['@'] + '">link</a>';
+        var href = value['@'];
+        var name = /[^\/?#]*(?=\?|#|$)/.exec(href);
+        var text = null === name ? 'link' : name[0];
+        return '<a href="' + href + '">' + text + '</a>';
     }
 };
 HTML.renderers['object'] = {
@@ -91,26 +94,22 @@ HTML.renderers['object'] = {
         for (var p in s) {
             if (s.hasOwnProperty(p)) {
                 var o = s[p];
-                var href;
-                if (null !== o && 'object' === typeof o) {
-                    href = o['@'];
-                }
-
-                text.push('<tr>');
-                text.push('<th>');
-                if (undefined !== href) {
-                    text.push('<a href="' + HTML.escapeAttribute(href) + '">' +
-                              HTML.escapeBody('' + p) + '</a>');
+                if ('$' === p) {
+                    text.push('<tr><th>$</th><td>');
+                    for (var i = 0; i != o.length; ++i) {
+                        text.push('<a href="' + o[i] + '">' + o[i] + '</a> ');
+                    }
+                    text.push('</td></tr>');
                 } else {
+                    text.push('<tr>');
+                    text.push('<th>');
                     text.push(HTML.escapeBody('' + p));
-                }
-                text.push('</th>');
-                text.push('<td>');
-                if (undefined === href) {
+                    text.push('</th>');
+                    text.push('<td>');
                     text.push(HTML.dispatch(o).render(o));
+                    text.push('</td>');
+                    text.push('</tr>');
                 }
-                text.push('</td>');
-                text.push('</tr>');
             }
         }
         text.push('</table>');

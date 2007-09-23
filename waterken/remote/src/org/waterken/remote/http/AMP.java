@@ -48,6 +48,11 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
      */
     static /* package */ final long maxContentSize = 64 * 1024;
     
+    /**
+     * MIME Media-Type for marshalled arguments
+     */
+    static /* package */ final String contentType = "application/jsonrequest";
+    
     // org.waterken.remote.Remoting interface
 
     public Server
