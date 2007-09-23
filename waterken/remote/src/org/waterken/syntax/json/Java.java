@@ -279,6 +279,24 @@ Java {
         for (final Alias a : custom) {
             if (a.name.equals(name)) { return a.type; }
         }
-        return code.loadClass(name.replace('-', '$'));
+        return "boolean".equals(name)
+            ? boolean.class
+        : ("byte".equals(name)
+            ? byte.class
+        : ("char".equals(name)
+            ? char.class
+        : ("double".equals(name)
+            ? double.class
+        : ("float".equals(name)
+            ? float.class
+        : ("int".equals(name)
+            ? int.class
+        : ("long".equals(name)
+            ? long.class
+        : ("short".equals(name)
+            ? short.class
+        : ("void".equals(name)
+            ? void.class
+        : code.loadClass(name.replace('-', '$'))))))))));
     }
 }
