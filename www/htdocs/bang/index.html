@@ -17,7 +17,7 @@
  <ol>
   <li>install a Javascript shell, such as
       <a href="http://www.squarefree.com/shell/">this one</a></li>
-  <li>visit the <a href="https://vsci.hpl.hp.com/db/bang/#key.v7gu4t6vea7fifqy4pxkoqfxwy">test page</a></li>
+  <li>visit the <a href="https://vsci.hpl.hp.com/db/bang/#key.v7gu4t6vea7fifqy4pxkoqfxwy">test page...</a></li>
   <li>open your javascript shell, with your browser still on the test page</li>
   <li>try the commands listed below...</li>
  </ol>
@@ -90,6 +90,36 @@ var hits_ = drum_.post('bang', [ 3 ]).get('hits')
 hits_
 <span class="echo">
 6</span>
+<span class="comment">
+// You can get runtime information about an object's API by asking for a
+// description of the object's class, as is done below...</span>
+var meta_ = drum_.get('class').get('*')
+<span class="comment">
+// The type URLs shown in your interactive shell will be prefixed with the
+// base URL of the particular server you're talking to.</span>
+meta_
+<span class="echo">
+[ {
+    "$" : [ "class" ],
+    "bang" : {
+      "out" : { "@" : "org.waterken.bang.Drum" },
+      "in" : [ { "@" : "number" } ],
+      "error" : [  ]
+    },
+    "equals" : {
+      "out" : { "@" : "boolean" },
+      "in" : [ { "@" : "object" } ],
+      "error" : [  ]
+    },
+    "class" : {
+      "out" : { "@" : "class" },
+      "error" : [  ]
+    },
+    "hits" : {
+      "out" : { "@" : "number" },
+      "error" : [  ]
+    }
+  } ]</span>
 </pre>
  </div>
  <p class="footer">
