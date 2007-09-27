@@ -39,6 +39,7 @@ Snapshot extends Struct implements Content, Powerless, Serializable {
      */
     static public ByteArray
     snapshot(final int estimate, final Content stream) throws Exception {
+        if (stream instanceof Snapshot) { return ((Snapshot)stream).content; }
         final ByteArray.Generator out = new ByteArray.Generator(estimate);
         stream.writeTo(out);
         return out.snapshot();
