@@ -213,7 +213,7 @@ Callee extends Struct implements Server, Serializable {
      * Constructs a 404 response.
      */
     private Response
-    notFound(final String method, final int maxAge) {
+    notFound(final String method, final int maxAge) throws Exception {
         return serialize(method, "404", forever == maxAge ? "never" : "not yet",
           maxAge, Serializer.render, new Rejected(new NullPointerException()));
     }
@@ -221,9 +221,9 @@ Callee extends Struct implements Server, Serializable {
     private Response
     serialize(final String method,
               final String status, final String phrase, final int maxAge,
-              final boolean describe, final Object value) {
-        return value instanceof Entity
-            ? new Response("HTTP/1.1", status, phrase,
+              final boolean describe, final Object value) throws Exception {
+        if (value instanceof Entity) {
+            return new Response("HTTP/1.1", status, phrase,
                 PowerlessArray.array(
                     new Header("Cache-Control", "max-age=" + maxAge),
                     new Header("Content-Type", ((Entity)value).type),
@@ -232,16 +232,18 @@ Callee extends Struct implements Server, Serializable {
                 ),
                 "HEAD".equals(method)
                     ? null
-                : new Snapshot(((Entity)value).content))
-        : new Response("HTTP/1.1", status, phrase,
+                : new Snapshot(((Entity)value).content));
+        }
+        final Buffer content = Buffer.copy(
+            new JSONSerializer().run(describe, Java.bind(ID.bind(Remote.bind(
+                local, Exports.bind(local)))), ConstArray.array(value)));
+        return new Response("HTTP/1.1", status, phrase,
             PowerlessArray.array(
                 new Header("Cache-Control", "max-age=" + maxAge),
-                new Header("Content-Type", AMP.contentType)
+                new Header("Content-Type", AMP.contentType),
+                new Header("Content-Length", "" + content.length)
             ),
-            "HEAD".equals(method)
-                ? null
-            : new JSONSerializer().run(describe, Java.bind(ID.bind(Remote.bind(
-                local, Exports.bind(local)))), ConstArray.array(value)));        
+            "HEAD".equals(method) ? null : content);        
     }
     
     private ConstArray<?>

@@ -14,7 +14,6 @@ import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
@@ -25,13 +24,13 @@ import org.waterken.http.Server;
 import org.waterken.id.exports.Exports;
 import org.waterken.io.buffer.Buffer;
 import org.waterken.io.limited.Limited;
+import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Creator;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
 import org.waterken.model.Transaction;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
-import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 import org.web_send.graph.Framework;
 import org.web_send.graph.Host;
@@ -62,61 +61,39 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
             serve(final String resource,
                   final Volatile<Request> requestor,
                   final Do<Response,?> respond) throws Exception {
-                String httpRequestVersion;
-                Promise<Request> buffered;
-                boolean extend;
-                try {
+                final Request buffered; {
                     Request q = requestor.cast();
                     if (null != q.body) {
                         q = new Request(q.version, q.method, q.URI, q.header,
                             Buffer.copy(Limited.limit(maxContentSize, q.body)));
                     }
-                    httpRequestVersion = q.version;
-                    buffered = ref(q);
-                    extend = "GET".equals(q.method) ||
-                             "HEAD".equals(q.method) ||
-                             "OPTIONS".equals(q.method) ||
-                             "TRACE".equals(q.method);
-                } catch (final Exception e) {
-                    httpRequestVersion = "HTTP/1.1";
-                    buffered = new Rejected<Request>(e);
-                    extend = true;
+                    buffered = q;
                 }
-                final String httpVersion = httpRequestVersion;
-                final Promise<Request> requested = buffered;
-                model.enter(extend, new Transaction<Void>() {
-                    public Void
+                respond.fulfill(model.enter("GET".equals(buffered.method) ||
+                                            "HEAD".equals(buffered.method) ||
+                                            "OPTIONS".equals(buffered.method) ||
+                                            "TRACE".equals(buffered.method),
+                                            new Transaction<Response>() {
+                    public Response
                     run(final Root local) throws Exception {
-                        new Callee(bootstrap, local).
-                            serve(resource, requested, new Do<Response,Void>() {
-
-                                public Void
-                                fulfill(Response r) throws Exception {
-                                    if ("HTTP/1.0".equals(httpVersion) &&
-                                            null != r.body) {
-                                        // enable a persistent connection by
-                                        // creating a self-delimited response
-                                        final Buffer body = Buffer.copy(Limited.
-                                            limit(maxContentSize, r.body));
-                                        r = new Response(r.version, r.status,
-                                            r.phrase, r.header.with(
-                                                new Header("Content-Length",
-                                                           "" + body.length)),
-                                            body);
-                                    }
-                                    respond.fulfill(r);
-                                    return null;
+                        final Response[] response = { null };
+                        new Callee(bootstrap, local).serve(resource,
+                                ref(buffered), new Do<Response,Void>() {
+                            public Void
+                            fulfill(Response r) throws Exception {
+                                if (null != r.body &&
+                                    !(r.body instanceof Snapshot ||
+                                      r.body instanceof Buffer)) {
+                                    r = new Response(r.version, r.status,
+                                        r.phrase, r.header,Buffer.copy(r.body));
                                 }
-                                
-                                public Void
-                                reject(final Exception e) throws Exception {
-                                    respond.reject(e);
-                                    return null;
-                                }
-                            });
-                        return null;
+                                response[0] = r;
+                                return null;
+                            }
+                        });
+                        return response[0];
                     }
-                });
+                }));
             }
         };
     }
