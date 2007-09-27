@@ -42,6 +42,7 @@ import org.waterken.model.Effect;
 import org.waterken.model.Heap;
 import org.waterken.model.Model;
 import org.waterken.model.ModelError;
+import org.waterken.model.NoLabelReuse;
 import org.waterken.model.Root;
 import org.waterken.model.Service;
 import org.waterken.model.Transaction;
@@ -556,26 +557,26 @@ JODB extends Model {
         final File pending = file(folder, ".pending");
         final Creator create = new Creator() {
             public <T> T
-            run(final String name,
+            run(final String label,
                     final Transaction<T> initialize, final String project) {
                 if (!active[0]) { throw new AssertionError(); }
                 if (extend) { throw new Error("unexpected modification"); }
                 if (null == project || "".equals(project)) {
                     throw new NullPointerException();
                 }
-                if (name.startsWith(".")) { throw new RuntimeException(); }
+                if(label.startsWith(".")){throw new InvalidFilenameException();}
 
                 if (!modified[0]) {
                     if (!pending.mkdir()) { throw new Error(); }
                     modified[0] = true;
                 }
-                final String key = name.toLowerCase();
+                final String key = label.toLowerCase();
                 if (file(folder, "." + key + ".was").isFile()) {
-                    throw new RuntimeException();
+                    throw new NoLabelReuse();
                 }
                 try {
                     if (!file(pending, "." + key + ".was").createNewFile()) {
-                        throw new RuntimeException();
+                        throw new NoLabelReuse();
                     }
                 } catch (final IOException e) {
                     throw new ModelError(e);

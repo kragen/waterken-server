@@ -10,10 +10,10 @@ Creator {
 
     /**
      * Creates a new {@link Model}.
-     * @param name          model name
+     * @param label         model label
      * @param initialize    first transaction to run on the new model
      * @param project       corresponding project name
      */
     <R> R
-    run(String name, Transaction<R> initialize, String project);
+    run(String label, Transaction<R> initialize, String project);
 }
