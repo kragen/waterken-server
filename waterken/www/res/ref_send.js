@@ -215,6 +215,15 @@ var _ = function () {
     function deserialize(base, http) {
         if (200 === http.status || 201 === http.status ||
             202 === http.status || 203 === http.status) {
+            var contentType = http.getResponseHeader('Content-Type');
+            if (!/^application\/jsonrequest$/i.test(contentType)) {
+                return {
+                    $: [ 'org.web_send.Entity' ],
+                    type: contentType,
+                    content: http.responseBody,
+                    text: http.responseText
+                };
+            }
             return http.responseText.parseJSON(function (key, value) {
                 if (null === value) { return value; }
                 if ('object' !== typeof value) { return value; }
