@@ -13,7 +13,9 @@ Creator {
      * @param label         model label
      * @param initialize    first transaction to run on the new model
      * @param project       corresponding project name
+     * @throws NoLabelReuse <code>label</code> has already been used
      */
     <R> R
-    run(String label, Transaction<R> initialize, String project);
+    run(String label,
+        Transaction<R> initialize, String project) throws NoLabelReuse;
 }
