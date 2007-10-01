@@ -14,7 +14,7 @@ import org.waterken.dns.Domain;
  * A {@link Domain} administrator permissions.
  */
 public class
-Administrator<T> extends Struct implements Record, Serializable {
+DomainMaster<T> extends Struct implements Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -39,9 +39,9 @@ Administrator<T> extends Struct implements Record, Serializable {
      * @param answers   {@link #answers}
      */
     public @deserializer
-    Administrator(@name("published") final Domain published,
-                  @name("destruct") final Runnable destruct,
-                  @name("answers") final Section<T> answers) {
+    DomainMaster(@name("published") final Domain published,
+                 @name("destruct") final Runnable destruct,
+                 @name("answers") final Section<T> answers) {
         this.published = published;
         this.destruct = destruct;
         this.answers = answers;

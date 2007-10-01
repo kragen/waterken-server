@@ -261,7 +261,7 @@ Client implements Server {
             } catch (final Exception e) {
                 final OutputStream tmp = on.out;
                 on.out = null;
-                try { tmp.close(); } catch (final IOException e2) {}
+                try { tmp.close(); } catch (final Exception e2) {}
             }
             receiver.run(new Receive(on, x));
         }

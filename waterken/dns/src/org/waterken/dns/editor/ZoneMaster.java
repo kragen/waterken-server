@@ -13,7 +13,7 @@ import org.web_send.graph.Host;
  * A {@link Zone} implementation.
  */
 public final class
-Master implements Zone, Serializable {
+ZoneMaster implements Zone, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -22,7 +22,7 @@ Master implements Zone, Serializable {
     private final Host dependent;
 
     private
-    Master(final Host dependent) {
+    ZoneMaster(final Host dependent) {
         this.dependent = dependent;
     }
     
@@ -32,12 +32,12 @@ Master implements Zone, Serializable {
      */
     static public Zone
     build(final Framework framework) {
-        return new Master(framework.dependent);
+        return new ZoneMaster(framework.dependent);
     }
 
     // org.waterken.dns.editor.Zone interface
     
-    public Promise<Administrator<Promise<Resource>>>
+    public Promise<DomainMaster<Promise<Resource>>>
     claim(final String hostname) {
         return dependent.share(hostname, Editor.class.getName());
     }

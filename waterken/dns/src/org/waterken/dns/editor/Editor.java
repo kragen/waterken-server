@@ -15,7 +15,7 @@ import org.waterken.dns.Resource;
 import org.web_send.graph.Framework;
 
 /**
- * An {@link Administrator} implementation.
+ * An {@link DomainMaster} implementation.
  */
 public final class
 Editor {
@@ -27,7 +27,7 @@ Editor {
      * Constructs an instance.
      * @param framework model framework
      */
-    static public Fulfilled<Administrator<Resource>>
+    static public Fulfilled<DomainMaster<Resource>>
     build(final Framework framework) {
         final SectionX answers = new SectionX();
         class DomainX extends Struct implements Domain, Serializable {
@@ -45,7 +45,7 @@ Editor {
         }
         final Domain published = new DomainX();
         framework.exports.bind(Domain.name, published);
-        return ref(new Administrator<Resource>(
+        return ref(new DomainMaster<Resource>(
                 published, framework.destruct, answers));
     }
 }

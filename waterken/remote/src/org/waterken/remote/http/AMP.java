@@ -32,6 +32,7 @@ import org.waterken.model.Transaction;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
 import org.waterken.uri.URI;
+import org.web_send.graph.Collision;
 import org.web_send.graph.Framework;
 import org.web_send.graph.Host;
 
@@ -106,7 +107,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
             static private final long serialVersionUID = 1L;
 
             @SuppressWarnings("unchecked") public <T> Promise<T>
-            share(final String label, final String typename) {
+            share(final String label, final String typename) throws Collision {
                 final String base = (String)mother.fetch(null, here);
                 final Server client= (Server)mother.fetch(null,Remoting.client);
                 final Creator create = (Creator)mother.fetch(null, Root.create);

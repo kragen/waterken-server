@@ -23,7 +23,8 @@ Host {
      * @param label     model label
      * @param typename  object factory typename
      * @return promise for an object exported from the new model
+     * @throws Collision    <code>label</code> has already been used
      */
     <T> Promise<T>
-    share(String label, String typename);
+    share(String label, String typename) throws Collision;
 }

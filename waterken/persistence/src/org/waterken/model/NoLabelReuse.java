@@ -2,15 +2,14 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.model;
 
-import org.joe_e.Powerless;
-import org.ref_send.Record;
 import org.ref_send.deserializer;
+import org.web_send.graph.Collision;
 
 /**
  * Signals an attempt to {@link Creator#run reuse} a model label. 
  */
 public class
-NoLabelReuse extends RuntimeException implements Powerless, Record {
+NoLabelReuse extends Collision {
     static private final long serialVersionUID = 1L;
 
     /**
