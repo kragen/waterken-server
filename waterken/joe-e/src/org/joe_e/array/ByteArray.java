@@ -265,5 +265,5 @@ public final class ByteArray extends PowerlessArray<Byte> {
     /**
      * Views this array as an input stream.
      */
-    public InputStream open() { return new ByteArrayInputStream(bytes); }
+    public InputStream open() {return new ByteArrayInputStream(bytes);}
 }
