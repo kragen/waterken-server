@@ -27,7 +27,7 @@ Editor {
      * Constructs an instance.
      * @param framework model framework
      */
-    static public Fulfilled<DomainMaster<Resource>>
+    static public Fulfilled<DomainMaster>
     build(final Framework framework) {
         final SectionX answers = new SectionX();
         class DomainX extends Struct implements Domain, Serializable {
@@ -45,7 +45,6 @@ Editor {
         }
         final Domain published = new DomainX();
         framework.exports.bind(Domain.name, published);
-        return ref(new DomainMaster<Resource>(
-                published, framework.destruct, answers));
+        return ref(new DomainMaster(published, framework.destruct, answers));
     }
 }

@@ -4,25 +4,26 @@ package org.waterken.dns.editor;
 
 import org.joe_e.array.ConstArray;
 import org.ref_send.Variable;
+import org.ref_send.promise.Promise;
 import org.waterken.dns.Resource;
 
 /**
  * A {@link Resource} editor list.
  */
 public interface
-Section<T> {
+Section {
 
     /**
      * Gets the editors.
      */
-    ConstArray<? extends Variable<T>>
+    ConstArray<? extends Variable<? extends Promise<Resource>>>
     getEntries();
     
     /**
      * Adds a {@link #getEntries resource}.
      * @return corresponding editor
      */
-    Variable<T>
+    Variable<? extends Promise<Resource>>
     add();
     
     /**
@@ -30,5 +31,5 @@ Section<T> {
      * @param editor    to be removed editor
      */
     void
-    remove(Variable<T> editor);
+    remove(Variable<? extends Promise<Resource>> editor);
 }

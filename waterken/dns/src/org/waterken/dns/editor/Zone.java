@@ -3,7 +3,6 @@
 package org.waterken.dns.editor;
 
 import org.ref_send.promise.Promise;
-import org.waterken.dns.Resource;
 import org.web_send.graph.Collision;
 
 /**
@@ -18,6 +17,6 @@ Zone {
      * @return administrator permissions for the domain
      * @throws Collision    <code>hostname</code> has already been claimed
      */
-    Promise<DomainMaster<Promise<Resource>>>
+    Promise<DomainMaster>
     claim(String hostname) throws Collision;
 }

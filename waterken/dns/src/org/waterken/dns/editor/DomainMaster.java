@@ -14,7 +14,7 @@ import org.waterken.dns.Domain;
  * A {@link Domain} administrator permissions.
  */
 public class
-DomainMaster<T> extends Struct implements Record, Serializable {
+DomainMaster extends Struct implements Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -30,7 +30,7 @@ DomainMaster<T> extends Struct implements Record, Serializable {
     /**
      * {@link Domain#getAnswers() answers} editor
      */
-    public final Section<T> answers;
+    public final Section answers;
     
     /**
      * Constructs an instance.
@@ -41,7 +41,7 @@ DomainMaster<T> extends Struct implements Record, Serializable {
     public @deserializer
     DomainMaster(@name("published") final Domain published,
                  @name("destruct") final Runnable destruct,
-                 @name("answers") final Section<T> answers) {
+                 @name("answers") final Section answers) {
         this.published = published;
         this.destruct = destruct;
         this.answers = answers;

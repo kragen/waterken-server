@@ -10,13 +10,14 @@ import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.ref_send.Slot;
 import org.ref_send.Variable;
+import org.ref_send.promise.Promise;
 import org.waterken.dns.Resource;
 
 /**
  * A {@link Section} implementation.
  */
 final class
-SectionX implements Section<Resource>, Serializable {
+SectionX implements Section, Serializable {
     static private final long serialVersionUID = 1L;
 
     private ConstArray<Slot<Resource>> slots = ConstArray.array();
@@ -35,7 +36,7 @@ SectionX implements Section<Resource>, Serializable {
     }
 
     @SuppressWarnings("unchecked") public void
-    remove(final Variable<Resource> editor) {
+    remove(final Variable<? extends Promise<Resource>> editor) {
         final Slot<Resource>[] v = new Slot[slots.length() - 1];
         int i = 0;
         for (final Slot<Resource> slot : slots) {

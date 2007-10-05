@@ -5,7 +5,6 @@ package org.waterken.dns.editor;
 import java.io.Serializable;
 
 import org.ref_send.promise.Promise;
-import org.waterken.dns.Resource;
 import org.web_send.graph.Framework;
 import org.web_send.graph.Host;
 
@@ -37,7 +36,7 @@ ZoneMaster implements Zone, Serializable {
 
     // org.waterken.dns.editor.Zone interface
     
-    public Promise<DomainMaster<Promise<Resource>>>
+    public Promise<DomainMaster>
     claim(final String hostname) {
         return dependent.share(hostname, Editor.class.getName());
     }
