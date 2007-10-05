@@ -10,6 +10,7 @@ import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
 import org.joe_e.charset.URLEncoding;
 import org.ref_send.Brand;
+import org.ref_send.Record;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
@@ -140,7 +141,7 @@ Exports {
                 final String name = prefix + Base32.encode(encrypted); 
                 return object instanceof Brand.Local
                     ? name
-                : (object instanceof Volatile ||
+                : (object instanceof Record || object instanceof Volatile ||
                         !(Eventual.promised(object) instanceof Fulfilled)
                     ? "./?src=" : "./") + "#" + name; 
             }
