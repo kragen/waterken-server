@@ -43,6 +43,7 @@ import org.waterken.model.Heap;
 import org.waterken.model.Model;
 import org.waterken.model.ModelError;
 import org.waterken.model.NoLabelReuse;
+import org.waterken.model.ProhibitedModification;
 import org.waterken.model.Root;
 import org.waterken.model.Service;
 import org.waterken.model.Transaction;
@@ -501,7 +502,7 @@ JODB extends Model {
             public void
             store(final String name, final Object value) {
                 if (!active[0]) { throw new AssertionError(); }
-                if (extend) { throw new Error("unexpected modification"); }
+                if (extend) { throw new ProhibitedModification(); }
 
                 final String key = name.toLowerCase();
                 Filesystem.checkName(key + ext);
@@ -560,7 +561,7 @@ JODB extends Model {
             run(final String label,
                     final Transaction<T> initialize, final String project) {
                 if (!active[0]) { throw new AssertionError(); }
-                if (extend) { throw new Error("unexpected modification"); }
+                if (extend) { throw new ProhibitedModification(); }
                 if (null == project || "".equals(project)) {
                     throw new NullPointerException();
                 }
@@ -666,7 +667,7 @@ JODB extends Model {
                         final ByteArray fingerprint =
                             ByteArray.array(hash.digest());
                         if (!fingerprint.equals(x.fingerprint)) {
-                            throw new IOException("change detected");
+                            throw new ProhibitedModification();
                         }
                     }
                 };
