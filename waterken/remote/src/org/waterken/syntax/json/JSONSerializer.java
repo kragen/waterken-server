@@ -25,6 +25,7 @@ import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.promise.Inline;
 import org.ref_send.promise.Volatile;
+import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.type.Typedef;
 import org.waterken.id.Exporter;
 import org.waterken.io.Content;
@@ -138,12 +139,22 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 out.write("false");
             }
         } else if (Character.class == actual) {
-            serialize(render, implicit, ((Character)object).toString(),
+            serialize(mode, implicit, ((Character)object).toString(),
                       export, indent, out);
         } else if (Double.class == actual) {
-            out.write(((Double)object).toString());
+            final Volatile<Double> pd = Eventual.promised((Double)object);
+            if (pd instanceof Inline) {
+                out.write(((Inline<Double>)pd).cast().toString());
+            } else {
+                serialize(mode, implicit, pd, export, indent, out);
+            }
         } else if (Float.class == actual) {
-            out.write(((Float)object).toString());
+            final Volatile<Float> pf = Eventual.promised((Float)object);
+            if (pf instanceof Inline) {
+                out.write(((Inline<Float>)pf).cast().toString());
+            } else {
+                serialize(mode, implicit, pf, export, indent, out);
+            }
         } else if (BigDecimal.class == actual) {
             out.write(((BigDecimal)object).toPlainString());
         } else if (object instanceof ConstArray) {

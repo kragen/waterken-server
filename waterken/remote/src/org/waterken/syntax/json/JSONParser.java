@@ -19,6 +19,9 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.NegativeInfinity;
+import org.ref_send.promise.PositiveInfinity;
+import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
@@ -257,7 +260,37 @@ JSONParser {
             run(final char c) throws Exception {
                 if ('}' == c) {
                     pop();
-                    out.fulfill(Reflection.construct(make, argv));
+                    if (null == actual) { determine(); }
+                    final Object r = Reflection.construct(make, argv);
+                    if (r instanceof Rejected) {
+                        final Rejected p = (Rejected)r;
+                        if (Double.class==implicit || double.class==implicit) {
+                            if (p.reason instanceof NegativeInfinity) {
+                                out.fulfill(Double.NEGATIVE_INFINITY);
+                            } else if (p.reason instanceof PositiveInfinity) {
+                                out.fulfill(Double.POSITIVE_INFINITY);
+                            } else {
+                                out.fulfill(Double.NaN);
+                            }
+                        } else if(Float.class==implicit||float.class==implicit){
+                            if (p.reason instanceof NegativeInfinity) {
+                                out.fulfill(Float.NEGATIVE_INFINITY);
+                            } else if (p.reason instanceof PositiveInfinity) {
+                                out.fulfill(Float.POSITIVE_INFINITY);
+                            } else {
+                                out.fulfill(Float.NaN);
+                            }
+                        } else {
+                            final Class<?> R = Typedef.raw(implicit);
+                            if (!R.isInstance(r) && R.isInterface()) {
+                                out.fulfill(p._(R));
+                            } else {
+                                out.fulfill(r);
+                            }
+                        }
+                    } else {
+                        out.fulfill(r);
+                    }
                 } else if ('\"' == c) {
                     push(parseString(String.class, new Do<Object,Void>() {
                         public Void
