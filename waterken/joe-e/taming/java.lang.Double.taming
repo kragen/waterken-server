@@ -1,5 +1,8 @@
 Powerless Selfless
 MAX_VALUE
+NaN
+NEGATIVE_INFINITY
+POSITIVE_INFINITY
 Double(double)
 equals(java.lang.Object)
 hashCode()
@@ -10,4 +13,6 @@ intValue()
 longValue()
 floatValue()
 doubleValue()
+isInfinite()
+isNaN()
 valueOf(java.lang.String)
