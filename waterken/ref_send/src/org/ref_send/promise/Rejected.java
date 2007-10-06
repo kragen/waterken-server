@@ -3,21 +3,28 @@
 package org.ref_send.promise;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 import org.joe_e.Powerless;
 import org.joe_e.Selfless;
+import org.joe_e.reflect.Proxies;
+import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.type.Typedef;
 
 /**
  * A rejected promise.
  * @param <T> referent type
  */
 public final class
-Rejected<T> implements Promise<T>, Powerless, Selfless, Record, Serializable {
+Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
+                       Selfless, Record, Serializable {
     static private final long serialVersionUID = 1L;
-
+    
     /**
      * reason for rejecting the promise
      */
@@ -61,4 +68,41 @@ Rejected<T> implements Promise<T>, Powerless, Selfless, Record, Serializable {
      */
     public T
     cast() throws Exception { throw reason; }
+
+    // java.lang.reflect.InvocationHandler interface
+
+    /**
+     * Forwards a Java language invocation.
+     * @param proxy     eventual reference
+     * @param method    method to invoke
+     * @param args      invocation arguments
+     * @return eventual reference for the invocation return
+     */
+    public Object
+    invoke(final Object proxy, final Method method,
+           final Object[] args) throws Exception {
+        if (Object.class == method.getDeclaringClass()) {
+            if ("equals".equals(method.getName())) {
+                return args[0] instanceof Proxy &&
+                    proxy.getClass() == args[0].getClass() &&
+                    equals(Proxies.getHandler((Proxy)args[0]));
+            } else {
+                return Reflection.invoke(method, this, args);
+            }
+        }
+        final Class<?> R = Typedef.raw(Typedef.bound(
+                method.getGenericReturnType(), proxy.getClass()));
+        return R.isAssignableFrom(Promise.class) ? this : _(R);
+    }
+    
+    // org.ref_send.promise.Rejected interface
+    
+    /**
+     * Creates a rejected reference.
+     * @param type  referent type
+     */
+    @SuppressWarnings("unchecked") public T
+    _(final Class type) {
+        return (T)Proxies.proxy(this, type, Powerless.class, Selfless.class);
+    }
 }

@@ -18,9 +18,7 @@ Resolver<T> {
      * This method is syntactic sugar for:
      * </p>
      * <pre>
-     *     return resolve(null != value
-     *         ? Fulfilled.ref(value)
-     *     : new Rejected&lt;T&gt;(new NullPointerException()));
+     *     return resolve(Eventual.promised(value));
      * </pre>
      * @param referent  fulfilled value of the corresponding promise
      * @return <code>null</code>

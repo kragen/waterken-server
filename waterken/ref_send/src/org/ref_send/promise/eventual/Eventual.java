@@ -15,6 +15,9 @@ import org.joe_e.Selfless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.reflect.Proxies;
+import org.ref_send.promise.NaN;
+import org.ref_send.promise.NegativeInfinity;
+import org.ref_send.promise.PositiveInfinity;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Fulfilled;
@@ -435,11 +438,7 @@ Eventual implements Equatable, Serializable {
             static private final long serialVersionUID = 1L;
 
             public Void
-            fulfill(final T value) {
-                return resolve(null != value
-                        ? Fulfilled.ref(value)
-                    : new Rejected<T>(new NullPointerException()));
-            }
+            fulfill(final T value) { return resolve(promised(value)); }
 
             public Void
             reject(final Exception reason) {
@@ -555,7 +554,11 @@ Eventual implements Equatable, Serializable {
      */
     @SuppressWarnings("unchecked") public <T> T
     cast(final Class type, final Volatile<T> promise) {
-        return (T)proxy(trust(promise), type, Selfless.class);
+        return null == promise
+            ? new Rejected<T>(new NullPointerException())._(type)
+        : (Rejected.class == promise.getClass()
+            ? ((Rejected<T>)promise)._(type)
+        : (T)proxy(trust(promise), type, Selfless.class));
     }
 
     /**
@@ -629,7 +632,8 @@ Eventual implements Equatable, Serializable {
         if (reference instanceof Proxy) {
             try {
                 final Object handler = Proxies.getHandler((Proxy)reference);
-                if (handler instanceof Deferred && this==((Deferred)handler)._){
+                if ((null != handler && Rejected.class == handler.getClass()) ||
+                    (handler instanceof Deferred&&this==((Deferred)handler)._)){
                     return reference;   // already a trusted eventual reference
                 }
             } catch (final Exception e) {}
@@ -711,9 +715,12 @@ Eventual implements Equatable, Serializable {
      * @param <T> referent type
      * @param reference possibly eventual reference for a local referent
      * @return corresponding immediate reference
+     * @throws ClassCastException   no corresponding immediate reference
      */
     static public <T> T
-    near(final T reference) {return ((Fulfilled<T>)promised(reference)).cast();}
+    near(final T reference) throws ClassCastException {
+        return ((Fulfilled<T>)promised(reference)).cast();
+    }
 
     /**
      * Gets the corresponding {@linkplain Volatile promise}.
@@ -728,21 +735,40 @@ Eventual implements Equatable, Serializable {
      * </p>
      * @param <T> referent type
      * @param reference immediate or eventual reference
-     * @return corresponding implementation
+     * @return corresponding {@linkplain Volatile promise}
      */
     @SuppressWarnings("unchecked") static public <T> Volatile<T>
     promised(final T reference) {
+        if(null==reference){return new Rejected<T>(new NullPointerException());}
         if (reference instanceof Proxy) {
             try {
                 final Object handler = Proxies.getHandler((Proxy)reference);
-                if (handler instanceof Deferred){
+                if (handler instanceof Volatile){
                     return handler instanceof Enqueue
                         ? ((Enqueue<T>)handler).untrusted
-                    : (Deferred<T>)handler;
+                    : (Volatile<T>)handler;
                 }
             } catch (final Exception e) {}
         }
         if (reference instanceof Volatile) { return (Volatile)reference; }
+        if (reference instanceof Double) {
+            final Double d = (Double)reference;
+            if (d.isNaN()) { return new Rejected<T>(new NaN()); }
+            if (d.isInfinite()) {
+                return new Rejected<T>(d == Double.NEGATIVE_INFINITY
+                        ? new NegativeInfinity() : new PositiveInfinity());
+            }
+            return Fulfilled.ref(reference);
+        } 
+        if (reference instanceof Float) {
+            final Float f = (Float)reference;
+            if (f.isNaN()) { return new Rejected<T>(new NaN()); }
+            if (f.isInfinite()) {
+                return new Rejected<T>(f == Float.NEGATIVE_INFINITY
+                        ? new NegativeInfinity() : new PositiveInfinity());
+            }
+            return Fulfilled.ref(reference);
+        }
         return Fulfilled.ref(reference);
     }
 
