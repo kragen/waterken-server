@@ -12,7 +12,6 @@ import java.security.MessageDigest;
 import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 
 import org.joe_e.file.Filesystem;
 import org.waterken.uri.Base32;
@@ -167,7 +166,6 @@ GenKeyRSA {
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
         final Certificate cert = cf.generateCertificate(
                 new ByteArrayInputStream(certificate));
-        System.err.println(((X509Certificate)cert).getSigAlgName()); // TODO
         
         // store the private key and certificate
         final char[] password = "nopass".toCharArray();
