@@ -97,7 +97,7 @@ GenKeyRSA {
         // produce the validity
         final byte[] validity; {
             final byte[] start = "0710070001Z".getBytes("US-ASCII");
-            final byte[] end = "9912312359Z".getBytes("US-ASCII");
+            final byte[] end = "4912312359Z".getBytes("US-ASCII");
             validity = new byte[2 + 2 + start.length + 2 + end.length];
             int i = 0;
             validity[i++] = 0x30;
