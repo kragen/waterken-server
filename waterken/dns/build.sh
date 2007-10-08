@@ -1,9 +1,9 @@
 #!/bin/sh
 if [ "$OS" = 'Windows_NT' ]
 then
-    CLASSPATH='..\joe-e\bin;..\ref_send\bin;..\web_send\bin;..\persistence\bin'
+    CLASSPATH='..\joe-e\bin;..\ref_send\bin;..\web_send\bin;..\persistence\bin;..\network\bin'
 else
-    CLASSPATH='../joe-e/bin:../ref_send/bin:../web_send/bin:../persistence/bin'
+    CLASSPATH='../joe-e/bin:../ref_send/bin:../web_send/bin:../persistence/bin:../network/bin'
 fi
 
 echo 'Building dns project...'
