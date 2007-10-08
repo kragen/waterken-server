@@ -78,7 +78,7 @@ HTML.renderers['@'] = {
     render: function (value) {
         var href = value['@'];
         var name = /[^\/?#]*(?=\?|#|$)/.exec(href);
-        var text = null === name ? 'link' : name[0];
+        var text = null === name || '' === name[0] ? 'link' : name[0];
         return '<a href="' + href + '">' + text + '</a>';
     }
 };
