@@ -12,7 +12,10 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import javax.net.ssl.KeyManager;
@@ -23,93 +26,22 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.joe_e.file.Filesystem;
 import org.waterken.net.Locator;
 import org.waterken.uri.Authority;
+import org.waterken.uri.Base32;
 import org.waterken.uri.Location;
 
 /**
- * 
+ * SSL implementation
  */
 final class
 SSL {
 
     private
     SSL() {}
-
-    /**
-     * Opens an SSL keystore.
-     * @param protocol      standard name of the protocol
-     * @param file          key file
-     * @param passphrase    key file passphrase
-     */
-    static Credentials
-    keystore(final String protocol, final File file, final String passphrase) {
-        class KeystoreX implements Credentials, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            private transient String hostname;
-            private transient SSLContext context;
-
-            public String
-            getHostname()  throws IOException, GeneralSecurityException {
-                init();
-                return hostname;
-            }
-
-            public SSLContext
-            getContext() throws IOException, GeneralSecurityException {
-                init();
-                return context;
-            }
-            
-            private void
-            init() throws IOException, GeneralSecurityException {
-                if (null == context) {
-
-                    // load the key store
-                    final KeyStore keys =
-                        KeyStore.getInstance(KeyStore.getDefaultType());
-                    final InputStream in = Filesystem.read(file);
-                    keys.load(in, passphrase.toCharArray());
-                    in.close();
-
-                    // extract the keys and certs
-                    final KeyManagerFactory kmf = KeyManagerFactory.getInstance(
-                        KeyManagerFactory.getDefaultAlgorithm());
-                    kmf.init(keys, passphrase.toCharArray());
-                    final KeyManager[] kms = kmf.getKeyManagers();
-
-                    final TrustManagerFactory tmf =
-                        TrustManagerFactory.getInstance(
-                            TrustManagerFactory.getDefaultAlgorithm());
-                    tmf.init(keys);
-                    final TrustManager[] tms = tmf.getTrustManagers();
-
-                    // build the SSL context
-                    final SSLContext c = SSLContext.getInstance(protocol);
-                    c.init(kms, tms, null);
-                    context = c;
-                    
-                    // determine the local hostname
-                    for (final KeyManager km : kms) {
-                        if (km instanceof X509KeyManager) {
-                            final X509KeyManager x509 = (X509KeyManager)km;
-                            final X509Certificate[] chain =
-                                x509.getCertificateChain("mykey");
-                            if (null != chain && chain.length > 0) {
-                                hostname = cn(chain[0].
-                                        getSubjectX500Principal());
-                                if (null != hostname) { return; }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return new KeystoreX();
-    }
     
     static Locator
     client(final int standardPort, final Credentials credentials) {
@@ -171,6 +103,155 @@ SSL {
         }
         return new ClientX();
     }
+
+    /**
+     * Opens an SSL keystore.
+     * @param protocol      standard name of the protocol
+     * @param file          key file
+     * @param passphrase    key file passphrase
+     */
+    static Credentials
+    keystore(final String protocol, final File file, final String passphrase) {
+        class KeystoreX implements Credentials, Serializable {
+            static private final long serialVersionUID = 1L;
+
+            private transient String hostname;
+            private transient SSLContext context;
+
+            public String
+            getHostname()  throws IOException, GeneralSecurityException {
+                init();
+                return hostname;
+            }
+
+            public SSLContext
+            getContext() throws IOException, GeneralSecurityException {
+                init();
+                return context;
+            }
+            
+            private void
+            init() throws IOException, GeneralSecurityException {
+                if (null == context) {
+
+                    // load the key store
+                    final KeyStore keys =
+                        KeyStore.getInstance(KeyStore.getDefaultType());
+                    final InputStream in = Filesystem.read(file);
+                    keys.load(in, passphrase.toCharArray());
+                    in.close();
+
+                    // extract the keys and certs
+                    final KeyManagerFactory kmf = KeyManagerFactory.getInstance(
+                        KeyManagerFactory.getDefaultAlgorithm());
+                    kmf.init(keys, passphrase.toCharArray());
+                    final KeyManager[] kms = kmf.getKeyManagers();
+
+                    final TrustManagerFactory tmf =
+                        TrustManagerFactory.getInstance(
+                            TrustManagerFactory.getDefaultAlgorithm());
+                    tmf.init(keys);
+                    final TrustManager[] tms = tmf.getTrustManagers();
+
+                    // Augment the underlying PKI with y-property semantics.
+                    for (int i = 0; i != tms.length; ++i) {
+                        if (tms[i] instanceof X509TrustManager) {
+                            tms[i] = y((X509TrustManager)tms[i]);
+                            break;
+                        }
+                    }
+
+                    // build the SSL context
+                    final SSLContext c = SSLContext.getInstance(protocol);
+                    c.init(kms, tms, null);
+                    context = c;
+                    
+                    // determine the local hostname
+                    for (final KeyManager km : kms) {
+                        if (km instanceof X509KeyManager) {
+                            final X509KeyManager x509 = (X509KeyManager)km;
+                            final X509Certificate[] chain =
+                                x509.getCertificateChain("mykey");
+                            if (null != chain && chain.length > 0) {
+                                hostname = cn(chain[0].
+                                        getSubjectX500Principal());
+                                if (null != hostname) { return; }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return new KeystoreX();
+    }
+    
+    /**
+     * Constructs a trust manager that implements the y-property.
+     * @param pki   default key verification algorithm
+     * @throws NoSuchAlgorithmException MD5 does not exist
+     */
+    static X509TrustManager
+    y(final X509TrustManager pki) throws NoSuchAlgorithmException {
+        final MessageDigest MD5 = MessageDigest.getInstance("MD5");
+        return new X509TrustManager() {
+
+            public X509Certificate[]
+            getAcceptedIssuers() { return pki.getAcceptedIssuers(); }
+
+            public void
+            checkClientTrusted(final X509Certificate[] chain,
+                               final String authType)
+                                           throws CertificateException {
+                if (!checkY(chain, authType)) {
+                    pki.checkClientTrusted(chain, authType);
+                }
+            }
+
+            public void
+            checkServerTrusted(final X509Certificate[] chain,
+                               final String authType)
+                                           throws CertificateException {
+                if (!checkY(chain, authType)) {
+                    pki.checkServerTrusted(chain, authType);
+                }
+            }
+
+            private boolean
+            checkY(final X509Certificate[] chain, final String authType) {
+                // TODO: Figure out how this API works with longer cert chains
+                if (1 != chain.length) { return false; }
+                final X509Certificate cert = chain[0];
+                final String cn = cn(cert.getSubjectX500Principal());
+                if (null == cn) { return false; }
+                final String hostname = cn.toLowerCase();
+                if (!hostname.startsWith("y-")) { return false; }
+                final int dot = hostname.indexOf('.');
+                final String fingerprint =
+                    -1==dot ? hostname.substring(2) : hostname.substring(2,dot);
+                final byte[] decoded;
+                switch (fingerprint.length()) {
+                case 16:    // 80 bit hash
+                    decoded = new byte[10];
+                    break;
+                case 23:    // 112 bit hash
+                    decoded = new byte[14];
+                    break;
+                case 26:    // 128 bit hash
+                    decoded = new byte[16];
+                    break;
+                default:
+                    return false;   // not a hash
+                }
+                // TODO: determine the hash algorithm to use based on the cert
+                if (!"MD5withRSA".equals(cert.getSigAlgName())) {return false;}
+                final byte[] hashed =
+                    MD5.digest(cert.getPublicKey().getEncoded());
+                System.arraycopy(hashed, 0, decoded, 0, decoded.length);
+                if (fingerprint.equals(Base32.encode(decoded))) { return true; }
+                return false;
+            }
+        };
+    }    
     
     /**
      * Extracts the CN from a peer.

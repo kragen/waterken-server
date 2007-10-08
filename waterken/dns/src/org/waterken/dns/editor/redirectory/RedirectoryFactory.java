@@ -18,10 +18,9 @@ RedirectoryFactory {
 
     /**
      * Creates a public key registry.
-     * @param digest    fingerprint algorithm
      * @param suffix    hostname suffix
      * @param zone      domain factory
      */
     Redirectory
-    make(Digest digest, String suffix, Zone zone);
+    make(String suffix, Zone zone);
 }
