@@ -50,6 +50,7 @@ GenKeyRSA {
         final byte[] subjectPublicKeyInfo = p.getPublic().getEncoded();
         
         // produce the DER encoded CN field
+        final String label;
         final byte[] cn; {
             
             // calculate the hostname
@@ -57,7 +58,7 @@ GenKeyRSA {
             final byte[] fingerprint = MD5.digest(subjectPublicKeyInfo);
             final byte[] guid = new byte[strength];
             System.arraycopy(fingerprint, 0, guid, 0, strength);
-            final String label = "y-" + Base32.encode(guid);
+            label = "y-" + Base32.encode(guid);
             final byte[] hostname = (label + suffix).getBytes("US-ASCII");
 
             final DER out = new DER(11 + hostname.length);
@@ -142,7 +143,7 @@ GenKeyRSA {
         final byte[] signature; {
             final DER out = new DER(4 + signatureBitstring.length);
             out.writeValue(signatureBitstring);
-            out.writeByte(0x00);
+            out.writeByte(0x00);    // padding bits
             out.writeLen();
             out.writeByte(0x03);
             signature = out.toByteArray();
@@ -166,6 +167,7 @@ GenKeyRSA {
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
         final Certificate cert = cf.generateCertificate(
                 new ByteArrayInputStream(certificate));
+        cert.verify(p.getPublic());     // sanity check
         
         // store the private key and certificate
         final char[] password = "nopass".toCharArray();
@@ -176,6 +178,9 @@ GenKeyRSA {
         final OutputStream fout = Filesystem.writeNew(new File("keys.jks"));
         keys.store(fout, password);
         fout.close();
+        
+        System.err.print("fingerprint: ");
+        System.out.println(label);
     }
     
     static private class
