@@ -1,6 +1,6 @@
 /*
     json.js
-    2007-10-05
+    2007-08-19
 
     Public Domain
 
@@ -76,12 +76,14 @@ if (!Object.prototype.toJSONString) {
             switch (typeof v) {
             case 'object':
 
-// Serialize a JavaScript object value. Treat objects thats lack the
-// toJSONString method as null. Due to a specification error in ECMAScript,
+// Serialize a JavaScript object value. Ignore objects thats lack the
+// toJSONString method. Due to a specification error in ECMAScript,
 // typeof null is 'object', so watch out for that case.
 
-                if (v && typeof v.toJSONString === 'function') {
-                    a.push(v.toJSONString(w));
+                if (v) {
+                    if (typeof v.toJSONString === 'function') {
+                        a.push(v.toJSONString(w));
+                    }
                 } else {
                     a.push('null');
                 }
@@ -91,9 +93,9 @@ if (!Object.prototype.toJSONString) {
             case 'number':
             case 'boolean':
                 a.push(v.toJSONString());
-                break;
-            default:
-                a.push('null');
+
+// Values without a JSON representation are ignored.
+
             }
         }
 
@@ -119,12 +121,12 @@ if (!Object.prototype.toJSONString) {
             return n < 10 ? '0' + n : n;
         }
 
-        return '"' + this.getUTCFullYear()   + '-' +
-                   f(this.getUTCMonth() + 1) + '-' +
-                   f(this.getUTCDate())      + 'T' +
-                   f(this.getUTCHours())     + ':' +
-                   f(this.getUTCMinutes())   + ':' +
-                   f(this.getUTCSeconds())   + 'Z"';
+        return '"' + this.getUTCFullYear() + '-' +
+                f(this.getUTCMonth() + 1)  + '-' +
+                f(this.getUTCDate())       + 'T' +
+                f(this.getUTCHours())      + ':' +
+                f(this.getUTCMinutes())    + ':' +
+                f(this.getUTCSeconds())    + 'Z"';
     };
 
 
@@ -243,14 +245,11 @@ if (!Object.prototype.toJSONString) {
             var j;
 
             function walk(k, v) {
-                var i, n;
+                var i;
                 if (v && typeof v === 'object') {
                     for (i in v) {
                         if (Object.prototype.hasOwnProperty.apply(v, [i])) {
-                            n = walk(i, v[i]);
-                            if (n !== undefined) {
-                                v[i] = n;
-                            }
+                            v[i] = walk(i, v[i]);
                         }
                     }
                 }
@@ -270,9 +269,9 @@ if (!Object.prototype.toJSONString) {
 // the string literals. Third, we look to see if only JSON characters
 // remain. If so, then the text is safe for eval.
 
-            if (/^[,:{}\[\]0-9.\-+eE \n\r\t]*$/.test(this.
+            if (/^[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]*$/.test(this.
                     replace(/\\./g, '@').
-                    replace(/"[^"\\\n\r]*"|true|false|null/g, ''))) {
+                    replace(/"[^"\\\n\r]*"/g, ''))) {
 
 // In the second stage we use the eval function to compile the text into a
 // JavaScript structure. The '{' operator is subject to a syntactic ambiguity
@@ -307,8 +306,9 @@ if (!Object.prototype.toJSONString) {
                         return c;
                     }
                     c = a.charCodeAt();
-                    return '\\u00' + Math.floor(c / 16).toString(16) +
-                                               (c % 16).toString(16);
+                    return '\\u00' +
+                        Math.floor(c / 16).toString(16) +
+                        (c % 16).toString(16);
                 }) + '"';
             }
             return '"' + this + '"';
