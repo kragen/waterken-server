@@ -8,7 +8,6 @@ import java.lang.reflect.Proxy;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
-import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Promise;
@@ -35,14 +34,14 @@ Remote<T> extends Deferred<T> implements Promise<T> {
     private final Root local;
 
     /**
-     * reference identifier
+     * reference relative URL
      */
     private final String URL;
 
     /**
      * Constructs an instance.
      * @param local local address space
-     * @param URL   reference absolute URL
+     * @param URL   reference relative URL
      */
     private
     Remote(final Root local, final String URL) {
@@ -169,16 +168,5 @@ Remote<T> extends Deferred<T> implements Promise<T> {
             public Object
             invoke(String a, Object b, Method c, Object... d) { return null; }
         };
-    }
-
-    /**
-     * Register a {@link Messenger} scheme.
-     * @param local     local address space
-     * @param scheme    URI scheme
-     * @param messenger corresponding messenger
-     */
-    static public void
-    register(final Root local, final String scheme, final Messenger messenger) {
-        local.store(".-" + URLEncoding.encode(scheme), messenger);
     }
 }
