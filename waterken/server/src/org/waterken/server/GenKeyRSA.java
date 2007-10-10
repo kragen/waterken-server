@@ -143,7 +143,7 @@ GenKeyRSA {
         final byte[] signature; {
             final DER out = new DER(4 + signatureBitstring.length);
             out.writeValue(signatureBitstring);
-            out.writeByte(0x00);    // padding bits
+            out.writeByte(0x00);    // number of padding bits in signature
             out.writeLen();
             out.writeByte(0x03);
             signature = out.toByteArray();
