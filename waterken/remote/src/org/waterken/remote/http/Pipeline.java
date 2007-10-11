@@ -2,11 +2,12 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
+import static org.ref_send.promise.Fulfilled.ref;
+
 import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.ref_send.list.List;
-import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Do;
@@ -159,7 +160,7 @@ Pipeline implements Serializable {
     send(final Root local, final String peer, final Entry x) {
         Promise<Request> rendered;
         try {
-            rendered = Fulfilled.ref(x.msg.send());
+            rendered = ref(x.msg.send());
         } catch (final Exception reason) {
             rendered = new Rejected<Request>(reason);
         }
@@ -199,7 +200,7 @@ Pipeline implements Serializable {
                     return reject(e);
                 }
             }
-            return resolve(Fulfilled.ref(r));
+            return resolve(ref(r));
         }
         
         public Void

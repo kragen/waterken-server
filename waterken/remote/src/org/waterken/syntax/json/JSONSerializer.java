@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax.json;
 
+import static org.ref_send.promise.Fulfilled.ref;
+
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.Writer;
@@ -25,7 +27,6 @@ import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.promise.Inline;
 import org.ref_send.promise.Volatile;
-import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.type.Typedef;
 import org.waterken.id.Exporter;
 import org.waterken.io.Content;
@@ -142,14 +143,14 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             serialize(mode, implicit, ((Character)object).toString(),
                       export, indent, out);
         } else if (Double.class == actual) {
-            final Volatile<Double> pd = Eventual.promised((Double)object);
+            final Volatile<Double> pd = ref((Double)object);
             if (pd instanceof Inline) {
                 out.write(((Inline<Double>)pd).cast().toString());
             } else {
                 serialize(mode, implicit, pd, export, indent, out);
             }
         } else if (Float.class == actual) {
-            final Volatile<Float> pf = Eventual.promised((Float)object);
+            final Volatile<Float> pf = ref((Float)object);
             if (pf instanceof Inline) {
                 out.write(((Inline<Float>)pf).cast().toString());
             } else {
