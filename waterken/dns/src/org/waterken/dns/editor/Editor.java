@@ -2,14 +2,11 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.dns.editor;
 
-import static org.ref_send.promise.Fulfilled.ref;
-
 import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.Slot;
-import org.ref_send.promise.Fulfilled;
 import org.waterken.dns.Domain;
 import org.waterken.dns.Resource;
 import org.web_send.graph.Framework;
@@ -27,7 +24,7 @@ Editor {
      * Constructs an instance.
      * @param framework model framework
      */
-    static public Fulfilled<DomainMaster>
+    static public DomainMaster
     build(final Framework framework) {
         final SectionX answers = new SectionX();
         class DomainX extends Struct implements Domain, Serializable {
@@ -45,6 +42,6 @@ Editor {
         }
         final Domain published = new DomainX();
         framework.exports.bind(Domain.name, published);
-        return ref(new DomainMaster(published, framework.destruct, answers));
+        return new DomainMaster(published, framework.destruct, answers);
     }
 }
