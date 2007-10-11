@@ -31,12 +31,29 @@ Fulfilled<T> implements Promise<T>, Selfless, Serializable {
     /**
      * Adapts an immediate reference to the {@link Promise} interface.
      * @param <T> referent type
-     * @param value referent
-     * @return promise that {@linkplain #cast refers} to the <code>value</code>,
-     *         or <code>null</code> if <code>value</code> is <code>null</code>
+     * @param value immediate referent
+     * @return promise that {@linkplain #cast refers} to the <code>value</code>
      */
-    static public <T> Fulfilled<T>
-    ref(final T value) { return null != value ? new Inline<T>(value) : null; }
+    static public <T> Promise<T>
+    ref(final T value) {
+        if (null==value) { return new Rejected<T>(new NullPointerException()); }
+        if (value instanceof Double) {
+            final Double d = (Double)value;
+            if (d.isNaN()) { return new Rejected<T>(new NaN()); }
+            if (d.isInfinite()) {
+                return new Rejected<T>(d == Double.NEGATIVE_INFINITY
+                        ? new NegativeInfinity() : new PositiveInfinity());
+            }
+        } else if (value instanceof Float) {
+            final Float f = (Float)value;
+            if (f.isNaN()) { return new Rejected<T>(new NaN()); }
+            if (f.isInfinite()) {
+                return new Rejected<T>(f == Float.NEGATIVE_INFINITY
+                        ? new NegativeInfinity() : new PositiveInfinity());
+            }
+        }
+        return new Inline<T>(value);
+    }
 
     /**
      * Marks a point where deserialization of an object graph may be deferred.

@@ -15,12 +15,9 @@ import org.joe_e.Selfless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.reflect.Proxies;
-import org.ref_send.promise.NaN;
-import org.ref_send.promise.NegativeInfinity;
-import org.ref_send.promise.PositiveInfinity;
+import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
-import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Volatile;
 import org.ref_send.type.Typedef;
 
@@ -274,12 +271,12 @@ Eventual implements Equatable, Serializable {
             return r;
         }
     }
-
+    
     static private <P,R> R
-    sample(final Volatile<P> ref, final Do<P,R> observer) throws Exception {
+    sample(final Volatile<P> p, final Do<P,R> observer) throws Exception {
         final P a;
         try {
-            a = ref.cast();
+            a = Fulfilled.ref(p.cast()).cast();
         } catch (final Exception reason) {
             return observer.reject(reason);
         }
@@ -719,7 +716,23 @@ Eventual implements Equatable, Serializable {
      */
     static public <T> T
     near(final T reference) throws ClassCastException {
-        return ((Fulfilled<T>)promised(reference)).cast();
+        return near(promised(reference));
+    }
+    
+    /**
+     * Gets the corresponding immediate reference.
+     * <p>
+     * The implementation behavior is the same as that documented for the
+     * reference based {@link #near(Object) near} guard.
+     * </p>
+     * @param <T> referent type
+     * @param promise   promise for a local referent
+     * @return corresponding immediate reference
+     * @throws ClassCastException   no corresponding immediate reference
+     */
+    static public <T> T
+    near(final Volatile<T> promise) throws ClassCastException {
+        return ((Fulfilled<T>)promise).cast();
     }
 
     /**
@@ -739,7 +752,7 @@ Eventual implements Equatable, Serializable {
      */
     @SuppressWarnings("unchecked") static public <T> Volatile<T>
     promised(final T reference) {
-        if(null==reference){return new Rejected<T>(new NullPointerException());}
+        if (reference instanceof Volatile) { return (Volatile)reference; }
         if (reference instanceof Proxy) {
             try {
                 final Object handler = Proxies.getHandler((Proxy)reference);
@@ -749,25 +762,6 @@ Eventual implements Equatable, Serializable {
                     : (Volatile<T>)handler;
                 }
             } catch (final Exception e) {}
-        }
-        if (reference instanceof Volatile) { return (Volatile)reference; }
-        if (reference instanceof Double) {
-            final Double d = (Double)reference;
-            if (d.isNaN()) { return new Rejected<T>(new NaN()); }
-            if (d.isInfinite()) {
-                return new Rejected<T>(d == Double.NEGATIVE_INFINITY
-                        ? new NegativeInfinity() : new PositiveInfinity());
-            }
-            return Fulfilled.ref(reference);
-        } 
-        if (reference instanceof Float) {
-            final Float f = (Float)reference;
-            if (f.isNaN()) { return new Rejected<T>(new NaN()); }
-            if (f.isInfinite()) {
-                return new Rejected<T>(f == Float.NEGATIVE_INFINITY
-                        ? new NegativeInfinity() : new PositiveInfinity());
-            }
-            return Fulfilled.ref(reference);
         }
         return Fulfilled.ref(reference);
     }
