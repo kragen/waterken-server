@@ -861,7 +861,7 @@ JODB extends Model {
     /**
      * name prefix for generated file keys
      */
-    static private final String prefix = ".@";
+    static         final String prefix = ".@";
 
     /**
      * Turn an object identifier into a file key.

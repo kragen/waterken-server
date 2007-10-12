@@ -20,10 +20,10 @@ import org.waterken.uri.Base32;
  * A self-signed certificate generator.
  */
 final class
-GenKeyRSA {
+GenKey {
 
     private
-    GenKeyRSA() {}
+    GenKey() {}
     
     /**
      * @param args
@@ -31,17 +31,10 @@ GenKeyRSA {
     static public void
     main(final String[] args) throws Exception {
         final int keysize = 0 < args.length ? Integer.parseInt(args[0]) : 1024;
-        final int strength =
-            (1024 >= keysize
-                ? 80
-            : (2048 >= keysize
-                ? 112
-            : 128)) / Byte.SIZE;
         final String suffix = 1 < args.length ? args[1] : ".yurl.net";
         System.err.println("Generating RSA key pair...");
-        System.err.println("at domain: " + suffix);
         System.err.println("with keysize: " + keysize);
-        System.err.println("and hash length: " + (strength * Byte.SIZE));
+        System.err.println("under domain: " + suffix);
 
         // generate a new key pair
         final KeyPairGenerator g = KeyPairGenerator.getInstance("RSA");
@@ -50,16 +43,25 @@ GenKeyRSA {
         final byte[] subjectPublicKeyInfo = p.getPublic().getEncoded();
         
         // produce the DER encoded CN field
-        final String label;
         final byte[] cn; {
             
             // calculate the hostname
+            final int strength =
+                (1024 >= keysize
+                    ? 80
+                : (2048 >= keysize
+                    ? 112
+                : 128)) / Byte.SIZE;
             final MessageDigest SHA1 = MessageDigest.getInstance("SHA-1");
             final byte[] fingerprint = SHA1.digest(subjectPublicKeyInfo);
             final byte[] guid = new byte[strength];
             System.arraycopy(fingerprint, 0, guid, 0, strength);
-            label = "y-" + Base32.encode(guid);
+            final String label = "y-" + Base32.encode(guid);
             final byte[] hostname = (label + suffix).getBytes("US-ASCII");
+            
+            System.err.print("fingerprint: ");
+            System.out.print(label);
+            System.err.println();
 
             final DER out = new DER(11 + hostname.length);
             out.writeValue(hostname);
@@ -170,6 +172,7 @@ GenKeyRSA {
         cert.verify(p.getPublic());     // sanity check
         
         // store the private key and certificate
+        System.err.println("Storing self-signed certificate...");
         final char[] password = "nopass".toCharArray();
         final KeyStore keys = KeyStore.getInstance(KeyStore.getDefaultType());
         keys.load(null, password);
@@ -178,9 +181,6 @@ GenKeyRSA {
         final OutputStream fout = Filesystem.writeNew(new File("keys.jks"));
         keys.store(fout, password);
         fout.close();
-        
-        System.err.print("fingerprint: ");
-        System.out.println(label);
     }
     
     static private class

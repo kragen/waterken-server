@@ -21,9 +21,6 @@ HTTP {
     private
     HTTP() {}
 
-    /**
-     * TODO: change to whitelist
-     */
     static void
     vet(final String disallowed, final String value) throws Exception {
         for (int i = value.length(); 0 != i--;) {

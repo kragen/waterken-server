@@ -198,6 +198,8 @@ SSL {
         return new KeystoreX();
     }
     
+    static private final CertificateException notY = new CertificateException();
+    
     /**
      * Constructs a trust manager that implements the y-property.
      * @param pki   default key verification algorithm
@@ -205,7 +207,6 @@ SSL {
      */
     static X509TrustManager
     y(final X509TrustManager pki) throws NoSuchAlgorithmException {
-        final MessageDigest SHA1 = MessageDigest.getInstance("SHA1");
         return new X509TrustManager() {
 
             public X509Certificate[]
@@ -215,7 +216,9 @@ SSL {
             checkClientTrusted(final X509Certificate[] chain,
                                final String authType)
                                            throws CertificateException {
-                if (!checkY(chain, authType)) {
+                try {
+                    checkY(chain, authType);
+                } catch (final Exception e) {
                     pki.checkClientTrusted(chain, authType);
                 }
             }
@@ -224,20 +227,25 @@ SSL {
             checkServerTrusted(final X509Certificate[] chain,
                                final String authType)
                                            throws CertificateException {
-                if (!checkY(chain, authType)) {
+                try {
+                    checkY(chain, authType);
+                } catch (final Exception e) {
                     pki.checkServerTrusted(chain, authType);
                 }
             }
 
-            private boolean
-            checkY(final X509Certificate[] chain, final String authType) {
-                // TODO: Figure out how this API works with longer cert chains
-                if (1 != chain.length) { return false; }
+            private void
+            checkY(final X509Certificate[] chain,
+                   final String authType) throws Exception {
+                // TODO: figure out how this API works with longer cert chains
+                if (1 != chain.length) { throw notY; }
+                
+                // determine whether or not the cert uses the y-property
                 final X509Certificate cert = chain[0];
                 final String cn = cn(cert.getSubjectX500Principal());
-                if (null == cn) { return false; }
+                if (null == cn) { throw notY; }
                 final String hostname = cn.toLowerCase();
-                if (!hostname.startsWith("y-")) { return false; }
+                if (!hostname.startsWith("y-")) { throw notY; }
                 final int dot = hostname.indexOf('.');
                 final String fingerprint =
                     -1==dot ? hostname.substring(2) : hostname.substring(2,dot);
@@ -252,21 +260,25 @@ SSL {
                 case 26:    // 128 bit hash
                     decoded = new byte[16];
                     break;
-                default:
-                    return false;   // not a hash
+                default:    // not a hash
+                    throw notY;
                 }
                 final MessageDigest alg;
                 final String algname = cert.getSigAlgName();
                 if ("SHA1withRSA".equals(algname)) {
-                    alg = SHA1;
+                    alg = MessageDigest.getInstance("SHA-1");
                 } else {
-                    return false;
+                    throw notY;
                 }
                 final byte[] hashed =
                     alg.digest(cert.getPublicKey().getEncoded());
                 System.arraycopy(hashed, 0, decoded, 0, decoded.length);
-                if (fingerprint.equals(Base32.encode(decoded))) { return true; }
-                return false;
+                if (!fingerprint.equals(Base32.encode(decoded))) { throw notY; }
+                
+                // the caller's role is unspecified, so check the basic
+                // certificate validity properties just in case
+                cert.verify(cert.getPublicKey());
+                cert.checkValidity();
             }
         };
     }    
