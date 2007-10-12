@@ -59,11 +59,24 @@ JODB extends Model {
      * canonical persistence folder
      */
     private final File folder;
+    
+    /**
+     * {@link Root#code}
+     */
+    private final ClassLoader code;
+
+    /**
+     * {@link Root#prng}
+     */
+    private final SecureRandom prng;
 
     private
-    JODB(final File folder, final Loop<Service> service) {
+    JODB(final File folder, final Loop<Service> service) throws Exception {
         super(service);
         this.folder = folder;
+
+        code = application(folder);
+        prng = new SecureRandom();
     }
 
     /**
@@ -202,22 +215,12 @@ JODB extends Model {
     /**
      * Is a {@link #enter transaction} currently being processed?
      */
-    private transient boolean busy = false;
+    private boolean busy = false;
     
     /**
      * Has the model been awoken?
      */
-    private transient boolean awake = false;
-    
-    /**
-     * {@link Root#code}
-     */
-    private transient ClassLoader code = null;
-
-    /**
-     * {@link Root#prng}
-     */
-    private transient SecureRandom prng = null;
+    private boolean awake = false;
 
     /**
      * Processes a transaction within this model.
@@ -230,8 +233,6 @@ JODB extends Model {
         final Promise<R> r;
         try {
             if (!awake) {
-                code = application(folder);
-                prng = new SecureRandom();
                 process(Model.extend, new Transaction<Void>() {
                     public Void
                     run(final Root local) throws Exception {
@@ -271,7 +272,7 @@ JODB extends Model {
         }
     }
 
-    private <R> Promise<R>
+    <R> Promise<R>
     process(final boolean extend, final Transaction<R> body) throws Exception {
         // Is the current transaction still active?
         final boolean[] active = { true };

@@ -38,7 +38,8 @@ Touch {
         }
 
         final File folder = new File(args[0]);
-        JODB.connect(folder).enter(Model.change, new Transaction<Void>() {
+        ((JODB)JODB.connect(folder)).process(Model.change,
+                                             new Transaction<Void>() {
             public Void
             run(final Root local) throws Exception {
                 final Heap heap = (Heap)local.fetch(null, Root.heap);
