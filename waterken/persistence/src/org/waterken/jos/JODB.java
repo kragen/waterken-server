@@ -468,8 +468,9 @@ JODB extends Model {
                         try { fin.close(); } catch (final Exception e2) {}
                     }
                     if (e instanceof CyclicGraph) { throw (CyclicGraph)e; }
+                    if (e instanceof UnknownClass) { throw (UnknownClass)e; }
                     if (e instanceof ClassNotFoundException) {
-                        throw new RuntimeException(e);
+                        throw new UnknownClass(e.getMessage());
                     }
                     throw new ModelError(e);
                 }
