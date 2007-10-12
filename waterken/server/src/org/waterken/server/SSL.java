@@ -17,10 +17,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.List;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
@@ -85,12 +88,22 @@ SSL {
                             });
 
                             // verify peer name and requested hostname match
-                            final String authenticated =
-                                cn(r.getSession().getPeerPrincipal());
-                            if (!host.equalsIgnoreCase(authenticated)) {
-                                throw new IOException();
+                            final SSLSession s = r.getSession();
+                            final String CN = cn(s.getPeerPrincipal());
+                            if (host.equalsIgnoreCase(CN)) { return r; }
+                            final X509Certificate c = 
+                                (X509Certificate)s.getPeerCertificates()[0];
+                            final Collection<List<?>> alts =
+                                c.getSubjectAlternativeNames();
+                            if (null == alts) { throw new IOException(); }
+                            for (final List<?> alt : alts) {
+                                final Object name = alt.get(1);
+                                if (name instanceof String &&
+                                    host.equalsIgnoreCase((String)name)) {
+                                    return r;
+                                }
                             }
-                            return r;
+                            throw new IOException();
                         } catch (final IOException e) {
                             reason = e; // keep trying
                         }
@@ -192,7 +205,7 @@ SSL {
      */
     static X509TrustManager
     y(final X509TrustManager pki) throws NoSuchAlgorithmException {
-        final MessageDigest MD5 = MessageDigest.getInstance("MD5");
+        final MessageDigest SHA1 = MessageDigest.getInstance("SHA1");
         return new X509TrustManager() {
 
             public X509Certificate[]
@@ -242,10 +255,15 @@ SSL {
                 default:
                     return false;   // not a hash
                 }
-                // TODO: determine the hash algorithm to use based on the cert
-                if (!"MD5withRSA".equals(cert.getSigAlgName())) {return false;}
+                final MessageDigest alg;
+                final String algname = cert.getSigAlgName();
+                if ("SHA1withRSA".equals(algname)) {
+                    alg = SHA1;
+                } else {
+                    return false;
+                }
                 final byte[] hashed =
-                    MD5.digest(cert.getPublicKey().getEncoded());
+                    alg.digest(cert.getPublicKey().getEncoded());
                 System.arraycopy(hashed, 0, decoded, 0, decoded.length);
                 if (fingerprint.equals(Base32.encode(decoded))) { return true; }
                 return false;

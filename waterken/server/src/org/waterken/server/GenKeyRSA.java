@@ -54,8 +54,8 @@ GenKeyRSA {
         final byte[] cn; {
             
             // calculate the hostname
-            final MessageDigest MD5 = MessageDigest.getInstance("MD5");
-            final byte[] fingerprint = MD5.digest(subjectPublicKeyInfo);
+            final MessageDigest SHA1 = MessageDigest.getInstance("SHA-1");
+            final byte[] fingerprint = SHA1.digest(subjectPublicKeyInfo);
             final byte[] guid = new byte[strength];
             System.arraycopy(fingerprint, 0, guid, 0, strength);
             label = "y-" + Base32.encode(guid);
@@ -91,7 +91,7 @@ GenKeyRSA {
         final byte[] serialNumber = { 0x02, 0x04, 0x00, 0x00, 0x00, 0x01 };
         final byte[] signatureAlgorithm = {
             0x30, 0x0d, 0x06, 0x09, 0x2a, (byte)0x86, 0x48, (byte)0x86,
-            (byte)0xf7, 0x0d, 0x01, 0x01, 0x04, 0x05, 0x00
+            (byte)0xf7, 0x0d, 0x01, 0x01, 0x05, 0x05, 0x00
         };
         final byte[] issuer = subject;
         
@@ -136,10 +136,10 @@ GenKeyRSA {
         }
         
         // calculate the signature
-        final Signature MD5withRSA = Signature.getInstance("MD5withRSA");
-        MD5withRSA.initSign(p.getPrivate());
-        MD5withRSA.update(tbsCertificate);
-        final byte[] signatureBitstring = MD5withRSA.sign();
+        final Signature SHA1withRSA = Signature.getInstance("SHA1withRSA");
+        SHA1withRSA.initSign(p.getPrivate());
+        SHA1withRSA.update(tbsCertificate);
+        final byte[] signatureBitstring = SHA1withRSA.sign();
         final byte[] signature; {
             final DER out = new DER(4 + signatureBitstring.length);
             out.writeValue(signatureBitstring);
