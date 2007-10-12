@@ -48,9 +48,13 @@ Touch {
                     accept(final File dir, final String name) {
                         if (!name.startsWith(JODB.prefix)) { return false; }
                         if (!name.endsWith(JODB.ext)) { return false; }
-                        heap.reference(Long.parseLong(name.substring(
-                            JODB.prefix.length(),
-                            name.length() - JODB.ext.length()), 16));
+                        try {
+                            heap.reference(Long.parseLong(name.substring(
+                                JODB.prefix.length(),
+                                name.length() - JODB.ext.length()), 16));
+                        } catch (final Exception e) {
+                            // just ignore any problem with the object
+                        }
                         return false;
                     }
                 });
