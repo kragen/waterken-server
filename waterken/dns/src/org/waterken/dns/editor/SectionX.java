@@ -27,8 +27,7 @@ SectionX implements Section, Serializable {
 
     public Slot<Resource>
     add() {
-        final byte zero = 0;
-        final ByteArray addr = ByteArray.array(zero, zero, zero, zero);
+        final ByteArray addr = ByteArray.array(new byte[] { 127, 0, 0, 1 });
         final Resource initial = new Resource(Resource.A, Resource.IN, 0, addr);
         final Slot<Resource> slot = var(initial); 
         slots = slots.with(slot);

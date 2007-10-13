@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
+import static org.joe_e.array.ConstArray.array;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.OutputStream;
@@ -9,11 +11,25 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 
 import org.joe_e.file.Filesystem;
+import org.ref_send.Variable;
+import org.ref_send.list.List;
+import org.ref_send.promise.Promise;
+import org.ref_send.promise.eventual.Do;
+import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Loop;
+import org.ref_send.promise.eventual.Task;
+import org.waterken.dns.Resource;
+import org.waterken.dns.editor.DomainMaster;
+import org.waterken.dns.editor.redirectory.Redirectory;
+import org.waterken.remote.http.Browser;
+import org.waterken.syntax.Serializer;
+import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.uri.Base32;
 
 /**
@@ -43,6 +59,7 @@ GenKey {
         final byte[] subjectPublicKeyInfo = p.getPublic().getEncoded();
         
         // produce the DER encoded CN field
+        final String fingerprint;
         final byte[] cn; {
             
             // calculate the hostname
@@ -53,14 +70,14 @@ GenKey {
                     ? 112
                 : 128)) / Byte.SIZE;
             final MessageDigest SHA1 = MessageDigest.getInstance("SHA-1");
-            final byte[] fingerprint = SHA1.digest(subjectPublicKeyInfo);
+            final byte[] hash = SHA1.digest(subjectPublicKeyInfo);
             final byte[] guid = new byte[strength];
-            System.arraycopy(fingerprint, 0, guid, 0, strength);
-            final String label = "y-" + Base32.encode(guid);
-            final byte[] hostname = (label + suffix).getBytes("US-ASCII");
+            System.arraycopy(hash, 0, guid, 0, strength);
+            fingerprint = "y-" + Base32.encode(guid);
+            final byte[] hostname = (fingerprint + suffix).getBytes("US-ASCII");
             
             System.err.print("fingerprint: ");
-            System.out.print(label);
+            System.out.print(fingerprint);
             System.err.println();
 
             final DER out = new DER(11 + hostname.length);
@@ -181,6 +198,55 @@ GenKey {
         final OutputStream fout = Filesystem.writeNew(new File("keys.jks"));
         keys.store(fout, password);
         fout.close();
+        
+        // register the public key
+        System.err.println("Registering the public key...");
+        final List<Task> work = List.list();
+        final Browser browser = Browser.make(
+                new Proxy(), new SecureRandom(),
+                GenKey.class.getClassLoader(),
+                new Loop<Task>() {
+                    public void
+                    run(final Task task) { work.append(task); }
+                });
+        final Eventual _ = browser._;
+        final String redirectoryURL = 2 < args.length
+            ? args[2]
+        : "https://y-4tkd3qwgy6ripqoxn2c74dpxfu.yurl.net/dns/#redirectory";
+        final Redirectory redirectory_ =
+            (Redirectory)browser.connect.run(Redirectory.class, redirectoryURL);
+        _.when(redirectory_.register(fingerprint), new Do<DomainMaster,Void>() {
+            @SuppressWarnings("unchecked") public Void
+            fulfill(final DomainMaster master) throws Exception {
+                
+                // save the registration
+                final File registration = new File("registration.json");
+                final OutputStream out = Filesystem.writeNew(registration);
+                new JSONSerializer().run(Serializer.render, browser.export,
+                                         array(master)).writeTo(out);
+                out.flush();
+                out.close();
+                
+                // setup an IP updater
+                _.when(master.answers.add(),
+                       new Do<Variable<? extends Promise<Resource>>,Void>() {
+                    public Void
+                    fulfill(final Variable<? extends Promise<Resource>> updater)
+                                                            throws Exception {
+                        final File ip = new File("ip.son");
+                        final OutputStream out = Filesystem.writeNew(ip);
+                        new JSONSerializer().run(Serializer.render,
+                            browser.export, array(updater)).writeTo(out);
+                        out.flush();
+                        out.close();
+                        return null;
+                    }
+                });
+                
+                return null;
+            }
+        });
+        while (!work.isEmpty()) { work.pop().run(); }
     }
     
     static private class

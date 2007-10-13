@@ -17,13 +17,13 @@ import org.web_send.graph.Framework;
  * A {@link Redirectory} implementation.
  */
 public final class
-Main extends Struct implements RedirectoryFactory, Serializable {
+Main extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
      * model permissions
      */
-    private final Framework framework;
+    public final Framework framework;
 
     private
     Main(final Framework framework) {
@@ -51,7 +51,8 @@ Main extends Struct implements RedirectoryFactory, Serializable {
 
             public Promise<DomainMaster>
             register(final String fingerprint) throws Collision {
-                if (fingerprint.length() * 5 < 80) { throw new Collision(); }
+                if (!fingerprint.startsWith("y-")) { throw new Collision(); }
+                if (fingerprint.length() < 18) { throw new Collision(); }
                 Label.vet(fingerprint);
                 return zone.claim(fingerprint + suffix);
             }
