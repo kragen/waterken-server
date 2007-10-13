@@ -271,7 +271,7 @@ JODB extends Model {
 
     <R> Promise<R>
     process(final boolean extend, final Transaction<R> body) throws Exception {
-        // finish initialization of object, which was delayed to avoid doing
+        // finish object initialization, which was delayed to avoid doing
         // anything intensive while holding the global "live" lock.
         if (null == code) { code = application(folder); }
         if (null == prng) { prng = new SecureRandom(); }
