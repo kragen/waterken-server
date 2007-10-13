@@ -59,24 +59,11 @@ JODB extends Model {
      * canonical persistence folder
      */
     private final File folder;
-    
-    /**
-     * {@link Root#code}
-     */
-    private final ClassLoader code;
-
-    /**
-     * {@link Root#prng}
-     */
-    private final SecureRandom prng;
 
     private
     JODB(final File folder, final Loop<Service> service) throws Exception {
         super(service);
         this.folder = folder;
-
-        code = application(folder);
-        prng = new SecureRandom();
     }
 
     /**
@@ -271,9 +258,24 @@ JODB extends Model {
             this.fingerprint = fingerprint;
         }
     }
+    
+    /**
+     * {@link Root#code}
+     */
+    private ClassLoader code;
+
+    /**
+     * {@link Root#prng}
+     */
+    private SecureRandom prng;
 
     <R> Promise<R>
     process(final boolean extend, final Transaction<R> body) throws Exception {
+        // finish initialization of object, which was delayed to avoid doing
+        // anything intensive while holding the global "live" lock.
+        if (null == code) { code = application(folder); }
+        if (null == prng) { prng = new SecureRandom(); }
+
         // Is the current transaction still active?
         final boolean[] active = { true };
 
