@@ -124,11 +124,39 @@ NameServer {
                                                  ( in[i++] & 0xFF));
                     question[qd] = new Question(qname, qtype, qclass);
                 }
-
-                // encode the corresponding answers
+                
+                // encode the question section
                 final ByteArrayOutputStream response =
                     new ByteArrayOutputStream(512);
+                header[4] = (byte)(qdcount >>> 8);
+                header[5] = (byte)(qdcount      );
                 response.write(header);
+                final short[] pointer = new short[qdcount];
+                for (int qd = 0; qdcount != qd; ++qd) {
+                    pointer[qd] = (short)(0xC000 | response.size());
+                    final String qname = question[qd].name;
+                    final byte[] labels = ASCII.encode(qname);
+                    for (int i = 0, j = 0; true; ++j) {
+                        if (j == labels.length || '.' == labels[j]) {
+                            final int n = j - i;
+                            response.write(n);
+                            response.write(labels, i, n);
+                            if (j == labels.length) {
+                                response.write(0);
+                                break;
+                            }
+                            i = j + 1;
+                        }
+                    }
+                    final short qtype = question[qd].type;
+                    response.write(qtype >>> 8);
+                    response.write(qtype      );
+                    final short qclass = question[qd].clazz;
+                    response.write(qclass >>> 8);
+                    response.write(qclass      );
+                }
+
+                // encode the corresponding answers
                 boolean found = false;
                 int ancount = 0;
                 for (int qd = 0; qdcount != qd; ++qd) {
@@ -150,32 +178,15 @@ NameServer {
                     }
                     final short qtype = question[qd].type;
                     final short qclass = question[qd].clazz;
-                    short qp = 0;
+                    short qp = pointer[qd];
                     for (final Resource a : answers) {
                         if ((Question.anyType == qtype || qtype == a.type) &&
                             (Question.anyClass == qclass || qclass == a.clazz)){
                             final byte[] data = a.data.toByteArray();
                             if (data.length > 0xFFFF) { continue; }
                             
-                            if (0 == qp) {
-                                qp = (short)(0xC000 | response.size());
-                                final byte[] labels = ASCII.encode(qname);
-                                int i = 0;
-                                for (int j = 0; true; ++j) {
-                                    if (j == labels.length || '.' == labels[j]){
-                                        response.write(j - i);
-                                        response.write(labels, i, j - i);
-                                        if (j == labels.length) {
-                                            response.write(0);
-                                            break;
-                                        }
-                                        i = j + 1;
-                                    }
-                                }
-                            } else {
-                                response.write(qp >>> 8);
-                                response.write(qp      );
-                            }
+                            response.write(qp >>> 8);
+                            response.write(qp      );
                             response.write(a.type >>> 8);
                             response.write(a.type      );
                             response.write(a.clazz >>> 8);
