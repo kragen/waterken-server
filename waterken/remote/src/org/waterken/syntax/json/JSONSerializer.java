@@ -308,22 +308,25 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                     separator = comma;
                 }
             }
-            for (Method m : Reflection.methods(c)) {
-                final int flags = m.getModifiers();
-                if (!Modifier.isStatic(flags) && !Java.isSynthetic(flags)) {
-                    final Method spec = Java.bubble(m);
-                    if (null != spec) {
-                        m = spec;
+            if (!(Record.class.isAssignableFrom(c) ||
+                  Throwable.class.isAssignableFrom(c))) {
+                for (Method m : Reflection.methods(c)) {
+                    final int flags = m.getModifiers();
+                    if (!Modifier.isStatic(flags) && !Java.isSynthetic(flags)) {
+                        final Method spec = Java.bubble(m);
+                        if (null != spec) {
+                            m = spec;
+                        }
+                        out.write(separator);
+                        out.write(inset);
+                        out.write("\"");
+                        String name = Java.property(m);
+                        if (null == name) { name = m.getName(); }
+                        out.write(name);
+                        out.write("\" : ");
+                        serialize(describe, Method.class, m, export, inset,out);
+                        separator = comma;
                     }
-                    out.write(separator);
-                    out.write(inset);
-                    out.write("\"");
-                    String name = Java.property(m);
-                    if (null == name) { name = m.getName(); }
-                    out.write(name);
-                    out.write("\" : ");
-                    serialize(describe, Method.class, m, export, inset, out);
-                    separator = comma;
                 }
             }
             out.write(newLine);
