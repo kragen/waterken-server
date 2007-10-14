@@ -152,7 +152,8 @@ Main extends Struct implements Test, Serializable {
                 throw reason;
             }
         }));
-        r.add(_.when(null, new Do<Runnable,Promise<Boolean>>() {
+        final Runnable x = null;
+        r.add(_.when(x, new Do<Runnable,Promise<Boolean>>() {
             public Promise<Boolean>
             fulfill(final Runnable arg) throws Exception {
                 throw new Exception();
