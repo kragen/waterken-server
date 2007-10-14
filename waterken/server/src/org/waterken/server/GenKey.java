@@ -82,9 +82,7 @@ GenKey {
             fingerprint = "y-" + Base32.encode(guid);
             final byte[] hostname = (fingerprint + suffix).getBytes("US-ASCII");
             
-            System.err.print("fingerprint: ");
-            System.out.print(fingerprint);
-            System.err.println();
+            System.err.println("fingerprint: " + fingerprint);
 
             final DER out = new DER(11 + hostname.length);
             out.writeValue(hostname);
@@ -250,6 +248,11 @@ GenKey {
                                    browser.export, array(a)).writeTo(out);
                                out.flush();
                                out.close();
+
+                               System.err.println(
+                                   "Start your server and visit:");
+                               System.out.println(
+                                   "https://" + fingerprint + suffix + "/");
                                return null;
                            }
                        });
