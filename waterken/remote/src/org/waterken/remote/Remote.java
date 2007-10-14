@@ -64,8 +64,11 @@ Remote<T> extends Deferred<T> implements Promise<T> {
             public Object
             run(final Class<?> type, final String id) {
                 final String here = (String)local.fetch(null, Remoting.here);
-                final Remote<?> rp = new Remote(local, URI.relate(here, id));
-                return type.isInstance(rp) ? rp : rp._.cast(type, rp);
+                final String target = null == here ? id : URI.relate(here, id);
+                final Remote<?> rp = new Remote(local, target);
+                return type.isInstance(rp) || !Proxies.isImplementable(type)
+                    ? rp
+                : rp._.cast(type, rp);
             }
         }
         return new ImporterX();
@@ -142,7 +145,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
             }
         }
         final String here = (String)local.fetch(null, Remoting.here);
-        final String target = URI.resolve(here, URL);
+        final String target = null == here ? URL : URI.resolve(here, URL);
         return message(target).invoke(target, proxy, method, arg);
     }
     
@@ -151,7 +154,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
     protected <R> R
     when(final Class<?> R, final Do<T,R> observer) {
         final String here = (String)local.fetch(null, Remoting.here);
-        final String target = URI.resolve(here, URL);
+        final String target = null == here ? URL : URI.resolve(here, URL);
         return message(target).when(target, R, observer);
     }
 

@@ -18,11 +18,9 @@ import java.security.cert.CertificateFactory;
 
 import org.joe_e.file.Filesystem;
 import org.ref_send.Variable;
-import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.dns.Resource;
 import org.waterken.dns.editor.DomainMaster;
@@ -30,6 +28,7 @@ import org.waterken.dns.editor.redirectory.Redirectory;
 import org.waterken.remote.http.Browser;
 import org.waterken.syntax.Serializer;
 import org.waterken.syntax.json.JSONSerializer;
+import org.waterken.thread.Concurrent;
 import org.waterken.uri.Base32;
 
 /**
@@ -191,62 +190,68 @@ GenKey {
         // store the private key and certificate
         System.err.println("Storing self-signed certificate...");
         final char[] password = "nopass".toCharArray();
-        final KeyStore keys = KeyStore.getInstance(KeyStore.getDefaultType());
-        keys.load(null, password);
-        keys.setKeyEntry("mykey", p.getPrivate(), password,
-                         new Certificate[] { cert });
-        final OutputStream fout = Filesystem.writeNew(new File("keys.jks"));
-        keys.store(fout, password);
+        final KeyStore certs = KeyStore.getInstance(KeyStore.getDefaultType());
+        certs.load(null, password);
+        certs.setKeyEntry("mykey", p.getPrivate(), password,
+                          new Certificate[] { cert });
+        final File keys = new File("keys.jks");
+        final OutputStream fout = Filesystem.writeNew(keys);
+        certs.store(fout, password);
         fout.close();
         
         // register the public key
         System.err.println("Registering the public key...");
-        final List<Task> work = List.list();
+        Proxy.protocols.put("http", Loopback.client(80));
+        final Credentials credentials = SSL.keystore("TLS", keys, "nopass");
+        Proxy.protocols.put("https", SSL.client(443, credentials));
         final Browser browser = Browser.make(
                 new Proxy(), new SecureRandom(),
                 GenKey.class.getClassLoader(),
-                new Loop<Task>() {
-                    public void
-                    run(final Task task) { work.append(task); }
-                });
+                Concurrent.loop(Thread.currentThread().getThreadGroup(),
+                                "enqueue"));
         final Eventual _ = browser._;
         final String redirectoryURL = 2 < args.length
             ? args[2]
-        : "https://y-4tkd3qwgy6ripqoxn2c74dpxfu.yurl.net/dns/#redirectory";
-        final Redirectory redirectory_ =
-            (Redirectory)browser.connect.run(Redirectory.class, redirectoryURL);
-        _.when(redirectory_.register(fingerprint), new Do<DomainMaster,Void>() {
-            @SuppressWarnings("unchecked") public Void
-            fulfill(final DomainMaster master) throws Exception {
-                
-                // save the registration
-                final File registration = new File("registration.json");
-                final OutputStream out = Filesystem.writeNew(registration);
-                new JSONSerializer().run(Serializer.render, browser.export,
-                                         array(master)).writeTo(out);
-                out.flush();
-                out.close();
-                
-                // setup an IP updater
-                _.when(master.answers.add(),
-                       new Do<Variable<? extends Promise<Resource>>,Void>() {
-                    public Void
-                    fulfill(final Variable<? extends Promise<Resource>> updater)
-                                                            throws Exception {
-                        final File ip = new File("ip.son");
-                        final OutputStream out = Filesystem.writeNew(ip);
-                        new JSONSerializer().run(Serializer.render,
-                            browser.export, array(updater)).writeTo(out);
-                        out.flush();
-                        out.close();
-                        return null;
-                    }
-                });
-                
-                return null;
-            }
+        : "https://y-4tkd3qwgy6ripqoxn2c74dpxfu.yurl.net/db/dns/#redirectory";
+        _.enqueue.run(new Task() {
+           public void
+           run() throws Exception {
+               final Redirectory redirectory_ = (Redirectory)browser.connect.
+                   run(Redirectory.class, redirectoryURL);
+               _.when(redirectory_.register(fingerprint),
+                      new Do<DomainMaster,Void>() {
+                   @SuppressWarnings("unchecked") public Void
+                   fulfill(final DomainMaster master) throws Exception {
+                       
+                       // save the registration
+                       final File registration = new File("registration.json");
+                       final OutputStream out=Filesystem.writeNew(registration);
+                       new JSONSerializer().run(Serializer.render,
+                               browser.export, array(master)).writeTo(out);
+                       out.flush();
+                       out.close();
+                       
+                       // setup an IP updater
+                       _.when(master.answers.add(),
+                         new Do<Variable<? extends Promise<Resource>>,Void>() {
+                          public Void
+                          fulfill(final Variable<? extends Promise<Resource>> a)
+                                                              throws Exception {
+                               final File ip = new File("ip.json");
+                               final OutputStream out = Filesystem.writeNew(ip);
+                               new JSONSerializer().run(Serializer.render,
+                                   browser.export, array(a)).writeTo(out);
+                               out.flush();
+                               out.close();
+                               return null;
+                           }
+                       });
+                       
+                       return null;
+                   }
+               });
+           }
         });
-        while (!work.isEmpty()) { work.pop().run(); }
     }
     
     static private class

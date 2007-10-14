@@ -6,10 +6,21 @@ import static org.joe_e.file.Filesystem.file;
 import static org.waterken.io.MediaType.MIME;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Type;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.security.SecureRandom;
 
+import org.joe_e.array.ByteArray;
+import org.joe_e.array.PowerlessArray;
+import org.joe_e.file.Filesystem;
+import org.ref_send.Variable;
+import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Task;
+import org.waterken.dns.Resource;
 import org.waterken.dns.udp.NameServer;
 import org.waterken.http.Server;
 import org.waterken.http.mirror.Mirror;
@@ -17,7 +28,10 @@ import org.waterken.http.trace.Trace;
 import org.waterken.jos.JODB;
 import org.waterken.net.http.HTTPD;
 import org.waterken.remote.http.AMP;
+import org.waterken.remote.http.Browser;
 import org.waterken.remote.mux.Mux;
+import org.waterken.syntax.json.JSONDeserializer;
+import org.waterken.thread.Concurrent;
 
 /**
  * Starts the server.
@@ -85,25 +99,25 @@ Serve {
             final String service = args[i];
             final int eq = service.indexOf('=');
             final String protocol = service.substring(0, eq);
-            final int portNumber = Integer.parseInt(service.substring(eq + 1));
+            final int port = Integer.parseInt(service.substring(eq + 1));
 
             final Runnable listener;
             if ("http".equals(protocol)) {
                 Proxy.protocols.put("http", Loopback.client(80));
                 listener = new TCP(err, new ThreadGroup(service), "http",
                     HTTPD.make("http", server, Proxy.thread), soTimeout,
-                    new ServerSocket(portNumber, backlog, Loopback.addr));
+                    new ServerSocket(port, backlog, Loopback.addr));
             } else if ("https".equals(protocol)) {
                 final Credentials credentials=SSL.keystore("TLS",keys,"nopass");
                 Proxy.protocols.put("https", SSL.client(443, credentials));
+                final ServerSocket listen = credentials.getContext().
+                    getServerSocketFactory().createServerSocket(port, backlog);
                 listener = new TCP(err, new ThreadGroup(service), "https",
-                    HTTPD.make("https", server, Proxy.thread), soTimeout,
-                    credentials.getContext().getServerSocketFactory().
-                        createServerSocket(portNumber, backlog));
+                    HTTPD.make("https",server,Proxy.thread), soTimeout, listen);
             } else if ("dns".equals(protocol)) {
                 listener = new UDP(err, "dns",
                     NameServer.make(file(db, "dns")),
-                    new DatagramSocket(portNumber));
+                    new DatagramSocket(port));
             } else {
                 err.println("Unrecognized protocol: " + protocol);
                 return;
@@ -111,6 +125,32 @@ Serve {
 
             // run the corresponding daemon
             new Thread(listener, service).start();
+        }
+        
+        // update the DNS
+        final File ip = new File("ip.json");
+        if (ip.isFile()) {
+            final ClassLoader code = GenKey.class.getClassLoader();
+            final Browser browser = Browser.make(
+                    new Proxy(), new SecureRandom(), code,
+                    Concurrent.loop(Thread.currentThread().getThreadGroup(),
+                                    "enqueue"));
+            final Eventual _ = browser._;
+            _.enqueue.run(new Task() {
+                @SuppressWarnings("unchecked") public void
+                run() throws Exception {
+                    final InputStream in = Filesystem.read(ip);
+                    final Type type = Variable.class;
+                    final Variable update = (Variable)new JSONDeserializer().
+                        run("", browser.connect, code,
+                            in, PowerlessArray.array(type)).get(0);
+                    in.close();
+                    final InetAddress localhost = InetAddress.getLocalHost();
+                    final ByteArray a = ByteArray.array(localhost.getAddress());
+                    System.err.println("Updating DNS to: " + a + "...");
+                    update.put(new Resource(Resource.A, Resource.IN, 0, a));
+                }
+            });
         }
     }
 }

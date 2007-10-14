@@ -196,7 +196,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.write(newLine);
             out.write(indent);
             out.write("}");
-        } else if (render == mode) {
+        } else if (render == mode || object instanceof Volatile) {
             out.write("{ \"@\" : ");
             serialize(render, implicit, export.run(object), export, indent,out);
             out.write(" }");

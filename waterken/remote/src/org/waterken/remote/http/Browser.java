@@ -17,6 +17,7 @@ import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Server;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
+import org.waterken.id.exports.Exports;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
 import org.waterken.model.Transaction;
@@ -118,7 +119,8 @@ Browser extends Struct implements Record, Serializable {
         local.store(Remoting._, _);
         local.store(Remoting.client, client);
         local.store(Remoting.deferred, deferred);
-        local.store(Remoting.here, "https://localhost/");
+        local.store(AMP.outbound, new Outbound());
+        Exports.initialize(local);
         return new Browser(_,
                            Remote.use(local),
                            Remote.bind(local, null));

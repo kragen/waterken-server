@@ -68,7 +68,8 @@ ID<T> implements Brand<T>, Member, Selfless, Serializable {
             public Object
             run(final Class<?> type, final String URL) {
                 if (base.equalsIgnoreCase(URI.resolve(URL, "."))) {
-                    return new ID(Path.name(URI.path(URL)));
+                    final String name = Path.name(URI.path(URL));
+                    if (!"".equals(name)) { return new ID(name); }
                 }
                 return next.run(type, URL);
             }

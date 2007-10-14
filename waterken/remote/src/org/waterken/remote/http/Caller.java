@@ -247,11 +247,16 @@ Caller extends Struct implements Messenger, Serializable {
             r_ = null;
             resolver = null;
         } else {
-            final String pipe = Exports.pipeline(m);
             final Channel<R> x = _.defer();
-            local.store(pipe, x.promise);
-            r_ = (R)Remote.use(local).run(R, Exports.href(URI.resolve(URL, "."),
-                     (String)local.fetch(null, Remoting.here), pipe));
+            final String here = (String)local.fetch(null, Remoting.here);
+            if (null == here) {
+                r_=R.isInstance(x.promise) ? (R)x.promise : _.cast(R,x.promise);
+            } else {
+                final String pipe = Exports.pipeline(m);
+                local.store(pipe, x.promise);
+                r_ = (R)Remote.use(local).run(R,
+                    Exports.href(URI.resolve(URL, "."), here, pipe));
+            }
             resolver = x.resolver;
         }
         
@@ -331,7 +336,7 @@ Caller extends Struct implements Messenger, Serializable {
         final Buffer content = Buffer.copy(new JSONSerializer().run(
             Serializer.render, Java.bind(ID.bind(Base.relative(
                 URI.resolve(target, "."), Base.absolute((String)local.fetch(
-                    null, Remoting.here), Remote.bind(local,
+                    "x-browser:", Remoting.here), Remote.bind(local,
                         Exports.bind(local)))))), argv));
         return new Request("HTTP/1.1", "POST", URI.request(target),
             PowerlessArray.array(
@@ -345,7 +350,7 @@ Caller extends Struct implements Messenger, Serializable {
     deserialize(final Type R, final String target, final Response response) {
         final String base = URI.resolve(target, ".");
         final ClassLoader code = (ClassLoader)local.fetch(null, Root.code);
-        final String here = (String)local.fetch(null, Remoting.here);
+        final String here = (String)local.fetch("x-browser:", Remoting.here);
         final Importer connect = Exports.use(here, Exports.make(local),
             Java.use(base, code, ID.use(base, Remote.use(local)))); 
         if ("200".equals(response.status) || "201".equals(response.status) ||

@@ -47,7 +47,7 @@ Concurrent {
                     new Thread(group, name) {
                         public void
                         run() {
-                            System.err.println("Processing: " + name);
+                            // System.err.println("Processing: " + name);
                             while (true) {
                                 final T todo;
                                 synchronized (LoopX.this) {
@@ -64,7 +64,7 @@ Concurrent {
                                 }
                                 yield();
                             }
-                            System.err.println("Idle: " + name);
+                            // System.err.println("Idle: " + name);
                         }
                     }.start();
                     running = true;

@@ -162,7 +162,7 @@ Exports {
 
             public Object
             run(final Class<?> type, final String URL) {
-                if (here.equalsIgnoreCase(URI.resolve(URL, "."))) {
+                if (URI.resolve(URL, ".").equalsIgnoreCase(here)) {
                     final String name = Path.name(URI.path(URL));
                     if (!"".equals(name)) {
                         final Token pumpkin = new Token();
