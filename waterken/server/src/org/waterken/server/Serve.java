@@ -10,9 +10,12 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.security.SecureRandom;
+import java.util.Enumeration;
 
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.PowerlessArray;
@@ -130,6 +133,26 @@ Serve {
         // update the DNS
         final File ip = new File("ip.json");
         if (ip.isFile()) {
+            
+            // find the ip address.
+            Inet4Address addr = null;
+            for (final Enumeration<NetworkInterface> j =
+                    NetworkInterface.getNetworkInterfaces();
+                 j.hasMoreElements();) {
+                final NetworkInterface x = j.nextElement();
+                for (final Enumeration<InetAddress> k = x.getInetAddresses();
+                        j.hasMoreElements();) {
+                    final InetAddress a = k.nextElement();
+                    if (a instanceof Inet4Address && !a.isLoopbackAddress()) {
+                        addr = (Inet4Address)a;
+                        break;
+                    }
+                }
+            }
+            if (null == addr) { return; }
+            final Inet4Address outer = addr;
+            
+            // notify the DNS nameserver
             final ClassLoader code = GenKey.class.getClassLoader();
             final Browser browser = Browser.make(
                     new Proxy(), new SecureRandom(), code,
@@ -145,8 +168,7 @@ Serve {
                         run("", browser.connect, code,
                             in, PowerlessArray.array(type)).get(0);
                     in.close();
-                    final InetAddress localhost = InetAddress.getLocalHost();
-                    final ByteArray a = ByteArray.array(localhost.getAddress());
+                    final ByteArray a = ByteArray.array(outer.getAddress());
                     System.err.println("Updating DNS to: " + a + "...");
                     update.put(new Resource(Resource.A, Resource.IN, 0, a));
                 }
