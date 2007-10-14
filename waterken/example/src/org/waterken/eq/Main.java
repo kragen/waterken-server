@@ -68,7 +68,7 @@ Main extends Struct implements Test, Serializable {
     // org.ref_send.test.Test interface
 
     /**
-     * Starts a {@link #test test}.
+     * Starts all the tests.
      */
     public Promise<Boolean>
     start() throws Exception {
