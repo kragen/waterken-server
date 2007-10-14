@@ -19,8 +19,9 @@
   Generate your own key using the following command from the root directory of
   your installation:</p>
   <p>
-   <kbd>keytool -keystore keys.jks -storepass nopass -genkey -keyalg rsa</kbd>
+   <kbd>java -jar genkey.jar</kbd>
   </p>
+  <p>The server must be restarted to begin using the new key pair.</p>
   <h2>Static files</h2>
   <p>This file, and other static web content, is served from the
   <code>www/</code> sub-directory of your installation.</p>
