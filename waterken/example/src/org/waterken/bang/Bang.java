@@ -7,6 +7,7 @@ import static org.ref_send.promise.Fulfilled.ref;
 import java.io.Serializable;
 
 import org.ref_send.promise.Promise;
+import org.web_send.graph.Framework;
 
 /**
  * A {@link Drum} maker.
@@ -16,6 +17,15 @@ Bang {
     
     private
     Bang() {}
+
+    /**
+     * Constructs an instance.
+     * @param framework model framework
+     */
+    static public Drum
+    build(final Framework framework) {
+        return make();
+    }
     
     /**
      * Constructs a {@link Drum}.

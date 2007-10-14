@@ -41,12 +41,25 @@ GenKey {
     GenKey() {}
     
     /**
-     * @param args
+     * The argument string is:
+     * <ol>
+     *  <li>cryptography strength expressed as hash length</li>
+     *  <li>hostname suffix</li>
+     *  <li>redirectory URL</li>
+     * </ol>
+     * @param args  command line arguments
      */
     static public void
     main(final String[] args) throws Exception {
-        final int keysize = 0 < args.length ? Integer.parseInt(args[0]) : 1024;
+        final int strength = 0 < args.length ? Integer.parseInt(args[0]) : 80;
         final String suffix = 1 < args.length ? args[1] : ".yurl.net";
+        final int keysize =
+            (80 >= strength
+                ? 1024
+            : (112 >= strength
+                ? 2048
+            : 4096));
+
         System.err.println("Generating RSA key pair...");
         System.err.println("with keysize: " + keysize);
         System.err.println("under domain: " + suffix);
@@ -62,16 +75,10 @@ GenKey {
         final byte[] cn; {
             
             // calculate the hostname
-            final int strength =
-                (1024 >= keysize
-                    ? 80
-                : (2048 >= keysize
-                    ? 112
-                : 128)) / Byte.SIZE;
             final MessageDigest SHA1 = MessageDigest.getInstance("SHA-1");
             final byte[] hash = SHA1.digest(subjectPublicKeyInfo);
-            final byte[] guid = new byte[strength];
-            System.arraycopy(hash, 0, guid, 0, strength);
+            final byte[] guid = new byte[strength / Byte.SIZE];
+            System.arraycopy(hash, 0, guid, 0, guid.length);
             fingerprint = "y-" + Base32.encode(guid);
             final byte[] hostname = (fingerprint + suffix).getBytes("US-ASCII");
             

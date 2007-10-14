@@ -62,6 +62,11 @@ AllTypes extends Struct implements Record, Serializable {
     public final String t;
     
     /**
+     * a pass-by-reference
+     */
+    public final Runnable r;
+    
+    /**
      * Constructs an instance.
      * @param b {@link #b}
      * @param o {@link #o}
@@ -72,6 +77,7 @@ AllTypes extends Struct implements Record, Serializable {
      * @param l {@link #l}
      * @param s {@link #s}
      * @param t {@link #t}
+     * @param r {@link #r}
      */
     public @deserializer
     AllTypes(@name("b") final boolean b,
@@ -82,7 +88,8 @@ AllTypes extends Struct implements Record, Serializable {
              @name("i") final int i,
              @name("l") final long l,
              @name("s") final short s,
-             @name("t") final String t) {
+             @name("t") final String t,
+             @name("r") final Runnable r) {
         this.b = b;
         this.o = o;
         this.c = c;
@@ -92,5 +99,6 @@ AllTypes extends Struct implements Record, Serializable {
         this.l = l;
         this.s = s;
         this.t = t;
+        this.r = r;
     }
 }

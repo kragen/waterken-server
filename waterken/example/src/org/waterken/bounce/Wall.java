@@ -9,6 +9,12 @@ import org.ref_send.promise.Promise;
  */
 public interface
 Wall {
+    
+    /**
+     * Creates a record of all types.
+     */
+    Promise<AllTypes>
+    getAll();
 
     /**
      * Returns the given argument.

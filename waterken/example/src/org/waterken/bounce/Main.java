@@ -10,6 +10,7 @@ import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
@@ -79,11 +80,12 @@ Main extends Struct implements Test, Serializable {
     public Promise<Boolean>
     test(final Wall x) {
         final Wall x_ = _._(x);
-        final AllTypes a = new AllTypes(
-            true, Byte.MAX_VALUE, '?',
-            Double.MAX_VALUE, Float.MAX_VALUE,
-            Integer.MAX_VALUE, Long.MAX_VALUE, Short.MAX_VALUE,
-            "Hello World!");
-        return _.when(x_.bounce(a), was(a));
+        class Re extends Do<AllTypes,Promise<Boolean>> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public Promise<Boolean>
+            fulfill(final AllTypes a) { return _.when(x_.bounce(a), was(a)); }
+        }
+        return _.when(x_.getAll(), new Re());
     }
 }

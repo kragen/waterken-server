@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.put;
 
-import static org.ref_send.Slot.var;
 import static org.ref_send.promise.Fulfilled.ref;
 import static org.ref_send.test.Logic.and;
 import static org.ref_send.test.Logic.was;
@@ -75,10 +74,7 @@ Main extends Struct implements Test, Serializable {
      * Creates a new test subject.
      */
     public Variable<Volatile<Byte>>
-    subject() {
-        final Volatile<Byte> zero = ref((byte)0);
-        return var(zero);
-    }
+    subject() { return Put.make(); }
     
     /**
      * Tests a {@link Variable}.

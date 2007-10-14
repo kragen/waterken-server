@@ -88,7 +88,9 @@ Main extends Struct implements Test, Serializable {
     public Promise<Boolean>
     testNormal() throws Exception {
         final ArrayList<Promise<Boolean>> r = new ArrayList<Promise<Boolean>>();
-        class Normal implements Runnable, Equatable {
+        class Normal implements Runnable, Equatable, Serializable {
+            static private final long serialVersionUID = 1L;
+
             public void run() {}
         }
         final Normal x = new Normal();
@@ -97,20 +99,17 @@ Main extends Struct implements Test, Serializable {
         check(p.equals(p));
         check(ref(x).equals(p));
         check(x == p.cast());
-        r.add(_.when(p, new Do<Runnable,Promise<Boolean>>() {
+        class EQ extends Do<Runnable,Promise<Boolean>> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
             public Promise<Boolean>
             fulfill(final Runnable arg) throws Exception {
                 check(x == arg);
                 return ref(true);
             }
-        }));
-        r.add(_.when(ix, new Do<Runnable,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Runnable arg) throws Exception {
-                check(x == arg);
-                return ref(true);
-            }
-        }));
+        }
+        r.add(_.when(p, new EQ()));
+        r.add(_.when(ix, new EQ()));
         final Runnable x_ = _._(ix);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
@@ -118,13 +117,7 @@ Main extends Struct implements Test, Serializable {
         check(_.cast(Runnable.class, p).equals(x_));
         check(Eventual.promised(x_).equals(p));
         check(x == near(x_));
-        r.add(_.when(x_, new Do<Runnable,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Runnable arg) throws Exception {
-                check(x == arg);
-                return ref(true);
-            }
-        }));
+        r.add(_.when(x_, new EQ()));
         return and(_, r.toArray(new Promise[r.size()]));
     }
 
@@ -141,7 +134,9 @@ Main extends Struct implements Test, Serializable {
             p.cast();
             check(false);
         } catch (final NullPointerException e) {}
-        r.add(_.when(p, new Do<Runnable,Promise<Boolean>>() {
+        class NE extends Do<Runnable,Promise<Boolean>> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
             public Promise<Boolean>
             fulfill(final Runnable arg) throws Exception {
                 throw new Exception();
@@ -151,47 +146,18 @@ Main extends Struct implements Test, Serializable {
                 if (reason instanceof NullPointerException) {return ref(true);}
                 throw reason;
             }
-        }));
+        }
+        r.add(_.when(p, new NE()));
         final Runnable x = null;
-        r.add(_.when(x, new Do<Runnable,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Runnable arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NullPointerException) {return ref(true);}
-                throw reason;
-            }
-        }));
+        r.add(_.when(x, new NE()));
         final Promise<Runnable> sneaky = Fulfilled.detach(null); 
-        r.add(_.when(sneaky, new Do<Runnable,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Runnable arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NullPointerException) {return ref(true);}
-                throw reason;
-            }
-        }));
+        r.add(_.when(sneaky, new NE()));
         final Runnable x_ = _.cast(Runnable.class, p);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
         check(_.cast(Runnable.class, p).equals(x_));
         check(Eventual.promised(x_).equals(p));
-        r.add(_.when(x_, new Do<Runnable,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Runnable arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NullPointerException) {return ref(true);}
-                throw reason;
-            }
-        }));
+        r.add(_.when(x_, new NE()));
         return and(_, r.toArray(new Promise[r.size()]));
     }
 
@@ -207,20 +173,17 @@ Main extends Struct implements Test, Serializable {
         check(pMin.equals(pMin));
         check(ref(Double.MIN_VALUE).equals(pMin));
         check(Double.MIN_VALUE == pMin.cast());
-        r.add(_.when(pMin, new Do<Double,Promise<Boolean>>() {
+        class EQ extends Do<Double,Promise<Boolean>> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
             public Promise<Boolean>
             fulfill(final Double arg) throws Exception {
                 check(Double.MIN_VALUE == arg);
                 return ref(true);
             }
-        }));
-        r.add(_.when(Double.MIN_VALUE, new Do<Double,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Double arg) throws Exception {
-                check(Double.MIN_VALUE == arg);
-                return ref(true);
-            }
-        }));
+        }
+        r.add(_.when(pMin, new EQ()));
+        r.add(_.when(Double.MIN_VALUE, new EQ()));
         
         // check NaN handling
         final Promise<Double> pNaN = ref(Double.NaN);
@@ -230,7 +193,9 @@ Main extends Struct implements Test, Serializable {
             pNaN.cast();
             check(false);
         } catch (final NaN e) {}
-        r.add(_.when(pNaN, new Do<Double,Promise<Boolean>>() {
+        class ENaN extends Do<Double,Promise<Boolean>> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
             public Promise<Boolean>
             fulfill(final Double arg) throws Exception {
                 throw new Exception();
@@ -240,30 +205,10 @@ Main extends Struct implements Test, Serializable {
                 if (reason instanceof NaN) { return ref(true); }
                 throw reason;
             }
-        }));
-        r.add(_.when(Double.NaN, new Do<Double,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Double arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NaN) { return ref(true); }
-                throw reason;
-            }
-        }));
-        r.add(_.when(Fulfilled.detach(Double.NaN),
-                     new Do<Double,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Double arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NaN) { return ref(true); }
-                throw reason;
-            }
-        }));
+        }
+        r.add(_.when(pNaN, new ENaN()));
+        r.add(_.when(Double.NaN, new ENaN()));
+        r.add(_.when(Fulfilled.detach(Double.NaN), new ENaN()));
         
         // check -infinity handling
         final Promise<Double> pMinusInfinity = ref(Double.NEGATIVE_INFINITY);
@@ -273,7 +218,9 @@ Main extends Struct implements Test, Serializable {
             pMinusInfinity.cast();
             check(false);
         } catch (final NegativeInfinity e) {}
-        r.add(_.when(pMinusInfinity, new Do<Double,Promise<Boolean>>() {
+        class ENI extends Do<Double,Promise<Boolean>> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
             public Promise<Boolean>
             fulfill(final Double arg) throws Exception {
                 throw new Exception();
@@ -283,30 +230,10 @@ Main extends Struct implements Test, Serializable {
                 if (reason instanceof NegativeInfinity) { return ref(true); }
                 throw reason;
             }
-        }));
-        r.add(_.when(Double.NEGATIVE_INFINITY,new Do<Double,Promise<Boolean>>(){
-            public Promise<Boolean>
-            fulfill(final Double arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NegativeInfinity) { return ref(true); }
-                throw reason;
-            }
-        }));
-        r.add(_.when(Fulfilled.detach(Double.NEGATIVE_INFINITY),
-                     new Do<Double,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Double arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NegativeInfinity) { return ref(true); }
-                throw reason;
-            }
-        }));
+        }
+        r.add(_.when(pMinusInfinity, new ENI()));
+        r.add(_.when(Double.NEGATIVE_INFINITY, new ENI()));
+        r.add(_.when(Fulfilled.detach(Double.NEGATIVE_INFINITY), new ENI()));
         
         // check +infinity handling
         final Promise<Double> pPlusInfinity = ref(Double.POSITIVE_INFINITY);
@@ -316,7 +243,9 @@ Main extends Struct implements Test, Serializable {
             pPlusInfinity.cast();
             check(false);
         } catch (final PositiveInfinity e) {}
-        r.add(_.when(pPlusInfinity, new Do<Double,Promise<Boolean>>() {
+        class EPI extends Do<Double,Promise<Boolean>> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
             public Promise<Boolean>
             fulfill(final Double arg) throws Exception {
                 throw new Exception();
@@ -326,30 +255,10 @@ Main extends Struct implements Test, Serializable {
                 if (reason instanceof PositiveInfinity) { return ref(true); }
                 throw reason;
             }
-        }));
-        r.add(_.when(Double.POSITIVE_INFINITY,new Do<Double,Promise<Boolean>>(){
-            public Promise<Boolean>
-            fulfill(final Double arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof PositiveInfinity) { return ref(true); }
-                throw reason;
-            }
-        }));
-        r.add(_.when(Fulfilled.detach(Double.POSITIVE_INFINITY),
-                     new Do<Double,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Double arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof PositiveInfinity) { return ref(true); }
-                throw reason;
-            }
-        }));
+        }
+        r.add(_.when(pPlusInfinity, new EPI()));
+        r.add(_.when(Double.POSITIVE_INFINITY, new EPI()));
+        r.add(_.when(Fulfilled.detach(Double.POSITIVE_INFINITY), new EPI()));
 
         return and(_, r.toArray(new Promise[r.size()]));
     }
@@ -366,20 +275,17 @@ Main extends Struct implements Test, Serializable {
         check(pMin.equals(pMin));
         check(ref(Float.MIN_VALUE).equals(pMin));
         check(Float.MIN_VALUE == pMin.cast());
-        r.add(_.when(pMin, new Do<Float,Promise<Boolean>>() {
+        class EQ extends Do<Float,Promise<Boolean>> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
             public Promise<Boolean>
             fulfill(final Float arg) throws Exception {
                 check(Float.MIN_VALUE == arg);
                 return ref(true);
             }
-        }));
-        r.add(_.when(Float.MIN_VALUE, new Do<Float,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Float arg) throws Exception {
-                check(Float.MIN_VALUE == arg);
-                return ref(true);
-            }
-        }));
+        }
+        r.add(_.when(pMin, new EQ()));
+        r.add(_.when(Float.MIN_VALUE, new EQ()));
         
         // check NaN handling
         final Promise<Float> pNaN = ref(Float.NaN);
@@ -389,7 +295,9 @@ Main extends Struct implements Test, Serializable {
             pNaN.cast();
             check(false);
         } catch (final NaN e) {}
-        r.add(_.when(pNaN, new Do<Float,Promise<Boolean>>() {
+        class ENaN extends Do<Float,Promise<Boolean>> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
             public Promise<Boolean>
             fulfill(final Float arg) throws Exception {
                 throw new Exception();
@@ -399,30 +307,10 @@ Main extends Struct implements Test, Serializable {
                 if (reason instanceof NaN) { return ref(true); }
                 throw reason;
             }
-        }));
-        r.add(_.when(Float.NaN, new Do<Float,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Float arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NaN) { return ref(true); }
-                throw reason;
-            }
-        }));
-        r.add(_.when(Fulfilled.detach(Float.NaN),
-                     new Do<Float,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Float arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NaN) { return ref(true); }
-                throw reason;
-            }
-        }));
+        }
+        r.add(_.when(pNaN, new ENaN()));
+        r.add(_.when(Float.NaN, new ENaN()));
+        r.add(_.when(Fulfilled.detach(Float.NaN), new ENaN()));
         
         // check -infinity handling
         final Promise<Float> pMinusInfinity = ref(Float.NEGATIVE_INFINITY);
@@ -432,7 +320,9 @@ Main extends Struct implements Test, Serializable {
             pMinusInfinity.cast();
             check(false);
         } catch (final NegativeInfinity e) {}
-        r.add(_.when(pMinusInfinity, new Do<Float,Promise<Boolean>>() {
+        class ENI extends Do<Float,Promise<Boolean>> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
             public Promise<Boolean>
             fulfill(final Float arg) throws Exception {
                 throw new Exception();
@@ -442,30 +332,10 @@ Main extends Struct implements Test, Serializable {
                 if (reason instanceof NegativeInfinity) { return ref(true); }
                 throw reason;
             }
-        }));
-        r.add(_.when(Float.NEGATIVE_INFINITY, new Do<Float,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Float arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NegativeInfinity) { return ref(true); }
-                throw reason;
-            }
-        }));
-        r.add(_.when(Fulfilled.detach(Float.NEGATIVE_INFINITY),
-                     new Do<Float,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Float arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NegativeInfinity) { return ref(true); }
-                throw reason;
-            }
-        }));
+        }
+        r.add(_.when(pMinusInfinity, new ENI()));
+        r.add(_.when(Float.NEGATIVE_INFINITY, new ENI()));
+        r.add(_.when(Fulfilled.detach(Float.NEGATIVE_INFINITY), new ENI()));
         
         // check +infinity handling
         final Promise<Float> pPlusInfinity = ref(Float.POSITIVE_INFINITY);
@@ -475,7 +345,9 @@ Main extends Struct implements Test, Serializable {
             pPlusInfinity.cast();
             check(false);
         } catch (final PositiveInfinity e) {}
-        r.add(_.when(pPlusInfinity, new Do<Float,Promise<Boolean>>() {
+        class EPI extends Do<Float,Promise<Boolean>> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
             public Promise<Boolean>
             fulfill(final Float arg) throws Exception {
                 throw new Exception();
@@ -485,30 +357,10 @@ Main extends Struct implements Test, Serializable {
                 if (reason instanceof PositiveInfinity) { return ref(true); }
                 throw reason;
             }
-        }));
-        r.add(_.when(Float.POSITIVE_INFINITY, new Do<Float,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Float arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof PositiveInfinity) { return ref(true); }
-                throw reason;
-            }
-        }));
-        r.add(_.when(Fulfilled.detach(Float.POSITIVE_INFINITY),
-                     new Do<Float,Promise<Boolean>>() {
-            public Promise<Boolean>
-            fulfill(final Float arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof PositiveInfinity) { return ref(true); }
-                throw reason;
-            }
-        }));
+        }
+        r.add(_.when(pPlusInfinity, new EPI()));
+        r.add(_.when(Float.POSITIVE_INFINITY, new EPI()));
+        r.add(_.when(Fulfilled.detach(Float.POSITIVE_INFINITY), new EPI()));
 
         return and(_, r.toArray(new Promise[r.size()]));
     }
