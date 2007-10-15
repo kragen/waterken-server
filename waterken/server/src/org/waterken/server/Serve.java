@@ -141,7 +141,7 @@ Serve {
                  j.hasMoreElements();) {
                 final NetworkInterface x = j.nextElement();
                 for (final Enumeration<InetAddress> k = x.getInetAddresses();
-                        j.hasMoreElements();) {
+                        k.hasMoreElements();) {
                     final InetAddress a = k.nextElement();
                     if (a instanceof Inet4Address && !a.isLoopbackAddress()) {
                         addr = (Inet4Address)a;
@@ -149,8 +149,7 @@ Serve {
                     }
                 }
             }
-            if (null == addr) { return; }
-            final Inet4Address outer = addr;
+            final InetAddress outer = null != addr ? addr : Loopback.addr;
             
             // notify the DNS nameserver
             final ClassLoader code = GenKey.class.getClassLoader();
@@ -168,8 +167,9 @@ Serve {
                         run("", browser.connect, code,
                             in, PowerlessArray.array(type)).get(0);
                     in.close();
+                    System.err.println("Updating DNS to: " +
+                                       outer.getHostAddress() + "...");
                     final ByteArray a = ByteArray.array(outer.getAddress());
-                    System.err.println("Updating DNS to: " + a + "...");
                     update.put(new Resource(Resource.A, Resource.IN, 0, a));
                 }
             });
