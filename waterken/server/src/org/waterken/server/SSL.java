@@ -275,6 +275,11 @@ SSL {
                 System.arraycopy(hashed, 0, decoded, 0, decoded.length);
                 if (!fingerprint.equals(Base32.encode(decoded))) { throw notY; }
                 
+                // certificate is not valid for any other name
+                if (null != cert.getSubjectAlternativeNames()) {
+                    throw new CertificateException();
+                }
+                
                 // the caller's role is unspecified, so check the basic
                 // certificate validity properties just in case
                 cert.verify(cert.getPublicKey());
