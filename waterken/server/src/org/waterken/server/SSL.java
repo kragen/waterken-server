@@ -13,7 +13,6 @@ import java.net.SocketAddress;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -203,10 +202,9 @@ SSL {
     /**
      * Constructs a trust manager that implements the y-property.
      * @param pki   default key verification algorithm
-     * @throws NoSuchAlgorithmException MD5 does not exist
      */
     static X509TrustManager
-    y(final X509TrustManager pki) throws NoSuchAlgorithmException {
+    y(final X509TrustManager pki) {
         return new X509TrustManager() {
 
             public X509Certificate[]
@@ -249,16 +247,16 @@ SSL {
                 final int dot = hostname.indexOf('.');
                 final String fingerprint =
                     -1==dot ? hostname.substring(2) : hostname.substring(2,dot);
-                final byte[] decoded;
+                final byte[] guid;
                 switch (fingerprint.length()) {
                 case 16:    // 80 bit hash
-                    decoded = new byte[10];
+                    guid = new byte[10];
                     break;
                 case 23:    // 112 bit hash
-                    decoded = new byte[14];
+                    guid = new byte[14];
                     break;
                 case 26:    // 128 bit hash
-                    decoded = new byte[16];
+                    guid = new byte[16];
                     break;
                 default:    // not a hash
                     throw notY;
@@ -272,13 +270,13 @@ SSL {
                 }
                 final byte[] hashed =
                     alg.digest(cert.getPublicKey().getEncoded());
-                System.arraycopy(hashed, 0, decoded, 0, decoded.length);
-                if (!fingerprint.equals(Base32.encode(decoded))) { throw notY; }
+                System.arraycopy(hashed, 0, guid, 0, guid.length);
+                if (!fingerprint.equals(Base32.encode(guid))) { throw notY; }
                 
                 // certificate is not valid for any other name
-                if (null != cert.getSubjectAlternativeNames()) {
-                    throw new CertificateException();
-                }
+                if (null != cert.getSubjectAlternativeNames()) { throw notY; }
+                
+                // TODO: check that no other DN attributes are present
                 
                 // the caller's role is unspecified, so check the basic
                 // certificate validity properties just in case
