@@ -244,6 +244,7 @@ SSL {
                 if (null == cn) { throw notY; }
                 final String hostname = cn.toLowerCase();
                 if (!hostname.startsWith("y-")) { throw notY; }
+                if (!hostname.endsWith(".yurl.net")) { throw notY; }
                 final int dot = hostname.indexOf('.');
                 final String fingerprint =
                     -1==dot ? hostname.substring(2) : hostname.substring(2,dot);
