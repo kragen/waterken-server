@@ -13,7 +13,6 @@ import java.net.SocketAddress;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.MessageDigest;
-import java.security.Principal;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -88,8 +87,8 @@ SSL {
 
                             // verify peer name and requested hostname match
                             final SSLSession s = r.getSession();
-                            final String CN = cn(s.getPeerPrincipal());
-                            if (host.equalsIgnoreCase(CN)) { return r; }
+                            final String cn= CN(s.getPeerPrincipal().getName());
+                            if (host.equalsIgnoreCase(cn)) { return r; }
                             final X509Certificate c = 
                                 (X509Certificate)s.getPeerCertificates()[0];
                             final Collection<List<?>> alts =
@@ -185,8 +184,8 @@ SSL {
                             final X509Certificate[] chain =
                                 x509.getCertificateChain("mykey");
                             if (null != chain && chain.length > 0) {
-                                hostname = cn(chain[0].
-                                        getSubjectX500Principal());
+                                hostname = CN(chain[0].
+                                        getSubjectX500Principal().getName());
                                 if (null != hostname) { return; }
                             }
                         }
@@ -240,14 +239,14 @@ SSL {
                 
                 // determine whether or not the cert uses the y-property
                 final X509Certificate cert = chain[0];
-                final String cn = cn(cert.getSubjectX500Principal());
-                if (null == cn) { throw notY; }
+                final String dn = cert.getSubjectX500Principal().getName();
+                if (!dn.startsWith("CN=")) { throw notY; }
+                final String cn = dn.substring("CN=".length());
                 final String hostname = cn.toLowerCase();
                 if (!hostname.startsWith("y-")) { throw notY; }
                 if (!hostname.endsWith(".yurl.net")) { throw notY; }
-                final int dot = hostname.indexOf('.');
-                final String fingerprint =
-                    -1==dot ? hostname.substring(2) : hostname.substring(2,dot);
+                final String fingerprint = hostname.substring(2,
+                        hostname.length() - ".yurl.net".length());
                 final byte[] guid;
                 switch (fingerprint.length()) {
                 case 16:    // 80 bit hash
@@ -277,8 +276,6 @@ SSL {
                 // certificate is not valid for any other name
                 if (null != cert.getSubjectAlternativeNames()) { throw notY; }
                 
-                // TODO: check that no other DN attributes are present
-                
                 // the caller's role is unspecified, so check the basic
                 // certificate validity properties just in case
                 cert.verify(cert.getPublicKey());
@@ -289,12 +286,11 @@ SSL {
     
     /**
      * Extracts the CN from a peer.
-     * @param peer  peer to identify
+     * @param dn    distinguished name
      * @return CN value, or <code>null</code> if not specified
      */
     static private String
-    cn(final Principal peer) {
-        final String dn = peer.getName();
+    CN(final String dn) {
         final int label = dn.indexOf("CN=");
         if (-1 == label) { return null; }
         final int startCN = label + "CN=".length();
