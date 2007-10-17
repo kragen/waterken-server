@@ -21,8 +21,6 @@ import org.joe_e.array.ByteArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.ref_send.Variable;
-import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Task;
 import org.waterken.dns.Resource;
 import org.waterken.dns.udp.NameServer;
 import org.waterken.http.Server;
@@ -133,46 +131,41 @@ Serve {
         // update the DNS
         final File ip = new File("ip.json");
         if (ip.isFile()) {
-            
-            // find the ip address.
-            Inet4Address addr = null;
-            for (final Enumeration<NetworkInterface> j =
-                    NetworkInterface.getNetworkInterfaces();
-                 j.hasMoreElements();) {
-                final NetworkInterface x = j.nextElement();
-                for (final Enumeration<InetAddress> k = x.getInetAddresses();
-                        k.hasMoreElements();) {
-                    final InetAddress a = k.nextElement();
-                    if (a instanceof Inet4Address && !a.isLoopbackAddress()) {
-                        addr = (Inet4Address)a;
-                        break;
-                    }
+            final InetAddress a = dynip();
+            System.err.println("Updating DNS to: " +a.getHostAddress()+ "...");
+            final ByteArray quad = ByteArray.array(a.getAddress());
+            update(ip).put(new Resource(Resource.A, Resource.IN, 0, quad));
+        }
+    }
+    
+    static private InetAddress
+    dynip() throws Exception {
+        for (final Enumeration<NetworkInterface> j =
+                                NetworkInterface.getNetworkInterfaces();
+                                                     j.hasMoreElements();) {
+            for (final Enumeration<InetAddress> k =
+                                j.nextElement().getInetAddresses();
+                                                     k.hasMoreElements();) {
+                final InetAddress a = k.nextElement();
+                if (a instanceof Inet4Address && !a.isLoopbackAddress()) {
+                    return a;
                 }
             }
-            final InetAddress outer = null != addr ? addr : Loopback.addr;
-            
-            // notify the DNS nameserver
-            final ClassLoader code = GenKey.class.getClassLoader();
-            final Browser browser = Browser.make(
-                    new Proxy(), new SecureRandom(), code,
-                    Concurrent.loop(Thread.currentThread().getThreadGroup(),
-                                    "enqueue"));
-            final Eventual _ = browser._;
-            _.enqueue.run(new Task() {
-                @SuppressWarnings("unchecked") public void
-                run() throws Exception {
-                    final InputStream in = Filesystem.read(ip);
-                    final Type type = Variable.class;
-                    final Variable update = (Variable)new JSONDeserializer().
-                        run("", browser.connect, code,
-                            in, PowerlessArray.array(type)).get(0);
-                    in.close();
-                    System.err.println("Updating DNS to: " +
-                                       outer.getHostAddress() + "...");
-                    final ByteArray a = ByteArray.array(outer.getAddress());
-                    update.put(new Resource(Resource.A, Resource.IN, 0, a));
-                }
-            });
         }
+        return Loopback.addr;
+    }
+    
+    @SuppressWarnings("unchecked") static private Variable<Resource>
+    update(final File ip) throws Exception {
+        final ClassLoader code = GenKey.class.getClassLoader();
+        final Browser browser = Browser.make(
+            new Proxy(), new SecureRandom(), code,
+            Concurrent.loop(Thread.currentThread().getThreadGroup(), "dynip"));
+        final InputStream in = Filesystem.read(ip);
+        final Type type = Variable.class;
+        final Variable<Resource> updater = (Variable)new JSONDeserializer().
+            run("",browser.connect,code,in,PowerlessArray.array(type)).get(0);
+        in.close();
+        return browser._._(updater);
     }
 }
