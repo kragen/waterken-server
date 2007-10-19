@@ -132,6 +132,7 @@ SSL {
             public String
             getHostname()  throws IOException, GeneralSecurityException {
                 init();
+                if (null == hostname) { throw new NullPointerException(); }
                 return hostname;
             }
 
