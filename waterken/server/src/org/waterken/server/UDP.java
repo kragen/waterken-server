@@ -39,11 +39,12 @@ UDP extends Struct implements Runnable {
             try {
                 final DatagramPacket in = new DatagramPacket(new byte[512],512);
                 port.receive(in);
-                final byte[] msg = new byte[in.getLength()];
-                System.arraycopy(in.getData(),in.getOffset(),msg,0,msg.length);
+                final ByteArray.Generator g =
+                    new ByteArray.Generator(in.getLength());
+                g.write(in.getData(), in.getOffset(), in.getLength());
+                final ByteArray msg = g.snapshot();
                 final SocketAddress from = in.getSocketAddress(); 
-                daemon.accept(from, ByteArray.array(msg),
-                              new Do<ByteArray,Void>() {
+                daemon.accept(from, msg, new Do<ByteArray,Void>() {
                     public Void
                     fulfill(final ByteArray out) throws Exception {
                         port.send(new DatagramPacket(
