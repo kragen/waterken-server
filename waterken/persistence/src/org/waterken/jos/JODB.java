@@ -712,7 +712,7 @@ JODB extends Model {
         while (!effects.isEmpty()) { effects.pop().run(); }
 
         // Start up a runner if necessary.
-        if (null == runner && scheduled[0]) {
+        if (null == runner && scheduled[0] && null != service) {
             final Run x = new Run();
             service.run(x);
             runner = x;
