@@ -221,11 +221,24 @@ JODB extends Model {
         try {
             if (!awake) {
                 process(Model.extend, new Transaction<Void>() {
-                    public Void
+                    @SuppressWarnings("unchecked") public Void
                     run(final Root local) throws Exception {
+
+                        // start up a runner if necessary
+                        if (null == runner && null != service) {
+                            final List<Task> q = (List)local.fetch(null, tasks);
+                            if (null != q && !q.isEmpty()) {
+                                final Run x = new Run();
+                                service.run(x);
+                                runner = x;
+                            }
+                        }
+
+                        // start up any other configured services
                         final Transaction<?> wake =
                             (Transaction)local.fetch(null, Root.wake);
                         if (null != wake) { wake.run(local); }
+                        
                         return null;
                     }
                 });
