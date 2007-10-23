@@ -2,12 +2,15 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.bounce;
 
+import static org.ref_send.test.Logic.and;
 import static org.ref_send.test.Logic.was;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.array.ByteArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Do;
@@ -15,6 +18,7 @@ import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.test.Test;
+import org.web_send.Entity;
 
 /**
  * An argument passing test.
@@ -80,12 +84,20 @@ Main extends Struct implements Test, Serializable {
     public Promise<Boolean>
     test(final Wall x) {
         final Wall x_ = _._(x);
+        final ArrayList<Promise<Boolean>> r = new ArrayList<Promise<Boolean>>();
+
         class Re extends Do<AllTypes,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public Promise<Boolean>
             fulfill(final AllTypes a) { return _.when(x_.bounce(a), was(a)); }
         }
-        return _.when(x_.getAll(), new Re());
+        r.add(_.when(x_.getAll(), new Re()));
+
+        final Entity payload = new Entity("application/octet-stream",
+            ByteArray.array(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
+        r.add(_.when(x_.bounce(payload), was(payload)));
+
+        return and(_, r.toArray(new Promise[r.size()]));
     }
 }
