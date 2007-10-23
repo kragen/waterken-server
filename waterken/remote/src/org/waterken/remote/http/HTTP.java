@@ -9,6 +9,7 @@ import java.lang.reflect.TypeVariable;
 import org.joe_e.Struct;
 import org.joe_e.charset.URLEncoding;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
@@ -51,7 +52,18 @@ HTTP extends Struct implements Messenger, Serializable {
     @SuppressWarnings("unchecked") public <P,R> R
     when(final String URL, final Class<?> R, final Do<P,R> observer) {
         final String src = Exports.src(URL);
-        if (null != src) { return message(src).when(src, R, observer); }
+        if (null != src) {
+            // to ensure when blocks are processed in the same order as
+            // enqueued, always ask the source model for the resolved value.
+            if (!src.equals(local.fetch(null, Remoting.here))) {
+                final String target = Exports.href(src, Exports.key(URL));
+                return message(target).when(target, R, observer);
+            }
+            final Eventual _ = (Eventual)local.fetch(null, Remoting._);
+            return _.when((P)Exports.make(local).use(null, Exports.key(URL)),
+                          observer);
+        }
+        // already a resolved remote reference
         final Eventual _ = (Eventual)local.fetch(null, Remoting._);
         final R r;
         final Do<P,?> forwarder;
@@ -77,9 +89,19 @@ HTTP extends Struct implements Messenger, Serializable {
     }
     
     public Object
-    invoke( final String URL, final Object proxy,
+    invoke(final String URL, final Object proxy,
            final Method method, final Object... arg) {
-        return message(URL).invoke(URL, proxy, method, arg);
+        // to ensure invocations are delivered in the same order as enqueued,
+        // only send an invocation on a resolved remote reference, or a pipeline
+        // web-key generated from this model
+        final String src = Exports.src(URL);
+        if (null == src || src.equals(local.fetch(null, Remoting.here))) {
+            return message(URL).invoke(URL, proxy, method, arg);
+        }
+        final Rejected<?> p = new Rejected<Object>(new NullPointerException());
+        final Class<?> R = Typedef.raw(
+            Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
+        return R.isAssignableFrom(Promise.class) ? p : p._(R);
     }
     
     private Messenger

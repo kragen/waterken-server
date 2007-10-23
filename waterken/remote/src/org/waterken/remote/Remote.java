@@ -11,9 +11,11 @@ import org.joe_e.Token;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Deferred;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.type.Typedef;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
 import org.waterken.model.Root;
@@ -144,18 +146,30 @@ Remote<T> extends Deferred<T> implements Promise<T> {
                 return Reflection.invoke(method, this, arg);
             }
         }
-        final String here = (String)local.fetch(null, Remoting.here);
-        final String target = null == here ? URL : URI.resolve(here, URL);
-        return message(target).invoke(target, proxy, method, arg);
+        try {
+            final String here = (String)local.fetch(null, Remoting.here);
+            final String target = null == here ? URL : URI.resolve(here, URL);
+            return message(target).invoke(target, proxy, method, arg);
+        } catch (final Exception e) {
+            final Rejected<?> p = new Rejected<Object>(e);
+            final Class<?> R = Typedef.raw(
+                Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
+            return R.isAssignableFrom(Promise.class) ? p : p._(R);
+        }
     }
     
     // org.ref_send.promise.eventual.Deferred interface
     
     protected <R> R
     when(final Class<?> R, final Do<T,R> observer) {
-        final String here = (String)local.fetch(null, Remoting.here);
-        final String target = null == here ? URL : URI.resolve(here, URL);
-        return message(target).when(target, R, observer);
+        try {
+            final String here = (String)local.fetch(null, Remoting.here);
+            final String target = null == here ? URL : URI.resolve(here, URL);
+            return message(target).when(target, R, observer);
+        } catch (final Exception e) {
+            final Eventual _ = (Eventual)local.fetch(null, Remoting._);
+            return _.when(new Rejected<T>(e), observer);
+        }
     }
 
     @SuppressWarnings("unchecked") private Messenger

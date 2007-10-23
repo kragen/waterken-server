@@ -101,14 +101,14 @@ Caller extends Struct implements Messenger, Serializable {
                 final Type P = Typedef.value(DoP, observer.getClass());
                 final Volatile<P> value = deserialize(P, URL, response);
                 final R r = _.when(value, observer);
-                if (null != resolver) {resolver.resolve(Eventual.promised(r));}
+                if (null != resolver) { resolver.fulfill(r); }
                 return null;
             }
             
             public Void
             reject(final Exception reason) throws Exception {
                 final R r = _.when(new Rejected<P>(reason), observer);
-                if (null != resolver) {resolver.resolve(Eventual.promised(r));}
+                if (null != resolver) { resolver.fulfill(r); }
                 return null;
             }
         }
@@ -140,15 +140,14 @@ Caller extends Struct implements Messenger, Serializable {
 
             public Void
             fulfill(final Response response) throws Exception {
-                if ("404".equals(response.status) && null != Exports.src(URL)) {
+                if ("404".equals(response.status) && Exports.isPromise(URL)) {
                     class Retry extends Do<Variable<T>,Void>
                                 implements Serializable {
                         static private final long serialVersionUID = 1L;
 
                         public Void
                         fulfill(final Variable<T> object) throws Exception {
-                            // AUDIT: call to untrusted application code
-                            object.put(arg);
+                            _._(object).put(arg);
                             return null;
                         }
                     }
@@ -182,24 +181,15 @@ Caller extends Struct implements Messenger, Serializable {
 
             public Void
             fulfill(final Response response) throws Exception {
-                if ("404".equals(response.status) && null != Exports.src(URL)) {
+                if ("404".equals(response.status) && Exports.isPromise(URL)) {
                     class Retry extends Do<Object,Void> implements Serializable{
                         static private final long serialVersionUID = 1L;
 
                         public Void
-                        fulfill(final Object object) {
-                            final R value;
-                            try {
-                                // AUDIT: call to untrusted application code
-                                value = (R)Reflection.invoke(method,
-                                    object instanceof Volatile
-                                        ? _.cast(method.getDeclaringClass(),
-                                                 (Volatile)object)
-                                    : object);
-                            } catch (final Exception reason) {
-                                return resolver.reject(reason);
-                            }
-                            return resolver.resolve(Eventual.promised(value));
+                        fulfill(final Object object) throws Exception {
+                            return resolver.fulfill((R)Reflection.invoke(method,
+                                _.cast(method.getDeclaringClass(),
+                                       Eventual.promised(object))));
                         }
                         
                         public Void
@@ -255,7 +245,7 @@ Caller extends Struct implements Messenger, Serializable {
                 final String pipe = Exports.pipeline(m);
                 local.store(pipe, x.promise);
                 r_ = (R)Remote.use(local).run(R,
-                    Exports.href(URI.resolve(URL, "."), here, pipe));
+                    Exports.href(URI.resolve(URL, "."), pipe, here));
             }
             resolver = x.resolver;
         }
@@ -274,30 +264,24 @@ Caller extends Struct implements Messenger, Serializable {
 
             public Void
             fulfill(final Response response) throws Exception {
-                if ("404".equals(response.status) && null != Exports.src(URL)) {
+                if ("404".equals(response.status) && Exports.isPromise(URL)) {
                     class Retry extends Do<Object,Void> implements Serializable{
                         static private final long serialVersionUID = 1L;
 
                         public Void
-                        fulfill(final Object object) {
-                            final R value;
-                            try {
-                                // AUDIT: call to untrusted application code
-                                value = (R)Reflection.invoke(method,
-                                    object instanceof Volatile
-                                        ? _.cast(method.getDeclaringClass(),
-                                                 (Volatile)object)
-                                    : object,
-                                    argv.toArray(new Object[argv.length()]));
-                            } catch (final Exception reason) {
-                                return resolver.reject(reason);
-                            }
-                            return resolver.resolve(Eventual.promised(value));
+                        fulfill(final Object object) throws Exception {
+                            final R r = (R)Reflection.invoke(method,
+                                _.cast(method.getDeclaringClass(),
+                                       Eventual.promised(object)),
+                                argv.toArray(new Object[argv.length()]));
+                            if (null != resolver) { resolver.fulfill(r); }
+                            return null;
                         }
                         
                         public Void
                         reject(final Exception reason) {
-                            return resolver.reject(reason);
+                            if (null != resolver) { resolver.reject(reason); }
+                            return null;
                         }
                     }
                     return _.when(proxy, new Retry());

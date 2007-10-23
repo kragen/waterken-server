@@ -143,7 +143,7 @@ Exports {
                     ? name
                 : (object instanceof Record || object instanceof Volatile ||
                         !(Eventual.promised(object) instanceof Fulfilled)
-                    ? "./?src=" : "./") + "#" + name; 
+                    ? "./?src=." : "./") + "#" + name; 
             }
         }
         return new Encryptor();
@@ -187,19 +187,25 @@ Exports {
      */
     static public String
     key(final String URL) { return URI.fragment("", URL); }
-
+    
     /**
-     * Extracts the source web-key from a pipeline web-key.
-     * @param URL   pipeline web-key
-     * @return source web-key, or <code>null</code> if <code>URL</code> is not
+     * Is the given web-key a pipeline web-key?
+     * @param URL   web-key
+     * @return <code>true</code> if a promise, else <code>false</code>
+     */
+    static public boolean
+    isPromise(final String URL) { return null != arg(URL, "src"); }
+    
+    /**
+     * Extracts the soure model URL from a pipeline web-key.
+     * @param URL   web-key
+     * @return source model URL, or <code>null</code> if <code>URL</code> is not
      *         a pipeline web-key
      */
     static public String
     src(final String URL) {
         final String src = arg(URL, "src");
-        return null == src
-            ? null
-        : URI.resolve(URI.resolve(URL, src), "#" + key(URL));
+        return null == src ? null : URI.resolve(URL, src);
     }
 
     /**
@@ -228,15 +234,26 @@ Exports {
     }
     
     /**
-     * Constructs a pipeline web-key.
+     * Constructs a web-key.
      * @param dst   target model URL
-     * @param src   local model URL
      * @param key   {@linkplain #pipeline pipeline key}
      */
     static public String
-    href(final String dst, final String src, final String key) {
+    href(final String dst, final String key) {
+        return URI.resolve(dst, "#" + key);
+    }
+    
+    /**
+     * Constructs a pipeline web-key.
+     * @param dst   target model URL
+     * @param key   {@linkplain #pipeline pipeline key}
+     * @param src   local model URL
+     */
+    static public String
+    href(final String dst, final String key, final String src) {
+        final String a = URI.relate(dst, src);
         return URI.resolve(dst,
-            ("".equals(src) ? "./" : "./?src=" + URLEncoding.encode(src)) +
+            ("".equals(a) ? "./" : "./?src=" + URLEncoding.encode(a)) +
             "#" + key);
     }
 }
