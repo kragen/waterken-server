@@ -98,9 +98,10 @@ HTTP extends Struct implements Messenger, Serializable {
         if (null == src || src.equals(local.fetch(null, Remoting.here))) {
             return message(URL).invoke(URL, proxy, method, arg);
         }
-        final Rejected<?> p = new Rejected<Object>(new NullPointerException());
         final Class<?> R = Typedef.raw(
             Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
+        if (void.class == R || Void.class == R) { return null; }
+        final Rejected<?> p = new Rejected<Object>(new NullPointerException());
         return R.isAssignableFrom(Promise.class) ? p : p._(R);
     }
     

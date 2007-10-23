@@ -153,6 +153,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
         } catch (final Exception e) {
             final Class<?> R = Typedef.raw(
                 Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
+            if (void.class == R || Void.class == R) { return null; }
             final Rejected<?> p = new Rejected<Object>(e);
             return R.isAssignableFrom(Promise.class) ? p : p._(R);
         }
@@ -167,6 +168,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
             final String target = null == here ? URL : URI.resolve(here, URL);
             return message(target).when(target, R, observer);
         } catch (final Exception e) {
+            if (void.class == R || Void.class == R) { return null; }
             final Rejected<R> p = new Rejected<R>(e);
             return R.isAssignableFrom(Promise.class) ? (R)p : p._(R);
         }

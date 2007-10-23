@@ -213,7 +213,9 @@ Caller extends Struct implements Messenger, Serializable {
         msgs.enqueue(new GET());
         final Class<?> R = Typedef.raw(
             Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
-        return R.isAssignableFrom(Promise.class)
+        return void.class == R || Void.class == R
+            ? null
+        : R.isAssignableFrom(Promise.class)
             ? (R)r.promise
         : _.cast(R, r.promise);
     }
