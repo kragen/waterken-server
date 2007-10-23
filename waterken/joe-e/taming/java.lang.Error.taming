@@ -1,2 +1,3 @@
 Powerless
 Error()
+Error(java.lang.Throwable)
