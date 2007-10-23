@@ -132,7 +132,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
     
     // java.lang.reflect.InvocationHandler interface
 
-    public Object
+    @Override public Object
     invoke(final Object proxy, final Method method,
            final Object[] arg) throws Exception {
         if (Object.class == method.getDeclaringClass()) {
