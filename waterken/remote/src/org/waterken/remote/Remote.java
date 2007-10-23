@@ -151,24 +151,24 @@ Remote<T> extends Deferred<T> implements Promise<T> {
             final String target = null == here ? URL : URI.resolve(here, URL);
             return message(target).invoke(target, proxy, method, arg);
         } catch (final Exception e) {
-            final Rejected<?> p = new Rejected<Object>(e);
             final Class<?> R = Typedef.raw(
                 Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
+            final Rejected<?> p = new Rejected<Object>(e);
             return R.isAssignableFrom(Promise.class) ? p : p._(R);
         }
     }
     
     // org.ref_send.promise.eventual.Deferred interface
-    
-    protected <R> R
+
+    @SuppressWarnings("unchecked") protected <R> R
     when(final Class<?> R, final Do<T,R> observer) {
         try {
             final String here = (String)local.fetch(null, Remoting.here);
             final String target = null == here ? URL : URI.resolve(here, URL);
             return message(target).when(target, R, observer);
         } catch (final Exception e) {
-            final Eventual _ = (Eventual)local.fetch(null, Remoting._);
-            return _.when(new Rejected<T>(e), observer);
+            final Rejected<R> p = new Rejected<R>(e);
+            return R.isAssignableFrom(Promise.class) ? (R)p : p._(R);
         }
     }
 
