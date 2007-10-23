@@ -15,6 +15,7 @@ import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
 import org.waterken.remote.http.AMP;
 import org.waterken.remote.mux.Mux;
+import org.waterken.uri.Hostname;
 import org.waterken.uri.URI;
 
 /**
@@ -52,6 +53,7 @@ Share {
         if (keys.isFile()) {
             final Credentials credentials = SSL.keystore("TLS",keys,"nopass");
             final String host = credentials.getHostname();
+            Hostname.vet(host);
             hereValue = "https://" + host + "/" + Mux.dbPathPrefix;
         } else {
             hereValue = "http://localhost:8080/" + Mux.dbPathPrefix;
