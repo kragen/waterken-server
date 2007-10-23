@@ -77,6 +77,8 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
      * @param method    method to invoke
      * @param args      invocation arguments
      * @return eventual reference for the invocation return
+     * @throws Exception    problem invoking an {@link Object} method
+     * @throws Error        <code>method</code> return cannot be eventualized
      */
     public Object
     invoke(final Object proxy, final Method method,
@@ -90,19 +92,33 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
                 return Reflection.invoke(method, this, args);
             }
         }
-        final Class<?> R = Typedef.raw(Typedef.bound(
-                method.getGenericReturnType(), proxy.getClass()));
-        return R.isAssignableFrom(Promise.class) ? this : _(R);
+        try {
+            final Class<?> R = Typedef.raw(Typedef.bound(
+                    method.getGenericReturnType(), proxy.getClass()));
+            return void.class == R || Void.class == R
+                ? null
+            : R.isAssignableFrom(Promise.class)
+                ? this
+            : _(R);
+        } catch (final Exception e) {
+            throw new Error(e);
+        }
     }
     
     // org.ref_send.promise.Rejected interface
     
     /**
      * Creates a rejected reference.
-     * @param type  referent type
+     * @param type  referent type, MUST be an
+     *              {@linkplain Proxies#isImplementable allowed} proxy type
+     * @throws Error    invalid <code>type</code> argument
      */
     @SuppressWarnings("unchecked") public T
     _(final Class type) {
-        return (T)Proxies.proxy(this, type, Powerless.class, Selfless.class);
+        try {
+            return (T)Proxies.proxy(this, type, Powerless.class,Selfless.class);
+        } catch (final Exception e) {
+            throw new Error(e);
+        }
     }
 }

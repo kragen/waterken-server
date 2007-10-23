@@ -57,34 +57,38 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
      * Forwards a Java language invocation.
      * @param proxy     eventual reference
      * @param method    method to invoke
-     * @param args      invocation arguments
+     * @param arg       each invocation argument
      * @return eventual reference for the invocation return
      */
     @SuppressWarnings("unchecked") public Object
     invoke(final Object proxy, final Method method,
-           final Object[] args) throws Exception {
+           final Object[] arg) throws Exception {
         if (Object.class == method.getDeclaringClass()) {
             if ("equals".equals(method.getName())) {
-                return args[0] instanceof Proxy &&
-                    proxy.getClass() == args[0].getClass() &&
-                    equals(Proxies.getHandler((Proxy)args[0]));
+                return arg[0] instanceof Proxy &&
+                    proxy.getClass() == arg[0].getClass() &&
+                    equals(Proxies.getHandler((Proxy)arg[0]));
             } else {
-                return Reflection.invoke(method, this, args);
+                return Reflection.invoke(method, this, arg);
             }
         }
-        final ConstArray<?> argv = null == args ? null : ConstArray.array(args);
-        class Invoke extends Do<T,Object> implements Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Object
-            fulfill(final T object) throws Exception {
-                return Reflection.invoke(method, object, null == argv
-                    ? null : argv.toArray(new Object[argv.length()]));
+        try {
+            final ConstArray<?> argv = null==arg ? null : ConstArray.array(arg);
+            class Invoke extends Do<T,Object> implements Serializable {
+                static private final long serialVersionUID = 1L;
+    
+                public Object
+                fulfill(final T object) throws Exception {
+                    return Reflection.invoke(method, object, null == argv
+                        ? null : argv.toArray(new Object[argv.length()]));
+                }
             }
+            final Type R = Typedef.bound(method.getGenericReturnType(),
+                                         proxy.getClass());
+            return when(Typedef.raw(R), new Invoke());
+        } catch (final Exception e) {
+            throw new Error(e);
         }
-        final Type R = Typedef.bound(method.getGenericReturnType(),
-                                     proxy.getClass());
-        return when(Typedef.raw(R), new Invoke());
     }
 
     // org.ref_send.promise.Volatile interface

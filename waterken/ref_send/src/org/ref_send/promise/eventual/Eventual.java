@@ -192,27 +192,29 @@ Eventual implements Equatable, Serializable {
      * <p>Multiple observers registered on the same promise will be notified in
      * the same order as they were registered.</p>
      * <p>
-     * This method will not throw an {@link Exception}, provided the
-     * <code>observer</code> argument is non-<code>null</code> and its return
-     * type is either <code>Void</code>, an
-     * {@linkplain Proxies#isImplementable allowed} proxy type, or assignable
-     * from {@link Promise}. Neither the <code>promise</code>, nor the
-     * <code>observer</code>, argument will be given the opportunity to execute
-     * in the current event loop turn.
+     * This method will not throw an {@link Exception}. Neither the
+     * <code>promise</code>, nor the <code>observer</code>, argument will be
+     * given the opportunity to execute in the current event loop turn.
      * </p>
      * @param <T> referent type
-     * @param <R> <code>observer</code>'s return type
+     * @param <R> <code>observer</code>'s return type, MUST be {@link Void}, an
+     *            {@linkplain Proxies#isImplementable allowed} proxy type, or
+     *            assignable from {@link Promise} 
      * @param promise   observed promise
      * @param observer  observer, MUST NOT be <code>null</code>
      * @return promise, or {@linkplain #cast eventual reference}, for the
      *         <code>observer</code>'s return, or <code>null</code> if the
      *         <code>observer</code>'s return type is <code>Void</code>
-     * @throws NullPointerException <code>observer</code> is <code>null</code>
+     * @throws Error    invalid <code>observer</code> argument  
      */
     public <T,R> R
     when(final Volatile<T> promise, final Do<T,R> observer) {
-        final Class R = Typedef.raw(Typedef.value(Do.R, observer.getClass()));
-        return trust(promise).when(R, observer);
+        try {
+            final Class R= Typedef.raw(Typedef.value(Do.R,observer.getClass()));
+            return trust(promise).when(R, observer);
+        } catch (final Exception reason) {
+            throw new Error(reason);
+        }
     }
 
     private <T> Deferred<T>
@@ -538,24 +540,27 @@ Eventual implements Equatable, Serializable {
      * queued, and so can cause plan interference, or throw an exception.
      * </p>
      * <p>
-     * This method will not throw an {@link Exception}, provided the
-     * <code>type</code> argument is an
-     * {@linkplain Proxies#isImplementable allowed} proxy type. The
-     * <code>promise</code> argument will not be given the opportunity to
-     * execute in the current event loop turn.
+     * This method will not throw an {@link Exception}. The <code>promise</code>
+     * argument will not be given the opportunity to execute in the current
+     * event loop turn.
      * </p>
      * @param <T> referent type to implement
-     * @param type      referent type to implement
+     * @param type      referent type to implement, MUST be an
+     *                  {@linkplain Proxies#isImplementable allowed} proxy type
      * @param promise   promise for the referent
      * @return corresponding eventual reference
      */
     @SuppressWarnings("unchecked") public <T> T
     cast(final Class type, final Volatile<T> promise) {
-        return null == promise
-            ? new Rejected<T>(new NullPointerException())._(type)
-        : (Rejected.class == promise.getClass()
-            ? ((Rejected<T>)promise)._(type)
-        : (T)proxy(trust(promise), type, Selfless.class));
+        try {
+            return null == promise
+                ? new Rejected<T>(new NullPointerException())._(type)
+            : Rejected.class == promise.getClass()
+                ? ((Rejected<T>)promise)._(type)
+            : (T)proxy(trust(promise), type, Selfless.class);
+        } catch (final Exception e) {
+            throw new Error(e);
+        }
     }
 
     /**
@@ -612,17 +617,17 @@ Eventual implements Equatable, Serializable {
      * operator: "<code><b>_.</b></code>".
      * </p>
      * <p>
-     * This method will not throw an {@link Exception}, provided the
-     * <code>reference</code> argument is non-<code>null</code>, and the
-     * specified type is an {@linkplain Proxies#isImplementable allowed} proxy
-     * type. The <code>reference</code> argument will not be given the
-     * opportunity to execute in the current event loop turn.
+     * This method will not throw an {@link Exception}. The
+     * <code>reference</code> argument will not be given the opportunity to
+     * execute in the current event loop turn.
      * </p>
-     * @param <T> referent type
-     * @param reference immediate or eventual reference
+     * @param <T> referent type, MUST be an
+     *            {@linkplain Proxies#isImplementable allowed} proxy type
+     * @param reference immediate or eventual reference,
+     *                  MUST be non-<code>null</code>
      * @return corresponding eventual reference
-     * @throws NullPointerException <code>null</code> <code>reference</code>
-     * @throws ClassCastException   <code>T</code> not an allowed proxy type
+     * @throws Error    <code>null</code> <code>reference</code> or
+     *                  <code>T</code> not an allowed proxy type
      */
     @SuppressWarnings("unchecked") public <T> T
     _(final T reference) throws NullPointerException, ClassCastException {
@@ -635,20 +640,23 @@ Eventual implements Equatable, Serializable {
                 }
             } catch (final Exception e) {}
         }
-
-        // Build the list of types to implement.
-        Class[] types = virtualize(reference.getClass());
-        boolean selfless = false;
-        for (final Class i : types) {
-            selfless = Selfless.class.isAssignableFrom(i);
-            if (selfless) { break; }
+        try {
+            // Build the list of types to implement.
+            Class[] types = virtualize(reference.getClass());
+            boolean selfless = false;
+            for (final Class i : types) {
+                selfless = Selfless.class.isAssignableFrom(i);
+                if (selfless) { break; }
+            }
+            if (!selfless) {
+                final int n = types.length;
+                System.arraycopy(types, 0, types = new Class[n + 1], 0, n);
+                types[n] = Selfless.class;
+            }
+            return (T)proxy(new Enqueue<T>(this, detach(reference)), types);
+        } catch (final Exception e) {
+            throw new Error(e);
         }
-        if (!selfless) {
-            final int n = types.length;
-            System.arraycopy(types, 0, types = new Class[n + 1], 0, n);
-            types[n] = Selfless.class;
-        }
-        return (T)proxy(new Enqueue<T>(this, detach(reference)), types);
     }
 
     /**
@@ -780,10 +788,10 @@ Eventual implements Equatable, Serializable {
      * <p>becomes:</p>
      * <kbd>_._((Runnable)this).run();</kbd>
      * @param x ignored
-     * @throws ClassCastException   always thrown
+     * @throws Error    always thrown
      */
     public <T extends Serializable> void
-    _(final T x) throws ClassCastException { throw new ClassCastException(); }
+    _(final T x) throws Exception { throw new Error(); }
 
     /**
      * Causes a compile error for code that attempts to create an
@@ -799,11 +807,11 @@ Eventual implements Equatable, Serializable {
      * @param <R> referent type to implement
      * @param type      ignored
      * @param promise   ignored
-     * @throws ClassCastException   always thrown
+     * @throws Error    always thrown
      */
     public <R extends Serializable> void
-    cast(final Class<R> type, final Volatile<?> promise) {
-        throw new ClassCastException();
+    cast(final Class<R> type, final Volatile<?> promise) throws Exception {
+        throw new Error();
     }
 
     /**
@@ -831,12 +839,11 @@ Eventual implements Equatable, Serializable {
      * </pre>
      * @param promise   ignored
      * @param observer  ignored
-     * @throws ClassCastException   always thrown
+     * @throws Error    always thrown
      */
     public <T,R extends Serializable> void
-    when(final Volatile<T> promise,
-         final Do<T,R> observer) throws ClassCastException {
-        throw new ClassCastException();
+    when(final Volatile<T> promise, final Do<T,R> observer) throws Exception {
+        throw new Error();
     }
 
     /**
@@ -866,10 +873,10 @@ Eventual implements Equatable, Serializable {
      * </pre>
      * @param reference ignored
      * @param observer  ignored
-     * @throws ClassCastException   always thrown
+     * @throws Error    always thrown
      */
     public <T,R extends Serializable> void
-    when(final T reference, final Do<T,R> observer) throws ClassCastException {
-        throw new ClassCastException();
+    when(final T reference, final Do<T,R> observer) throws Exception {
+        throw new Error();
     }
 }
