@@ -11,11 +11,9 @@ import org.joe_e.Token;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Deferred;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.type.Typedef;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
 import org.waterken.model.Root;
@@ -151,11 +149,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
             final String target = null == here ? URL : URI.resolve(here, URL);
             return message(target).invoke(target, proxy, method, arg);
         } catch (final Exception e) {
-            final Class<?> R = Typedef.raw(
-                Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
-            if (void.class == R || Void.class == R) { return null; }
-            final Rejected<?> p = new Rejected<Object>(e);
-            return R.isAssignableFrom(Promise.class) ? p : p._(R);
+            throw new Error(e);
         }
     }
     
@@ -163,15 +157,9 @@ Remote<T> extends Deferred<T> implements Promise<T> {
 
     @SuppressWarnings("unchecked") protected <R> R
     when(final Class<?> R, final Do<T,R> observer) {
-        try {
-            final String here = (String)local.fetch(null, Remoting.here);
-            final String target = null == here ? URL : URI.resolve(here, URL);
-            return message(target).when(target, R, observer);
-        } catch (final Exception e) {
-            if (void.class == R || Void.class == R) { return null; }
-            final Rejected<R> p = new Rejected<R>(e);
-            return R.isAssignableFrom(Promise.class) ? (R)p : p._(R);
-        }
+        final String here = (String)local.fetch(null, Remoting.here);
+        final String target = null == here ? URL : URI.resolve(here, URL);
+        return message(target).when(target, R, observer);
     }
 
     @SuppressWarnings("unchecked") private Messenger
