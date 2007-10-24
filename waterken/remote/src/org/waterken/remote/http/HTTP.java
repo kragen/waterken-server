@@ -74,7 +74,7 @@ HTTP extends Struct implements Messenger, Serializable {
             final Channel<R> x = _.defer();
             r = R.isAssignableFrom(Promise.class)
                     ? (R)x.promise : _.cast(R, x.promise);
-            forwarder = _.compose(observer, x.resolver);
+            forwarder = Eventual.compose(observer, x.resolver);
         }
         final Class<?> P = Typedef.raw(Typedef.value(DoP, observer.getClass()));
         final P a = (P)Remote.use(local).run(P, URL);
