@@ -138,20 +138,21 @@ Caller extends Struct implements Messenger, Serializable {
                                  ConstArray.array(arg));
             }
 
-            public Void
+            @SuppressWarnings("unchecked") public Void
             fulfill(final Response response) throws Exception {
                 if ("404".equals(response.status) && Exports.isPromise(URL)) {
-                    class Retry extends Do<Variable<T>,Void>
-                                implements Serializable {
+                    class Retry extends Do<Object,Void> implements Serializable{
                         static private final long serialVersionUID = 1L;
 
                         public Void
-                        fulfill(final Variable<T> object) throws Exception {
-                            _._(object).put(arg);
+                        fulfill(final Object object) throws Exception {
+                            ((Variable<T>)_.cast(Variable.class,
+                                    Eventual.promised(object))).put(arg);
                             return null;
                         }
                     }
-                    _.when(proxy, new Retry());
+                    _.when(Remote.use(local).run(Object.class,URL),new Retry());
+                    return null;
                 }
                 return null;
             }
@@ -197,7 +198,8 @@ Caller extends Struct implements Messenger, Serializable {
                             return resolver.reject(reason);
                         }
                     }
-                    return _.when(proxy, new Retry());
+                    _.when(Remote.use(local).run(Object.class,URL),new Retry());
+                    return null;
                 }
                 final Type R = Typedef.bound(method.getGenericReturnType(),
                                              proxy.getClass());
@@ -286,7 +288,8 @@ Caller extends Struct implements Messenger, Serializable {
                             return null;
                         }
                     }
-                    return _.when(proxy, new Retry());
+                    _.when(Remote.use(local).run(Object.class,URL),new Retry());
+                    return null;
                 }
                 if (null != resolver) {
                     final Type R = Typedef.bound(method.getGenericReturnType(),
