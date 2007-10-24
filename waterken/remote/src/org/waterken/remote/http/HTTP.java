@@ -53,7 +53,7 @@ HTTP extends Struct implements Messenger, Serializable {
     when(final String URL, final Class<?> R, final Do<P,R> observer) {
         final String src = Exports.src(URL);
         if (null != src) {
-            // to ensure when blocks are processed in the same order as
+            // To ensure when blocks are processed in the same order as
             // enqueued, always ask the source model for the resolved value.
             if (!src.equals(local.fetch(null, Remoting.here))) {
                 final String target = Exports.href(src, Exports.key(URL));
@@ -82,7 +82,10 @@ HTTP extends Struct implements Messenger, Serializable {
             static private final long serialVersionUID = 1L;
 
             public void
-            run() throws Exception { forwarder.fulfill(a); }
+            run() throws Exception {
+                // AUDIT: call to untrusted application code
+                forwarder.fulfill(a);
+            }
         }
         _.enqueue.run(new Fulfill());
         return r;
@@ -91,9 +94,10 @@ HTTP extends Struct implements Messenger, Serializable {
     public Object
     invoke(final String URL, final Object proxy,
            final Method method, final Object... arg) {
-        // to ensure invocations are delivered in the same order as enqueued,
+        // To ensure invocations are delivered in the same order as enqueued,
         // only send an invocation on a resolved remote reference, or a pipeline
-        // web-key generated from this model
+        // web-key generated from this model. Client code should do a when on
+        // a remote promise before sending invocations.
         final String src = Exports.src(URL);
         if (null == src || src.equals(local.fetch(null, Remoting.here))) {
             return message(URL).invoke(URL, proxy, method, arg);
