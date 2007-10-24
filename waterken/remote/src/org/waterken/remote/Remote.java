@@ -11,6 +11,7 @@ import org.joe_e.Token;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Deferred;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
@@ -167,13 +168,24 @@ Remote<T> extends Deferred<T> implements Promise<T> {
         final String scheme = URI.scheme("", target);
         if ("https".equals(scheme)) { return new HTTP("https", 443, local); }
         if ("http".equals(scheme)) { return new HTTP("http", 80, local); }
+        final Rejected p = new Rejected(new UnknownScheme(scheme));
         return new Messenger() {
             
             public <P,R> R
-            when(String a, Class<?> R, Do<P,R> b) { return null; }
+            when(final String URL, final Class<?> R, final Do<P,R> observer) {
+                final Eventual _ = (Eventual)local.fetch(null, Remoting._);
+                return _.when((Rejected<P>)p, observer);
+            }
             
             public Object
-            invoke(String a, Object b, Method c, Object... d) { return null; }
+            invoke(final String URL, final Object proxy, 
+                   final Method method, final Object... arg) {
+                try {
+                    return p.invoke(proxy, method, arg);
+                } catch (final Exception e) {
+                    throw new Error(e);
+                }
+            }
         };
     }
 }
