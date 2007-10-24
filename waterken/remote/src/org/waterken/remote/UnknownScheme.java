@@ -15,7 +15,7 @@ UnknownScheme extends RuntimeException implements Powerless, Record {
     static private final long serialVersionUID = 1L;
 
     /**
-     * unknown scheme
+     * URL scheme
      */
     public final String scheme;
     
