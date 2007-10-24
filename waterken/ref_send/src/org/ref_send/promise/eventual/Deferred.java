@@ -82,6 +82,7 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
                     final Object[] arg = null == argv
                        ? null
                     : argv.toArray(new Object[argv.length()]);
+                    // AUDIT: call to untrusted application code
                     return object instanceof Deferred
                         ? ((Deferred)object).invoke(proxy, method, arg)
                     : Reflection.invoke(method, object, arg);

@@ -261,13 +261,16 @@ Eventual implements Equatable, Serializable {
                 final Channel<R> x = _.defer();
                 r = R.isAssignableFrom(Promise.class)
                         ? (R)x.promise : _.cast(R, x.promise);
-                forwarder = _.compose(observer, x.resolver);
+                forwarder = compose(observer, x.resolver);
             }
             class Sample extends Struct implements Task, Serializable {
                 static private final long serialVersionUID = 1L;
 
                 public void
-                run() throws Exception { sample(untrusted, forwarder); }
+                run() throws Exception {
+                    // AUDIT: call to untrusted application code
+                    sample(untrusted, forwarder);
+                }
             }
             _.enqueue.run(new Sample());
             return r;
@@ -290,7 +293,7 @@ Eventual implements Equatable, Serializable {
      * @param first     code block to execute
      * @param second    code block's return resolver
      */
-    public <A,B> Do<A,Void>
+    static public <A,B> Do<A,Void>
     compose(final Do<A,B> first, final Resolver<B> second) {
         class Compose extends Do<A,Void> implements Serializable {
             static private final long serialVersionUID = 1L;
@@ -429,6 +432,7 @@ Eventual implements Equatable, Serializable {
                     Eventual.this == ((Deferred)m.value)._) {
                     ((Deferred<T>)m.value).when(Void.class, observer);
                 } else {
+                    // AUDIT: call to untrusted application code
                     sample(m.value, observer);
                 }
             }
@@ -486,7 +490,7 @@ Eventual implements Equatable, Serializable {
                     final Channel<R> x = _.defer();
                     r = R.isAssignableFrom(Promise.class)
                             ? (R)x.promise : _.cast(R, x.promise);
-                    forwarder = _.compose(observer, x.resolver);
+                    forwarder = compose(observer, x.resolver);
                 }
 
                 final State m = state.cast();
