@@ -11,7 +11,7 @@ import org.ref_send.name;
  * Signals an attempt to message an object identified by an unknown URL scheme.
  */
 public class
-UnknownScheme extends RuntimeException implements Powerless, Record {
+UnknownScheme extends NullPointerException implements Powerless, Record {
     static private final long serialVersionUID = 1L;
 
     /**
