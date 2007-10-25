@@ -62,7 +62,7 @@ Caller extends Struct implements Messenger, Serializable {
         _ = (Eventual)local.fetch(null, Remoting._);
     }
 
-    // org.waterken.remote.http.Messenger interface
+    // org.waterken.remote.Messenger interface
 
     /**
      * {@link Do} block parameter type
@@ -98,15 +98,20 @@ Caller extends Struct implements Messenger, Serializable {
 
             public Void
             fulfill(final Response response) {
-                final Type P = Typedef.value(DoP, observer.getClass());
-                final Volatile<P> value = deserialize(P, URL, response);
+                Volatile<P> value;
+                try {
+                    final Type P = Typedef.value(DoP, observer.getClass());
+                    value = Eventual.promised((P)deserialize(P, URL, response));
+                } catch (final Exception e) {
+                    value = new Rejected<P>(e);
+                }
                 final R r = _.when(value, observer);
                 if (null != resolver) { resolver.fulfill(r); }
                 return null;
             }
             
             public Void
-            reject(final Exception reason) throws Exception {
+            reject(final Exception reason) {
                 final R r = _.when(new Rejected<P>(reason), observer);
                 if (null != resolver) { resolver.fulfill(r); }
                 return null;
@@ -132,19 +137,19 @@ Caller extends Struct implements Messenger, Serializable {
         class PUT extends Message implements Update, Query {
             static private final long serialVersionUID = 1L;
 
-            @SuppressWarnings("unchecked") Request
+            Request
             send() throws Exception {
                 return serialize(URI.resolve(URL, "?p=put&s="+Exports.key(URL)),
-                                 ConstArray.array(arg));
+                                 ConstArray.array(new Object[] { arg }));
             }
 
-            @SuppressWarnings("unchecked") public Void
-            fulfill(final Response response) throws Exception {
+            public Void
+            fulfill(final Response response) {
                 if ("404".equals(response.status) && Exports.isPromise(URL)) {
                     class Retry extends Do<Object,Void> implements Serializable{
                         static private final long serialVersionUID = 1L;
 
-                        public Void
+                        @SuppressWarnings("unchecked") public Void
                         fulfill(final Object object) throws Exception {
                             ((Variable<T>)_.cast(Variable.class,
                                     Eventual.promised(object))).put(arg);
@@ -181,7 +186,7 @@ Caller extends Struct implements Messenger, Serializable {
             }
 
             public Void
-            fulfill(final Response response) throws Exception {
+            fulfill(final Response response) {
                 if ("404".equals(response.status) && Exports.isPromise(URL)) {
                     class Retry extends Do<Object,Void> implements Serializable{
                         static private final long serialVersionUID = 1L;
@@ -201,16 +206,19 @@ Caller extends Struct implements Messenger, Serializable {
                     _.when(Remote.use(local).run(Object.class,URL),new Retry());
                     return null;
                 }
-                final Type R = Typedef.bound(method.getGenericReturnType(),
-                                             proxy.getClass());
-                final Volatile<R> value = deserialize(R, URL, response);
+                Volatile<R> value;
+                try {
+                    final Type R = Typedef.bound(method.getGenericReturnType(),
+                                                 proxy.getClass());
+                    value = Eventual.promised((R)deserialize(R, URL, response));
+                } catch (final Exception e) {
+                    value = new Rejected<R>(e);
+                }
                 return resolver.resolve(value);
             }
             
             public Void
-            reject(final Exception reason) throws Exception {
-                return resolver.reject(reason);
-            }
+            reject(final Exception reason) { return resolver.reject(reason); }
         }
         msgs.enqueue(new GET());
         final Class<?> R = Typedef.raw(
@@ -267,7 +275,7 @@ Caller extends Struct implements Messenger, Serializable {
             }
 
             public Void
-            fulfill(final Response response) throws Exception {
+            fulfill(final Response response) {
                 if ("404".equals(response.status) && Exports.isPromise(URL)) {
                     class Retry extends Do<Object,Void> implements Serializable{
                         static private final long serialVersionUID = 1L;
@@ -292,18 +300,21 @@ Caller extends Struct implements Messenger, Serializable {
                     return null;
                 }
                 if (null != resolver) {
-                    final Type R = Typedef.bound(method.getGenericReturnType(),
-                                                 proxy.getClass());
-                    final Volatile<R> value = deserialize(R, URL, response);
+                    Volatile<R> value;
+                    try {
+                        final Type R = Typedef.bound(
+                            method.getGenericReturnType(), proxy.getClass());
+                        value=Eventual.promised((R)deserialize(R,URL,response));
+                    } catch (final Exception e) {
+                        value = new Rejected<R>(e);
+                    }
                     resolver.resolve(value);
                 }
                 return null;
             }
             
             public Void
-            reject(final Exception reason) throws Exception {
-                return resolver.reject(reason);
-            }
+            reject(final Exception reason) { return resolver.reject(reason); }
         }
         msgs.enqueue(new POST());
         return r_;
@@ -335,8 +346,9 @@ Caller extends Struct implements Messenger, Serializable {
             ), content);        
     }
     
-    @SuppressWarnings("unchecked") private <R> Volatile<R>
-    deserialize(final Type R, final String target, final Response response) {
+    private Object
+    deserialize(final Type R, final String target,
+                final Response response) throws Exception {
         final String base = URI.resolve(target, ".");
         final ClassLoader code = (ClassLoader)local.fetch(null, Root.code);
         final String here = (String)local.fetch("x-browser:", Remoting.here);
@@ -344,31 +356,26 @@ Caller extends Struct implements Messenger, Serializable {
             Java.use(base, code, ID.use(base, Remote.use(local)))); 
         if ("200".equals(response.status) || "201".equals(response.status) ||
             "202".equals(response.status) || "203".equals(response.status)) {
-            try {
-                final String contentType = response.getContentType();
-                if (!AMP.contentType.equalsIgnoreCase(contentType)) {
-                    return (Volatile)new Entity(contentType, Snapshot.snapshot(
-                        (int)((Buffer)response.body).length, response.body));
-                }
-                return Eventual.promised((R)(new JSONDeserializer().
-                    run(base, connect, code,
-                        ((Buffer)response.body).open(),
-                        PowerlessArray.array(R)).get(0)));
-            } catch (final Exception e) {
-                return new Rejected<R>(e);
+            final String contentType = response.getContentType();
+            if (!AMP.contentType.equalsIgnoreCase(contentType)) {
+                return new Entity(contentType, Snapshot.snapshot(
+                    (int)((Buffer)response.body).length, response.body));
             }
+            return new JSONDeserializer().run(
+                base, connect, code,
+                ((Buffer)response.body).open(),
+                PowerlessArray.array(R)).get(0);
         } 
         if ("204".equals(response.status) ||
             "205".equals(response.status)) { return null; }
         if ("303".equals(response.status)) {
             for (final Header h : response.header) {
                 if ("Location".equalsIgnoreCase(h.name)) {
-                    return Eventual.promised((R)connect.run(Typedef.raw(R),
-                                                            h.value));
+                    return connect.run(Typedef.raw(R), h.value);
                 }
             }
             return null;    // request accepted, but no response provided
         } 
-        return new Rejected<R>(new Failure(response.status, response.phrase));
+        throw new Failure(response.status, response.phrase);
     }
 }
