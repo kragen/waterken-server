@@ -22,8 +22,8 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.id.exports.Exports;
-import org.waterken.io.buffer.Buffer;
 import org.waterken.io.limited.Limited;
+import org.waterken.io.limited.TooMuchData;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Creator;
 import org.waterken.model.Model;
@@ -65,8 +65,11 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 final Request buffered; {
                     Request q = requestor.cast();
                     if (null != q.body) {
+                        final int length = q.getContentLength();
+                        if (length > maxContentSize) {throw new TooMuchData();}
                         q = new Request(q.version, q.method, q.URI, q.header,
-                            Buffer.copy(Limited.limit(maxContentSize, q.body)));
+                            Snapshot.snapshot(length < 0 ? 1024 : length,
+                                Limited.limit(maxContentSize, q.body)));
                     }
                     buffered = q;
                 }
@@ -83,10 +86,10 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                             public Void
                             fulfill(Response r) throws Exception {
                                 if (null != r.body &&
-                                    !(r.body instanceof Snapshot ||
-                                      r.body instanceof Buffer)) {
+                                    !(r.body instanceof Snapshot)) {
                                     r = new Response(r.version, r.status,
-                                        r.phrase, r.header,Buffer.copy(r.body));
+                                        r.phrase, r.header,
+                                        Snapshot.snapshot(1024, r.body));
                                 }
                                 response[0] = r;
                                 return null;

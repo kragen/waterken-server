@@ -15,9 +15,9 @@ import org.ref_send.promise.eventual.Loop;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
-import org.waterken.io.buffer.Buffer;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.limited.TooMuchData;
+import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Effect;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
@@ -194,8 +194,11 @@ Pipeline implements Serializable {
         fulfill(Response r) throws Exception {
             if (null != r.body) {
                 try {
+                    final int length = r.getContentLength();
+                    if (length > AMP.maxContentSize) {throw new TooMuchData();}
                     r = new Response(r.version, r.status, r.phrase, r.header,
-                        Buffer.copy(Limited.limit(AMP.maxContentSize, r.body)));
+                        Snapshot.snapshot(length < 0 ? 1024 : length,
+                            Limited.limit(AMP.maxContentSize, r.body)));
                 } catch (final TooMuchData e) {
                     return reject(e);
                 }

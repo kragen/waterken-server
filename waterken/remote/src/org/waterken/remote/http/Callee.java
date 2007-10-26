@@ -25,7 +25,6 @@ import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.id.Importer;
 import org.waterken.id.exports.Exports;
-import org.waterken.io.buffer.Buffer;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Root;
 import org.waterken.remote.Remote;
@@ -234,16 +233,16 @@ Callee extends Struct implements Server, Serializable {
                     ? null
                 : new Snapshot(((Entity)value).content));
         }
-        final Buffer content = Buffer.copy(
+        final Snapshot body = Snapshot.snapshot(1024,
             new JSONSerializer().run(describe, Java.bind(ID.bind(Remote.bind(
                 local, Exports.bind(local)))), ConstArray.array(value)));
         return new Response("HTTP/1.1", status, phrase,
             PowerlessArray.array(
                 new Header("Cache-Control", "max-age=" + maxAge),
                 new Header("Content-Type", AMP.contentType),
-                new Header("Content-Length", "" + content.length)
+                new Header("Content-Length", "" + body.content.length())
             ),
-            "HEAD".equals(method) ? null : content);        
+            "HEAD".equals(method) ? null : body);        
     }
     
     private ConstArray<?>
@@ -251,14 +250,14 @@ Callee extends Struct implements Server, Serializable {
                 final PowerlessArray<Type> parameters) throws Exception {
         final String contentType = request.getContentType();
         if (!AMP.contentType.equalsIgnoreCase(contentType)) {
-            return ConstArray.array(new Entity(contentType, Snapshot.snapshot(
-                    (int)((Buffer)request.body).length, request.body)));
+            return ConstArray.array(new Entity(contentType,
+                    ((Snapshot)request.body).content));
         }
         final String here = (String)local.fetch(null, Remoting.here);
         final ClassLoader code = (ClassLoader)local.fetch(null, Root.code);
         final Importer connect = Exports.use(here, exports,
             Java.use(here, code, ID.use(here, Remote.use(local)))); 
         return new JSONDeserializer().run(here, connect, code,
-                ((Buffer)request.body).open(), parameters);
+                ((Snapshot)request.body).content.open(), parameters);
     }
 }

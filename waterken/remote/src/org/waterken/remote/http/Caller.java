@@ -27,7 +27,6 @@ import org.waterken.http.Response;
 import org.waterken.id.Importer;
 import org.waterken.id.base.Base;
 import org.waterken.id.exports.Exports;
-import org.waterken.io.buffer.Buffer;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Root;
 import org.waterken.remote.Messenger;
@@ -333,7 +332,7 @@ Caller extends Struct implements Messenger, Serializable {
                     new Header("Content-Length", "" + x.content.length())
                 ), new Snapshot(x.content));        
         }
-        final Buffer content = Buffer.copy(new JSONSerializer().run(
+        final Snapshot body = Snapshot.snapshot(1024, new JSONSerializer().run(
             Serializer.render, Java.bind(ID.bind(Base.relative(
                 URI.resolve(target, "."), Base.absolute((String)local.fetch(
                     "x-browser:", Remoting.here), Remote.bind(local,
@@ -342,8 +341,8 @@ Caller extends Struct implements Messenger, Serializable {
             PowerlessArray.array(
                 new Header("Host", location),
                 new Header("Content-Type", AMP.contentType),
-                new Header("Content-Length", "" + content.length)
-            ), content);        
+                new Header("Content-Length", "" + body.content.length())
+            ), body);        
     }
     
     private Object
@@ -358,12 +357,12 @@ Caller extends Struct implements Messenger, Serializable {
             "202".equals(response.status) || "203".equals(response.status)) {
             final String contentType = response.getContentType();
             if (!AMP.contentType.equalsIgnoreCase(contentType)) {
-                return new Entity(contentType, Snapshot.snapshot(
-                    (int)((Buffer)response.body).length, response.body));
+                return new Entity(contentType,
+                                  ((Snapshot)response.body).content);
             }
             return new JSONDeserializer().run(
                 base, connect, code,
-                ((Buffer)response.body).open(),
+                ((Snapshot)response.body).content.open(),
                 PowerlessArray.array(R)).get(0);
         } 
         if ("204".equals(response.status) ||
