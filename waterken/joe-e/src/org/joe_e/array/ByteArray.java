@@ -70,12 +70,14 @@ public final class ByteArray extends PowerlessArray<Byte> {
 
         public void
         write(final byte[] b, final int off, final int len) {
-            if (0 > len) { throw new IndexOutOfBoundsException(); }
-            final int newSize = size + len;
-            if (0 > newSize) { throw new IndexOutOfBoundsException(); }
-            
+            int newSize = size + len;
+            if (len < 0 || newSize < 0) {
+                throw new IndexOutOfBoundsException();
+            }
             if (newSize > buffer.length) {
-                System.arraycopy(buffer,0, buffer = new byte[newSize],0, size);
+                int newLength = Math.max(newSize, 2 * buffer.length);
+                System.arraycopy(buffer, 0, buffer = new byte[newLength], 0,
+                                 size);
             }
             System.arraycopy(b, off, buffer, size, len);
             size = newSize;
