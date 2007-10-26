@@ -37,12 +37,12 @@ Snapshot extends Struct implements Content, Powerless, Serializable {
      * @param estimate  estimated content length
      * @param stream    binary content to copy
      */
-    static public ByteArray
+    static public Snapshot
     snapshot(final int estimate, final Content stream) throws Exception {
-        if (stream instanceof Snapshot) { return ((Snapshot)stream).content; }
+        if (stream instanceof Snapshot) { return (Snapshot)stream; }
         final ByteArray.Generator out = new ByteArray.Generator(estimate);
         stream.writeTo(out);
-        return out.snapshot();
+        return new Snapshot(out.snapshot());
     }
     
     // org.waterken.io.Content interface

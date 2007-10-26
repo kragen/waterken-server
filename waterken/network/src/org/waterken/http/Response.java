@@ -72,4 +72,13 @@ Response extends Struct implements Record, Serializable {
      */
     public String
     getContentType() { return Header.find(null, header, "Content-Type"); }
+
+    /**
+     * Gets the <code>Content-Length</code>.
+     * @return number of bytes expected in {@link #body}, or -1 if unknown
+     */
+    public int
+    getContentLength() {
+        return Integer.parseInt(Header.find("-1", header, "Content-Length"));
+    }
 }
