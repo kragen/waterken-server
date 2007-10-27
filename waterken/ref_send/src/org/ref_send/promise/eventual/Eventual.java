@@ -219,7 +219,9 @@ Eventual implements Equatable, Serializable {
 
     private <T> Deferred<T>
     trust(final Volatile<T> untrusted) {
-        return untrusted instanceof Deferred && this==((Deferred<T>)untrusted)._
+        return null == untrusted
+            ? new Enqueue<T>(this, new Rejected<T>(new NullPointerException()))
+        : untrusted instanceof Deferred && this == ((Deferred<T>)untrusted)._
             ? (Deferred<T>)untrusted
         : new Enqueue<T>(this, untrusted);
     }
