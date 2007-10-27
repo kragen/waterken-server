@@ -11,6 +11,7 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
@@ -222,16 +223,14 @@ Callee extends Struct implements Server, Serializable {
               final String status, final String phrase, final int maxAge,
               final boolean describe, final Object value) throws Exception {
         if (value instanceof Entity) {
+            final ByteArray content = ((Entity)value).content;
             return new Response("HTTP/1.1", status, phrase,
                 PowerlessArray.array(
                     new Header("Cache-Control", "max-age=" + maxAge),
                     new Header("Content-Type", ((Entity)value).type),
-                    new Header("Content-Length",
-                               "" + ((Entity)value).content.length())
+                    new Header("Content-Length", "" + content.length())
                 ),
-                "HEAD".equals(method)
-                    ? null
-                : new Snapshot(((Entity)value).content));
+                "HEAD".equals(method) ? null : new Snapshot(content));
         }
         final Snapshot body = Snapshot.snapshot(1024,
             new JSONSerializer().run(describe, Java.bind(ID.bind(Remote.bind(
@@ -249,15 +248,15 @@ Callee extends Struct implements Server, Serializable {
     deserialize(final Request request,
                 final PowerlessArray<Type> parameters) throws Exception {
         final String contentType = request.getContentType();
+        final ByteArray content = ((Snapshot)request.body).content;
         if (!AMP.contentType.equalsIgnoreCase(contentType)) {
-            return ConstArray.array(new Entity(contentType,
-                    ((Snapshot)request.body).content));
+            return ConstArray.array(new Entity(contentType, content));
         }
         final String here = (String)local.fetch(null, Remoting.here);
         final ClassLoader code = (ClassLoader)local.fetch(null, Root.code);
         final Importer connect = Exports.use(here, exports,
             Java.use(here, code, ID.use(here, Remote.use(local)))); 
         return new JSONDeserializer().run(here, connect, code,
-                ((Snapshot)request.body).content.open(), parameters);
+                content.open(), parameters);
     }
 }

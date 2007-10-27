@@ -9,6 +9,7 @@ import java.lang.reflect.TypeVariable;
 import java.security.SecureRandom;
 
 import org.joe_e.Struct;
+import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
@@ -356,14 +357,12 @@ Caller extends Struct implements Messenger, Serializable {
         if ("200".equals(response.status) || "201".equals(response.status) ||
             "202".equals(response.status) || "203".equals(response.status)) {
             final String contentType = response.getContentType();
+            final ByteArray content = ((Snapshot)response.body).content;
             if (!AMP.contentType.equalsIgnoreCase(contentType)) {
-                return new Entity(contentType,
-                                  ((Snapshot)response.body).content);
+                return new Entity(contentType, content);
             }
-            return new JSONDeserializer().run(
-                base, connect, code,
-                ((Snapshot)response.body).content.open(),
-                PowerlessArray.array(R)).get(0);
+            return new JSONDeserializer().run(base, connect, code,
+                content.open(), PowerlessArray.array(R)).get(0);
         } 
         if ("204".equals(response.status) ||
             "205".equals(response.status)) { return null; }
