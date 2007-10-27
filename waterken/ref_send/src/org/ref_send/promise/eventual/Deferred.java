@@ -79,13 +79,14 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
     
                 public Object
                 fulfill(final T object) throws Exception {
-                    final Object[] arg = null == argv
-                       ? null
-                    : argv.toArray(new Object[argv.length()]);
                     // AUDIT: call to untrusted application code
-                    return object instanceof Deferred
-                        ? ((Deferred)object).invoke(proxy, method, arg)
-                    : Reflection.invoke(method, object, arg);
+                    return Reflection.invoke(method,
+                        object instanceof Deferred
+                            ? _.cast(method.getDeclaringClass(),
+                                     (Deferred)object)
+                        : object, null == argv
+                            ? null
+                        : argv.toArray(new Object[argv.length()]));
                 }
             }
             final Type R = Typedef.bound(method.getGenericReturnType(),
