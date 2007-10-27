@@ -241,7 +241,7 @@ Callee extends Struct implements Server, Serializable {
                 new Header("Content-Type", AMP.contentType),
                 new Header("Content-Length", "" + body.content.length())
             ),
-            "HEAD".equals(method) ? null : body);        
+            "HEAD".equals(method) ? null : body);
     }
     
     private ConstArray<?>
