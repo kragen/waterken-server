@@ -636,7 +636,7 @@ Eventual implements Equatable, Serializable {
      *                  <code>T</code> not an allowed proxy type
      */
     @SuppressWarnings("unchecked") public <T> T
-    _(final T reference) throws NullPointerException, ClassCastException {
+    _(final T reference) {
         if (reference instanceof Proxy) {
             try {
                 final Object handler = Proxies.getHandler((Proxy)reference);
