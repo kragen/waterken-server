@@ -13,16 +13,11 @@ ProhibitedModification extends Error implements Powerless {
     static private final long serialVersionUID = 1L;
     
     /**
-     * modified object type
-     */
-    public final Class type;
-
-    /**
      * Constructs an instance.
-     * @param type  {@link #type}
+     * @param type  modified object type
      */
     public
     ProhibitedModification(final Class type) {
-        this.type = type;
+        super(type.getName());
     }
 }
