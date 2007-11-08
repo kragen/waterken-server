@@ -235,7 +235,7 @@ JSONParser {
                     }
                 }
                 if (null == make) {
-                    throw new NoSuchMethodException(actual.getName() + ".new");
+                    make = Reflection.constructor(actual);
                 }
                 paramv = make.getGenericParameterTypes();
                 int i = 0;
