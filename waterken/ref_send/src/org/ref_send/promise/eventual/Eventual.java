@@ -649,6 +649,7 @@ Eventual implements Equatable, Serializable {
         try {
             // Build the list of types to implement.
             Class[] types = virtualize(reference.getClass());
+            if (0 == types.length) {throw new Error(new ClassCastException());}
             boolean selfless = false;
             for (final Class i : types) {
                 selfless = Selfless.class.isAssignableFrom(i);
