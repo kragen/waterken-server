@@ -45,24 +45,33 @@ Concurrent {
                 // Start processing tasks.
                 if (!running) {
                     new Thread(group, name) {
-                        public void
+                        @SuppressWarnings("finally") public void
                         run() {
                             // System.err.println("Processing: " + name);
-                            while (true) {
-                                final T todo;
-                                synchronized (LoopX.this) {
-                                    if (tasks.isEmpty()) {
-                                        running = false;
-                                        break;
+                            try {
+                                while (true) {
+                                    final T todo;
+                                    synchronized (LoopX.this) {
+                                        if (tasks.isEmpty()) {
+                                            running = false;
+                                            break;
+                                        }
+                                        todo = tasks.pop();
                                     }
-                                    todo = tasks.pop();
+                                    try {
+                                        todo.run();
+                                    } catch (final Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    yield();
                                 }
+                            } catch (final Error e) {
+                                // provide debugging support
                                 try {
-                                    todo.run();
-                                } catch (final Exception e) {
                                     e.printStackTrace();
+                                } finally {
+                                    throw e;
                                 }
-                                yield();
                             }
                             // System.err.println("Idle: " + name);
                         }

@@ -522,7 +522,7 @@ JODB extends Model {
             public void
             store(final String name, final Object value) {
                 if (!active[0]) { throw new AssertionError(); }
-                if (extend) { throw new ProhibitedModification(); }
+                if (extend) { throw new ProhibitedModification(Root.class); }
 
                 final String key = name.toLowerCase();
                 Filesystem.checkName(key + ext);
@@ -581,7 +581,7 @@ JODB extends Model {
             run(final String label,
                     final Transaction<T> initialize, final String project) {
                 if (!active[0]) { throw new AssertionError(); }
-                if (extend) { throw new ProhibitedModification(); }
+                if (extend) { throw new ProhibitedModification(Creator.class); }
                 if (null == project || "".equals(project)) {
                     throw new NullPointerException();
                 }
@@ -687,7 +687,9 @@ JODB extends Model {
                         final ByteArray fingerprint =
                             ByteArray.array(hash.digest());
                         if (!fingerprint.equals(x.fingerprint)) {
-                            throw new ProhibitedModification();
+                            final Object v = x.value;
+                            final Class t = null!=v ? v.getClass() : Void.class;
+                            throw new ProhibitedModification(t);
                         }
                     }
                 };
