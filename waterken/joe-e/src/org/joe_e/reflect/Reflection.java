@@ -238,6 +238,12 @@ public final class Reflection {
                 && (member.getName().equals("getClass")
                     || member.getName().equals("equals")
                     || member.getName().equals("Object")))
+            || (declarer == RuntimeException.class
+                && member instanceof Constructor)
+            || (declarer == NullPointerException.class
+                && member instanceof Constructor)
+            || (declarer == ClassCastException.class
+                && member instanceof Constructor)
             || (declarer.getClassLoader() != boot
                 // prevent cheating the checks on invocation handlers
                 && !(member instanceof Constructor
