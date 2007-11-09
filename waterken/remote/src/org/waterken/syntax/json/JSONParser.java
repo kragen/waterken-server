@@ -419,7 +419,7 @@ JSONParser {
                 if (']' == c) {
                     pop();
 
-                    // Find the constructor
+                    // find the constructor
                     final Class actual = Typedef.raw(implicit);
                     Method make = null;
                     for (final Method m : Reflection.methods(actual)) {
@@ -433,11 +433,15 @@ JSONParser {
                                 actual.getName() + ".array");
                     }
 
-                    // Fill out an array.
+                    // determine the array element type: use the type declared
+                    // by the array constructor, since it can use primitive
+                    // types, whereas the template parameters cannot.
                     Class<?> t = make.getParameterTypes()[0].getComponentType();
                     if (Object.class == t) {
                         t = Typedef.raw(valueType);
                     }
+
+                    // fill out an array
                     final Object v = Array.newInstance(t, values.size());
                     int i = 0;
                     for (final Object x : values) {
