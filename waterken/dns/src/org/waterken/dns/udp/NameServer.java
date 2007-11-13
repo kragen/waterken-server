@@ -15,7 +15,6 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.ASCII;
 import org.ref_send.promise.eventual.Do;
 import org.waterken.dns.Domain;
-import org.waterken.dns.Question;
 import org.waterken.dns.Resource;
 import org.waterken.jos.JODB;
 import org.waterken.model.Model;
@@ -31,6 +30,11 @@ NameServer {
 
     private
     NameServer() {}
+    
+    /**
+     * address of the first question
+     */
+    static private final int QP = 12;
     
     /**
      * Constructs an instance.
@@ -60,6 +64,7 @@ NameServer {
                 header[3] &= 0x8F;  // clear the Z bits
                 header[3] &= 0xF0;  // clear the RCODE bits
 
+                // do some sanity checking
                 if (0 != (in[2] & 0x02)) {
                     // TC bit is set in the query
                     header[3] |= 1; // set the RCODE to Format Error
@@ -78,18 +83,23 @@ NameServer {
                     respond.fulfill(ByteArray.array(header));
                     return;
                 }
+                if (!(0 == in[4] && 1 == in[5])) {
+                    // by convention, only a single query is ever sent
+                    header[3] |= 1; // set the RCODE to Format Error
+                    respond.fulfill(ByteArray.array(header));
+                    return;
+                }
 
                 // standard query
-
-                // parse the question section
-                final int qdcount = ((in[4] & 0xFF) << 8) | (in[5] & 0xFF);
-                final Question[] question = new Question[qdcount];
-                for (int i = 12, qd = 0; qdcount != qd; ++qd) {
+                
+                // parse the question
+                final String qname;
+                final short qtype, qclass;
+                final int qlen; {
                     final StringBuilder buffer = new StringBuilder();
-                    boolean deref = false;  // pointer followed
-                    int j = i;
+                    int i = QP;
                     while (true) {
-                        final int length = in[j++] & 0xFF;
+                        final int length = in[i++] & 0xFF;
                         if (0x00 != (length & 0xC0)) {
                             if (0xC0 != (length & 0xC0)) {
                                 // unspecified marker
@@ -98,126 +108,87 @@ NameServer {
                                 return;
                             }
                             
-                            // DNS compression pointer
-                            if (deref) {
-                                header[3] |= 1; // set the RCODE to Format Error
-                                respond.fulfill(ByteArray.array(header));
-                                return;
-                            }
-                            deref = true;
-                            i = j;
-                            j = ((length & 0x3F) << 8) | (in[i++] & 0xFF);
+                            // Since we're only accepting a single query, assume
+                            // it's unreasonable to use DNS compression.
+                            header[3] |= 1; // set the RCODE to Format Error
+                            respond.fulfill(ByteArray.array(header));
+                            return;
                         } else {
                             if (0 == length) { break; }
                             if (0 != buffer.length()) { buffer.append('.'); }
-                            buffer.append(ASCII.decode(in, j, length));
-                            j += length;
+                            buffer.append(ASCII.decode(in, i, length));
+                            i += length;
                         }
                     }
-                    if (!deref) {
-                        i = j;
-                    }
-                    final String qname = buffer.toString();
-                    final short qtype = (short)(((in[i++] & 0xFF) << 8) |
-                                                ( in[i++] & 0xFF));
-                    final short qclass = (short)(((in[i++] & 0xFF) << 8) |
-                                                 ( in[i++] & 0xFF));
-                    question[qd] = new Question(qname, qtype, qclass);
+                    qname = buffer.toString();
+                    qtype = (short)(((in[i++] & 0xFF) << 8) |
+                                    ( in[i++] & 0xFF));
+                    qclass = (short)(((in[i++] & 0xFF) << 8) |
+                                     ( in[i++] & 0xFF));
+                    qlen = i;
                 }
                 
-                // encode the question section
-                final ByteArrayOutputStream response =
-                    new ByteArrayOutputStream(512);
-                header[4] = (byte)(qdcount >>> 8);
-                header[5] = (byte)(qdcount      );
-                response.write(header);
-                final short[] pointer = new short[qdcount];
-                for (int qd = 0; qdcount != qd; ++qd) {
-                    pointer[qd] = (short)(0xC000 | response.size());
-                    final String qname = question[qd].name;
-                    final byte[] labels = ASCII.encode(qname);
-                    for (int i = 0, j = 0; true; ++j) {
-                        if (j == labels.length || '.' == labels[j]) {
-                            final int n = j - i;
-                            response.write(n);
-                            response.write(labels, i, n);
-                            if (j == labels.length) {
-                                response.write(0);
-                                break;
-                            }
-                            i = j + 1;
+                // see if we've got any answers
+                final PowerlessArray<Resource> answers;
+                try {
+                    answers = JODB.connect(file(master, qname.toLowerCase())).
+                        enter(Model.extend,
+                              new Transaction<PowerlessArray<Resource>>() {
+                        public PowerlessArray<Resource>
+                        run(final Root local) throws Exception {
+                            final Domain face =
+                                (Domain)local.fetch(null, Domain.name);
+                            return face.getAnswers();
                         }
-                    }
-                    final short qtype = question[qd].type;
-                    response.write(qtype >>> 8);
-                    response.write(qtype      );
-                    final short qclass = question[qd].clazz;
-                    response.write(qclass >>> 8);
-                    response.write(qclass      );
+                    });
+                } catch (final Exception e) {
+                    header[3] |= 3; // set the RCODE to Name Error
+                    respond.fulfill(ByteArray.array(header));
+                    return;
                 }
 
                 // encode the corresponding answers
-                boolean found = false;
+                final ByteArrayOutputStream response =
+                    new ByteArrayOutputStream(512);
+                header[2] |= 0x04;              // set the AA bit
+                header[5] = 1;                  // qdcount = 1
+                response.write(header);         // output a header
+                response.write(in, QP, qlen);   // echo the question
                 int ancount = 0;
-                for (int qd = 0; qdcount != qd; ++qd) {
-                    final String qname = question[qd].name;
-                    final PowerlessArray<Resource> answers;
-                    try {
-                        answers= JODB.connect(file(master,qname.toLowerCase())).
-                            enter(Model.extend,
-                                  new Transaction<PowerlessArray<Resource>>() {
-                            public PowerlessArray<Resource>
-                            run(final Root local) throws Exception {
-                                final Domain face = (Domain)local.
-                                    fetch(null, Domain.name);
-                                return face.getAnswers();
-                            }
-                        });
-                    } catch (final Exception e) {
-                        continue;
+                for (final Resource a : answers) {
+                    if ((255 == qtype || qtype == a.type) &&
+                        (255 == qclass || qclass == a.clazz)) {
+                        final byte[] data = a.data.toByteArray();
+                        if (data.length > 0xFFFF) { continue; }
+                        
+                        response.write(QP >>> 8);
+                        response.write(QP      );
+                        response.write(a.type >>> 8);
+                        response.write(a.type      );
+                        response.write(a.clazz >>> 8);
+                        response.write(a.clazz      );
+                        response.write(a.ttl >>> 24);
+                        response.write(a.ttl >>> 16);
+                        response.write(a.ttl >>>  8);
+                        response.write(a.ttl       );
+                        response.write(data.length >>>  8);
+                        response.write(data.length       );
+                        response.write(data);
+                        
+                        ++ancount;
                     }
-                    final short qtype = question[qd].type;
-                    final short qclass = question[qd].clazz;
-                    short qp = pointer[qd];
-                    for (final Resource a : answers) {
-                        if ((Question.anyType == qtype || qtype == a.type) &&
-                            (Question.anyClass == qclass || qclass == a.clazz)){
-                            final byte[] data = a.data.toByteArray();
-                            if (data.length > 0xFFFF) { continue; }
-                            
-                            response.write(qp >>> 8);
-                            response.write(qp      );
-                            response.write(a.type >>> 8);
-                            response.write(a.type      );
-                            response.write(a.clazz >>> 8);
-                            response.write(a.clazz      );
-                            response.write(a.ttl >>> 24);
-                            response.write(a.ttl >>> 16);
-                            response.write(a.ttl >>>  8);
-                            response.write(a.ttl       );
-                            response.write(data.length >>>  8);
-                            response.write(data.length       );
-                            response.write(data);
-                            
-                            ++ancount;
-                        }
-                    }
-                    if (0 == qd) { found = true; }
                 }
                 final byte[] responseBuffer = response.toByteArray();
                 final byte[] out;
                 if (responseBuffer.length > 512) {
                     out = new byte[512];
                     System.arraycopy(responseBuffer, 0, out, 0, out.length);
-                    out[2] |= 0x20; // set the TC bit
+                    out[2] |= 0x20;             // set the TC bit
                 } else {
                     out = responseBuffer;
                 }
                 out[6] = (byte)(ancount >>> 8);
                 out[7] = (byte)(ancount      );
-                if (found) {
-                    out[2] |= 0x04; // set the AA bit
-                }
                 respond.fulfill(ByteArray.array(out));
             }
         }
