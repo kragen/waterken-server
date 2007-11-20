@@ -83,66 +83,6 @@ JODB extends Model {
     static private final HashMap<File,SoftReference<JODB>> live =
         new HashMap<File,SoftReference<JODB>>();
 
-    static private final HashMap<String,SoftReference<ClassLoader>> jars =
-        new HashMap<String,SoftReference<ClassLoader>>();
-    
-    /**
-     * Gets the corresponding classloader for a persistence folder.
-     * @param folder    canonical persistence folder
-     */
-    static @SuppressWarnings("unchecked") ClassLoader
-    application(final File folder) throws Exception {
-        
-        // load the project name
-        final File projectFile = file(folder, Root.project + ext);
-        if (!projectFile.isFile()) { return JODB.class.getClassLoader(); }
-        final String project;
-        InputStream in = Filesystem.read(projectFile);
-        try {
-            final ObjectInputStream oin = new ObjectInputStream(in);
-            in = oin;
-            final SymbolicLink value = (SymbolicLink)oin.readObject();
-            project = (String)value.target;
-        } catch (final Exception e) {
-            try { in.close(); } catch (final Exception e2) {}
-            throw e;
-        }
-        in.close();
-        if (null == project || "".equals(project)) {
-            return JODB.class.getClassLoader();
-        }
-
-        // find the cached classloader
-        synchronized (jars) {
-            final SoftReference<ClassLoader> sr = jars.get(project);
-            ClassLoader r = null != sr ? sr.get() : null;
-            if (null == r) {
-                final File bin = new File(
-                    project + File.separator + "bin" + File.separator);
-                if (!bin.isDirectory()) { throw new IOException("no classes"); }
-                r = new URLClassLoader(new URL[] { bin.toURI().toURL() });
-                jars.put(project, new SoftReference<ClassLoader>(r));
-            }
-            return r;
-        }
-    }
-
-    protected void
-    finalize() {
-        synchronized (live) {
-            live.remove(folder);
-        }
-        synchronized (jars) {
-            final Iterator<SoftReference<ClassLoader>> i =
-                jars.values().iterator();
-            while (i.hasNext()) {
-                if (null == i.next().get()) {
-                    i.remove();
-                }
-            }
-        }
-    }
-
     /**
      * Opens an existing, but not yet open, model.
      * @param id        persistence folder
@@ -251,6 +191,66 @@ JODB extends Model {
             busy = false;
         }
         return r.cast();
+    }
+
+    static private final HashMap<String,SoftReference<ClassLoader>> jars =
+        new HashMap<String,SoftReference<ClassLoader>>();
+    
+    /**
+     * Gets the corresponding classloader for a persistence folder.
+     * @param folder    canonical persistence folder
+     */
+    static @SuppressWarnings("unchecked") ClassLoader
+    application(final File folder) throws Exception {
+        
+        // load the project name
+        final File projectFile = file(folder, Root.project + ext);
+        if (!projectFile.isFile()) { return JODB.class.getClassLoader(); }
+        final String project;
+        InputStream in = Filesystem.read(projectFile);
+        try {
+            final ObjectInputStream oin = new ObjectInputStream(in);
+            in = oin;
+            final SymbolicLink value = (SymbolicLink)oin.readObject();
+            project = (String)value.target;
+        } catch (final Exception e) {
+            try { in.close(); } catch (final Exception e2) {}
+            throw e;
+        }
+        in.close();
+        if (null == project || "".equals(project)) {
+            return JODB.class.getClassLoader();
+        }
+
+        // find the cached classloader
+        synchronized (jars) {
+            final SoftReference<ClassLoader> sr = jars.get(project);
+            ClassLoader r = null != sr ? sr.get() : null;
+            if (null == r) {
+                final File bin = new File(
+                    project + File.separator + "bin" + File.separator);
+                if (!bin.isDirectory()) { throw new IOException("no classes"); }
+                r = new URLClassLoader(new URL[] { bin.toURI().toURL() });
+                jars.put(project, new SoftReference<ClassLoader>(r));
+            }
+            return r;
+        }
+    }
+
+    protected void
+    finalize() {
+        synchronized (live) {
+            live.remove(folder);
+        }
+        synchronized (jars) {
+            final Iterator<SoftReference<ClassLoader>> i =
+                jars.values().iterator();
+            while (i.hasNext()) {
+                if (null == i.next().get()) {
+                    i.remove();
+                }
+            }
+        }
     }
 
     /**
