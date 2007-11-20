@@ -13,7 +13,6 @@ import java.util.ArrayList;
 
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Task;
-import org.waterken.http.Failure;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -24,6 +23,7 @@ import org.waterken.net.Execution;
 import org.waterken.uri.Header;
 import org.waterken.uri.Location;
 import org.waterken.uri.URI;
+import org.web_send.Failure;
 
 /**
  * An HTTP protocol server session.
@@ -151,12 +151,12 @@ Session implements Task {
                 try {
                     server.serve(resource, ref(request), respond);
                 } catch (final FileNotFoundException e) {
-                    respond.reject(Failure.gone);
+                    respond.reject(Failure.gone());
                 }
             } catch (final TooMuchData e) {
                 done = true;
                 current.setClosing();
-                respond.reject(new Failure("413", "Request Entity Too Large"));
+                respond.reject(Failure.tooBig());
                 throw e;
             } catch (final IOException e) {
                 done = true;

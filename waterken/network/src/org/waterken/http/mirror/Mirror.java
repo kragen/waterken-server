@@ -10,7 +10,6 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
-import org.waterken.http.Failure;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -18,6 +17,7 @@ import org.waterken.http.file.Files;
 import org.waterken.io.MediaType;
 import org.waterken.uri.Path;
 import org.waterken.uri.URI;
+import org.web_send.Failure;
 
 /**
  * An HTTP mirror site.
@@ -48,7 +48,7 @@ Mirror {
                 File f = root;
                 for (final String segment : Path.walk(URI.path(resource))) {
                     if (segment.startsWith(".")) {
-                        respond.reject(Failure.gone);
+                        respond.reject(Failure.gone());
                         return;
                     }
                     f = Filesystem.file(f, segment);

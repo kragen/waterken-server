@@ -7,10 +7,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.waterken.http.Failure;
 import org.waterken.http.TokenList;
 import org.waterken.io.bounded.Bounded;
 import org.waterken.uri.Header;
+import org.web_send.Failure;
 
 /**
  * 

@@ -14,7 +14,6 @@ import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
-import org.waterken.http.Failure;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -24,6 +23,7 @@ import org.waterken.uri.Filename;
 import org.waterken.uri.Header;
 import org.waterken.uri.Path;
 import org.waterken.uri.URI;
+import org.web_send.Failure;
 
 /**
  * An HTTP file server.
@@ -63,7 +63,7 @@ Files {
 
                 // Check that folder still exists.
                 if (!folder.isDirectory()) {
-                    respond.reject(Failure.gone);
+                    respond.reject(Failure.gone());
                     return;
                 }
 
@@ -75,7 +75,7 @@ Files {
 
                 // Check that there is no query.
                 if (null != URI.query(null, resource)) {
-                    respond.reject(Failure.notFound);
+                    respond.reject(Failure.notFound());
                     return;
                 }
 
@@ -84,7 +84,7 @@ Files {
                 if ("".equals(name)) {
                     name = "index";
                 } else if (name.startsWith(".")) {
-                    respond.reject(Failure.notFound);
+                    respond.reject(Failure.notFound());
                     return;
                 }
 
@@ -139,12 +139,12 @@ Files {
                             contentType = MediaType.uri;
                             file = redirect;
                         } else {
-                            respond.reject(Failure.notFound);
+                            respond.reject(Failure.notFound());
                             return;
                         }
                     }
                 } catch (final InvalidFilenameException e) {
-                    respond.reject(Failure.notFound);
+                    respond.reject(Failure.notFound());
                     return;
                 }
                 
@@ -170,7 +170,7 @@ Files {
                     }
                     in.close();
                     if (null == location) {
-                        respond.reject(Failure.notFound);
+                        respond.reject(Failure.notFound());
                         return;
                     }
                     respond.fulfill(new Response(

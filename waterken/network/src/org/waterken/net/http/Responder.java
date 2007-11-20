@@ -14,7 +14,6 @@ import java.io.Writer;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.ASCII;
 import org.ref_send.promise.eventual.Do;
-import org.waterken.http.Failure;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -23,6 +22,7 @@ import org.waterken.io.limited.TooMuchData;
 import org.waterken.io.open.Open;
 import org.waterken.uri.Header;
 import org.waterken.uri.URI;
+import org.web_send.Failure;
 
 /**
  * Outputs a {@link Response}.  
