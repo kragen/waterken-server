@@ -23,13 +23,12 @@ Framework extends Struct implements Record, Serializable {
     public final Eventual _;
     
     /**
-     * exported namespace
+     * permission to publish well-known references
      * <p>
-     * All remote clients have {@link Namespace#use read} permission on
-     * this namespace.
+     * All remote clients have read permission on this namespace.
      * </p>
      */
-    public final Namespace exports;
+    public final Publisher publish;
     
     /**
      * permission to destruct this model
@@ -47,17 +46,17 @@ Framework extends Struct implements Record, Serializable {
     /**
      * Constructs an instance.
      * @param _         {@link #_}
-     * @param exports   {@link #exports}
+     * @param publish   {@link #publish}
      * @param destruct  {@link #destruct}
      * @param dependent {@link #dependent}
      */
     public @deserializer
     Framework(@name("_") final Eventual _,
-              @name("exports") final Namespace exports,
+              @name("publish") final Publisher publish,
               @name("destruct") final Runnable destruct,
               @name("dependent") final Host dependent) {
         this._ = _;
-        this.exports = exports;
+        this.publish = publish;
         this.destruct = destruct;
         this.dependent = dependent;
     }

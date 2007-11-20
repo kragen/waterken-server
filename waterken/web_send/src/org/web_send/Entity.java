@@ -17,6 +17,11 @@ Entity implements Promise<Entity>, Powerless, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
+     * maximum number of bytes in {@link #content}
+     */
+    static public final long maxContentSize = 64 * 1024;
+
+    /**
      * MIME Media Type
      */
     public final String type;
@@ -30,9 +35,13 @@ Entity implements Promise<Entity>, Powerless, Selfless, Serializable {
      * Constructs an instance.
      * @param type      {@link #type}
      * @param content   {@link #content}
+     * @throws Failure  <code>content</code> bigger than {@link #maxContentSize}
      */
     public
-    Entity(final String type, final ByteArray content) {
+    Entity(final String type, final ByteArray content) throws Failure {
+        if (null == type) { throw new NullPointerException(); }
+        if (maxContentSize < content.length()) { throw Failure.tooBig(); }
+        
         this.type = type;
         this.content = content;
     }
@@ -47,23 +56,15 @@ Entity implements Promise<Entity>, Powerless, Selfless, Serializable {
     public boolean
     equals(final Object o) {
         return o instanceof Entity &&
-               (null != type
-                ? type.equals(((Entity)o).type)
-                : null == ((Entity)o).type) &&
-               (null != content
-                ? content.equals(((Entity)o).content)
-                : null == ((Entity)o).content);
+               type.equals(((Entity)o).type) &&
+               content.equals(((Entity)o).content);
     }
 
     /**
      * Calculates the hash code.
      */
     public int
-    hashCode() {
-        return 0x313E817E +
-               (null != type ? type.hashCode() : 0) +
-               (null != content ? content.hashCode() : 0);
-    }
+    hashCode() { return 0x313E817E + type.hashCode() + content.hashCode(); }
     
     // org.ref_send.promise.Volatile interface
 

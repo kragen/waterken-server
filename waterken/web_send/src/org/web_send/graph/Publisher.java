@@ -3,24 +3,15 @@
 package org.web_send.graph;
 
 /**
- * A case-insensitive name to value mapping.
+ * A case-insensitive well-known name publisher.
  */
 public interface
-Namespace {
+Publisher {
     
     /**
      * set of disallowed name characters
      */
     String disallowed = ".;\\/:*?<>|\"=#";
-
-    /**
-     * Retrieves a value.
-     * @param otherwise default value
-     * @param name      name to lookup
-     * @return bound value, or <code>otherwise</code>
-     */
-    Object
-    use(Object otherwise, String name);
 
     /**
      * Creates a new binding.
@@ -29,5 +20,5 @@ Namespace {
      * @throws Collision    <code>name</code> was already bound
      */
     void
-    bind(String name, Object value) throws Collision;
+    run(String name, Object value) throws Collision;
 }
