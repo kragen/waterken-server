@@ -249,7 +249,7 @@ var _ = function () {
             return see ? new Remote(see) : null;
         }
         return new Rejected({
-            $: [ 'org.waterken.http.Failure',
+            $: [ 'org.web_send.Failure',
                  'org.ref_send.promise.Indeterminate' ],
             status: http.status,
             phrase: http.statusText
