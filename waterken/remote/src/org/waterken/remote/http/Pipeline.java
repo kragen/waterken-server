@@ -3,6 +3,7 @@
 package org.waterken.remote.http;
 
 import static org.ref_send.promise.Fulfilled.ref;
+import static org.web_send.Entity.maxContentSize;
 
 import java.io.Serializable;
 
@@ -195,10 +196,10 @@ Pipeline implements Serializable {
             if (null != r.body) {
                 try {
                     final int length = r.getContentLength();
-                    if (length > AMP.maxContentSize) {throw new TooMuchData();}
+                    if (length > maxContentSize) { throw new TooMuchData(); }
                     r = new Response(r.version, r.status, r.phrase, r.header,
                         Snapshot.snapshot(length < 0 ? 1024 : length,
-                            Limited.limit(AMP.maxContentSize, r.body)));
+                            Limited.limit(maxContentSize, r.body)));
                 } catch (final TooMuchData e) {
                     return reject(e);
                 }

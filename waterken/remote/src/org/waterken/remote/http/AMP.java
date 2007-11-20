@@ -3,6 +3,7 @@
 package org.waterken.remote.http;
 
 import static org.ref_send.promise.Fulfilled.ref;
+import static org.web_send.Entity.maxContentSize;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -42,11 +43,6 @@ import org.web_send.graph.Host;
 public final class
 AMP extends Struct implements Remoting, Powerless, Serializable {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * maximum number of bytes in a message entity
-     */
-    static /* package */ final long maxContentSize = 64 * 1024;
     
     /**
      * MIME Media-Type for marshalled arguments
@@ -132,7 +128,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                         Exports.initialize(local);
                         final Framework framework = new Framework(
                             _,
-                            Exports.make(local),
+                            Exports.publish(local),
                             (Runnable)local.fetch(null, Root.destruct),
                             host(local)
                         );
@@ -149,7 +145,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                                 Reflection.constructor(factory, Eventual.class);
                             app = Reflection.construct(make, _);
                         }
-                        return URI.resolve(here, Exports.bind(local).run(app));
+                        return URI.resolve(here, Exports.export(local).run(app));
                     }
                 }, (String)mother.fetch(null, Root.project));
                 return (Promise<T>)Remote.use(mother).run(Object.class, URL);

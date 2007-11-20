@@ -22,7 +22,6 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Resolver;
 import org.ref_send.type.Typedef;
-import org.waterken.http.Failure;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.id.Importer;
@@ -42,6 +41,7 @@ import org.waterken.uri.Base32;
 import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 import org.web_send.Entity;
+import org.web_send.Failure;
 
 /**
  * Client-side of the HTTP web-amp protocol.
@@ -334,10 +334,10 @@ Caller extends Struct implements Messenger, Serializable {
                 ), new Snapshot(x.content));        
         }
         final Snapshot body = Snapshot.snapshot(1024, new JSONSerializer().run(
-            Serializer.render, Java.bind(ID.bind(Base.relative(
+            Serializer.render, Java.export(ID.export(Base.relative(
                 URI.resolve(target, "."), Base.absolute((String)local.fetch(
                     "x-browser:", Remoting.here), Remote.bind(local,
-                        Exports.bind(local)))))), argv));
+                        Exports.export(local)))))), argv));
         return new Request("HTTP/1.1", "POST", URI.request(target),
             PowerlessArray.array(
                 new Header("Host", location),
@@ -352,8 +352,8 @@ Caller extends Struct implements Messenger, Serializable {
         final String base = URI.resolve(target, ".");
         final ClassLoader code = (ClassLoader)local.fetch(null, Root.code);
         final String here = (String)local.fetch("x-browser:", Remoting.here);
-        final Importer connect = Exports.use(here, Exports.make(local),
-            Java.use(base, code, ID.use(base, Remote.use(local)))); 
+        final Importer connect = Exports.connect(here, new Exports(local),
+            Java.connect(base, code, ID.connect(base, Remote.use(local)))); 
         if ("200".equals(response.status) || "201".equals(response.status) ||
             "202".equals(response.status) || "203".equals(response.status)) {
             final String contentType = response.getContentType();

@@ -15,7 +15,7 @@ import org.waterken.uri.Path;
 import org.waterken.uri.URI;
 
 /**
- * An identifier.
+ * A foreign identifier.
  */
 final class
 ID<T> implements Brand<T>, Member, Selfless, Serializable {
@@ -61,7 +61,7 @@ ID<T> implements Brand<T>, Member, Selfless, Serializable {
     // org.waterken.remote.http.ID interface
     
     static Importer
-    use(final String base, final Importer next) {
+    connect(final String base, final Importer next) {
         class ImporterX extends Struct implements Importer, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -78,7 +78,7 @@ ID<T> implements Brand<T>, Member, Selfless, Serializable {
     }
     
     static Exporter
-    bind(final Exporter next) {
+    export(final Exporter next) {
         class ExporterX extends Struct implements Exporter, Serializable {
             static private final long serialVersionUID = 1L;
 

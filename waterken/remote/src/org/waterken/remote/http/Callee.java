@@ -39,7 +39,6 @@ import org.waterken.uri.Path;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
 import org.web_send.Entity;
-import org.web_send.graph.Namespace;
 
 /**
  * Server-side of the HTTP web-amp protocol.
@@ -50,12 +49,16 @@ Callee extends Struct implements Server, Serializable {
 
     private final Server bootstrap;
     private final Root local;
-    private final Namespace exports;
+    
+    private final ClassLoader code;
+    private final Exports exports;
 
     Callee(final Server bootstrap, final Root local) {
         this.bootstrap = bootstrap;
         this.local = local;
-        exports = Exports.make(local);
+
+        code = (ClassLoader)local.fetch(null, Root.code);
+        exports = new Exports(local);
     }
 
     // org.waterken.http.Server interface
@@ -95,18 +98,18 @@ Callee extends Struct implements Server, Serializable {
         
         // check that there is no path name
         if (!"".equals(Path.name(URI.path(resource)))) {
-            respond.fulfill(notFound(request.method, forever));
+            respond.fulfill(notFound(request.method));
             return;
         }
         
         // determine the request subject
-        final Volatile<?> subject; {
-            final Token pumpkin = new Token();
-            Object x = exports.use(pumpkin, s);
-            if (pumpkin == x) {
-                x = Java.reflect((ClassLoader)local.fetch(null, Root.code), s);
-            }
-            subject = Eventual.promised(x);
+        Volatile<?> subject;
+        try {
+            subject = Eventual.promised(exports.use(s));
+        } catch (final NullPointerException e) {
+            subject = Eventual.promised(Java.reflect(code, s));
+        } catch (final Exception e) {
+            subject = new Rejected(e);
         }
         
         // determine the request type
@@ -133,7 +136,7 @@ Callee extends Struct implements Server, Serializable {
 
         // to preserve message order, force settling of a promise
         if (!(subject instanceof Fulfilled)) {
-            respond.fulfill(notFound(request.method, forever));
+            respond.fulfill(notFound(request.method));
             return;
         }
         // AUDIT: call to untrusted application code
@@ -141,7 +144,7 @@ Callee extends Struct implements Server, Serializable {
         
         // prevent access to local implementation details
         if (null == target || Java.isPBC(target.getClass())) {
-            respond.fulfill(notFound(request.method, forever));
+            respond.fulfill(notFound(request.method));
             return;
         }
         
@@ -213,9 +216,9 @@ Callee extends Struct implements Server, Serializable {
      * Constructs a 404 response.
      */
     private Response
-    notFound(final String method, final int maxAge) throws Exception {
-        return serialize(method, "404", forever == maxAge ? "never" : "not yet",
-          maxAge, Serializer.render, new Rejected(new NullPointerException()));
+    notFound(final String method) throws Exception {
+        return serialize(method, "404", "never", forever, Serializer.render,
+                         new Rejected(new NullPointerException()));
     }
     
     private Response
@@ -232,9 +235,9 @@ Callee extends Struct implements Server, Serializable {
                 ),
                 "HEAD".equals(method) ? null : new Snapshot(content));
         }
-        final Snapshot body = Snapshot.snapshot(1024,
-            new JSONSerializer().run(describe, Java.bind(ID.bind(Remote.bind(
-                local, Exports.bind(local)))), ConstArray.array(value)));
+        final Snapshot body = Snapshot.snapshot(1024, new JSONSerializer().run(
+            describe, Java.export(ID.export(Remote.bind(local,
+                Exports.export(local)))), ConstArray.array(value)));
         return new Response("HTTP/1.1", status, phrase,
             PowerlessArray.array(
                 new Header("Cache-Control", "max-age=" + maxAge),
@@ -253,10 +256,9 @@ Callee extends Struct implements Server, Serializable {
             return ConstArray.array(new Entity(contentType, content));
         }
         final String here = (String)local.fetch(null, Remoting.here);
-        final ClassLoader code = (ClassLoader)local.fetch(null, Root.code);
-        final Importer connect = Exports.use(here, exports,
-            Java.use(here, code, ID.use(here, Remote.use(local)))); 
+        final Importer connect = Exports.connect(here, exports,
+            Java.connect(here, code, ID.connect(here, Remote.use(local))));
         return new JSONDeserializer().run(here, connect, code,
-                content.open(), parameters);
+                                          content.open(), parameters);
     }
 }

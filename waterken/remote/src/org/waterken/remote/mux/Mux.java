@@ -9,7 +9,6 @@ import org.joe_e.Struct;
 import org.joe_e.file.Filesystem;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
-import org.waterken.http.Failure;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -17,6 +16,7 @@ import org.waterken.jos.JODB;
 import org.waterken.remote.Remoting;
 import org.waterken.uri.Path;
 import org.waterken.uri.URI;
+import org.web_send.Failure;
 
 /**
  * Puts the persistent databases into the URI hierarchy.
@@ -51,7 +51,7 @@ Mux {
                     File folder = db;
                     for (final String name : Path.walk(dbPath)) {
                         if (name.startsWith(".")) {
-                            respond.reject(Failure.gone);
+                            respond.reject(Failure.gone());
                             return;
                         }
                         folder = Filesystem.file(folder, name);
@@ -59,7 +59,7 @@ Mux {
 
                     // check that folder still exists
                     if (!folder.isDirectory()) {
-                        respond.reject(Failure.gone);
+                        respond.reject(Failure.gone());
                         return;
                     }
                     server = remoting.remote(next, URI.scheme(null, resource),

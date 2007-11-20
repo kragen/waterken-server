@@ -20,6 +20,7 @@ import org.waterken.model.Root;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
+import org.waterken.syntax.json.Java;
 import org.waterken.uri.Authority;
 import org.waterken.uri.Location;
 import org.waterken.uri.URI;
@@ -55,13 +56,22 @@ HTTP extends Struct implements Messenger, Serializable {
         if (null != src) {
             // To ensure when blocks are processed in the same order as
             // enqueued, always ask the source model for the resolved value.
-            if (!src.equals(local.fetch(null, Remoting.here))) {
-                final String target = Exports.href(src, Exports.key(URL));
+            final String target = Exports.href(src, Exports.key(URL));
+            final String here = (String)local.fetch(null, Remoting.here);
+            if (!src.equalsIgnoreCase(here)) {
                 return message(target).when(target, R, observer);
             }
+            Object p;
+            try {
+                p = Exports.connect(here, new Exports(local), Java.connect(here,
+                    (ClassLoader)local.fetch(null, Root.code),
+                        ID.connect(here, Remote.use(local)))).
+                            run(Object.class, target);
+            } catch (final Exception e) {
+                p = new Rejected(e);
+            }
             final Eventual _ = (Eventual)local.fetch(null, Remoting._);
-            return _.when((P)Exports.make(local).use(null, Exports.key(URL)),
-                          observer);
+            return _.when((P)p, observer);
         }
         // already a resolved remote reference
         final Eventual _ = (Eventual)local.fetch(null, Remoting._);

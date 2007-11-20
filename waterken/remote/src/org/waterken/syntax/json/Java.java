@@ -37,7 +37,7 @@ Java {
      * @param next  next exporter to try
      */
     static public Exporter
-    bind(final Exporter next) {
+    export(final Exporter next) {
         class ExporterX extends Struct implements Exporter, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -72,7 +72,7 @@ Java {
      * @param next  next importer to try
      */
     static public Importer
-    use(final String base, final ClassLoader code, final Importer next) {
+    connect(final String base, final ClassLoader code, final Importer next) {
         class ImporterX extends Struct implements Importer, Serializable {
             static private final long serialVersionUID = 1L;
 

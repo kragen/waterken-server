@@ -23,16 +23,39 @@ import org.waterken.uri.Path;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
 import org.web_send.graph.Collision;
-import org.web_send.graph.Namespace;
+import org.web_send.graph.Publisher;
 
 /**
- * An exported reference {@link Namespace}.
+ * A case-insensitive name to value mapping.
  */
 public final class
-Exports {
+Exports implements Serializable {
+    static private final long serialVersionUID = 1L;
 
-    private
-    Exports() {}
+    /**
+     * Constructs a reference exporter.
+     * @param local local model root
+     */
+    static public Publisher
+    publish(final Root local) {
+        class PublisherX extends Struct implements Publisher, Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public void
+            run(final String name, final Object value) throws Collision {
+                if (name.startsWith(".")) { throw new Collision(); }
+                for (int i = name.length(); i-- != 0;) {
+                    if (disallowed.indexOf(name.charAt(i)) != -1) {
+                        throw new Collision();
+                    }
+                }
+                final Token x = new Token();
+                if (x != local.fetch(x, name)) { throw new Collision(); }
+                local.store(name, value);
+            }
+        }
+        return new PublisherX();
+    }
 
     /**
      * {@link Root} key for the master crypto secret
@@ -63,70 +86,15 @@ Exports {
     static private final String prefix = "key.";
 
     /**
-     * Constructs an instance.
-     * @param local local model root
-     */
-    static public Namespace
-    make(final Root local) {
-        final ByteArray secret = (ByteArray)local.fetch(null, secretName);
-        final AESDecryptor decrypt = new AESDecryptor(secret.toByteArray()); 
-        class Decryptor extends Struct implements Namespace, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Object
-            use(final Object otherwise, final String name) {
-                if (name.startsWith(".")) { return otherwise; }
-                if (!name.startsWith(prefix)) {
-                    return local.fetch(otherwise, name);
-                }
-                try {
-                    final String encoded = name.substring(prefix.length());
-                    final byte[] ciphertext = Base32.decode(encoded);
-                    if (ciphertext.length != blockSize) {throw new Exception();}
-                    final byte[] decrypted = new byte[blockSize];
-                    decrypt.run(ciphertext, 0, decrypted, 0);
-                    for (int i = Long.SIZE / Byte.SIZE; blockSize != i; ++i) {
-                        if (0 != decrypted[i]) { throw new Exception(); }
-                    }
-                    long address = 0L;
-                    for (int i = 0; i != Long.SIZE / Byte.SIZE; ++i) {
-                        address <<= Byte.SIZE;
-                        address |= decrypted[i] & 0x00FF;
-                    }
-                    final Heap heap = (Heap)local.fetch(null, Root.heap);
-                    return heap.reference(address);
-                } catch (final Exception e) {
-                    return local.fetch(otherwise, name);   // key was forged
-                }
-            }
-
-            public void
-            bind(final String name, final Object value) throws Collision {
-                if (name.startsWith(".")) { throw new Collision(); }
-                if (name.startsWith(prefix)) { throw new Collision(); }
-                for (int i = name.length(); i-- != 0;) {
-                    if (disallowed.indexOf(name.charAt(i)) != -1) {
-                        throw new Collision();
-                    }
-                }
-                final Token x = new Token();
-                if (x != local.fetch(x, name)) { throw new Collision(); }
-                local.store(name, value);
-            }
-        }
-        return new Decryptor();
-    }
-
-    /**
      * Constructs a reference exporter.
-     * @param local local model root
+     * @param local model root
      */
     static public Exporter
-    bind(final Root local) {
+    export(final Root local) {
         final Heap heap = (Heap)local.fetch(null, Root.heap);
         final ByteArray secret = (ByteArray)local.fetch(null, secretName);
         final AESEncryptor encrypt = new AESEncryptor(secret.toByteArray());
-        class Encryptor extends Struct implements Exporter, Serializable {
+        class ExporterX extends Struct implements Exporter, Serializable {
             static private final long serialVersionUID = 1L;
 
             public String
@@ -138,42 +106,87 @@ Exports {
                 }
                 final byte[] encrypted = new byte[blockSize];
                 encrypt.run(plaintext, 0, encrypted, 0);
-                final String name = prefix + Base32.encode(encrypted); 
+                final String key = prefix + Base32.encode(encrypted); 
                 return object instanceof Brand.Local
-                    ? name
+                    ? key
                 : (object instanceof Record || object instanceof Volatile ||
                         !(Eventual.promised(object) instanceof Fulfilled)
-                    ? "./?src=." : "./") + "#" + name; 
+                    ? "./?src=." : "./") + "#" + key; 
             }
         }
-        return new Encryptor();
+        return new ExporterX();
+    }
+    
+    private final Root local;
+    
+    private final Heap heap;
+    private final AESDecryptor decrypt;
+
+    /**
+     * Constructs an instance.
+     * @param local model root
+     */
+    public
+    Exports(final Root local) {
+        this.local = local;
+        
+        heap = (Heap)local.fetch(null, Root.heap);
+        final ByteArray secret = (ByteArray)local.fetch(null, secretName);
+        decrypt = new AESDecryptor(secret.toByteArray()); 
+    }
+    
+    /**
+     * Fetches an exported reference.
+     * @param name  name to lookup
+     * @return bound value
+     * @throws NullPointerException <code>name</code> is not bound
+     */
+    public Object
+    use(final String name) throws NullPointerException {
+        if (!name.startsWith(prefix)) {
+            if (name.startsWith(".")) { throw new NullPointerException(); }
+            
+            final Token pumpkin = new Token();
+            final Object r = local.fetch(pumpkin, name);
+            if (pumpkin == r) { throw new NullPointerException(); }
+            return r;
+        }
+
+        final String encoded = name.substring(prefix.length());
+        final byte[] ciphertext = Base32.decode(encoded);
+        if (ciphertext.length != blockSize) {throw new NullPointerException();}
+        final byte[] decrypted = new byte[blockSize];
+        decrypt.run(ciphertext, 0, decrypted, 0);
+        for (int i = Long.SIZE / Byte.SIZE; blockSize != i; ++i) {
+            if (0 != decrypted[i]) { throw new NullPointerException(); }
+        }
+        long address = 0L;
+        for (int i = 0; i != Long.SIZE / Byte.SIZE; ++i) {
+            address <<= Byte.SIZE;
+            address |= decrypted[i] & 0x00FF;
+        }
+        return heap.reference(address);
     }
     
     /**
      * Constructs a reference importer.
-     * @param here      base URL for the local namespace
+     * @param here      base URL for the model
      * @param exports   exported namespace
      * @param next      next importer to try
      */
     static public Importer
-    use(final String here, final Namespace exports, final Importer next) {
+    connect(final String here, final Exports exports, final Importer next) {
         class ImporterX extends Struct implements Importer, Serializable {
             static private final long serialVersionUID = 1L;
 
             public Object
             run(final Class<?> type, final String URL) {
-                if (URI.resolve(URL, ".").equalsIgnoreCase(here)) {
-                    final String name = Path.name(URI.path(URL));
-                    if (!"".equals(name)) {
-                        final Token pumpkin = new Token();
-                        final Object r = exports.use(pumpkin, name);
-                        if (pumpkin != r) { return r; }
-                    } else {
-                        final Token pumpkin = new Token();
-                        final Object r = exports.use(pumpkin, key(URL));
-                        if (pumpkin != r) { return r; }
+                try {
+                    if (URI.resolve(URL, ".").equalsIgnoreCase(here)) {
+                        final String name = Path.name(URI.path(URL));
+                        return exports.use("".equals(name) ? key(URL) : name);
                     }
-                }
+                } catch (final Exception e) {}
                 return next.run(type, URL);
             }
         }
@@ -181,7 +194,7 @@ Exports {
     }
     
     /**
-     * Extracts the local id from a web-key.
+     * Extracts the key from a web-key.
      * @param URL   web-key
      * @return corresponding key
      */
@@ -240,7 +253,7 @@ Exports {
      */
     static public String
     href(final String dst, final String key) {
-        return URI.resolve(dst, "#" + key);
+        return "".equals(key) ? dst : URI.resolve(dst, "#" + key);
     }
     
     /**
