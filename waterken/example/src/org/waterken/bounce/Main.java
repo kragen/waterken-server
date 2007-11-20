@@ -95,7 +95,7 @@ Main extends Struct implements Test, Serializable {
         r.add(_.when(x_.getAll(), new Re()));
 
         final Entity payload = new Entity("application/octet-stream",
-            ByteArray.array(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
+            ByteArray.array(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
         r.add(_.when(x_.bounce(payload), was(payload)));
 
         return and(_, r.toArray(new Promise[r.size()]));
