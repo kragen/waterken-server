@@ -41,7 +41,7 @@ Editor {
             }
         }
         final Domain published = new DomainX();
-        framework.exports.bind(Domain.name, published);
+        framework.publish.run(Domain.name, published);
         return new DomainMaster(published, framework.destruct, answers);
     }
 }
