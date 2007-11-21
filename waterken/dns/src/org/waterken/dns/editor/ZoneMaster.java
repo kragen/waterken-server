@@ -40,6 +40,6 @@ ZoneMaster implements Zone, Serializable {
     public Promise<DomainMaster>
     claim(final String hostname) {
         Hostname.vet(hostname);
-        return dependent.share(hostname, Editor.class.getName());
+        return dependent.claim(hostname, Editor.class);
     }
 }
