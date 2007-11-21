@@ -354,6 +354,7 @@ SSL {
                 if (1 != chain.length) { throw notY; }
                 
                 // determine whether or not the cert uses the y-property
+                // a cert using the y-property MUST ONLY specify a CN property
                 final X509Certificate cert = chain[0];
                 final String dn = cert.getSubjectX500Principal().getName();
                 if (!dn.startsWith("CN=")) { throw notY; }
@@ -384,9 +385,8 @@ SSL {
                 } else {
                     throw notY;
                 }
-                final byte[] hashed =
-                    alg.digest(cert.getPublicKey().getEncoded());
-                System.arraycopy(hashed, 0, guid, 0, guid.length);
+                System.arraycopy(alg.digest(cert.getPublicKey().getEncoded()),
+                                 0, guid, 0, guid.length);
                 if (!fingerprint.equals(Base32.encode(guid))) { throw notY; }
                 
                 // certificate is not valid for any other name
