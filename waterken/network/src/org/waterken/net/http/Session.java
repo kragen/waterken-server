@@ -5,8 +5,6 @@ package org.waterken.net.http;
 import static org.joe_e.array.PowerlessArray.array;
 import static org.ref_send.promise.Fulfilled.ref;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -17,7 +15,6 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.limited.Limited;
-import org.waterken.io.limited.TooMuchData;
 import org.waterken.io.stream.Stream;
 import org.waterken.net.Execution;
 import org.waterken.uri.Header;
@@ -148,21 +145,7 @@ Session implements Task {
                 : URI.resolve(scheme + "://" + host + "/", requestURI);
 
                 // process the request
-                try {
-                    server.serve(resource, ref(request), respond);
-                } catch (final FileNotFoundException e) {
-                    respond.reject(Failure.gone());
-                }
-            } catch (final TooMuchData e) {
-                done = true;
-                current.setClosing();
-                respond.reject(Failure.tooBig());
-                throw e;
-            } catch (final IOException e) {
-                done = true;
-                current.setClosing();
-                respond.reject(new Failure("500", "Internal Server Error"));
-                throw e;
+                server.serve(resource, ref(request), respond);
             } catch (final Exception e) {
                 done = true;
                 current.setClosing();

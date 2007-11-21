@@ -18,7 +18,6 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.bounded.Bounded;
-import org.waterken.io.limited.TooMuchData;
 import org.waterken.io.open.Open;
 import org.waterken.uri.Header;
 import org.waterken.uri.URI;
@@ -85,9 +84,6 @@ Responder {
                     final Failure e = (Failure)reason;
                     status = e.status;
                     phrase = e.phrase;
-                } else if (reason instanceof TooMuchData) {
-                    status = "413";
-                    phrase = "Request Entity Too Large";
                 } else {
                     status = "400";
                     phrase = "Bad Request";

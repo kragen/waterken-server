@@ -9,6 +9,7 @@ import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.waterken.io.Content;
+import org.web_send.Failure;
 
 /**
  * A stream that is not allowed to be longer than a preset limit.
@@ -33,7 +34,7 @@ Limited {
 
             public int
             read() throws IOException {
-                if (0L == remaining) { throw new TooMuchData(); }
+                if (0L == remaining) { throw Failure.tooBig(); }
                 final int r = in.read();
                 if (r != -1) { --remaining; }
                 return r;
@@ -43,7 +44,7 @@ Limited {
             read(final byte[] b,
                  final int off,
                  final int len) throws IOException {
-                if (0L == remaining) { throw new TooMuchData(); }
+                if (0L == remaining) { throw Failure.tooBig(); }
                 final int n = in.read(b, off, (int)Math.min(remaining, len));
                 if (n != -1) { remaining -= n; }
                 return n;
@@ -94,14 +95,14 @@ Limited {
             
             public void
             write(final int b) throws IOException {
-                if (0 == remaining) { throw new TooMuchData(); }
+                if (0 == remaining) { throw Failure.tooBig(); }
                 out.write(b);
                 --remaining;
             }
 
             public void
             write(final byte[] b) throws IOException {
-                if (b.length > remaining) { throw new TooMuchData(); }
+                if (b.length > remaining) { throw Failure.tooBig(); }
                 out.write(b);
                 remaining -= b.length;
             }
@@ -109,7 +110,7 @@ Limited {
             public void
             write(final byte[] b,
                   final int off, final int len) throws IOException {
-                if (len > remaining) { throw new TooMuchData(); }
+                if (len > remaining) { throw Failure.tooBig(); }
                 out.write(b, off, len);
                 remaining -= len;
             }
