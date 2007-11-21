@@ -21,6 +21,11 @@
   <p>
    <kbd>java -jar genkey.jar</kbd>
   </p>
+  <p>If you are behind an HTTP proxy, its address must be specified in the above
+  command. For example:</p>
+  <p>
+   <kbd>java -DproxyHost=proxy.example.com -DproxyPort=8088 -DproxySet=true
+        -jar genkey.jar</kbd>
   <p>The server must be restarted to begin using the new key pair.</p>
   <h2>Static files</h2>
   <p>This file, and other static web content, is served from the
