@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import org.joe_e.Token;
 import org.ref_send.promise.eventual.Eventual;
 import org.waterken.jos.JODB;
+import org.waterken.model.Creator;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
 import org.waterken.model.Transaction;
@@ -89,8 +90,12 @@ Share {
                             throw new IllegalStateException();
                         }
                     };
+                    final Creator creator =
+                        (Creator)local.fetch(null, Root.create);
+                    final ClassLoader code = creator.load(projectValue);
+                    final Class<?> factory = code.loadClass(typename);
                     return Remote.bind(synthetic, null).
-                        run(AMP.host(synthetic).share(label, typename));
+                        run(AMP.host(synthetic).claim(label, factory));
                 }
             });
         System.out.println(URI.resolve(hereValue, r));
