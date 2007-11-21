@@ -114,7 +114,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
             static private final long serialVersionUID = 1L;
 
             @SuppressWarnings("unchecked") public <T> Promise<T>
-            share(final String label, final String typename) throws Collision {
+            claim(final String label, final Class<?> factory) throws Collision {
                 final String base = (String)mother.fetch(null, here);
                 final Server client= (Server)mother.fetch(null,Remoting.client);
                 final Creator create = (Creator)mother.fetch(null, Root.create);
@@ -140,9 +140,6 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                             (Runnable)local.fetch(null, Root.destruct),
                             host(local)
                         );
-                        final ClassLoader code =
-                            (ClassLoader)local.fetch(null, Root.code);
-                        final Class<?> factory = code.loadClass(typename);
                         Object app;
                         try {
                             final Method build = Reflection.method(
