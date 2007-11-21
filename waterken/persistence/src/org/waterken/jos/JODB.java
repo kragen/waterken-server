@@ -5,7 +5,6 @@ package org.waterken.jos;
 import static org.joe_e.file.Filesystem.file;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -659,7 +658,7 @@ JODB extends Model {
         // Check that the model has not been destructed.
         if (!folder.isDirectory() ||
                 Boolean.TRUE.equals(root.fetch(false, dead))) {
-            return new Rejected<R>(new FileNotFoundException());
+            throw new IOException();
         }
 
         // Execute the transaction body.
@@ -720,7 +719,7 @@ JODB extends Model {
         } else {
             // No modifications were made, so just make sure all the reads
             // had valid state available.
-            if (!folder.isDirectory()) { throw new FileNotFoundException(); }
+            if (!folder.isDirectory()) { throw new IOException(); }
         }
 
         // Run all the pending effects.
