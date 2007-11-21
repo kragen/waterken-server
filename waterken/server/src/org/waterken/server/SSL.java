@@ -208,20 +208,26 @@ SSL {
         // verify peer name and requested hostname match
         final SSLSession session = socket.getSession();
         final String cn = CN(session.getPeerPrincipal().getName());
-        if (hostname.equalsIgnoreCase(cn)) { return; }
+        if (matches(hostname, cn)) { return; }
         final X509Certificate ee =
             (X509Certificate)session.getPeerCertificates()[0];
         final Collection<List<?>> alts = ee.getSubjectAlternativeNames();
-        if (null == alts) {
-            throw new SSLPeerUnverifiedException("CN");
-        }
+        if (null == alts) { throw new SSLPeerUnverifiedException("CN"); }
         for (final List<?> alt : alts) {
             final Object name = alt.get(1);
             if (name instanceof String &&
-                hostname.equalsIgnoreCase((String)name)) { return; }
+                matches(hostname, (String)name)) { return; }
         }
-        socket.close();
         throw new SSLPeerUnverifiedException("CN");
+    }
+    
+    static private boolean
+    matches(final String hostname, final String pattern) {
+        return pattern.startsWith("*")
+            ? hostname.regionMatches(true,
+                hostname.length() - pattern.length() + 1,
+                pattern, 1, pattern.length() - 1)
+        : hostname.equalsIgnoreCase(pattern);
     }
 
     /**
@@ -401,9 +407,8 @@ SSL {
      */
     static private String
     CN(final String dn) {
-        final int label = dn.indexOf("CN=");
-        if (-1 == label) { return null; }
-        final int startCN = label + "CN=".length();
+        if (!dn.startsWith("CN=")) { return null; }
+        final int startCN = "CN=".length();
         final int endCN = dn.indexOf(',', startCN);
         return -1==endCN ? dn.substring(startCN) : dn.substring(startCN, endCN);
     }
