@@ -196,6 +196,31 @@ JODB extends Model {
         new HashMap<String,SoftReference<ClassLoader>>();
     
     /**
+     * Gets the named classloader.
+     * @param project   project name
+     */
+    static private ClassLoader
+    jar(final String project) throws Exception {
+        if (null == project || "".equals(project)) {
+            return JODB.class.getClassLoader();
+        }
+        Filesystem.checkName(project);
+        
+        synchronized (jars) {
+            final SoftReference<ClassLoader> sr = jars.get(project);
+            ClassLoader r = null != sr ? sr.get() : null;
+            if (null == r) {
+                final File bin = new File(
+                    project + File.separator + "bin" + File.separator);
+                if (!bin.isDirectory()) { throw new IOException("no classes"); }
+                r = new URLClassLoader(new URL[] { bin.toURI().toURL() });
+                jars.put(project, new SoftReference<ClassLoader>(r));
+            }
+            return r;
+        }
+    }
+    
+    /**
      * Gets the corresponding classloader for a persistence folder.
      * @param folder    canonical persistence folder
      */
@@ -217,23 +242,8 @@ JODB extends Model {
             throw e;
         }
         in.close();
-        if (null == project || "".equals(project)) {
-            return JODB.class.getClassLoader();
-        }
 
-        // find the cached classloader
-        synchronized (jars) {
-            final SoftReference<ClassLoader> sr = jars.get(project);
-            ClassLoader r = null != sr ? sr.get() : null;
-            if (null == r) {
-                final File bin = new File(
-                    project + File.separator + "bin" + File.separator);
-                if (!bin.isDirectory()) { throw new IOException("no classes"); }
-                r = new URLClassLoader(new URL[] { bin.toURI().toURL() });
-                jars.put(project, new SoftReference<ClassLoader>(r));
-            }
-            return r;
-        }
+        return jar(project);
     }
 
     protected void
@@ -576,6 +586,10 @@ JODB extends Model {
         final boolean[] modified = { false };
         final File pending = file(folder, ".pending");
         final Creator create = new Creator() {
+
+            public ClassLoader
+            load(final String project) throws Exception { return jar(project); }
+            
             public <T> T
             run(final String label,
                     final Transaction<T> initialize, final String project) {

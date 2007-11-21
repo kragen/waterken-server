@@ -7,6 +7,14 @@ package org.waterken.model;
  */
 public interface
 Creator {
+    
+    /**
+     * Loads a project's class library.
+     * @param project   project name
+     * @return corresponding class library
+     */
+    ClassLoader
+    load(String project) throws Exception;
 
     /**
      * Creates a new {@link Model}.
