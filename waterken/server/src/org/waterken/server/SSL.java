@@ -318,7 +318,7 @@ SSL {
      * Constructs a trust manager that implements the y-property.
      * @param pki   default key verification algorithm
      */
-    static X509TrustManager
+    static private X509TrustManager
     y(final X509TrustManager pki) {
         return new X509TrustManager() {
 
