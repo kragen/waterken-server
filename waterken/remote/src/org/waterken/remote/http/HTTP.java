@@ -125,9 +125,9 @@ HTTP extends Struct implements Messenger, Serializable {
         
         final String authority = URI.authority(URL);
         final String location = Authority.location(authority);
-        final String host = Location.host(location);
+        final String hostname = Location.hostname(location);
         final int port = Location.port(standardPort, location);
-        final String peer = scheme + "://" + host.toLowerCase() +
+        final String peer = scheme + "://" + hostname.toLowerCase() +
                             (standardPort == port ? "" : ":" + port);
         final String peerKey = ".-" + URLEncoding.encode(peer);
         Pipeline msgs = (Pipeline)local.fetch(null, peerKey);
