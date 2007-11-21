@@ -17,7 +17,6 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.limited.Limited;
-import org.waterken.io.limited.TooMuchData;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Effect;
 import org.waterken.model.Model;
@@ -25,6 +24,7 @@ import org.waterken.model.Root;
 import org.waterken.model.Service;
 import org.waterken.model.Transaction;
 import org.waterken.remote.Remoting;
+import org.web_send.Failure;
 
 /**
  * Manages a pending request queue for a specific host.
@@ -196,11 +196,11 @@ Pipeline implements Serializable {
             if (null != r.body) {
                 try {
                     final int length = r.getContentLength();
-                    if (length > maxContentSize) { throw new TooMuchData(); }
+                    if (length > maxContentSize) { throw Failure.tooBig(); }
                     r = new Response(r.version, r.status, r.phrase, r.header,
                         Snapshot.snapshot(length < 0 ? 1024 : length,
                             Limited.limit(maxContentSize, r.body)));
-                } catch (final TooMuchData e) {
+                } catch (final Failure e) {
                     return reject(e);
                 }
             }

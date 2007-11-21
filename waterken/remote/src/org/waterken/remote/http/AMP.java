@@ -24,7 +24,6 @@ import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.id.exports.Exports;
 import org.waterken.io.limited.Limited;
-import org.waterken.io.limited.TooMuchData;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Creator;
 import org.waterken.model.Model;
@@ -33,6 +32,7 @@ import org.waterken.model.Transaction;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
 import org.waterken.uri.URI;
+import org.web_send.Failure;
 import org.web_send.graph.Collision;
 import org.web_send.graph.Framework;
 import org.web_send.graph.Host;
@@ -62,38 +62,46 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                     Request q = requestor.cast();
                     if (null != q.body) {
                         final int length = q.getContentLength();
-                        if (length > maxContentSize) {throw new TooMuchData();}
+                        if (length > maxContentSize) { throw Failure.tooBig(); }
                         q = new Request(q.version, q.method, q.URI, q.header,
                             Snapshot.snapshot(length < 0 ? 1024 : length,
                                 Limited.limit(maxContentSize, q.body)));
                     }
                     buffered = q;
                 }
-                respond.fulfill(model.enter("GET".equals(buffered.method) ||
-                                            "HEAD".equals(buffered.method) ||
-                                            "OPTIONS".equals(buffered.method) ||
-                                            "TRACE".equals(buffered.method),
-                                            new Transaction<Response>() {
-                    public Response
-                    run(final Root local) throws Exception {
-                        final Response[] response = { null };
-                        new Callee(bootstrap, local).serve(resource,
-                                ref(buffered), new Do<Response,Void>() {
-                            public Void
-                            fulfill(Response r) throws Exception {
-                                if (null != r.body &&
-                                    !(r.body instanceof Snapshot)) {
-                                    r = new Response(r.version, r.status,
-                                        r.phrase, r.header,
-                                        Snapshot.snapshot(1024, r.body));
+                Response response;
+                try {
+                    response = model.enter("GET".equals(buffered.method) ||
+                                           "HEAD".equals(buffered.method) ||
+                                           "OPTIONS".equals(buffered.method) ||
+                                           "TRACE".equals(buffered.method),
+                                           new Transaction<Response>() {
+                        public Response
+                        run(final Root local) throws Exception {
+                            final Response[] response = { null };
+                            new Callee(bootstrap, local).serve(resource,
+                                    ref(buffered), new Do<Response,Void>() {
+                                public Void
+                                fulfill(Response r) throws Exception {
+                                    if (null != r.body &&
+                                        !(r.body instanceof Snapshot)) {
+                                        r = new Response(r.version, r.status,
+                                            r.phrase, r.header, Snapshot.
+                                                snapshot(r.getContentLength(),
+                                                         r.body));
+                                    }
+                                    response[0] = r;
+                                    return null;
                                 }
-                                response[0] = r;
-                                return null;
-                            }
-                        });
-                        return response[0];
-                    }
-                }));
+                            });
+                            return response[0];
+                        }
+                    });
+                } catch (final Exception e) {
+                    respond.reject(e);
+                    return;
+                }
+                respond.fulfill(response);
             }
         };
     }
