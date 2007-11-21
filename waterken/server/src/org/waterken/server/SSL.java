@@ -5,6 +5,7 @@ package org.waterken.server;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.ConnectException;
 import java.net.InetAddress;
@@ -21,6 +22,7 @@ import java.util.List;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -29,11 +31,18 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
+import org.ref_send.promise.eventual.Do;
+import org.waterken.http.Request;
+import org.waterken.http.Response;
 import org.waterken.net.Locator;
+import org.waterken.net.http.Client;
 import org.waterken.uri.Authority;
 import org.waterken.uri.Base32;
+import org.waterken.uri.Header;
 import org.waterken.uri.Location;
+import org.waterken.uri.URI;
 
 /**
  * SSL implementation
@@ -54,65 +63,165 @@ SSL {
             public String
             canonicalize(final String authority) {
                 final String location = Authority.location(authority);
-                final String host = Location.host(location);
+                final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
-                return host.toLowerCase()+(standardPort==port ? "" : ":"+port);
+                return hostname.toLowerCase() +
+                       (standardPort == port ? "" : ":" + port);
             }
             
             public Socket
-            locate(final String authority,
-                   final SocketAddress x) throws IOException {
-                final String location = Authority.location(authority);
-                final String host = Location.host(location);
-                final int port = Location.port(standardPort, location);
-                try {
-                    if (null == factory) {
+            locate(final String host, final SocketAddress x) throws IOException{
+                if (null == factory) {
+                    try {
                         factory = credentials.getContext().getSocketFactory();
+                    } catch (final GeneralSecurityException e) {
+                        throw (IOException)new IOException().initCause(e);  
                     }
-                    IOException reason = new ConnectException();
-                    for (final InetAddress a : InetAddress.getAllByName(host)) {
+                }
+                
+                final String authority = URI.authority(host);
+                final String location = Authority.location(authority);
+                final String hostname = Location.hostname(location);
+                final int port = Location.port(standardPort, location);
+                final InetAddress[] addrs = InetAddress.getAllByName(hostname);
+                final int[] pending = { addrs.length };
+                final Socket[] winner = { null };
+                class Racer extends Thread {
+                    private final Connect connect;
+                    
+                    Racer(final Connect connect) {
+                        this.connect = connect;
+                    }
+                    
+                    public void
+                    run() {
+                        Socket authenticated = null;
                         try {
-                            final SSLSocket r =
-                                (SSLSocket)factory.createSocket(a, port);
-
-                            // restrict the acceptable ciphersuites
-                            r.setEnabledCipherSuites(new String[] {
-                                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-                                "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
-                                "TLS_RSA_WITH_AES_128_CBC_SHA",
-                                "SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA",
-                                "SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA",
-                                "SSL_RSA_WITH_3DES_EDE_CBC_SHA"
-                            });
-
-                            // verify peer name and requested hostname match
-                            final SSLSession s = r.getSession();
-                            final String cn= CN(s.getPeerPrincipal().getName());
-                            if (host.equalsIgnoreCase(cn)) { return r; }
-                            final X509Certificate c = 
-                                (X509Certificate)s.getPeerCertificates()[0];
-                            final Collection<List<?>> alts =
-                                c.getSubjectAlternativeNames();
-                            if (null == alts) { throw new IOException(); }
-                            for (final List<?> alt : alts) {
-                                final Object name = alt.get(1);
-                                if (name instanceof String &&
-                                    host.equalsIgnoreCase((String)name)) {
-                                    return r;
+                            final Socket r = connect.run();
+                            try {
+                                authenticate(hostname, (SSLSocket)r);
+                                authenticated = r;
+                            } catch (final Exception e) {
+                                r.close();
+                                throw e;
+                            }
+                        } catch (final Exception e) {
+                        } finally {
+                            synchronized (pending) {
+                                if (null != authenticated) {
+                                    if (null == winner[0]) {
+                                        winner[0] = authenticated;
+                                        pending.notify();
+                                    } else {
+                                        try { authenticated.close(); }
+                                        catch (final IOException e) {}
+                                    }
+                                } else if (0 == --pending[0]) {
+                                    pending.notify();
                                 }
                             }
-                            throw new IOException();
-                        } catch (final IOException e) {
-                            reason = e; // keep trying
                         }
                     }
-                    throw reason;
-                } catch (final GeneralSecurityException e) {
-                    throw (IOException)new IOException().initCause(e);
                 }
+                synchronized (pending) {
+                    if (Boolean.parseBoolean(System.getProperty("proxySet"))) {
+                        ++pending[0];
+                        new Racer(proxy(factory, hostname, port)).start();
+                    }
+                    for (final InetAddress addr : addrs) {
+                        new Racer(direct(factory, addr, port)).start();
+                    }
+                    if (0 != pending[0]) {
+                        try {pending.wait();} catch (InterruptedException e) {}
+                    }
+                    if (null != winner[0]) { return winner[0]; }
+                }
+                throw new ConnectException();
             }
         }
         return new ClientX();
+    }
+    
+    interface Connect {
+        Socket run() throws Exception;
+    }
+    
+    static private Connect
+    proxy(final SSLSocketFactory factory,
+          final String hostname, final int port){
+        return new Connect() {
+            public Socket
+            run() throws Exception {
+                final Socket proxy = new Socket(
+                    System.getProperty("proxyHost"),
+                    Integer.parseInt(System.getProperty("proxyPort")));
+                try {
+                    final OutputStream out = proxy.getOutputStream();
+                    Client.send(new Request(
+                        "HTTP/1.0", "CONNECT", hostname + ":" + port,
+                        PowerlessArray.array(new Header[0]), null), out);
+                    out.flush();
+                    final boolean[] connected = { false };
+                    Client.receive("CONNECT", proxy.getInputStream(),
+                                   new Do<Response,Void>() {
+                        @Override public Void
+                        fulfill(final Response r) throws Exception {
+                            if ("200".equals(r.status)) {
+                                connected[0] = true;
+                            }
+                            return null;
+                        }
+                    });
+                    if (!connected[0]) { throw new ConnectException(); }
+                    return factory.createSocket(proxy, hostname, port, true);
+                } catch (final Exception e) {
+                    proxy.close();
+                    throw e;
+                }
+            }
+        };
+    }
+    
+    static private Connect
+    direct(final SSLSocketFactory factory,
+           final InetAddress addr, final int port) {
+        return new Connect() {
+            public Socket
+            run() throws Exception { return factory.createSocket(addr, port); }
+        };
+    }
+    
+    static private void
+    authenticate(final String hostname,
+                 final SSLSocket socket) throws Exception {
+
+        // restrict the acceptable ciphersuites
+        socket.setEnabledCipherSuites(new String[] {
+            "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+            "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
+            "TLS_RSA_WITH_AES_128_CBC_SHA",
+            "SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA",
+            "SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA",
+            "SSL_RSA_WITH_3DES_EDE_CBC_SHA"
+        });
+
+        // verify peer name and requested hostname match
+        final SSLSession session = socket.getSession();
+        final String cn = CN(session.getPeerPrincipal().getName());
+        if (hostname.equalsIgnoreCase(cn)) { return; }
+        final X509Certificate ee =
+            (X509Certificate)session.getPeerCertificates()[0];
+        final Collection<List<?>> alts = ee.getSubjectAlternativeNames();
+        if (null == alts) {
+            throw new SSLPeerUnverifiedException("CN");
+        }
+        for (final List<?> alt : alts) {
+            final Object name = alt.get(1);
+            if (name instanceof String &&
+                hostname.equalsIgnoreCase((String)name)) { return; }
+        }
+        socket.close();
+        throw new SSLPeerUnverifiedException("CN");
     }
 
     /**

@@ -40,18 +40,19 @@ Loopback {
             public String
             canonicalize(final String authority) {
                 final String location = Authority.location(authority);
-                final String host = Location.host(location);
+                final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
-                return host.toLowerCase()+(standardPort==port ? "" : ":"+port);
+                return hostname.toLowerCase() +
+                       (standardPort == port ? "" : ":" + port);
             }
             
             public Socket
             locate(final String authority,
                    final SocketAddress mostRecent) throws IOException {
                 final String location = Authority.location(authority);
-                final String host = Location.host(location);
+                final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
-                if (!"localhost".equalsIgnoreCase(host)) {
+                if (!"localhost".equalsIgnoreCase(hostname)) {
                     throw new ConnectException();
                 }
                 return new Socket(addr, port);

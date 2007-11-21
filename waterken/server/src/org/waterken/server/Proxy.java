@@ -43,8 +43,7 @@ Proxy extends Struct implements Server, Serializable {
                 Concurrent.loop(threads, "=>" + peer);
             final Loop<Client.Inbound> receiver =
                 Concurrent.loop(threads, "<=" + peer);
-            r = Client.make(URI.authority(peer), transport, thread,
-                            sender, receiver);
+            r = Client.make(peer, transport, thread, sender, receiver);
             connections.put(peer, r);
         }
         return r;
@@ -60,7 +59,7 @@ Proxy extends Struct implements Server, Serializable {
         final String scheme = URI.scheme(null, resource).toLowerCase();
         final Locator transport = protocols.get(scheme);
         final String authority= transport.canonicalize(URI.authority(resource));
-        final String peer = scheme + "://" + authority;
+        final String peer = scheme + "://" + authority + "/";
         connect(peer, transport).serve(resource, request, respond);
     }
 }
