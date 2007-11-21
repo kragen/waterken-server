@@ -22,10 +22,10 @@ Locator {
     
     /**
      * Opens a socket to the identified host.
-     * @param authority     URL authority identifying the target host
+     * @param host          target host URL
      * @param mostRecent    most recent location, or <code>null</code>
      * @return open socket to the host
      */
     Socket
-    locate(String authority, SocketAddress mostRecent) throws IOException;
+    locate(String host, SocketAddress mostRecent) throws IOException;
 }

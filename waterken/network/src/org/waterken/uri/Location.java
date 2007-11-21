@@ -17,7 +17,7 @@ Location {
      * @return <code>host</code>
      */
     static public String
-    host(final String location) {
+    hostname(final String location) {
         final int end_host = location.indexOf(':');
         return -1 == end_host ? location : location.substring(0, end_host);
     }

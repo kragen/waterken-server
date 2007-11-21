@@ -80,16 +80,16 @@ Client implements Server {
     static public interface
     Inbound extends Task {}
     
-    private final String authority;
+    private final String host;
     private final Locator locator;
     private final Execution thread;
     private final Loop<Outbound> sender;
     private final Loop<Inbound> receiver;
 
     private
-    Client(final String authority,final Locator locator, final Execution thread,
+    Client(final String host, final Locator locator, final Execution thread,
            final Loop<Outbound> sender, final Loop<Inbound> receiver) {
-        this.authority = authority;
+        this.host = host;
         this.locator = locator;
         this.thread = thread;
         this.sender = sender;
@@ -133,7 +133,7 @@ Client implements Server {
         run() {
             for (long a = 0, b = minSleep; true;) {
                 try {
-                    socket = locator.locate(authority, mostRecent);
+                    socket = locator.locate(host, mostRecent);
                     in = socket.getInputStream();
                     out = socket.getOutputStream();
                     break;
@@ -173,7 +173,7 @@ Client implements Server {
             socket = null;
         }
     }
-    class Exchange {
+    class Exchange extends Do<Response,Void> {
         /* package */ final Promise<Request> request;
         private       final Do<Response,?> respond;
         private       final Outbound pop;
@@ -319,16 +319,16 @@ Client implements Server {
      * <p>
      * Each response block will be invoked from the receiver event loop.
      * </p>
-     * @param authority URL authority identifying the remote host  
+     * @param host      URL identifying the remote host  
      * @param locator   socket factory
      * @param thread    authority to sleep
      * @param sender    HTTP request event loop
      * @param receiver  HTTP response event loop
      */
     static public Server
-    make(final String authority, final Locator locator, final Execution thread,
+    make(final String host, final Locator locator, final Execution thread,
          final Loop<Outbound> sender, final Loop<Inbound> receiver) {
-        final Client r = new Client(authority,locator,thread,sender,receiver);
+        final Client r = new Client(host, locator, thread, sender, receiver);
         r.start();
         return r;
     }
@@ -338,7 +338,13 @@ Client implements Server {
           final Volatile<Request> request,
           final Do<Response,?> respond) { entry.enqueue(request, respond); }
     
-    static private void
+    /**
+     * Sends an HTTP request.
+     * @param request   request to send
+     * @param output    output stream
+     * @throws Exception    any problem sending the request
+     */
+    static public void
     send(final Request request, final OutputStream output) throws Exception {
         final OutputStream out =
             new BufferedOutputStream(output, chunkSize - "0\r\n\r\n".length());
@@ -406,9 +412,17 @@ Client implements Server {
         out.flush();
     }
     
-    static private boolean
+    /**
+     * Receives an HTTP response.
+     * @param method    HTTP request method
+     * @param cin       input stream
+     * @param respond   response block
+     * @return should the connection be kept alive?
+     * @throws Exception    any problem reading the response
+     */
+    static public boolean
     receive(final String method, final InputStream cin,
-            final Exchange respond) throws Exception {
+            final Do<Response,Void> respond) throws Exception {
         final LineInput hin = new LineInput(Limited.input(32 * 1024, cin));
 
         // read the Status-Line
@@ -451,7 +465,12 @@ Client implements Server {
             entity = null;
         } else if ("HEAD".equals(method)) {
             entity = null;
+        } else if ("CONNECT".equals(method)) {
+            entity = null;
         } else {
+            // with the exception of the cases handled above, all responses have
+            // a message body, which is either explicitly delimited, or
+            // terminated by connection close
             final InputStream explicit = HTTP.body(header, cin);
             entity = null != explicit ? explicit : cin;
         }

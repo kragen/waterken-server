@@ -13,7 +13,7 @@ import org.waterken.uri.Header;
 import org.web_send.Failure;
 
 /**
- * 
+ * Utility methods for implementing the HTTP protocol.
  */
 final class
 HTTP {
@@ -138,7 +138,8 @@ HTTP {
     }
     
     /**
-     * Creates the input stream for reading a message body.
+     * Creates the input stream for reading a message body from either a request
+     * or a response.
      * @param header    message headers
      * @param cin       connection input stream
      * @return message body input stream, or <code>null</code> if none
