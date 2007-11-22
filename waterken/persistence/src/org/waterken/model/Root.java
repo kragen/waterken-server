@@ -28,7 +28,7 @@ Root {
     /**
      * corresponding {@link Creator}
      */
-    String create = ".create";
+    String creator = ".creator";
     
     /**
      * {@link Runnable deletes} the corresponding {@link Model}

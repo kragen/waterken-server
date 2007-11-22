@@ -585,14 +585,24 @@ JODB extends Model {
         };
         final boolean[] modified = { false };
         final File pending = file(folder, ".pending");
-        final Creator create = new Creator() {
+        final Creator creator = new Creator() {
 
             public ClassLoader
             load(final String project) throws Exception { return jar(project); }
+
+            public String
+            generate() {
+                while (true) {
+                    final String key = key(prng.nextInt()).
+                        substring(prefix.length()).toLowerCase();
+                    if (!file(folder, "."+key+".was").isFile() &&
+                        !file(pending, "."+key+".was").isFile()) { return key; } 
+                }
+            }
             
             public <T> T
-            run(final String label,
-                    final Transaction<T> initialize, final String project) {
+            create(final String project, final String label,
+                   final Transaction<T> initialize) {
                 if (!active[0]) { throw new AssertionError(); }
                 if (extend) { throw new ProhibitedModification(Creator.class); }
                 if (null == project || "".equals(project)) {
@@ -642,12 +652,12 @@ JODB extends Model {
         final String[] name = {
             Root.nothing, Root.code, Root.prng, Root.heap,
             ".root", Root.enqueue, Root.effect, Root.destruct,
-            Root.model, Root.create
+            Root.model, Root.creator
         };
         final Object[] value = {
             null, code, prng, loader,
             root, enqueue, effect, destruct,
-            this, create
+            this, creator
         };
         for (int d = 0; value.length != d; ++d) {
             k2o.put(name[d],new Bucket(false,new SymbolicLink(value[d]),null));
