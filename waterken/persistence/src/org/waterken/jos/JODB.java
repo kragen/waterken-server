@@ -41,12 +41,12 @@ import org.waterken.model.Effect;
 import org.waterken.model.Heap;
 import org.waterken.model.Model;
 import org.waterken.model.ModelError;
-import org.waterken.model.NoLabelReuse;
 import org.waterken.model.ProhibitedModification;
 import org.waterken.model.Root;
 import org.waterken.model.Service;
 import org.waterken.model.Transaction;
 import org.waterken.thread.Concurrent;
+import org.web_send.graph.Collision;
 
 /**
  * An object graph stored as a folder of Java Object Serialization files.
@@ -606,11 +606,11 @@ JODB extends Model {
                 }
                 final String key = label.toLowerCase();
                 if (file(folder, "." + key + ".was").isFile()) {
-                    throw new NoLabelReuse();
+                    throw new Collision();
                 }
                 try {
                     if (!file(pending, "." + key + ".was").createNewFile()) {
-                        throw new NoLabelReuse();
+                        throw new Collision();
                     }
                 } catch (final IOException e) {
                     throw new ModelError(e);

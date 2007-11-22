@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.model;
 
+import org.web_send.graph.Collision;
+
 /**
  * A {@link Model} factory.
  */
@@ -25,5 +27,5 @@ Creator {
      */
     <R> R
     run(String label,
-        Transaction<R> initialize, String project) throws NoLabelReuse;
+        Transaction<R> initialize, String project) throws Collision;
 }
