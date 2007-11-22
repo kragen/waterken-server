@@ -6,7 +6,6 @@ import static org.ref_send.promise.Fulfilled.ref;
 import static org.web_send.Entity.maxContentSize;
 
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 import org.joe_e.Powerless;
@@ -14,7 +13,6 @@ import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
@@ -113,8 +111,14 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
         class HostX extends Struct implements Host, Serializable {
             static private final long serialVersionUID = 1L;
 
-            @SuppressWarnings("unchecked") public <T> Promise<T>
+            @SuppressWarnings("unchecked") public <T> T
             claim(final String label, final Class<?> factory) throws Collision {
+                final Method build;
+                try {
+                    build= Reflection.method(factory, "build", Framework.class);
+                } catch (final NoSuchMethodException e) {
+                    throw new ClassCastException();
+                }
                 final String base = (String)mother.fetch(null, here);
                 final Server client= (Server)mother.fetch(null,Remoting.client);
                 final Creator create = (Creator)mother.fetch(null, Root.create);
@@ -140,20 +144,11 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                             (Runnable)local.fetch(null, Root.destruct),
                             host(local)
                         );
-                        Object app;
-                        try {
-                            final Method build = Reflection.method(
-                                    factory, "build", Framework.class);
-                            app = Reflection.invoke(build, null, framework);
-                        } catch (final NoSuchMethodException e) {
-                            final Constructor make =
-                                Reflection.constructor(factory, Eventual.class);
-                            app = Reflection.construct(make, _);
-                        }
-                        return URI.resolve(here, Exports.export(local).run(app));
+                        return URI.resolve(here, Exports.export(local).run(
+                                Reflection.invoke(build, null, framework)));
                     }
                 }, (String)mother.fetch(null, Root.project));
-                return (Promise<T>)Remote.use(mother).run(Object.class, URL);
+                return (T)Remote.use(mother).run(build.getReturnType(), URL);
             }
         }
         return new HostX();
