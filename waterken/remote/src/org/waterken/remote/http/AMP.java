@@ -111,6 +111,12 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
         class HostX extends Struct implements Host, Serializable {
             static private final long serialVersionUID = 1L;
 
+            public <T> T
+            spawn(final Class<?> factory) {
+                final Creator creator= (Creator)mother.fetch(null,Root.creator);
+                return claim(creator.generate(), factory);
+            }
+            
             @SuppressWarnings("unchecked") public <T> T
             claim(final String label, final Class<?> factory) throws Collision {
                 final Method build;
@@ -121,8 +127,10 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 }
                 final String base = (String)mother.fetch(null, here);
                 final Server client= (Server)mother.fetch(null,Remoting.client);
-                final Creator create = (Creator)mother.fetch(null, Root.create);
-                final String URL = create.run(label, new Transaction<String>() {
+                final Creator creator= (Creator)mother.fetch(null,Root.creator);
+                final String URL = creator.create(
+                        (String)mother.fetch(null, Root.project),
+                        label, new Transaction<String>() {
                     public String
                     run(final Root local) throws Exception {
                         final String here = base+URLEncoding.encode(label)+"/";
@@ -147,7 +155,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                         return URI.resolve(here, Exports.export(local).run(
                                 Reflection.invoke(build, null, framework)));
                     }
-                }, (String)mother.fetch(null, Root.project));
+                });
                 return (T)Remote.use(mother).run(build.getReturnType(), URL);
             }
         }
