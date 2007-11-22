@@ -91,7 +91,7 @@ Share {
                         }
                     };
                     final Creator creator =
-                        (Creator)local.fetch(null, Root.create);
+                        (Creator)local.fetch(null, Root.creator);
                     final ClassLoader code = creator.load(projectValue);
                     final Class<?> factory = code.loadClass(typename);
                     return Remote.bind(synthetic, null).
