@@ -57,17 +57,13 @@ Main extends Struct implements Test, Serializable {
         
         r.add(new org.waterken.eq.Main(_).start());
         
-        final Promise<Wall> wall = mine.claim("wall", Bounce.class);
-        final Wall wall_ = _.cast(Wall.class, wall);
+        final Wall wall_ = mine.claim("wall", Bounce.class);
         r.add(new org.waterken.bounce.Main(_).test(wall_));
         
-        final Promise<Drum> drum = mine.claim("drum", Bang.class);
-        final Drum drum_ = _.cast(Drum.class, drum);
+        final Drum drum_ = mine.claim("drum", Bang.class);
         r.add(new org.waterken.bang.Main(_).test(drum_, 0));
         
-        final Promise<Variable<Volatile<Byte>>> slot =
-            mine.claim("slot", Put.class);
-        final Variable<Volatile<Byte>> slot_ = _.cast(Variable.class, slot);
+        final Variable<Volatile<Byte>> slot_ = mine.claim("slot", Put.class);
         r.add(new org.waterken.put.Main(_).test(slot_, (byte)0));
 
         return and(_, r.toArray(new Promise[r.size()]));

@@ -18,6 +18,7 @@ import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.test.Test;
+import org.web_send.graph.Framework;
 
 /**
  * A {@link Variable} test.
@@ -32,12 +33,21 @@ Main extends Struct implements Test, Serializable {
     private final Eventual _;
 
     /**
-     * Constructs an instance.
+     * Constructs an instance
      * @param _ eventual operator
      */
     public
     Main(final Eventual _) {
         this._ = _;
+    }
+    
+    /**
+     * Constructs an instance.
+     * @param framework model framework
+     */
+    static public Test
+    build(final Framework framework) {
+        return new Main(framework._);
     }
     
     // Command line interface
