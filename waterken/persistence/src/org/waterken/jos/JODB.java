@@ -537,7 +537,7 @@ JODB extends Model {
                     final File sub = file(pending, key);
                     if (!sub.mkdir()) { throw new IOException(); }
                     if (null != project) { init(sub, Root.project, project); }
-                    final byte[] bits = new byte[16];
+                    final byte[] bits = new byte[128 / Byte.SIZE];
                     prng.nextBytes(bits);
                     init(sub, secret, ByteArray.array(bits));
                     return new JODB(sub,null).enter(change,new Transaction<T>(){
