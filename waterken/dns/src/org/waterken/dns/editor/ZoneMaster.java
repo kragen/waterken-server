@@ -7,7 +7,7 @@ import java.io.Serializable;
 import org.ref_send.promise.Promise;
 import org.waterken.uri.Hostname;
 import org.web_send.graph.Framework;
-import org.web_send.graph.Host;
+import org.web_send.graph.Publisher;
 
 /**
  * A {@link Zone} implementation.
@@ -19,11 +19,11 @@ ZoneMaster implements Zone, Serializable {
     /**
      * sub-model factory
      */
-    private final Host dependent;
+    private final Publisher publisher;
 
     private
-    ZoneMaster(final Host dependent) {
-        this.dependent = dependent;
+    ZoneMaster(final Publisher publisher) {
+        this.publisher = publisher;
     }
     
     /**
@@ -32,7 +32,7 @@ ZoneMaster implements Zone, Serializable {
      */
     static public Zone
     build(final Framework framework) {
-        return new ZoneMaster(framework.dependent);
+        return new ZoneMaster(framework.publisher);
     }
 
     // org.waterken.dns.editor.Zone interface
@@ -40,6 +40,6 @@ ZoneMaster implements Zone, Serializable {
     public Promise<DomainMaster>
     claim(final String hostname) {
         Hostname.vet(hostname);
-        return dependent.claim(hostname, Editor.class);
+        return publisher.spawn(hostname, Editor.class);
     }
 }
