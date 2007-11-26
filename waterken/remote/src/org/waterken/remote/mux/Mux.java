@@ -27,7 +27,7 @@ Mux {
     /**
      * URI sub-hierarchy for persistent databases
      */
-    static public final String dbPathPrefix = JODB.dbDirName + "/";
+    static public final String dbPathPrefix = "-/";
     
     /**
      * Constructs an instance.
