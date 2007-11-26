@@ -427,7 +427,7 @@ JODB extends Model {
                         }
                         final ByteArray fingerprint = ByteArray.array(id);
                         final byte[] d = new byte[keyBytes];
-                        System.arraycopy(id, 0, d, 0, keyBytes);
+                        System.arraycopy(id, 0, d, 0, d.length);
                         while (true) {
                             key = key(d);
                             final Bucket b = load(key);
@@ -438,7 +438,7 @@ JODB extends Model {
                                 break;
                             }
                             if (fingerprint.equals(b.fingerprint)) { break; }
-                            for (int i = 0; i != keyBytes; ++i) {
+                            for (int i = 0; i != d.length; ++i) {
                                 if (0 != ++d[i]) { break; }
                             }
                         }
