@@ -65,12 +65,6 @@ Main {
         is(base, "g?y/../x", "http://a/b/c/g?y/../x");
         is(base, "g#s/./x", "http://a/b/c/g#s/./x");
         is(base, "g#s/../x", "http://a/b/c/g#s/../x");
-        
-        // base32
-        final String encoded = "w3vqahqsic5oxf76kzh4mblpae";
-        if (!Base32.encode(Base32.decode(encoded)).equals(encoded)) {
-            throw new Exception();
-        }
     }
 
     static private void
