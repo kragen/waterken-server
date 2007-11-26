@@ -278,8 +278,7 @@ JODB extends Model {
 
                 final String key = name.toLowerCase();
                 Filesystem.checkName(key + ext);
-                k2b.put(key, new Bucket(true, value, null));
-                o2k.put(value, key);
+                k2b.put(key, new Bucket(true, new SymbolicLink(value), null));
                 xxx.add(key);
             }
 
@@ -288,7 +287,11 @@ JODB extends Model {
                 if (!active[0]) { throw new AssertionError(); }
 
                 final Bucket b = load(name.toLowerCase());
-                return null != b ? b.value : otherwise;
+                return null == b
+                    ? otherwise
+                : (b.value instanceof SymbolicLink
+                    ? ((SymbolicLink)b.value).target
+                : b.value);
             }
 
             /**
