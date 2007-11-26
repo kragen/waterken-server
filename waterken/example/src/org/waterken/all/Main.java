@@ -19,7 +19,6 @@ import org.waterken.bounce.Bounce;
 import org.waterken.bounce.Wall;
 import org.waterken.put.Put;
 import org.web_send.graph.Framework;
-import org.web_send.graph.Host;
 
 /**
  * Runs all tests.
@@ -52,18 +51,17 @@ Main extends Struct implements Test, Serializable {
     public Promise<Boolean>
     start() throws Exception {
         final Eventual _ = framework._;
-        final Host mine = framework.dependent;
         final ArrayList<Promise<Boolean>> r = new ArrayList<Promise<Boolean>>();
         
         r.add(new org.waterken.eq.Main(_).start());
         
-        final Wall wall_ = mine.claim("wall", Bounce.class);
+        final Wall wall_ = framework.publisher.spawn("wall", Bounce.class);
         r.add(new org.waterken.bounce.Main(_).test(wall_));
         
-        final Drum drum_ = mine.claim("drum", Bang.class);
+        final Drum drum_ = framework.publisher.spawn("drum", Bang.class);
         r.add(new org.waterken.bang.Main(_).test(drum_, 0));
         
-        final Variable<Volatile<Byte>> slot_ = mine.spawn(Put.class);
+        final Variable<Volatile<Byte>> slot_ = framework.spawn.run(Put.class);
         r.add(new org.waterken.put.Main(_).test(slot_, (byte)0));
 
         return and(_, r.toArray(new Promise[r.size()]));
