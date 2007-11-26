@@ -6,7 +6,7 @@ package org.web_send.graph;
  * A model maker.
  */
 public interface
-Host {
+Spawn {
     
     /**
      * Creates a model.
@@ -15,20 +15,9 @@ Host {
      * <p><code>static public T build({@link Framework} framework)</code>
      * </p>
      * @param <T> exported object type
-     * @param factory object factory
+     * @param factory object maker
      * @return promise for an object exported from the new model
      */
     <T> T
-    spawn(Class<?> factory);
-
-    /**
-     * Creates a model with a specific label.
-     * @param <T> exported object type
-     * @param label     model label
-     * @param factory   object factory, same requirements as in {@link #spawn}     * @param factory   object factory
-     * @return promise for an object exported from the new model
-     * @throws Collision    <code>label</code> has already been used
-     */
-    <T> T
-    claim(String label, Class<?> factory) throws Collision;
+    run(Class<?> factory);
 }

@@ -23,14 +23,6 @@ Framework extends Struct implements Record, Serializable {
     public final Eventual _;
     
     /**
-     * permission to publish well-known references
-     * <p>
-     * All remote clients have read permission on this namespace.
-     * </p>
-     */
-    public final Publisher publish;
-    
-    /**
      * permission to destruct this model
      */
     public final Runnable destruct;
@@ -41,23 +33,31 @@ Framework extends Struct implements Record, Serializable {
      * All created models will be destructed when this model is destructed.
      * </p>
      */
-    public final Host dependent;
+    public final Spawn spawn;
+    
+    /**
+     * permission to publish well-known references
+     * <p>
+     * All remote clients have read permission on this namespace.
+     * </p>
+     */
+    public final Publisher publisher;
     
     /**
      * Constructs an instance.
      * @param _         {@link #_}
-     * @param publish   {@link #publish}
      * @param destruct  {@link #destruct}
-     * @param dependent {@link #dependent}
+     * @param spawn     {@link #spawn}
+     * @param publisher {@link #publisher}
      */
     public @deserializer
     Framework(@name("_") final Eventual _,
-              @name("publish") final Publisher publish,
               @name("destruct") final Runnable destruct,
-              @name("dependent") final Host dependent) {
+              @name("spawn") final Spawn spawn,
+              @name("publisher") final Publisher publisher) {
         this._ = _;
-        this.publish = publish;
         this.destruct = destruct;
-        this.dependent = dependent;
+        this.spawn = spawn;
+        this.publisher = publisher;
     }
 }
