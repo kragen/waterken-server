@@ -3,7 +3,7 @@
 package org.waterken.jos;
 
 import org.ref_send.promise.Fulfilled;
-import org.waterken.model.Heap;
+import org.waterken.model.Root;
 
 /**
  * An object faulting promise.
@@ -13,14 +13,17 @@ final class
 Faulting<T> extends Fulfilled<T>  {
     static private final long serialVersionUID = 1L;
 
-    final Heap heap;
-    final long address;
+    final Root root;
+    final String name;
 
-    Faulting(final Heap heap, final long address) {
+    Faulting(final Root root, final String name) {
         super(null);
-        if (null == heap) { throw new NullPointerException(); }
-        this.heap = heap;
-        this.address = address;
+
+        if (null == root) { throw new NullPointerException(); }
+        if (null == name) { throw new NullPointerException(); }
+        
+        this.root = root;
+        this.name = name;
     }
 
     // java.lang.Object interface
@@ -28,13 +31,13 @@ Faulting<T> extends Fulfilled<T>  {
     public boolean
     equals(final Object x) {
         return x instanceof Faulting
-            ? address == ((Faulting)x).address &&
-              heap.equals(((Faulting)x).heap)
+            ? name.equals(((Faulting)x).name) &&
+              root.equals(((Faulting)x).root)
             : super.equals(x);
     }
 
     // org.ref_send.promise.Volatile interface
 
     @SuppressWarnings("unchecked") public T
-    cast() { return (T)heap.reference(address); }
+    cast() { return (T)root.fetch(null, name); }
 }

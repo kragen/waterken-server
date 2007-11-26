@@ -7,13 +7,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
 
-import org.waterken.model.Heap;
+import org.joe_e.Powerless;
+import org.waterken.model.Root;
 
 /**
  * A persistent method.
  */
 final class
-MethodWrapper implements Wrapper {
+MethodWrapper implements Wrapper, Powerless {
     static private final long serialVersionUID = 1;
 
     private transient Method code;
@@ -70,5 +71,5 @@ MethodWrapper implements Wrapper {
     // org.waterken.jos.Wrapper interface
     
     public Object
-    peel(final Heap loader) { return code; }
+    peel(final Root root) { return code; }
 }

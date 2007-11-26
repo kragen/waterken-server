@@ -7,13 +7,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Constructor;
 
-import org.waterken.model.Heap;
+import org.joe_e.Powerless;
+import org.waterken.model.Root;
 
 /**
  * A persistent constructor. 
  */
 final class
-ConstructorWrapper implements Wrapper {
+ConstructorWrapper implements Wrapper, Powerless {
     static private final long serialVersionUID = 1;
 
     private transient Constructor code;
@@ -66,5 +67,5 @@ ConstructorWrapper implements Wrapper {
     // org.waterken.jos.Wrapper interface
     
     public Object
-    peel(final Heap loader) { return code; }
+    peel(final Root root) { return code; }
 }

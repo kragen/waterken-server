@@ -10,19 +10,20 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.lang.ref.SoftReference;
+import java.lang.ref.ReferenceQueue;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.security.DigestInputStream;
-import java.security.DigestOutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.Map;
+
+import javax.crypto.Cipher;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.joe_e.JoeE;
 import org.joe_e.Struct;
@@ -36,9 +37,10 @@ import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
+import org.waterken.cache.Cache;
+import org.waterken.model.Base32;
 import org.waterken.model.Creator;
 import org.waterken.model.Effect;
-import org.waterken.model.Heap;
 import org.waterken.model.Model;
 import org.waterken.model.ModelError;
 import org.waterken.model.ProhibitedModification;
@@ -79,8 +81,8 @@ JODB extends Model {
             throw new ModelError(e);
         }
     }
-    static private final HashMap<File,SoftReference<JODB>> live =
-        new HashMap<File,SoftReference<JODB>>();
+    static private final Cache<File,JODB> live =
+        new Cache<File,JODB>(new ReferenceQueue<JODB>());
 
     /**
      * Opens an existing, but not yet open, model.
@@ -92,7 +94,7 @@ JODB extends Model {
     open(final File id, final Loop<Service> service) throws Exception {
         final File folder = id.getCanonicalFile();
         synchronized (live) {
-            if (null != live.get(folder)) { throw new AssertionError(); }
+            if (null != live.fetch(null,folder)) { throw new AssertionError(); }
             return load(folder, service);
         }
     }
@@ -112,11 +114,8 @@ JODB extends Model {
     connect(final File id) throws Exception {
         final File folder = id.getCanonicalFile();
         synchronized (live) {
-            final SoftReference<JODB> sr = live.get(folder);
-            if (null != sr) {
-                final JODB r = sr.get();
-                if (null != r) { return r; }
-            }
+            final JODB r = live.fetch(null, folder);
+            if (null != r) { return r; }
             final Loop<Service> service = Concurrent.loop(threads,
                 folder.getPath().substring(dbDir.getPath().length()));
             return load(folder, service);
@@ -124,7 +123,7 @@ JODB extends Model {
     }
 
     static private Model
-    load(final File folder, Loop<Service> service) throws Exception {
+    load(final File folder, final Loop<Service> service) throws Exception {
         if (!folder.equals(dbDir) && !folder.getPath().startsWith(dbDirPath)) {
             throw new IOException();
         }
@@ -132,7 +131,7 @@ JODB extends Model {
         // The caller has read/write access to a raw persistence folder,
         // so assume the caller is trusted infrastructure code.
         final JODB r = new JODB(folder, service);
-        live.put(folder, new SoftReference<JODB>(r));
+        live.put(folder, r);
         return r;
     }
 
@@ -144,7 +143,7 @@ JODB extends Model {
     private boolean busy = false;
     
     /**
-     * Has the model been awoken?
+     * Has the event loop been restarted?
      */
     private boolean awake = false;
 
@@ -192,76 +191,6 @@ JODB extends Model {
         return r.cast();
     }
 
-    static private final HashMap<String,SoftReference<ClassLoader>> jars =
-        new HashMap<String,SoftReference<ClassLoader>>();
-    
-    /**
-     * Gets the named classloader.
-     * @param project   project name
-     */
-    static private ClassLoader
-    jar(final String project) throws Exception {
-        if (null == project || "".equals(project)) {
-            return JODB.class.getClassLoader();
-        }
-        Filesystem.checkName(project);
-        
-        synchronized (jars) {
-            final SoftReference<ClassLoader> sr = jars.get(project);
-            ClassLoader r = null != sr ? sr.get() : null;
-            if (null == r) {
-                final File bin = new File(
-                    project + File.separator + "bin" + File.separator);
-                if (!bin.isDirectory()) { throw new IOException("no classes"); }
-                r = new URLClassLoader(new URL[] { bin.toURI().toURL() });
-                jars.put(project, new SoftReference<ClassLoader>(r));
-            }
-            return r;
-        }
-    }
-    
-    /**
-     * Gets the corresponding classloader for a persistence folder.
-     * @param folder    canonical persistence folder
-     */
-    static @SuppressWarnings("unchecked") ClassLoader
-    application(final File folder) throws Exception {
-        
-        // load the project name
-        final File projectFile = file(folder, Root.project + ext);
-        if (!projectFile.isFile()) { return JODB.class.getClassLoader(); }
-        final String project;
-        InputStream in = Filesystem.read(projectFile);
-        try {
-            final ObjectInputStream oin = new ObjectInputStream(in);
-            in = oin;
-            final SymbolicLink value = (SymbolicLink)oin.readObject();
-            project = (String)value.target;
-        } catch (final Exception e) {
-            try { in.close(); } catch (final Exception e2) {}
-            throw e;
-        }
-        in.close();
-
-        return jar(project);
-    }
-
-    protected void
-    finalize() {
-        synchronized (live) {
-            live.remove(folder);
-        }
-        synchronized (jars) {
-            final Iterator<SoftReference<ClassLoader>> i =
-                jars.values().iterator();
-            while (i.hasNext()) {
-                if (null == i.next().get()) {
-                    i.remove();
-                }
-            }
-        }
-    }
-
     /**
      * An object store entry.
      */
@@ -280,116 +209,86 @@ JODB extends Model {
             this.fingerprint = fingerprint;
         }
     }
+
+    /**
+     * {@link Root#prng}
+     */
+    private SecureRandom prng;
     
     /**
      * {@link Root#code}
      */
     private ClassLoader code;
 
-    /**
-     * {@link Root#prng}
-     */
-    private SecureRandom prng;
-
     <R> Promise<R>
     process(final boolean extend, final Transaction<R> body) throws Exception {
         // finish object initialization, which was delayed to avoid doing
-        // anything intensive while holding the global "live" lock.
-        if (null == code) { code = application(folder); }
+        // anything intensive while holding the global "live" lock
         if (null == prng) { prng = new SecureRandom(); }
+        if (null == code) { code = application(folder); }
 
         // Is the current transaction still active?
         final boolean[] active = { true };
 
-        // Setup tables to keep track of what's been loaded from disk
-        // and what needs to be written out to disk.
-        final HashMap<String,Bucket> k2o =          // [ file key => bucket ]
+        // setup tables to keep track of what's been loaded from disk
+        // and what needs to be written out to disk
+        final HashMap<String,Bucket> k2b =          // [ file key => bucket ]
             new HashMap<String,Bucket>(64);
-        final IdentityHashMap<Object,Integer> o2d = // [ object => object id ]
-            new IdentityHashMap<Object,Integer>(64);
+        final IdentityHashMap<Object,String> o2k =  // [ object => file key ]
+            new IdentityHashMap<Object,String>(64);
         final HashSet<String> xxx =                 // [ dirty file key ]
             new HashSet<String>(64);
-        class Loader implements Heap {
+        final Root root = new Root() {
+            
+            public String
+            getModelName() { return folder.getName(); }
+
+            public String
+            pipeline(final String m) {
+                try {
+                    final byte[] key = Base32.decode(m);
+                    final byte[] plaintext = new byte[key.length];
+                    final byte[] cyphertext = new byte[key.length];
+                    final Cipher aes = Cipher.getInstance("AES/ECB/NoPadding");
+                    aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key,"AES"));
+                    aes.doFinal(plaintext, 0, plaintext.length, cyphertext);
+                    return Base32.encode(cyphertext);
+                } catch (final Exception e) { throw new AssertionError(); }                
+            }
+
+            /**
+             * Creates an object store entry.
+             * <p>
+             * Each entry is stored as a file in the persistence folder. The
+             * corresponding filename is of the form XYZ.jos, where the XYZ
+             * component may be chosen by the client and the ".jos" extension is
+             * automatically appended by the implementation. All filenames are
+             * composed of only lower case letters. For example,
+             * ".stuff.jos.jos" is the filename corresponding to the user chosen
+             * name ".Stuff.JOS". The file extension chosen by the user carries
+             * no significance in this implementation. There is also no
+             * significance attached to filenames starting with a "." character.
+             * All filenames are vetted by the Joe-E filesystem API.
+             * </p>
+             */
+            public void
+            store(final String name, final Object value) {
+                if (!active[0]) { throw new AssertionError(); }
+                if (extend) { throw new ProhibitedModification(Root.class); }
+
+                final String key = name.toLowerCase();
+                Filesystem.checkName(key + ext);
+                k2b.put(key, new Bucket(true, value, null));
+                o2k.put(value, key);
+                xxx.add(key);
+            }
 
             public Object
-            reference(final long address) throws NullPointerException {
+            fetch(final Object otherwise, final String name) {
                 if (!active[0]) { throw new AssertionError(); }
 
-                if (0 != type(address)) { throw new NullPointerException(); }
-                return load(state(address)).value;
-            }
-
-            public long
-            locate(final Object object) {
-                if (!active[0]) { throw new AssertionError(); }
-
-                return address(0, id(object));
-            }
-
-            private int
-            id(final Object object) {
-                Integer d = o2d.get(object);
-                if (null == d) {
-                    if (Slicer.inline(object)) {
-                        // Reuse an equivalent persistent identity;
-                        // otherwise, determine the persistent identity.
-                        final ByteArray fingerprint;
-                        try {
-                            final MessageDigest hash = allocHash();
-                            final Slicer out = new Slicer(object, this,
-                                    new DigestOutputStream(sink, hash));
-                            out.writeObject(object);
-                            out.flush();
-                            out.close();
-                            fingerprint = ByteArray.array(hash.digest());
-                            freeHash(hash);
-                        } catch (final IOException e) {
-                            throw new ModelError(e);
-                        } catch (final NoSuchAlgorithmException e) {
-                            throw new ModelError(e); // should never happen
-                        }
-                        final int hash = fingerprint.hashCode();
-                        final int step = hash | 1;
-                        for (int probe = hash; true;) {
-                            final Bucket x = load(probe);
-                            if (null == x) {
-                                d = probe;
-                                final String key = key(d);
-                                k2o.put(key,
-                                        new Bucket(true, object, fingerprint));
-                                o2d.put(object, d);
-                                xxx.add(key);
-                                break;
-                            }
-                            if (fingerprint.equals(x.fingerprint)) {
-                                d = probe;
-                                break;
-                            }
-                            probe += step;
-                            if (hash == probe) {
-                                throw new ModelError(new IOException("full"));
-                            }
-                        }
-                    } else {
-                        // Assign a new persistent identity.
-                        String key;
-                        for (int i = 0; true;) {
-                            d = prng.nextInt();
-                            key = key(d);
-                            if (!(k2o.containsKey(key) ||
-                                  file(folder, key + ext).isFile())) {
-                                break;
-                            }
-                            if (0 == ++i) {
-                                throw new ModelError(new IOException("full"));
-                            }
-                        }
-                        k2o.put(key, new Bucket(true, object, null));
-                        o2d.put(object, d);
-                        xxx.add(key);
-                    }
-                }
-                return d;
+                final Bucket b = load(name.toLowerCase());
+                return null != b ? b.value : otherwise;
             }
 
             /**
@@ -397,41 +296,40 @@ JODB extends Model {
              */
             private final Bucket pumpkin = new Bucket(false, null, null);
             private final ArrayList<String> stack = new ArrayList<String>(16);
-
-            /**
-             * Loads a stored object graph.
-             * @param d file identifier
-             * @return corresponding bucket, or <code>null</code> if none
-             */
+            
             private Bucket
-            load(final int d) {
-                final String key = key(d);
-                Bucket r = k2o.get(key);
-                if (null == r) {
-                    final File f = file(folder, key + ext);
-                    if (f.isFile()) {
-                        
-                        k2o.put(key, pumpkin);
-                        stack.add(key);
-                        r = read(f);
-                        k2o.remove(key);
+            load(final String key) {
+                Bucket bucket = k2b.get(key);
+                if (null == bucket) {
+                    final File file;
+                    try {
+                        file = file(folder, key + ext);
+                    } catch (final InvalidFilenameException e) { return null; }
+                    if (!file.isFile()) { return null; }
+                    
+                    k2b.put(key, pumpkin);
+                    stack.add(key);
+                    try {
+                        bucket = read(file);
+                    } finally {
+                        k2b.remove(key);
                         stack.remove(stack.size() - 1);
-
-                        k2o.put(key, r);
-                        o2d.put(r.value, d);
-                        if (!frozen(r.value)) { xxx.add(key); }
                     }
-                } else if (pumpkin == r) {
-                    // Hit a cyclic reference.
 
-                    // Determine the cycle depth.
+                    k2b.put(key, bucket);
+                    o2k.put(bucket.value, key);
+                    if (!frozen(bucket.value)) { xxx.add(key); }
+                } else if (pumpkin == bucket) {
+                    // hit a cyclic reference
+
+                    // determine the cycle depth
                     int n = 0;
                     for (int i = stack.size(); i-- != 0;) {
                         ++n;
                         if (key.equals(stack.get(i))) { break; }
                     }
 
-                    // Determine the type of object in each file.
+                    // determine the type of object in each file
                     final Class[] type = new Class[n];
                     for (int i = stack.size(); n-- != 0;) {
                         final String at = stack.get(--i);
@@ -439,10 +337,10 @@ JODB extends Model {
                         InputStream fin = null;
                         try {
                             fin = Filesystem.read(file(folder, at + ext));
-                            final SubstitutionStream in =
-                                new SubstitutionStream(true, code, fin) {
+                            final SubstitutionStream in= new SubstitutionStream(
+                                    true, JODB.this.code, fin) {
                                 protected Object
-                                resolveObject(Object x) throws IOException {
+                                resolveObject(final Object x) {
                                     return x instanceof Wrapper ? null : x;
                                 }
                             };
@@ -450,41 +348,43 @@ JODB extends Model {
                             final Object x = in.readObject();
                             type[n] = null != x ? x.getClass() : Void.class;
                         } catch (final Exception e) {
-                            // Can't figure out the type.
+                            // can't figure out the type
                         }
                         if (null != fin) {
-                            try { fin.close(); } catch (IOException e) {}
+                            try { fin.close(); } catch (final IOException e) {}
                         }
                     }
                     throw new CyclicGraph(PowerlessArray.array(type));
                 }
-                return r;
+                return bucket;
             }
 
             /**
              * Reads a stored object graph.
-             * @param f root file
+             * @param file  containing file
              * @return corresponding bucket
              */
-            Bucket
-            read(final File f) {
+            private Bucket
+            read(final File file) {
                 InputStream fin = null;
                 try {
-                    final MessageDigest hash = allocHash();
-                    fin = Filesystem.read(f);
-                    final SubstitutionStream in = new SubstitutionStream(true,
-                            code, new DigestInputStream(fin, hash)) {
+                    final Mac hash = allocHash(this);
+                    fin = Filesystem.read(file);
+                    fin = new MacInputStream(fin, hash);
+                    final Root loader = this;
+                    final SubstitutionStream in =
+                            new SubstitutionStream(true, JODB.this.code, fin) {
                         protected Object
                         resolveObject(final Object x) throws IOException {
                             return x instanceof Wrapper
-                                ? ((Wrapper)x).peel(Loader.this)
-                                : x;
+                                ? ((Wrapper)x).peel(loader)
+                            : x;
                         }
                     };
                     fin = in;
                     final Object value = in.readObject();
                     fin.close();
-                    final ByteArray fingerprint= ByteArray.array(hash.digest());
+                    final ByteArray fingerprint=ByteArray.array(hash.doFinal());
                     freeHash(hash);
                     return new Bucket(false, value, fingerprint);
                 } catch (final Exception e) {
@@ -499,44 +399,60 @@ JODB extends Model {
                     throw new ModelError(e);
                 }
             }
-        };
-        final Loader loader = new Loader();
-        final Root root = new Root() {
 
-            public Object
-            fetch(final Object otherwise, final String name) {
+            public String
+            export(final Object value) {
                 if (!active[0]) { throw new AssertionError(); }
 
-                final String key = name.toLowerCase();
-                Bucket x = k2o.get(key);
-                if (null == x) {
-                    final File f;
-                    try {
-                        f = file(folder, key + ext);
-                    } catch (final InvalidFilenameException e) {
-                        return otherwise;
-                    }
-                    if (!f.isFile()) { return otherwise; }
-                    x = loader.read(f);
-                    if (x.value instanceof SymbolicLink) {
-                        k2o.put(key, x);
+                String key = o2k.get(value);
+                if (null == key) {
+                    if (Slicer.inline(value)) {
+                        // reuse an equivalent persistent identity;
+                        // otherwise, determine the persistent identity
+                        final byte[] id;
+                        try {
+                            final Mac hash = allocHash(this);
+                            final Slicer out = new Slicer(value, this,
+                                    new MacOutputStream(sink, hash));
+                            out.writeObject(value);
+                            out.flush();
+                            out.close();
+                            id = hash.doFinal();
+                            freeHash(hash);
+                        } catch (final Exception e) {
+                            throw new ModelError(e);
+                        }
+                        final ByteArray fingerprint = ByteArray.array(id);
+                        final byte[] d = new byte[keyBytes];
+                        System.arraycopy(id, 0, d, 0, keyBytes);
+                        while (true) {
+                            key = key(d);
+                            final Bucket b = load(key);
+                            if (null == b) {
+                                k2b.put(key,new Bucket(true,value,fingerprint));
+                                o2k.put(value, key);
+                                xxx.add(key);
+                                break;
+                            }
+                            if (fingerprint.equals(b.fingerprint)) { break; }
+                            for (int i = 0; i != keyBytes; ++i) {
+                                if (0 != ++d[i]) { break; }
+                            }
+                        }
+                    } else {
+                        // assign a new persistent identity
+                        do {
+                            final byte[] d = new byte[keyBytes];
+                            JODB.this.prng.nextBytes(d);
+                            key = key(d);
+                        } while (k2b.containsKey(key) ||
+                                 file(folder, key + ext).isFile());
+                        k2b.put(key, new Bucket(true, value, null));
+                        o2k.put(value, key);
+                        xxx.add(key);
                     }
                 }
-                if (x.value instanceof SymbolicLink) {
-                    return ((SymbolicLink)x.value).target;
-                }
-                return otherwise;
-            }
-
-            public void
-            store(final String name, final Object value) {
-                if (!active[0]) { throw new AssertionError(); }
-                if (extend) { throw new ProhibitedModification(Root.class); }
-
-                final String key = name.toLowerCase();
-                Filesystem.checkName(key + ext);
-                k2o.put(key, new Bucket(true, new SymbolicLink(value), null));
-                xxx.add(key);
+                return key;
             }
         };
         final boolean[] scheduled = { false };
@@ -545,13 +461,11 @@ JODB extends Model {
             run(final Task task) {
                 if (!active[0]) { throw new AssertionError(); }
 
-                List<Task> q = (List)root.fetch(null, tasks);
-                if (null == q) {
-                    q = List.list();
-                    root.store(tasks, q);
-                }
-                q.append(task);
-                scheduled[0] = true;
+                try {
+                    final List<Task> q = (List)root.fetch(null, tasks);
+                    q.append(task);
+                    scheduled[0] = true;
+                } catch (final Exception e) {}
             }
         };
         final List<Effect> effects = List.list();
@@ -589,88 +503,99 @@ JODB extends Model {
 
             public ClassLoader
             load(final String project) throws Exception { return jar(project); }
-
-            public String
-            generate() {
-                while (true) {
-                    final String key = key(prng.nextInt()).
-                        substring(prefix.length()).toLowerCase();
-                    if (!file(folder, "."+key+".was").isFile() &&
-                        !file(pending, "."+key+".was").isFile()) { return key; } 
-                }
-            }
             
             public <T> T
-            create(final String project, final String label,
-                   final Transaction<T> initialize) {
+            create(final Transaction<T> initialize,
+                   final String project, final String name) throws Collision {
                 if (!active[0]) { throw new AssertionError(); }
                 if (extend) { throw new ProhibitedModification(Creator.class); }
-                if (null == project || "".equals(project)) {
-                    throw new NullPointerException();
-                }
-                if(label.startsWith(".")){throw new InvalidFilenameException();}
 
                 if (!modified[0]) {
                     if (!pending.mkdir()) { throw new Error(); }
                     modified[0] = true;
                 }
-                final String key = label.toLowerCase();
-                if (file(folder, "." + key + ".was").isFile()) {
-                    throw new Collision();
+
+                final String key;
+                if (null != name) {
+                    key = claim(name);
+                } else {
+                    String x = null;
+                    while (true) {
+                        try {
+                            final byte[] d = new byte[4];
+                            prng.nextBytes(d);
+                            x = claim(Base32.encode(d).substring(0, 6));
+                            break;
+                        } catch (final Collision e) {}
+                    }
+                    key = x;
                 }
                 try {
-                    if (!file(pending, "." + key + ".was").createNewFile()) {
+                    final File sub = file(pending, key);
+                    if (!sub.mkdir()) { throw new IOException(); }
+                    if (null != project) { init(sub, Root.project, project); }
+                    final byte[] bits = new byte[16];
+                    prng.nextBytes(bits);
+                    init(sub, secret, ByteArray.array(bits));
+                    return new JODB(sub,null).enter(change,new Transaction<T>(){
+                        public T
+                        run(final Root local) throws Exception {
+                            final List<Task> q = List.list();
+                            local.store(tasks, q);
+                            return initialize.run(local);
+                        }
+                    });
+                } catch (final Exception e) { throw new ModelError(e); }
+            }
+
+            /**
+             * Claims a sub-model name.
+             * <p>
+             * The persistence folder may also contain sub-folders named by the
+             * client; however, the implementation forbids use of names that
+             * start with a "." character. Folder names starting with a "." are
+             * reserved for use by the implementation. For example, folders
+             * containing pending modifications, or folders to be deleted, have
+             * names starting with a ".".
+             * </p>
+             * @param name  model name to claim
+             * @return canonicalized model name
+             * @throws Collision    <code>name</code> is not available
+             */
+            private String
+            claim(final String name) throws Collision {
+                final String key = name.toLowerCase();
+                if ("".equals(key)) { throw new Collision(); }
+                if (key.startsWith(".")) { throw new Collision(); }
+                
+                final String was = "." + key + ".was";
+                try {
+                    if (file(folder, was).isFile()) { throw new Collision(); }
+                } catch (InvalidFilenameException e) { throw new Collision(); }
+                try {
+                    if (!file(pending, was).createNewFile()) {
                         throw new Collision();
                     }
-                } catch (final IOException e) {
-                    throw new ModelError(e);
-                }
-                final File sub = file(pending, key);
-                try {
-                    if (!sub.mkdir()) { throw new IOException(); }
-                    OutputStream out =
-                        Filesystem.writeNew(file(sub, Root.project + ext));
-                    try {
-                        final ObjectOutputStream oout =
-                            new ObjectOutputStream(out);
-                        out = oout;
-                        oout.writeObject(new SymbolicLink(project));
-                        oout.flush();
-                    } catch (final Exception e) {
-                        try { out.close(); } catch (final Exception e2) {}
-                        throw e;
-                    }
-                    out.close();
-                    return new JODB(sub, null).enter(change, initialize);
-                } catch (final Exception e) {
-                    throw new ModelError(e);
-                }
+                } catch (final IOException e) { throw new ModelError(e); }
+                return key;
             }
         };
 
-        // Setup the pseudo-persistent objects.
-        final String[] name = {
-            Root.nothing, Root.code, Root.prng, Root.heap,
-            ".root", Root.enqueue, Root.effect, Root.destruct,
-            Root.model, Root.creator
-        };
-        final Object[] value = {
-            null, code, prng, loader,
-            root, enqueue, effect, destruct,
-            this, creator
-        };
-        for (int d = 0; value.length != d; ++d) {
-            k2o.put(name[d],new Bucket(false,new SymbolicLink(value[d]),null));
-            k2o.put(key(d), new Bucket(false, value[d], null));
-            o2d.put(value[d], d);
+        // setup the pseudo-persistent objects
+        k2b.put(Root.nothing, new Bucket(false, null, null));
+        k2b.put(Root.code, new Bucket(false, code, null));
+        k2b.put(Root.prng, new Bucket(false, prng, null));
+        k2b.put(".root", new Bucket(false, root, null));
+        k2b.put(Root.enqueue, new Bucket(false, enqueue, null));
+        k2b.put(Root.effect, new Bucket(false, effect, null));
+        k2b.put(Root.destruct, new Bucket(false, destruct, null));
+        k2b.put(Root.model, new Bucket(false, this, null));
+        k2b.put(Root.creator, new Bucket(false, creator, null));
+        for (final Map.Entry<String,Bucket> x : k2b.entrySet()) {
+            o2k.put(x.getValue().value, x.getKey());
         }
 
-        // Save some IDs for future expansion of the default scope.
-        for (int d = value.length; 16 != d; ++d) {
-            k2o.put(key(d), new Bucket(false, null, null));
-        }
-
-        // Recover from a previous run.
+        // recover from a previous run
         final File committed = file(folder, ".committed");
         if (pending.isDirectory()) {
             if (committed.isDirectory()) { delete(committed); }
@@ -679,77 +604,79 @@ JODB extends Model {
             move(committed, folder);
         }
         
-        // Check that the model has not been destructed.
+        // check that the model has not been destructed
         if (!folder.isDirectory() ||
                 Boolean.TRUE.equals(root.fetch(false, dead))) {
             throw new IOException();
         }
 
-        // Execute the transaction body.
+        // execute the transaction body
         Promise<R> r;
         try {
-            r = Fulfilled.detach(body.run(root));
-        } catch (final Exception e) {
-            r = new Rejected<R>(e);
-        }
-
-        // Persist the modifications.
-        final MessageDigest hash = allocHash();
-        while (!xxx.isEmpty()) {
-            final Iterator<String> i = xxx.iterator();
-            final String key = i.next();
-            final Bucket x = k2o.get(key);
-            i.remove();
-
-            OutputStream fout;
-            if (extend && !x.created) {
-                fout = new DigestOutputStream(sink, hash) {
-                    public void
-                    close() throws IOException {
-                        super.close();
-                        final ByteArray fingerprint =
-                            ByteArray.array(hash.digest());
-                        if (!fingerprint.equals(x.fingerprint)) {
-                            final Object v = x.value;
-                            final Class t = null!=v ? v.getClass() : Void.class;
-                            throw new ProhibitedModification(t);
-                        }
-                    }
-                };
-            } else {
-                if (!modified[0]) {
-                    if (!pending.mkdir()) { throw new IOException(); }
-                    modified[0] = true;
-                }
-                fout = Filesystem.writeNew(file(pending, key + ext));
-            }
             try {
-                final Slicer out = new Slicer(x.value, loader, fout);
-                fout = out;
-                out.writeObject(x.value);
-                out.flush();
+                r = Fulfilled.detach(body.run(root));
             } catch (final Exception e) {
-                try { fout.close(); } catch (final Exception e2) {}
-                throw e;
+                r = new Rejected<R>(e);
             }
-            fout.close();
+    
+            // persist the modifications
+            while (!xxx.isEmpty()) {
+                final Iterator<String> i = xxx.iterator();
+                final String key = i.next();
+                final Bucket x = k2b.get(key);
+                i.remove();
+    
+                OutputStream fout;
+                if (extend && !x.created) {
+                    fout = new MacOutputStream(sink, allocHash(root)) {
+                        public void
+                        close() throws IOException {
+                            super.close();
+                            final ByteArray fingerprint =
+                                ByteArray.array(hash.doFinal());
+                            freeHash(hash);
+                            if (!fingerprint.equals(x.fingerprint)) {
+                                throw new ProhibitedModification(null != x.value
+                                    ? x.value.getClass() : Void.class);
+                            }
+                        }
+                    };
+                } else {
+                    if (!modified[0]) {
+                        if (!pending.mkdir()) { throw new IOException(); }
+                        modified[0] = true;
+                    }
+                    fout = Filesystem.writeNew(file(pending, key + ext));
+                }
+                try {
+                    final Slicer out = new Slicer(x.value, root, fout);
+                    fout = out;
+                    out.writeObject(x.value);
+                    out.flush();
+                } catch (final Exception e) {
+                    try { fout.close(); } catch (final Exception e2) {}
+                    throw e;
+                }
+                fout.close();
+            }
+        } finally {
+            active[0] = false;
         }
-        freeHash(hash);
 
         if (modified[0]) {
-            // Commit modifications.
+            // commit modifications
             if (!pending.renameTo(committed)) { throw new IOException(); }
             move(committed, folder);
         } else {
-            // No modifications were made, so just make sure all the reads
-            // had valid state available.
+            // no modifications were made, so just make sure all the reads
+            // had valid state available
             if (!folder.isDirectory()) { throw new IOException(); }
         }
 
-        // Run all the pending effects.
+        // run all the pending effects
         while (!effects.isEmpty()) { effects.pop().run(); }
 
-        // Start up a runner if necessary.
+        // start up a runner if necessary
         if (null == runner && scheduled[0] && null != service) {
             final Run x = new Run();
             service.run(x);
@@ -758,21 +685,118 @@ JODB extends Model {
         
         return r;
     }
+    
+    /**
+     * Gets a configuration value for a persistence folder.
+     * @param folder    canonical persistence folder
+     * @param key       configuration key
+     */
+    static private Object
+    config(final File folder, final String key) throws Exception {
+        final File file = file(folder, key + ext);
+        if (!file.isFile()) { return null; }
+        final Object r;
+        InputStream in = Filesystem.read(file);
+        try {
+            final ObjectInputStream oin = new ObjectInputStream(in);
+            in = oin;
+            r = oin.readObject();
+        } catch (final Exception e) {
+            try { in.close(); } catch (final Exception e2) {}
+            throw e;
+        }
+        in.close();
+        return r;
+    }
+    
+    /**
+     * Sets a configuration value for a persistence folder.
+     * @param folder    canonical persistence folder
+     * @param key       configuration key
+     * @param value     configured value
+     */
+    static private void
+    init(final File folder,
+         final String key, final Object value) throws Exception {
+        OutputStream out = Filesystem.writeNew(file(folder, key + ext));
+        try {
+            final ObjectOutputStream oout = new ObjectOutputStream(out);
+            out = oout;
+            oout.writeObject(value);
+            oout.flush();
+        } catch (final Exception e) {
+            try { out.close(); } catch (final Exception e2) {}
+            throw e;
+        }
+        out.close();
+    }
 
-    // In testing, allocation of hash objects doubled serialization time,
-    // so I'm keeping a pool of them. Sucky code is like cancer.
-    private final ArrayList<MessageDigest> sha256 =
-        new ArrayList<MessageDigest>();
+    static private final Cache<String,ClassLoader> jars =
+        new Cache<String,ClassLoader>(new ReferenceQueue<ClassLoader>());
+    
+    /**
+     * Gets the named classloader.
+     * @param project   project name
+     */
+    static private ClassLoader
+    jar(final String project) throws Exception {
+        if (null == project || "".equals(project)) {
+            return JODB.class.getClassLoader();
+        }
+        Filesystem.checkName(project);
+        
+        synchronized (jars) {
+            ClassLoader r = jars.fetch(null, project);
+            if (null == r) {
+                final File bin = new File(
+                    project + File.separator + "bin" + File.separator);
+                if (!bin.isDirectory()) { throw new IOException("no classes"); }
+                r = new URLClassLoader(new URL[] { bin.toURI().toURL() });
+                jars.put(project, r);
+            }
+            return r;
+        }
+    }
+    
+    /**
+     * Gets the corresponding classloader for a persistence folder.
+     * @param folder    canonical persistence folder
+     */
+    static ClassLoader
+    application(final File folder) throws Exception {
+        return jar((String)config(folder, Root.project));
+    }
+    
+    /**
+     * In testing, allocation of hash objects doubled serialization time, so I'm
+     * keeping a pool of them. Sucky code is like cancer.
+     */
+    private final ArrayList<Mac> macs = new ArrayList<Mac>();
+    
+    /**
+     * {@link Root} name for the master secret
+     */
+    static private final String secret = ".secret";
+    
+    /**
+     * MAC key generation secret
+     */
+    private SecretKeySpec master;
 
-    private MessageDigest
-    allocHash() throws NoSuchAlgorithmException {
-        return sha256.isEmpty()
-            ? MessageDigest.getInstance("SHA-256")
-        : sha256.remove(sha256.size() - 1);
+    private Mac
+    allocHash(final Root local) throws Exception {
+        if (!macs.isEmpty()) { return macs.remove(macs.size() - 1); }
+        if (null == master) {
+            final ByteArray bits = (ByteArray)config(folder, secret);
+            master = new SecretKeySpec(bits.toByteArray(), "HmacSHA256");
+        }
+        final Mac r = Mac.getInstance("HmacSHA256");
+        r.init(master);
+        return r;
     }
 
     private void
-    freeHash(final MessageDigest h) { sha256.add(h); }
+    freeHash(final Mac h) { macs.add(h); }
 
     /**
      * an output sink
@@ -867,66 +891,20 @@ JODB extends Model {
     }
 
     /**
-     * bit mask for turning an int into a long
-     */
-    static private final long intBits = (1L << Integer.SIZE) - 1;
-
-    /**
-     * Make a fat pointer.
-     * @param t pointer type
-     * @param d object state
-     * @return fat pointer
-     */
-    static private long
-    address(final int t, final int d) {
-        return ((t & intBits) << Integer.SIZE) | (d & intBits);
-    }
-
-    /**
-     * Get the fat pointer type.
-     * @param fat pointer
-     * @return pointer type
-     */
-    static private int
-    type(final long a) { return (int)(a >>> Integer.SIZE); }
-
-    /**
-     * Get the fat pointer state.
-     * @param fat pointer
-     * @return pointer state
-     */
-    static private int
-    state(final long a) { return (int)a; }
-
-    /**
      * file extension for a serialized Java object tree
      */
-    static         final String ext = ".jos";
+    static /*package*/ final String ext = ".jos";
+    
+    static private final int keyChars = 14;
+    static private final int keyBytes = keyChars * 5 / 8 + 1;
 
     /**
-     * name prefix for generated file keys
-     */
-    static         final String prefix = ".@";
-
-    /**
-     * Turn an object identifier into a file key.
+     * Turn a bit string into a file key.
      * @param d object identifier
      * @return file key
      */
     static private String
-    key(final int d) {
-        final int n = Integer.SIZE;
-        final StringBuilder r = new StringBuilder(prefix.length() + n / 4);
-        r.append(prefix);
-        for (int i = n; i != 0;) {
-            i -= 4;
-            r.append(hex((d >>> i) & 0x0F));
-        }
-        return r.toString();
-    }
-
-    static private char
-    hex(final int i) { return (char)(i < 10 ? '0' + i : 'A' + (i - 10)); }
+    key(final byte[] d) { return Base32.encode(d).substring(0, keyChars); }
 
     /**
      * Is the object one-level deep immutable?

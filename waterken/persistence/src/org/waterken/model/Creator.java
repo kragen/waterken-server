@@ -17,21 +17,15 @@ Creator {
      */
     ClassLoader
     load(String project) throws Exception;
-    
-    /**
-     * Generates a unique random label.
-     */
-    String
-    generate();
 
     /**
      * Creates a new {@link Model}.
-     * @param project       corresponding project name
-     * @param label         model label
      * @param initialize    first transaction to run on the new model
-     * @throws NoLabelReuse <code>label</code> has already been used
+     * @param project       corresponding project name
+     * @param name          model name, or <code>null</code> for generated name
+     * @throws Collision    <code>name</code> has already been used
      */
     <R> R
-    create(String project, String label,
-           Transaction<R> initialize) throws Collision;
+    create(Transaction<R> initialize,
+           String project, String name) throws Collision;
 }

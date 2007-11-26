@@ -47,11 +47,6 @@ Root {
     String enqueue = ".enqueue";
 
     /**
-     * corresponding persistent {@link Heap address space}
-     */
-    String heap = ".heap";
-
-    /**
      * corresponding {@link Model}
      */
     String model = ".model";
@@ -77,6 +72,20 @@ Root {
     String wake = ".wake";
 
     // org.waterken.model.Root interface
+    
+    /**
+     * Gets the name of the containing model.
+     */
+    String
+    getModelName();
+    
+    /**
+     * Calculates a pipeline key.
+     * @param m message key
+     * @return return value key
+     */
+    String
+    pipeline(String m);
 
     /**
      * Retrieves a named value.
@@ -90,8 +99,16 @@ Root {
     /**
      * Stores a value under a given name.
      * @param name  name to bind
-     * @param value value to bind
+     * @param value value to store
      */
     void
     store(String name, Object value);
+    
+    /**
+     * Assigns a name to a given value.
+     * @param value value to bind
+     * @return assigned name
+     */
+    String
+    export(Object value);
 }

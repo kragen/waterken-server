@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.PrintStream;
 
-import org.waterken.model.Heap;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
 import org.waterken.model.Transaction;
@@ -42,16 +41,13 @@ Touch {
                                              new Transaction<Void>() {
             public Void
             run(final Root local) throws Exception {
-                final Heap heap = (Heap)local.fetch(null, Root.heap);
                 folder.list(new FilenameFilter() {
                     public boolean
                     accept(final File dir, final String name) {
-                        if (!name.startsWith(JODB.prefix)) { return false; }
                         if (!name.endsWith(JODB.ext)) { return false; }
                         try {
-                            heap.reference(Long.parseLong(name.substring(
-                                JODB.prefix.length(),
-                                name.length() - JODB.ext.length()), 16));
+                            local.fetch(null, name.substring(
+                                0, name.length() - JODB.ext.length()));
                         } catch (final Exception e) {
                             // just ignore any problem with the object
                         }

@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
 
 import org.joe_e.JoeE;
 import org.ref_send.promise.Fulfilled;
-import org.waterken.model.Heap;
+import org.waterken.model.Root;
 
 /**
  * Slices an object graph at selfish object references.
@@ -20,14 +20,14 @@ final class
 Slicer extends ObjectOutputStream {
     
     private final Object value;
-    private final Heap loader;
+    private final Root root;
     
     Slicer(final Object value,
-           final Heap loader,
+           final Root root,
            final OutputStream out) throws IOException {
         super(out);
         this.value = value;
-        this.loader = loader;
+        this.root = root;
         enableReplaceObject(true);
     }
 
@@ -43,14 +43,14 @@ Slicer extends ObjectOutputStream {
         } else if (value == x) {
         } else if (null == x) {
         } else if (Fulfilled.class == type) {
-            x = new Faulting(loader, loader.locate(((Fulfilled)x).cast()));
+            x = new Faulting(root, root.export(((Fulfilled)x).cast()));
         } else if (!inline(x)) {
             if (value instanceof Throwable &&
                 StackTraceElement.class == x.getClass().getComponentType()) {
                 // This must be the stack trace. Just let it
                 // go by, since it acts like it's selfless.
             } else {
-                x = new Splice(loader.locate(x));
+                x = new Splice(root.export(x));
             }
         }
         return x;
@@ -60,7 +60,7 @@ Slicer extends ObjectOutputStream {
      * Can the object's creation identity be ignored?
      * @param x candidate object
      * @return true if the object's creation identity need not be preserved,
-     *         false if it must be preserved
+     *         false if it MUST be preserved
      */
     static boolean
     inline(final Object x) {

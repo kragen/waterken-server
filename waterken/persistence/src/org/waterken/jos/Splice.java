@@ -4,7 +4,7 @@ package org.waterken.jos;
 
 import org.joe_e.Powerless;
 import org.joe_e.Selfless;
-import org.waterken.model.Heap;
+import org.waterken.model.Root;
 
 /**
  * An object graph splice.
@@ -14,26 +14,28 @@ Splice implements Wrapper, Powerless, Selfless  {
     static private final long serialVersionUID = 1L;
 
     /**
-     * object address
+     * name to fetch
      */
-    private final long address;
+    private final String name;
 
-    Splice(final long address) {
-        this.address = address;
+    Splice(final String name) {
+        if (null == name) { throw new NullPointerException(); }
+        
+        this.name = name;
     }
 
     // java.lang.Object interface
 
     public boolean
     equals(final Object x) {
-        return x instanceof Splice && address == ((Splice)x).address;
+        return x instanceof Splice && name.equals(((Splice)x).name);
     }
 
     public int
-    hashCode() { return (int)(address >>> 32) + (int)address; }
+    hashCode() { return 0x591CE4EF + name.hashCode(); }
     
     // org.waterken.jos.Wrapper interface
 
     public Object
-    peel(final Heap loader) { return loader.reference(address); }
+    peel(final Root root) { return root.fetch(null, name); }
 }

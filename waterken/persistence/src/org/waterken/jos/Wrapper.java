@@ -4,7 +4,7 @@ package org.waterken.jos;
 
 import java.io.Serializable;
 
-import org.waterken.model.Heap;
+import org.waterken.model.Root;
 
 /**
  * A serialization wrapper object. 
@@ -14,9 +14,9 @@ Wrapper extends Serializable {
 
     /**
      * Peel off the serialization wrapper.
-     * @param loader    persistent object loader
+     * @param root  model root
      * @return unwrapped object
      */
     Object
-    peel(Heap loader);
+    peel(Root root);
 }
