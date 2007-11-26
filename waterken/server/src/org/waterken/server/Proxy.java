@@ -3,12 +3,14 @@
 package org.waterken.server;
 
 import java.io.Serializable;
+import java.lang.ref.ReferenceQueue;
 import java.util.HashMap;
 
 import org.joe_e.Struct;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Loop;
+import org.waterken.cache.Cache;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -33,7 +35,8 @@ Proxy extends Struct implements Server, Serializable {
         public void
         yield() { Thread.yield(); }
     };
-    static private final Cache<Server> connections = new Cache<Server>();
+    static private final Cache<String,Server> connections =
+        new Cache<String,Server>(new ReferenceQueue<Server>());
     
     static private synchronized Server
     connect(final String peer, final Locator transport) {

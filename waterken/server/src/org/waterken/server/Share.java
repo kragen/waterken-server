@@ -33,19 +33,19 @@ Share {
      */
     static public void
     main(String[] args) throws Exception {
-        if (args.length != 3) {
+        if (args.length < 2) {
             final PrintStream log = System.err;
             log.println("Creates a new database.");
             log.println("use: java -jar share.jar " +
-                "<database-label> <factory-typename> <project-name>");
+                "<project-name> <factory-typename> <database-label>");
             System.exit(-1);
             return;
         }
         
         // extract the arguments
-        final String label = args[0];
+        final String projectValue = args[0];
         final String typename = args[1];
-        final String projectValue = args[2];
+        final String label = 2 < args.length ? args[2] : null;
 
         // determine the local address
         final File home = new File("").getAbsoluteFile();
@@ -69,6 +69,9 @@ Share {
                     final Token deferredValue = new Token();
                     final Eventual _Value = new Eventual(deferredValue, null);
                     final Root synthetic = new Root() {
+                        
+                        public String
+                        getModelName() { return local.getModelName(); }
 
                         public Object
                         fetch(final Object otherwise, final String name) {
@@ -87,15 +90,21 @@ Share {
 
                         public void
                         store(final String name, final Object value) {
-                            throw new IllegalStateException();
+                            throw new AssertionError();
                         }
+
+                        public String
+                        export(final Object value) {throw new AssertionError();}
+
+                        public String
+                        pipeline(final String m) { throw new AssertionError(); }
                     };
                     final Creator creator =
                         (Creator)local.fetch(null, Root.creator);
                     final ClassLoader code = creator.load(projectValue);
                     final Class<?> factory = code.loadClass(typename);
                     return Remote.bind(synthetic, null).
-                        run(AMP.host(synthetic).claim(label, factory));
+                        run(AMP.publish(synthetic).spawn(label, factory));
                 }
             });
         System.out.println(URI.resolve(hereValue, r));

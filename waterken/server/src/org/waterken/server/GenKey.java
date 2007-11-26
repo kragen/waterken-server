@@ -25,11 +25,11 @@ import org.ref_send.promise.eventual.Task;
 import org.waterken.dns.Resource;
 import org.waterken.dns.editor.DomainMaster;
 import org.waterken.dns.editor.redirectory.Redirectory;
+import org.waterken.model.Base32;
 import org.waterken.remote.http.Browser;
 import org.waterken.syntax.Serializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.thread.Concurrent;
-import org.waterken.uri.Base32;
 
 /**
  * A self-signed certificate generator.
