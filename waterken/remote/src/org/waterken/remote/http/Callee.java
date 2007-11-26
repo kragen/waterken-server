@@ -10,7 +10,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
-import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
@@ -24,12 +23,9 @@ import org.ref_send.promise.eventual.Eventual;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
-import org.waterken.id.Importer;
-import org.waterken.id.exports.Exports;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Root;
-import org.waterken.remote.Remote;
-import org.waterken.remote.Remoting;
+import org.waterken.remote.Exports;
 import org.waterken.syntax.Serializer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
@@ -48,14 +44,12 @@ Callee extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
 
     private final Server bootstrap;
-    private final Root local;
     
     private final ClassLoader code;
     private final Exports exports;
 
     Callee(final Server bootstrap, final Root local) {
         this.bootstrap = bootstrap;
-        this.local = local;
 
         code = (ClassLoader)local.fetch(null, Root.code);
         exports = new Exports(local);
@@ -75,7 +69,7 @@ Callee extends Struct implements Server, Serializable {
 
         // check for web browser bootstrap request
         if (null == s) {
-            final String project = (String)local.fetch(null, Root.project);
+            final String project = exports.getProject();
             bootstrap.serve("file:///res/" + URLEncoding.encode(project) + "/",
                             requestor, respond);
             return;
@@ -169,21 +163,21 @@ Callee extends Struct implements Server, Serializable {
                 }
             } else if ("POST".equals(request.method)) {
                 final String m = Query.arg(null, query, "m");
-                final String pipe = null == m ? null : Exports.pipeline(m);
-                final Token pumpkin = new Token();
-                Object value = null==pipe ? pumpkin : local.fetch(pumpkin,pipe);
-                if (pumpkin == value) {
-                    final ConstArray<?> argv = deserialize(request,
-                      PowerlessArray.array(lambda.getGenericParameterTypes()));
-                    try {
-                        // AUDIT: call to untrusted application code
-                        value = Reflection.invoke(lambda, target,
-                                argv.toArray(new Object[argv.length()]));
-                    } catch (final Exception e) {
-                        value = new Rejected(e);
+                final Object value = exports.once(m, target, new Do() {
+                    @Override public Object
+                    fulfill(final Object target) throws Exception {
+                        final ConstArray<?> argv =
+                            deserialize(request, PowerlessArray.array(
+                                lambda.getGenericParameterTypes()));
+                        try {
+                            // AUDIT: call to untrusted application code
+                            return Reflection.invoke(lambda, target,
+                                    argv.toArray(new Object[argv.length()]));
+                        } catch (final Exception e) {
+                            return new Rejected(e);
+                        }
                     }
-                    if (null != pipe) { local.store(pipe, value); }
-                }
+                });
                 respond.fulfill(serialize(request.method, "200", "OK",
                                           ephemeral, Serializer.render, value));
             } else {
@@ -236,8 +230,7 @@ Callee extends Struct implements Server, Serializable {
                 "HEAD".equals(method) ? null : new Snapshot(content));
         }
         final Snapshot body = Snapshot.snapshot(1024, new JSONSerializer().run(
-            describe, Java.export(ID.export(Remote.bind(local,
-                Exports.export(local)))), ConstArray.array(value)));
+            describe, exports.reply(), ConstArray.array(value)));
         return new Response("HTTP/1.1", status, phrase,
             PowerlessArray.array(
                 new Header("Cache-Control", "max-age=" + maxAge),
@@ -255,10 +248,8 @@ Callee extends Struct implements Server, Serializable {
         if (!AMP.contentType.equalsIgnoreCase(contentType)) {
             return ConstArray.array(new Entity(contentType, content));
         }
-        final String here = (String)local.fetch(null, Remoting.here);
-        final Importer connect = Exports.connect(here, exports,
-            Java.connect(here, code, ID.connect(here, Remote.use(local))));
-        return new JSONDeserializer().run(here, connect, code,
+        final String here = exports.getHere();
+        return new JSONDeserializer().run(here, exports.connect(here), code,
                                           content.open(), parameters);
     }
 }

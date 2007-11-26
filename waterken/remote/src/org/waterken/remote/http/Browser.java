@@ -17,7 +17,6 @@ import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Server;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
-import org.waterken.id.exports.Exports;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
 import org.waterken.model.Transaction;
@@ -77,6 +76,9 @@ Browser extends Struct implements Record, Serializable {
         final Eventual _ = new Eventual(deferred, enqueue);
         final Root local = new Root() {
             private final ArrayList<Binding> bound = new ArrayList<Binding>();
+            
+            public String
+            getModelName() { return null; }
 
             public Object
             fetch(final Object otherwise, final String name) {
@@ -98,6 +100,12 @@ Browser extends Struct implements Record, Serializable {
                 }
                 bound.add(new Binding(key, value));
             }
+
+            public String
+            export(final Object value) { throw new AssertionError(); }
+
+            public String
+            pipeline(final String m) { throw new AssertionError(); }
         };
         final Model model = new Model((Loop)enqueue) {
             public <R> R
@@ -120,7 +128,6 @@ Browser extends Struct implements Record, Serializable {
         local.store(Remoting.client, client);
         local.store(Remoting.deferred, deferred);
         local.store(AMP.outbound, new Outbound());
-        Exports.initialize(local);
         return new Browser(_,
                            Remote.use(local),
                            Remote.bind(local, null));

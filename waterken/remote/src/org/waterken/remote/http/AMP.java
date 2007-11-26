@@ -20,20 +20,21 @@ import org.ref_send.promise.eventual.Loop;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
-import org.waterken.id.exports.Exports;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Creator;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
 import org.waterken.model.Transaction;
+import org.waterken.remote.Exports;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
 import org.waterken.uri.URI;
 import org.web_send.Failure;
 import org.web_send.graph.Collision;
 import org.web_send.graph.Framework;
-import org.web_send.graph.Host;
+import org.web_send.graph.Publisher;
+import org.web_send.graph.Spawn;
 
 /**
  * HTTP web-AMP implementation
@@ -106,19 +107,37 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
 
     // org.waterken.remote.http.AMP interface
     
-    static public Host
-    host(final Root mother) {
-        class HostX extends Struct implements Host, Serializable {
+    static public Spawn
+    spawn(final Publisher publisher) {
+        class SpawnX extends Struct implements Spawn, Serializable {
             static private final long serialVersionUID = 1L;
 
             public <T> T
-            spawn(final Class<?> factory) {
-                final Creator creator= (Creator)mother.fetch(null,Root.creator);
-                return claim(creator.generate(), factory);
+            run(final Class<?> factory) {return publisher.spawn(null, factory);}
+        }
+        return new SpawnX();
+    }
+
+    /**
+     * Constructs a reference exporter.
+     * @param mother    local model root
+     */
+    static public Publisher
+    publish(final Root mother) {
+        class PublisherX extends Struct implements Publisher, Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public void
+            bind(final String name, final Object value) throws Collision {
+                vet(name);
+                final Token x = new Token();
+                if (x != mother.fetch(x, name)) { throw new Collision(); }
+                mother.store(name, value);
             }
-            
+
             @SuppressWarnings("unchecked") public <T> T
-            claim(final String label, final Class<?> factory) throws Collision {
+            spawn(final String name, final Class<?> factory) throws Collision {
+                if (null != name) { vet(name); }
                 final Method build;
                 try {
                     build= Reflection.method(factory, "build", Framework.class);
@@ -128,12 +147,11 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 final String base = (String)mother.fetch(null, here);
                 final Server client= (Server)mother.fetch(null,Remoting.client);
                 final Creator creator= (Creator)mother.fetch(null,Root.creator);
-                final String URL = creator.create(
-                        (String)mother.fetch(null, Root.project),
-                        label, new Transaction<String>() {
+                final String URL = creator.create(new Transaction<String>() {
                     public String
                     run(final Root local) throws Exception {
-                        final String here = base+URLEncoding.encode(label)+"/";
+                        final String here =
+                            base + URLEncoding.encode(local.getModelName())+"/";
                         local.store(Remoting.here, here);
                         if (null != client) {
                             local.store(Remoting.client, client);
@@ -145,21 +163,31 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                         final Eventual _ = new Eventual(deferred,
                             (Loop)local.fetch(null, Root.enqueue));
                         local.store(Remoting._, _);
-                        Exports.initialize(local);
+                        final Publisher publisher = publish(local);
                         final Framework framework = new Framework(
                             _,
-                            Exports.publish(local),
                             (Runnable)local.fetch(null, Root.destruct),
-                            host(local)
+                            AMP.spawn(publisher),
+                            null != name ? publisher : null
                         );
-                        return URI.resolve(here, Exports.export(local).run(
-                                Reflection.invoke(build, null, framework)));
+                        return URI.resolve(here, new Exports(local).reply().run(
+                            Reflection.invoke(build, null, framework)));
                     }
-                });
+                }, (String)mother.fetch(null, Root.project), name);
                 return (T)Remote.use(mother).run(build.getReturnType(), URL);
             }
+            
+            private void
+            vet(final String name) throws Collision {
+                if (name.startsWith(".")) { throw new Collision(); }
+                for (int i = name.length(); i-- != 0;) {
+                    if (disallowed.indexOf(name.charAt(i)) != -1) {
+                        throw new Collision();
+                    }
+                }
+            }
         }
-        return new HostX();
+        return new PublisherX();
     }
 
     static private final class

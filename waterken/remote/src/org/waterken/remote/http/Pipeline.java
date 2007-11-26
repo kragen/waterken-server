@@ -9,6 +9,7 @@ import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.ref_send.list.List;
+import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Do;
@@ -46,21 +47,26 @@ Pipeline implements Serializable {
         }
     }
     
-    private final Root local;
     private final String peer;
+    private final Loop<Effect> effect;
+    private final Model model;
+    private final Fulfilled<Outbound> outbound;
     
     private final List<Entry> pending = List.list();
     private       int serialMID = 0;
     private       int halts = 0;    // number of pending pipeline flushes
     private       int queries = 0;  // number of queries after the last flush
     
-    Pipeline(final Root local, final String peer) {
-        this.local = local;
+    @SuppressWarnings("unchecked")
+    Pipeline(final String peer, final Root local) {
         this.peer = peer;
+        effect = (Loop)local.fetch(null, Root.effect);
+        model = (Model)local.fetch(null, Root.model);
+        outbound = Fulfilled.detach((Outbound)local.fetch(null, AMP.outbound));
     }
 
     void
-    resend() { restart(pending.getSize(), false, 0); }
+    resend() { effect.run(restart(model, peer, pending.getSize(), false, 0)); }
     
     /*
      * Message sending is halted when an Update follows a Query. Sending resumes
@@ -70,7 +76,7 @@ Pipeline implements Serializable {
     void
     enqueue(final Message message) {
         if (pending.isEmpty()) {
-            ((Outbound)local.fetch(null, AMP.outbound)).add(peer, this);
+            outbound.cast().add(peer, this);
         }
         final int mid = serialMID++;
         pending.append(new Entry(mid, message));
@@ -81,7 +87,7 @@ Pipeline implements Serializable {
             }
         }
         if (message instanceof Query) { ++queries; }
-        if (0 == halts) { restart(1, true, mid); }
+        if (0 == halts) { effect.run(restart(model, peer, 1, true, mid)); }
     }
     
     private Message
@@ -93,7 +99,7 @@ Pipeline implements Serializable {
         
         final Entry front = pending.pop();
         if (pending.isEmpty()) {
-            ((Outbound)local.fetch(null, AMP.outbound)).remove(peer);
+            outbound.cast().remove(peer);
         }
         if (front.msg instanceof Query) {
             if (0 == halts) {
@@ -103,7 +109,7 @@ Pipeline implements Serializable {
                 for (final Entry x : pending) {
                     if (x.msg instanceof Update) {
                         --halts;
-                        restart(max, true, x.id);
+                        effect.run(restart(model, peer, max, true, x.id));
                         break;
                     }
                     if (x.msg instanceof Query) { break; }
@@ -114,28 +120,30 @@ Pipeline implements Serializable {
         return front.msg;
     }
     
-    @SuppressWarnings("unchecked") private void
-    restart(final int max, final boolean skipTo, final int mid) {
+    static private Effect
+    restart(final Model model, final String peer,
+            final int max, final boolean skipTo, final int mid) {
         // Create a transaction effect that will schedule a new extend
         // transaction that actually puts the messages on the wire.
-        final Loop<Effect> effect = (Loop)local.fetch(null, Root.effect);
-        final Model model = (Model)local.fetch(null, Root.model);
-        final String peer = this.peer;
-        effect.run(new Effect() {
+        return new Effect() {
            public void
            run() throws Exception {
                model.service.run(new Service() {
                    public void
                    run() throws Exception {
                        model.enter(Model.extend, new Transaction<Void>() {
-                           public Void
+                           @SuppressWarnings("unchecked") public Void
                            run(final Root local) throws Exception {
-                               final Pipeline msgs = ((Outbound)local.
-                                       fetch(null, AMP.outbound)).find(peer);
+                               final Server client =
+                                   (Server)local.fetch(null, Remoting.client);
+                               final Loop<Effect> effect =
+                                   (Loop)local.fetch(null, Root.effect);
+                               final Outbound outbound =
+                                   (Outbound)local.fetch(null, AMP.outbound);
                                boolean found = !skipTo;
                                boolean q = false;
                                int n = max;
-                               for (final Entry x : msgs.pending) {
+                               for (final Entry x: outbound.find(peer).pending){
                                    if (!found) {
                                        if (mid == x.id) {
                                            found = true;
@@ -146,7 +154,7 @@ Pipeline implements Serializable {
                                    if (0 == n--) { break; }
                                    if (q && x.msg instanceof Update) { break; }
                                    if (x.msg instanceof Query) { q = true; }
-                                   send(local, peer, x);
+                                   effect.run(send(model, client, peer, x));
                                }
                                return null;
                            }
@@ -154,11 +162,12 @@ Pipeline implements Serializable {
                    }
                });
            }
-        });
+        };
     }
     
-    @SuppressWarnings("unchecked") static private void
-    send(final Root local, final String peer, final Entry x) {
+    static private Effect
+    send(final Model model, final Server client,
+         final String peer, final Entry x) {
         Promise<Request> rendered;
         try {
             rendered = ref(x.msg.send());
@@ -166,16 +175,13 @@ Pipeline implements Serializable {
             rendered = new Rejected<Request>(reason);
         }
         final Promise<Request> request = rendered;
-        final Server client = (Server)local.fetch(null, Remoting.client);
-        final Loop<Effect> effect = (Loop)local.fetch(null, Root.effect);
-        final Model model = (Model)local.fetch(null, Root.model);
         final int mid = x.id;
-        effect.run(new Effect() {
+        return new Effect() {
            public void
            run() throws Exception {
                client.serve(peer, request, new Receive(model, peer, mid));
            }
-        });
+        };
     }
     
     static private final class

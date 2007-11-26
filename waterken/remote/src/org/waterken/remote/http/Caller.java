@@ -6,7 +6,6 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.security.SecureRandom;
 
 import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
@@ -25,19 +24,16 @@ import org.ref_send.type.Typedef;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.id.Importer;
-import org.waterken.id.base.Base;
-import org.waterken.id.exports.Exports;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.model.Root;
+import org.waterken.remote.Exports;
 import org.waterken.remote.Messenger;
-import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
 import org.waterken.syntax.Serializer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.syntax.json.Java;
 import org.waterken.uri.Authority;
-import org.waterken.uri.Base32;
 import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 import org.web_send.Entity;
@@ -50,16 +46,16 @@ final class
 Caller extends Struct implements Messenger, Serializable {
     static private final long serialVersionUID = 1L;
 
-    private final Root local;
     private final Pipeline msgs;
-    
     private final Eventual _;
+    private final ClassLoader code;
+    private final Exports exports;
     
-    Caller(final Root local, final Pipeline msgs) {
-        this.local = local;
+    Caller(final Pipeline msgs, final Root local) {
         this.msgs = msgs;
-        
         _ = (Eventual)local.fetch(null, Remoting._);
+        code = (ClassLoader)local.fetch(null, Root.code);
+        exports = new Exports(local);
     }
 
     // org.waterken.remote.Messenger interface
@@ -156,7 +152,8 @@ Caller extends Struct implements Messenger, Serializable {
                             return null;
                         }
                     }
-                    _.when(Remote.use(local).run(Object.class,URL),new Retry());
+                    _.when(exports.connect(exports.getHere()).
+                            run(Object.class, URL), new Retry());
                     return null;
                 }
                 return null;
@@ -203,7 +200,8 @@ Caller extends Struct implements Messenger, Serializable {
                             return resolver.reject(reason);
                         }
                     }
-                    _.when(Remote.use(local).run(Object.class,URL),new Retry());
+                    _.when(exports.connect(exports.getHere()).
+                            run(Object.class, URL), new Retry());
                     return null;
                 }
                 Volatile<R> value;
@@ -234,13 +232,8 @@ Caller extends Struct implements Messenger, Serializable {
     post(final String URL, final Object proxy,
          final Method method, final Object... arg) {
         
-        // generate a message key
-        final byte[] secret = new byte[16];
-        final SecureRandom prng = (SecureRandom)local.fetch(null, Root.prng);
-        prng.nextBytes(secret);
-        final String m = Base32.encode(secret);
-
         // calculate the return pipeline web-key
+        final String m = exports.mid();
         final Class<?> R = Typedef.raw(
             Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
         final R r_;
@@ -250,15 +243,7 @@ Caller extends Struct implements Messenger, Serializable {
             resolver = null;
         } else {
             final Channel<R> x = _.defer();
-            final String here = (String)local.fetch(null, Remoting.here);
-            if (null == here) {
-                r_=R.isInstance(x.promise) ? (R)x.promise : _.cast(R,x.promise);
-            } else {
-                final String pipe = Exports.pipeline(m);
-                local.store(pipe, x.promise);
-                r_ = (R)Remote.use(local).run(R,
-                    Exports.href(URI.resolve(URL, "."), pipe, here));
-            }
+            r_ = exports.far(URI.resolve(URL, "."), m, R, x.promise);
             resolver = x.resolver;
         }
         
@@ -296,7 +281,8 @@ Caller extends Struct implements Messenger, Serializable {
                             return null;
                         }
                     }
-                    _.when(Remote.use(local).run(Object.class,URL),new Retry());
+                    _.when(exports.connect(exports.getHere()).
+                            run(Object.class, URL), new Retry());
                     return null;
                 }
                 if (null != resolver) {
@@ -333,11 +319,9 @@ Caller extends Struct implements Messenger, Serializable {
                     new Header("Content-Length", "" + x.content.length())
                 ), new Snapshot(x.content));        
         }
+        final String base = URI.resolve(target, "."); 
         final Snapshot body = Snapshot.snapshot(1024, new JSONSerializer().run(
-            Serializer.render, Java.export(ID.export(Base.relative(
-                URI.resolve(target, "."), Base.absolute((String)local.fetch(
-                    "x-browser:", Remoting.here), Remote.bind(local,
-                        Exports.export(local)))))), argv));
+            Serializer.render, exports.send(base), argv));
         return new Request("HTTP/1.1", "POST", URI.request(target),
             PowerlessArray.array(
                 new Header("Host", location),
@@ -350,10 +334,7 @@ Caller extends Struct implements Messenger, Serializable {
     deserialize(final Type R, final String target,
                 final Response response) throws Exception {
         final String base = URI.resolve(target, ".");
-        final ClassLoader code = (ClassLoader)local.fetch(null, Root.code);
-        final String here = (String)local.fetch("x-browser:", Remoting.here);
-        final Importer connect = Exports.connect(here, new Exports(local),
-            Java.connect(base, code, ID.connect(base, Remote.use(local)))); 
+        final Importer connect = exports.connect(base);
         if ("200".equals(response.status) || "201".equals(response.status) ||
             "202".equals(response.status) || "203".equals(response.status)) {
             final String contentType = response.getContentType();
