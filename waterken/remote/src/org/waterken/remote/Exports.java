@@ -9,7 +9,6 @@ import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
 import org.ref_send.Brand;
-import org.ref_send.Record;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
@@ -113,7 +112,8 @@ Exports extends Struct implements Serializable {
                 final String key = local.export(object);
                 return object instanceof Brand.Local
                     ? key
-                : (object instanceof Volatile || object instanceof Record ||
+                : (object instanceof Volatile ||
+                        null == object || Java.isPBC(object.getClass()) ||
                         !(Eventual.promised(object) instanceof Fulfilled)
                     ? "./?src=." : "./") + "#" + key; 
             }
