@@ -132,6 +132,12 @@ Exports extends Struct implements Serializable {
     }
     
     /**
+     * Constructs a return argument exporter.
+     */
+    public Exporter
+    reply() { return Java.export(ID.export(export())); }
+    
+    /**
      * Does an operation at most once.
      * @param <P> operand type
      * @param <R> return type
@@ -174,23 +180,29 @@ Exports extends Struct implements Serializable {
         local.store(pipe, response);
         return (R)Remote.use(local).run(R, href(base, pipe, here));
     }
+    
+    /**
+     * Constructs a pipeline web-key.
+     * @param dst   target model URL
+     * @param key   pipeline key
+     * @param src   local model URL
+     */
+    static private String
+    href(final String dst, final String key, final String src) {
+        return URI.resolve(dst,
+            "./?src=" + URLEncoding.encode(URI.relate(dst, src)) + "#" + key);
+    }
 
     /**
      * Generates a message identifier.
      */
     public String
     mid() {
-        final byte[] secret = new byte[16];
+        final byte[] secret = new byte[128 / Byte.SIZE];
         final SecureRandom prng = (SecureRandom)local.fetch(null, Root.prng);
         prng.nextBytes(secret);
         return Base32.encode(secret);
     }
-    
-    /**
-     * Constructs a return argument exporter.
-     */
-    public Exporter
-    reply() { return Java.export(ID.export(export())); }
     
     /**
      * Extracts the key from a web-key.
@@ -234,24 +246,10 @@ Exports extends Struct implements Serializable {
     /**
      * Constructs a web-key.
      * @param dst   target model URL
-     * @param key   {@linkplain #pipeline pipeline key}
+     * @param key   key
      */
     static public String
     href(final String dst, final String key) {
         return "".equals(key) ? dst : URI.resolve(dst, "#" + key);
-    }
-    
-    /**
-     * Constructs a pipeline web-key.
-     * @param dst   target model URL
-     * @param key   {@linkplain #pipeline pipeline key}
-     * @param src   local model URL
-     */
-    static public String
-    href(final String dst, final String key, final String src) {
-        final String a = URI.relate(dst, src);
-        return URI.resolve(dst,
-            ("".equals(a) ? "./" : "./?src=" + URLEncoding.encode(a)) +
-            "#" + key);
     }
 }
