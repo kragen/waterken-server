@@ -22,17 +22,17 @@ public abstract class
 Model {
 
     /**
-     * indicates a {@link #enter transaction} may modify existing state
+     * indicates a {@linkplain #enter transaction} may modify existing state
      */
     static public final boolean change = false;
 
     /**
-     * indicates a {@link #enter transaction} will only query existing state
+     * indicates a {@linkplain #enter transaction} will only query existing state
      */
     static public final boolean extend = true;
 
     /**
-     * Schedules deferred {@link #enter access} to this model.
+     * Schedules deferred {@linkplain #enter access} to this model.
      */
     public final Loop<Service> service;
 
@@ -54,11 +54,11 @@ Model {
      * cause an error.
      * </p>
      * <p>
-     * If {@link Transaction#run invocation} of the <code>body</code> causes
-     * an {@link Error}, all modifications to objects in the model MUST be
-     * discarded, and the {@link Error} allowed to propagate up the call chain.
-     * For subsequent transactions, it MUST be as if the aborted transaction was
-     * never attempted.
+     * If {@linkplain Transaction#run invocation} of the <code>body</code>
+     * causes an {@link Error}, all modifications to objects in the model MUST
+     * be discarded, and the {@link Error} allowed to propagate up the call
+     * chain. For subsequent transactions, it MUST be as if the aborted
+     * transaction was never attempted.
      * </p>
      * <p>
      * The implementation MUST NOT rely on the <code>extend</code> argument
@@ -66,23 +66,22 @@ Model {
      * If {@link #extend} is specified, the implementation MUST check that no
      * existing state was modified. If state was modified, the transaction MUST
      * be aborted, in the same manner described previously.
-     * {@link Root#store Storing} a new {@link Root root} binding is considered
-     * a modification.
+     * {@linkplain Root#store Storing} a new {@link Root root} binding is
+     * considered a modification.
      * </p>
      * <p>
      * The <code>body</code> MUST NOT retain references to any of the objects
      * in the model beyond completion of the transaction. The model
      * implementation can rely on the <code>body</code> being well-behaved in
      * this respect. An identifier for an object in the model may be retained
-     * across transactions by either {@link Root#store storing} it in the
-     * {@link Root}, or {@link Heap#locate locating} the object in the
-     * {@link Root#heap persistent address space}.
+     * across transactions by either {@linkplain Root#store storing}, or
+     * {@linkplain Root#export exporting} it.
      * </p>
      * <p>
      * If invocation of this method returns without producing an {@link Error},
      * all modifications to objects in the model MUST be committed. Only if the
-     * current transaction commits will the {@link Root#effect enqueued}
-     * {@link Effect}s be {@link Transaction#run executed}; otherwise, the
+     * current transaction commits will the {@linkplain Root#effect enqueued}
+     * {@link Effect}s be {@linkplain Transaction#run executed}; otherwise, the
      * implementation MUST discarded them. The effects MUST be executed in the
      * same order as they were enqueued. Effects from a subsequent transaction
      * MUST NOT be executed until all effects from the current transaction have
