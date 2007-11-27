@@ -47,7 +47,6 @@ Exports extends Struct implements Serializable {
     
     /**
      * Gets the base URL for this namespace.
-     * @return
      */
     public String
     getHere() { return (String)local.fetch("x-browser:", Remoting.here); }
