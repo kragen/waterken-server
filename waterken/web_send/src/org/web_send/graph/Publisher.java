@@ -17,7 +17,7 @@ Publisher {
      * Creates a new binding.
      * @param name  name to bind
      * @param value value to bind
-     * @throws Collision    <code>name</code> has already been used
+     * @throws Collision    <code>name</code> is unavailable
      */
     void
     bind(String name, Object value) throws Collision;
@@ -28,7 +28,7 @@ Publisher {
      * @param name      model name
      * @param factory   object maker, same requirements as in {@link Spawn#run}
      * @return promise for an object exported from the new model
-     * @throws Collision    <code>name</code> has already been used
+     * @throws Collision    <code>name</code> is unavailable
      */
     <T> T
     spawn(String name, Class<?> factory) throws Collision;
