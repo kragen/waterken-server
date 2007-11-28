@@ -4,6 +4,7 @@ package org.web_send.graph;
 
 /**
  * A model maker.
+ * @see org.web_send.graph.Publisher#spawn
  */
 public interface
 Spawn {
