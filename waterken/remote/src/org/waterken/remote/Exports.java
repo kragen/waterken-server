@@ -169,7 +169,7 @@ Exports extends Struct implements Serializable {
      */
     @SuppressWarnings("unchecked") public <R> R
     far(final String base, final String mid,
-        final Class R, final Promise<R> response) {
+        final Class<?> R, final Promise<R> response) {
         final String here = (String)local.fetch(null, Remoting.here);
         if (null == here) {
             final Eventual _ = (Eventual)local.fetch(null, Remoting._);

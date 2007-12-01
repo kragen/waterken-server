@@ -112,8 +112,12 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
         class SpawnX extends Struct implements Spawn, Serializable {
             static private final long serialVersionUID = 1L;
 
+            @SuppressWarnings("unchecked")
             public <T> T
-            run(final Class<?> factory) {return publisher.spawn(null, factory);}
+            run(final Class<?> factory) {
+                final Object r = publisher.spawn(null, factory);
+                return (T)r;
+            }
         }
         return new SpawnX();
     }
