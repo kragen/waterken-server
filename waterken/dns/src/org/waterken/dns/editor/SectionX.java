@@ -28,7 +28,7 @@ SectionX implements Section, Serializable {
         
         final ResourceSlot slot = new ResourceSlot();
         final ByteArray addr = ByteArray.array(new byte[] { 127, 0, 0, 1 });
-        slot.put(new Resource(Resource.A, Resource.IN, 0, addr));
+        slot.put(new Resource(Resource.A,Resource.IN,ResourceSlot.minTTL,addr));
         slots = slots.with(slot);
         return slot;
     }

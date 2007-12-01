@@ -22,6 +22,7 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.ref_send.Variable;
 import org.waterken.dns.Resource;
+import org.waterken.dns.editor.ResourceSlot;
 import org.waterken.dns.udp.NameServer;
 import org.waterken.http.Server;
 import org.waterken.http.mirror.Mirror;
@@ -134,7 +135,8 @@ Serve {
             final InetAddress a = dynip();
             System.err.println("Updating DNS to: " +a.getHostAddress()+ "...");
             final ByteArray quad = ByteArray.array(a.getAddress());
-            update(ip).put(new Resource(Resource.A, Resource.IN, 0, quad));
+            update(ip).put(new Resource(Resource.A, Resource.IN,
+                                        ResourceSlot.minTTL, quad));
         }
     }
     

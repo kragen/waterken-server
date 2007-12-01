@@ -11,9 +11,14 @@ import org.waterken.dns.Resource;
 /**
  * A {@link Resource} slot.
  */
-final class
+public final class
 ResourceSlot implements Variable<Resource>, Serializable {
     static private final long serialVersionUID = 1L;
+    
+    /**
+     * minimum {@link Resource#ttl}
+     */
+    static public final int minTTL = 60;
 
     /**
      * current value
@@ -31,7 +36,7 @@ ResourceSlot implements Variable<Resource>, Serializable {
         if (Resource.IN != value.clazz) { throw new Disallowed(); }
         switch (value.type) {
         case Resource.A:
-            if (value.ttl < 60) { throw new Disallowed(); }
+            if (value.ttl < minTTL) { throw new Disallowed(); }
             if (value.data.length() != 4) { throw new Disallowed(); }
             break;
         default:
