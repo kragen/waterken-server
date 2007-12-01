@@ -13,6 +13,7 @@ import org.ref_send.promise.eventual.Do;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
+import org.waterken.http.file.Tag;
 import org.waterken.http.file.Files;
 import org.waterken.io.MediaType;
 import org.waterken.uri.Path;
@@ -31,13 +32,13 @@ Mirror {
     /**
      * Constructs an instance.
      * @param maxAge    max-age value
+     * @param tag       ETag generator
      * @param root      root folder
      * @param MIME      each known file type
      */
     static public Server
-    make(final int maxAge,
-         final File root,
-         final PowerlessArray<MediaType> MIME) {
+    make(final int maxAge, final Tag tag,
+         final File root, final PowerlessArray<MediaType> MIME) {
         class ServerX extends Struct implements Server, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -53,7 +54,7 @@ Mirror {
                     }
                     f = Filesystem.file(f, segment);
                 }
-                Files.make(maxAge, f, MIME).serve(resource, request, respond);
+                Files.make(maxAge,tag,f,MIME).serve(resource, request, respond);
             }
         }
         return new ServerX();

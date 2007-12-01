@@ -37,13 +37,13 @@ Files {
     /**
      * Constructs an instance.
      * @param maxAge    max-age value
+     * @param tag       ETag generator
      * @param folder    folder
      * @param MIME      each known file type
      */
     static public Server
-    make(final int maxAge,
-         final File folder,
-         final PowerlessArray<MediaType> MIME) {
+    make(final int maxAge, final Tag tag,
+         final File folder, final PowerlessArray<MediaType> MIME) {
         class ServerX extends Struct implements Server, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -199,8 +199,7 @@ Files {
                     }
                 }
                 final String cached = ifNoneMatch.toString();
-                final String etag =
-                    '\"' + Long.toHexString(file.lastModified()) + '\"';
+                final String etag = tag.run(file);
                 if (-1 != cached.indexOf(etag) || "*".equals(cached)) {
                     respond.fulfill(new Response(
                         "HTTP/1.1", "304", "Not Modified",
@@ -211,24 +210,14 @@ Files {
                     return;
                 }
 
-                // Produce the corresponding representation.
-                if ("HEAD".equals(request.method)) {
-                    respond.fulfill(new Response(
-                        "HTTP/1.1", "200", "OK",
-                        PowerlessArray.array(
-                            new Header("ETag", etag),
-                            new Header("Cache-Control", "max-age=" + maxAge),
-                            new Header("Content-Length", "" + file.length()),
-                            new Header("Content-Type", contentType.name)
-                        ), null));
-                    return;
-                }
+                // produce the corresponding representation
                 final InputStream in = Filesystem.read(file);
                 try {
                     PowerlessArray<Header> header = PowerlessArray.array(
                         new Header("ETag", etag),
                         new Header("Cache-Control", "max-age=" + maxAge),
-                        new Header("Content-Length", "" + file.length()),
+                        new Header("Content-Length",
+                                   "" + Filesystem.length(file)),
                         new Header("Content-Type", contentType.name)
                     );
                     if (null != contentType.encoding) {
@@ -236,8 +225,8 @@ Files {
                                 "Content-Encoding", contentType.encoding));
                     }
                     respond.fulfill(new Response(
-                        "HTTP/1.1", "200", "OK",
-                        header, new Stream(in)));
+                        "HTTP/1.1", "200", "OK", header,
+                        "HEAD".equals(request.method) ? null : new Stream(in)));
                 } catch (final Exception e) {
                     try { in.close(); } catch (final Exception e2) {}
                     throw e;

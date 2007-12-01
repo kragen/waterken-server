@@ -43,7 +43,7 @@ GenKey {
     /**
      * The argument string is:
      * <ol>
-     *  <li>cryptography strength expressed as hash length</li>
+     *  <li>cryptography strength expressed as hash length in bits</li>
      *  <li>hostname suffix</li>
      *  <li>redirectory URL</li>
      * </ol>
@@ -58,7 +58,9 @@ GenKey {
                 ? 1024
             : (112 >= strength
                 ? 2048
-            : 4096));
+            : (128 >= strength
+                ? 3072
+            : 4096)));
 
         System.err.println("Generating RSA key pair...");
         System.err.println("with keysize: " + keysize);

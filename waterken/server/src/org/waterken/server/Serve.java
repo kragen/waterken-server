@@ -92,7 +92,7 @@ Serve {
 
         // Configure the server.
         final Server server = Trace.make(Mux.make(db, new AMP(),
-                                           Mirror.make(maxAge, www, MIME)));
+                Mirror.make(maxAge, new LastModified(), www, MIME)));
 
         // Start the inbound network services.
         for (; i != args.length; ++i) {
