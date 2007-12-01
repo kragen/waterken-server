@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.joe_e.array.PowerlessArray;
-import org.ref_send.Slot;
 import org.waterken.dns.Domain;
 import org.waterken.dns.Resource;
 import org.web_send.graph.Framework;
@@ -34,7 +33,7 @@ Editor {
             getAnswers() {
                 final Resource[] r= new Resource[answers.getEntries().length()];
                 int i = 0;
-                for (final Slot<Resource> x : answers.getEntries()) {
+                for (final ResourceSlot x : answers.getEntries()) {
                     r[i++] = x.get();
                 }
                 return PowerlessArray.array(r);

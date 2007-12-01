@@ -21,9 +21,9 @@ Main extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * model permissions
+     * model framework
      */
-    public final Framework framework;
+    private final Framework framework;
 
     private
     Main(final Framework framework) {
@@ -39,24 +39,31 @@ Main extends Struct implements Serializable {
         return new Main(framework);
     }
     
-    // org.waterken.dns.editor.redirectory.Redirectory interface
+    // org.waterken.dns.editor.redirectory.Main interface
     
+    static private final String prefix = "y-";
+    static private final int MINCHARS = prefix.length() + 80 / 5;
+    
+    /**
+     * Creates a zone and publishes the redirectory interface.
+     * @param suffix    hostname suffix
+     * @return created zone
+     */
     public Zone
-    master() { return ZoneMaster.build(framework); }
-
-    public Redirectory
-    make(final String suffix, final Zone zone) {
+    publish(final String suffix) {
+        final Zone zone = ZoneMaster.build(framework);
         class RedirectoryX extends Struct implements Redirectory, Serializable {
             static private final long serialVersionUID = 1L;
 
             public Promise<DomainMaster>
             register(final String fingerprint) throws Collision {
-                if (!fingerprint.startsWith("y-")) { throw new Collision(); }
-                if (fingerprint.length() < 18) { throw new Collision(); }
+                if (!fingerprint.startsWith(prefix)) { throw new Collision(); }
+                if (fingerprint.length() < MINCHARS) { throw new Collision(); }
                 Label.vet(fingerprint);
                 return zone.claim(fingerprint + suffix);
             }
         }
-        return new RedirectoryX();
+        framework.publisher.bind("redirectory", new RedirectoryX());
+        return zone;
     }
 }
