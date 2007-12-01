@@ -125,7 +125,7 @@ NameServer {
                                     ( in[i++] & 0xFF));
                     qclass = (short)(((in[i++] & 0xFF) << 8) |
                                      ( in[i++] & 0xFF));
-                    qlen = i;
+                    qlen = i - QP;
                 }
                 
                 // see if we've got any answers
