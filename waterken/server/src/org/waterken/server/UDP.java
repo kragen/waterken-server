@@ -52,7 +52,7 @@ UDP extends Struct implements Runnable {
                         return null;
                     }
                 });
-            } catch (final Exception e) {
+            } catch (final Throwable e) {
                 e.printStackTrace();
             }
         }
