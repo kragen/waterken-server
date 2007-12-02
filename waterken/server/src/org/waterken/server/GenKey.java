@@ -219,7 +219,7 @@ GenKey {
         final Eventual _ = browser._;
         final String redirectoryURL = 2 < args.length
             ? args[2]
-        : "https://y-4tkd3qwgy6ripqoxn2c74dpxfu.yurl.net/db/dns/#redirectory";
+        : "https://y-hzpaiycw7dur5zcyena5qzq.yurl.net/-/dns/#redirectory";
         _.enqueue.run(new Task() {
            public void
            run() throws Exception {
