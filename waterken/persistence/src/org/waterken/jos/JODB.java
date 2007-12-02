@@ -40,6 +40,7 @@ import org.ref_send.promise.eventual.Task;
 import org.waterken.cache.Cache;
 import org.waterken.model.Base32;
 import org.waterken.model.Creator;
+import org.waterken.model.CyclicGraph;
 import org.waterken.model.Effect;
 import org.waterken.model.Model;
 import org.waterken.model.ModelError;
@@ -47,6 +48,7 @@ import org.waterken.model.ProhibitedModification;
 import org.waterken.model.Root;
 import org.waterken.model.Service;
 import org.waterken.model.Transaction;
+import org.waterken.model.UnknownClass;
 import org.waterken.thread.Concurrent;
 import org.web_send.graph.Collision;
 
