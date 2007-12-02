@@ -9,3 +9,4 @@ th { text-align: right; vertical-align: baseline; background-color: #99CCCC }
 .navigation { padding-bottom: 2px }
 .main { border-top: 2px solid #007FB2; border-bottom: 2px solid #007FB2 }
 .comment { color: gray; font-style: italic }
+.figure { text-align: center; padding: 1em }
