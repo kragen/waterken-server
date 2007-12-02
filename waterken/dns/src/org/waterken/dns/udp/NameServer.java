@@ -34,7 +34,7 @@ NameServer {
     /**
      * address of the first question
      */
-    static private final int QP = 12;
+    static private final int QP = 0xC000 | 12;
     
     /**
      * Constructs an instance.
@@ -97,7 +97,7 @@ NameServer {
                 final short qtype, qclass;
                 final int qlen; {
                     final StringBuilder buffer = new StringBuilder();
-                    int i = QP;
+                    int i = header.length;
                     while (true) {
                         final int length = in[i++] & 0xFF;
                         if (0x00 != (length & 0xC0)) {
@@ -125,7 +125,7 @@ NameServer {
                                     ( in[i++] & 0xFF));
                     qclass = (short)(((in[i++] & 0xFF) << 8) |
                                      ( in[i++] & 0xFF));
-                    qlen = i - QP;
+                    qlen = i - header.length;
                 }
                 
                 // see if we've got any answers
@@ -150,10 +150,10 @@ NameServer {
                 // encode the corresponding answers
                 final ByteArrayOutputStream response =
                     new ByteArrayOutputStream(512);
-                header[2] |= 0x04;              // set the AA bit
-                header[5] = 1;                  // qdcount = 1
-                response.write(header);         // output a header
-                response.write(in, QP, qlen);   // echo the question
+                header[2] |= 0x04;                          // set the AA bit
+                header[5] = 1;                              // qdcount = 1
+                response.write(header);                     // output a header
+                response.write(in, header.length, qlen);    // echo the question
                 int ancount = 0;
                 for (final Resource a : answers) {
                     if ((255 == qtype || qtype == a.type) &&
