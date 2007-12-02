@@ -6,6 +6,7 @@ import static org.joe_e.file.Filesystem.file;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.net.SocketAddress;
 
@@ -131,8 +132,9 @@ NameServer {
                 // see if we've got any answers
                 final PowerlessArray<Resource> answers;
                 try {
-                    answers = JODB.connect(file(master, qname.toLowerCase())).
-                        enter(Model.extend,
+                    final File db = file(master, qname.toLowerCase());
+                    if (!db.isDirectory()) {throw new FileNotFoundException();}
+                    answers = JODB.connect(db).enter(Model.extend,
                               new Transaction<PowerlessArray<Resource>>() {
                         public PowerlessArray<Resource>
                         run(final Root local) throws Exception {
