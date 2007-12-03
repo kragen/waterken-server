@@ -5,6 +5,7 @@ package org.waterken.remote.http;
 import static org.ref_send.promise.Fulfilled.ref;
 import static org.web_send.Entity.maxContentSize;
 
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
@@ -220,23 +221,27 @@ Pipeline implements Serializable {
         
         private Void
         resolve(final Promise<Response> response) throws Exception {
-            return model.enter(Model.change, new Transaction<Void>() {
-                public Void
-                run(final Root local) throws Exception {
-                    final Outbound outbound =
-                        (Outbound)local.fetch(null, AMP.outbound);
-                    final Pipeline msgs = outbound.find(peer);
-                    final Message respond = msgs.dequeue(mid);
-                    if (null == respond) { return null; }
-                    Response value;
-                    try {
-                        value = response.cast();
-                    } catch (final Exception reason) {
-                        return respond.reject(reason);
+            try {
+                return model.enter(Model.change, new Transaction<Void>() {
+                    public Void
+                    run(final Root local) throws Exception {
+                        final Outbound outbound =
+                            (Outbound)local.fetch(null, AMP.outbound);
+                        final Pipeline msgs = outbound.find(peer);
+                        final Message respond = msgs.dequeue(mid);
+                        if (null == respond) { return null; }
+                        Response value;
+                        try {
+                            value = response.cast();
+                        } catch (final Exception reason) {
+                            return respond.reject(reason);
+                        }
+                        return respond.fulfill(value);
                     }
-                    return respond.fulfill(value);
-                }
-            });
+                });
+            } catch (final FileNotFoundException e) {
+                return null;    // model is dead
+            }
         }
     }
 }

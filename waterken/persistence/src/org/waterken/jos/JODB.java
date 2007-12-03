@@ -167,41 +167,55 @@ JODB extends Model {
     enter(final boolean extend, final Transaction<R> body) throws Exception {
         if (busy) { throw new AssertionError(); }
         busy = true;
-
-        final Promise<R> r;
         try {
             if (!awake) {
-                process(Model.extend, new Transaction<Void>() {
-                    @SuppressWarnings("unchecked") public Void
-                    run(final Root local) throws Exception {
-
-                        // start up a runner if necessary
-                        if (null == runner && null != service) {
-                            final List<Task> q = (List)local.fetch(null, tasks);
-                            if (null != q && !q.isEmpty()) {
-                                final Run x = new Run();
-                                service.run(x);
-                                runner = x;
+                final Promise<Boolean> woken;
+                try {
+                    woken = process(Model.extend, new Transaction<Boolean>() {
+                        @SuppressWarnings("unchecked") public Boolean
+                        run(final Root local) {
+                            try {
+                                // start up a runner if necessary
+                                if (null == runner && null != service) {
+                                    final List<Task> q =
+                                        (List)local.fetch(null, tasks);
+                                    if (null != q && !q.isEmpty()) {
+                                        final Run x = new Run();
+                                        service.run(x);
+                                        runner = x;
+                                    }
+                                }
+        
+                                // start up any other configured services
+                                final Transaction<?> wake =
+                                    (Transaction)local.fetch(null, Root.wake);
+                                if (null != wake) { wake.run(local); }
+                                
+                                return true;
+                            } catch (final Exception e) {
+                                // abort transaction if initialization fails
+                                throw new ModelError(e);
                             }
                         }
-
-                        // start up any other configured services
-                        final Transaction<?> wake =
-                            (Transaction)local.fetch(null, Root.wake);
-                        if (null != wake) { wake.run(local); }
-                        
-                        return null;
-                    }
-                });
-                awake = true;
+                    });
+                } catch (final Exception e) {
+                    // abort transaction if initializer not run
+                    throw new ModelError(e);
+                }
+                awake = woken.cast();   // either returns true or
+                                        // throws FileNotFoundException
             }
-            r = process(extend, body);
-        } catch (final Exception e) {
-            throw new ModelError(e);
+
+            final Promise<R> r;
+            try {
+                r = process(extend, body);
+            } catch (final Exception e) {
+                throw new ModelError(e);
+            }
+            return r.cast();
         } finally {
             busy = false;
         }
-        return r.cast();
     }
 
     /**
@@ -631,7 +645,7 @@ JODB extends Model {
         // check that the model has not been destructed
         if (!folder.isDirectory() ||
                 Boolean.TRUE.equals(root.fetch(false, dead))) {
-            throw new IOException();
+            return new Rejected<R>(new FileNotFoundException());
         }
 
         // execute the transaction body

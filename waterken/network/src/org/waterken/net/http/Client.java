@@ -188,7 +188,7 @@ Client implements Server {
         
         public Void
         fulfill(final Response value) throws Exception {
-            respond.fulfill(value);
+            respond.fulfill(value); // don't pop if an I/O error is encountered
             sender.run(pop);
             return null;
         }

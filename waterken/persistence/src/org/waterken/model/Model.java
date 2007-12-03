@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.model;
 
+import java.io.FileNotFoundException;
+
 import org.ref_send.promise.eventual.Loop;
 
 /**
@@ -27,7 +29,7 @@ Model {
     static public final boolean change = false;
 
     /**
-     * indicates a {@linkplain #enter transaction} will only query existing state
+     * indicates a {@linkplain #enter transaction} only queries existing state
      */
     static public final boolean extend = true;
 
@@ -92,9 +94,11 @@ Model {
      * @param extend either {@link #change} or {@link #extend}
      * @param body transaction body
      * @return <code>body</code>'s return
+     * @throws FileNotFoundException    model no longer exists
      * @throws Exception any exception thrown from the <code>body</code>
      * @throws Error any problem in processing the transaction
      */
     public abstract <R> R
-    enter(boolean extend, Transaction<R> body) throws Exception, Error;
+    enter(boolean extend, Transaction<R> body) throws FileNotFoundException,
+                                                      Exception, Error;
 }
