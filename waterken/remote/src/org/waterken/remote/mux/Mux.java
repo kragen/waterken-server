@@ -3,6 +3,7 @@
 package org.waterken.remote.mux;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
@@ -56,14 +57,13 @@ Mux {
                         }
                         folder = Filesystem.file(folder, name);
                     }
-
-                    // check that folder still exists
-                    if (!folder.isDirectory()) {
+                    try {
+                        server = remoting.remote(next,
+                            URI.scheme(null, resource), JODB.connect(folder));
+                    } catch (final FileNotFoundException e) {
                         respond.reject(Failure.gone());
                         return;
                     }
-                    server = remoting.remote(next, URI.scheme(null, resource),
-                                             JODB.connect(folder));
                 } else {
                     server = next;
                 }

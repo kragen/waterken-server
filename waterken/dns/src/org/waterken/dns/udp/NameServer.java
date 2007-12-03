@@ -132,10 +132,9 @@ NameServer {
                 // see if we've got any answers
                 final PowerlessArray<Resource> answers;
                 try {
-                    final File db = file(master, qname.toLowerCase());
-                    if (!db.isDirectory()) {throw new FileNotFoundException();}
-                    answers = JODB.connect(db).enter(Model.extend,
-                              new Transaction<PowerlessArray<Resource>>() {
+                    answers = JODB.connect(file(master, qname.toLowerCase())).
+                            enter(Model.extend,
+                                  new Transaction<PowerlessArray<Resource>>() {
                         public PowerlessArray<Resource>
                         run(final Root local) throws Exception {
                             final Domain face =
@@ -143,7 +142,7 @@ NameServer {
                             return face.getAnswers();
                         }
                     });
-                } catch (final Exception e) {
+                } catch (final FileNotFoundException e) {
                     header[3] |= 3; // set the RCODE to Name Error
                     respond.fulfill(ByteArray.array(header));
                     return;

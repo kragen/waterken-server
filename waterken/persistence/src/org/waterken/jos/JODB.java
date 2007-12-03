@@ -5,6 +5,7 @@ package org.waterken.jos;
 import static org.joe_e.file.Filesystem.file;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -64,7 +65,7 @@ JODB extends Model {
     private final File folder;
 
     private
-    JODB(final File folder, final Loop<Service> service) throws Exception {
+    JODB(final File folder, final Loop<Service> service) {
         super(service);
         this.folder = folder;
     }
@@ -90,11 +91,16 @@ JODB extends Model {
      * Opens an existing, but not yet open, model.
      * @param id        persistence folder
      * @param service   {@link #service}
-     * @throws IOException  <code>folder</code> is not a persistence folder
+     * @throws FileNotFoundException    <code>id</code> not a persistence folder
      */
     static public Model
-    open(final File id, final Loop<Service> service) throws Exception {
-        final File folder = id.getCanonicalFile();
+    open(final File id,
+         final Loop<Service> service) throws FileNotFoundException {
+        final File folder;
+        try {
+            folder = id.getCanonicalFile();
+        } catch (final IOException e) { throw new ModelError(e); }
+        if (!folder.isDirectory()) { throw new FileNotFoundException(); }
         synchronized (live) {
             if (null != live.fetch(null,folder)) { throw new AssertionError(); }
             return load(folder, service);
@@ -110,11 +116,15 @@ JODB extends Model {
      * {@link Concurrent#loop concurrent} {@link #service} loop.
      * </p>
      * @param id    persistence folder
-     * @throws IOException  <code>folder</code> is not a persistence folder
+     * @throws FileNotFoundException    <code>id</code> not a persistence folder
      */
     static public Model
-    connect(final File id) throws Exception {
-        final File folder = id.getCanonicalFile();
+    connect(final File id) throws FileNotFoundException {
+        final File folder;
+        try {
+            folder = id.getCanonicalFile();
+        } catch (final IOException e) { throw new ModelError(e); }
+        if (!folder.isDirectory()) { throw new FileNotFoundException(); }
         synchronized (live) {
             final JODB r = live.fetch(null, folder);
             if (null != r) { return r; }
@@ -125,9 +135,10 @@ JODB extends Model {
     }
 
     static private Model
-    load(final File folder, final Loop<Service> service) throws Exception {
+    load(final File folder,
+         final Loop<Service> service) throws FileNotFoundException {
         if (!folder.equals(dbDir) && !folder.getPath().startsWith(dbDirPath)) {
-            throw new IOException();
+            throw new FileNotFoundException();
         }
 
         // The caller has read/write access to a raw persistence folder,
