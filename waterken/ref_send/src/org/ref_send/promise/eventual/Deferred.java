@@ -60,7 +60,7 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
      * @param arg       each invocation argument
      * @return eventual reference for the invocation return
      */
-    @SuppressWarnings("unchecked") public Object
+    public Object
     invoke(final Object proxy, final Method method,
            final Object[] arg) throws Exception {
         if (Object.class == method.getDeclaringClass()) {
@@ -77,13 +77,13 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
             class Invoke extends Do<T,Object> implements Serializable {
                 static private final long serialVersionUID = 1L;
     
-                public Object
+                public @SuppressWarnings("unchecked") Object
                 fulfill(final T object) throws Exception {
                     // AUDIT: call to untrusted application code
                     return Reflection.invoke(method,
                         object instanceof Deferred
                             ? _.cast(method.getDeclaringClass(),
-                                     (Deferred)object)
+                                     (Deferred<T>)object)
                         : object, null == argv
                             ? null
                         : argv.toArray(new Object[argv.length()]));
