@@ -149,7 +149,8 @@ Serve {
                                 j.nextElement().getInetAddresses();
                                                      k.hasMoreElements();) {
                 final InetAddress a = k.nextElement();
-                if (a instanceof Inet4Address && !a.isLoopbackAddress()) {
+                if (a instanceof Inet4Address &&
+                        !a.isLoopbackAddress() && !a.isSiteLocalAddress()) {
                     return a;
                 }
             }
