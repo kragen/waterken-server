@@ -21,7 +21,7 @@ import org.waterken.thread.Concurrent;
 import org.waterken.uri.URI;
 
 /**
- * 
+ * The HTTP gateway for this JVM.
  */
 final class
 Proxy extends Struct implements Server, Serializable {
