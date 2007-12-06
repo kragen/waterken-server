@@ -19,7 +19,7 @@ Entity implements Promise<Entity>, Powerless, Selfless, Serializable {
     /**
      * maximum number of bytes in {@link #content}
      */
-    static public final long maxContentSize = 64 * 1024;
+    static public final int maxContentSize = 64 * 1024;
 
     /**
      * MIME Media Type
