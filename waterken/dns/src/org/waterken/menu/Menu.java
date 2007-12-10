@@ -20,7 +20,7 @@ Menu<T> {
     getSnapshot();
     
     /**
-     * Generates a new {@link #getEntries entry}.
+     * Generates a new entry.
      */
     Promise<Variable<T>>
     grow();

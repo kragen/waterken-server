@@ -7,8 +7,8 @@ import org.ref_send.Record;
 import org.ref_send.deserializer;
 
 /**
- * Signals an attempt to {@linkplain Menu#grow add} too many
- * {@linkplain Menu#getEntries entries} to a {@link Menu}.
+ * Signals an attempt to {@linkplain Menu#grow add} too many entries to a
+ * {@link Menu}.
  */
 public class
 TooMany extends RuntimeException implements Powerless, Record {
