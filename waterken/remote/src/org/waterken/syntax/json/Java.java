@@ -15,7 +15,6 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
-import org.joe_e.Token;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
 import org.waterken.id.Exporter;
@@ -259,11 +258,10 @@ Java {
         new Alias(RuntimeException.class, "Error"),
         new Alias(Method.class, "function"),
         new Alias(Type.class, "class"),
-        new Alias(Token.class, "org.ref_send.Permission"),
-        new Alias(ClassCastException.class, "org.ref_send.Forgery"),
+        new Alias(ClassCastException.class, "org.ref-send.Forgery"),
         new Alias(NullPointerException.class,
-                  "org.ref_send.promise.Indeterminate"),
-        new Alias(Runnable.class, "org.ref_send.Action"),
+                  "org.ref-send.promise.Indeterminate"),
+        new Alias(Runnable.class, "org.ref-send.Action"),
         new Alias(org.joe_e.array.ConstArray.class, "array")
     );
     
@@ -272,7 +270,7 @@ Java {
         for (final Alias a : custom) {
             if (type == a.type) { return a.name; }
         }
-        return type.getName().replace('$', '-');
+        return type.getName().replace('_', '-').replace('$', '_');
     }
     
     static Class
@@ -299,6 +297,6 @@ Java {
             ? short.class
         : ("void".equals(name)
             ? void.class
-        : code.loadClass(name.replace('-', '$'))))))))));
+        : code.loadClass(name.replace('_', '$').replace('-', '_'))))))))));
     }
 }
