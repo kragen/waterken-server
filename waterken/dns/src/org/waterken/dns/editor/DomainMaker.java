@@ -7,6 +7,7 @@ import static org.ref_send.var.Variable.var;
 
 import java.io.Serializable;
 
+import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
@@ -56,7 +57,7 @@ DomainMaker {
     
     static final class
     ResourceVariableFactory extends Factory<Variable<Resource>>
-                            implements Serializable {
+                            implements Powerless, Serializable {
         static private final long serialVersionUID = 1L;
 
         public Variable<Resource>
