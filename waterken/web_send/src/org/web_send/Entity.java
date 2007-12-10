@@ -7,13 +7,12 @@ import java.io.Serializable;
 import org.joe_e.Powerless;
 import org.joe_e.Selfless;
 import org.joe_e.array.ByteArray;
-import org.ref_send.promise.Promise;
 
 /**
  * A MIME entity.
  */
 public final class
-Entity implements Promise<Entity>, Powerless, Selfless, Serializable {
+Entity implements Powerless, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -65,12 +64,4 @@ Entity implements Promise<Entity>, Powerless, Selfless, Serializable {
      */
     public int
     hashCode() { return 0x313E817E + type.hashCode() + content.hashCode(); }
-    
-    // org.ref_send.promise.Volatile interface
-
-    /**
-     * @return <code>this</code>
-     */
-    public Entity
-    cast() { return this; }
 }

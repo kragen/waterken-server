@@ -51,6 +51,7 @@ Report {
         final HashMap<String,Total> total = new HashMap<String,Total>();
 
         out.println("--- Files ( filename, length, typename) ---");
+        final int minFilenameWidth = 26 + JODB.ext.length();
         final ClassLoader code = JODB.application(folder);
         folder.listFiles(new FileFilter() {
             public boolean
@@ -58,6 +59,9 @@ Report {
                 if (!file.getName().endsWith(JODB.ext)) { return false; }
                 
                 out.print(file.getName());
+                for (int n= minFilenameWidth-file.getName().length(); 0 < n--;){
+                    out.print(' ');
+                }
                 out.print('\t');
                 out.print(file.length());
                 out.print('\t');
@@ -79,8 +83,14 @@ Report {
                     };
                     final Object x = in.readObject();
                     in.close();
-                    if (null != x) { type[0] = x.getClass(); }
-                    typename = type[0].getName();
+                    if (x instanceof SymbolicLink) {
+                        final Object sx = ((SymbolicLink)x).target;
+                        final Class sxt = null!=sx ? sx.getClass() : type[0];
+                        typename = "-> " + sxt.getName();
+                    } else {
+                        if (null != x) { type[0] = x.getClass(); }
+                        typename = type[0].getName();
+                    }
                 } catch (final Exception e) {
                     typename = "<broken>";
                 }

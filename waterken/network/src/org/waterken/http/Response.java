@@ -81,4 +81,15 @@ Response extends Struct implements Record, Serializable {
     getContentLength() {
         return Integer.parseInt(Header.find("-1", header, "Content-Length"));
     }
+    
+    /**
+     * Creates a response with an additional header.
+     * @param name  header name
+     * @param value header value
+     */
+    public Response
+    with(final String name, final String value) {
+        return new Response(version, status, phrase,
+                            header.with(new Header(name, value)), body);
+    }
 }

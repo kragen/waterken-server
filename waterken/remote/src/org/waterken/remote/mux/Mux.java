@@ -25,6 +25,9 @@ import org.web_send.Failure;
 public final class
 Mux {
     
+    private
+    Mux() {}
+    
     /**
      * URI sub-hierarchy for persistent databases
      */

@@ -22,6 +22,7 @@ import org.waterken.model.Root;
 import org.waterken.model.Transaction;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
+import org.web_send.graph.Collision;
 
 /**
  * A transient, homeless client.
@@ -88,15 +89,15 @@ Browser extends Struct implements Record, Serializable {
                 }
                 return otherwise;
             }
+            
+            public String
+            tag(final String name) { return null; }
 
             public void
-            store(final String name, final Object value) {
+            link(final String name, final Object value) throws Collision {
                 final String key = name.toLowerCase();
                 for (final Binding x : bound) {
-                    if (x.key.equals(key)) {
-                        x.value = value;
-                        return;
-                    }
+                    if (x.key.equals(key)) { throw new Collision(); }
                 }
                 bound.add(new Binding(key, value));
             }
@@ -114,20 +115,20 @@ Browser extends Struct implements Record, Serializable {
                 return body.run(local);
             }
         };
-        local.store(Root.code, code);
-        local.store(Root.destruct, new Runnable() {
+        local.link(Root.code, code);
+        local.link(Root.destruct, new Runnable() {
             public void
             run() { throw new Error(); }
         });
-        local.store(Root.effect, enqueue);
-        local.store(Root.enqueue, enqueue);
-        local.store(Root.model, model);
-        local.store(Root.nothing, null);
-        local.store(Root.prng, prng);
-        local.store(Remoting._, _);
-        local.store(Remoting.client, client);
-        local.store(Remoting.deferred, deferred);
-        local.store(AMP.outbound, new Outbound());
+        local.link(Root.effect, enqueue);
+        local.link(Root.enqueue, enqueue);
+        local.link(Root.model, model);
+        local.link(Root.nothing, null);
+        local.link(Root.prng, prng);
+        local.link(Remoting._, _);
+        local.link(Remoting.client, client);
+        local.link(Remoting.deferred, deferred);
+        local.link(AMP.outbound, new Outbound());
         return new Browser(_,
                            Remote.use(local),
                            Remote.bind(local, null));

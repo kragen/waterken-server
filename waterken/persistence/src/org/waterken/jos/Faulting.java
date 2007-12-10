@@ -7,14 +7,13 @@ import org.waterken.model.Root;
 
 /**
  * An object faulting promise.
- * @param <T> referent type
  */
 final class
-Faulting<T> extends Fulfilled<T>  {
+Faulting extends Fulfilled<Object>  {
     static private final long serialVersionUID = 1L;
 
-    final Root root;
-    final String name;
+    private final Root root;
+    private final String name;
 
     Faulting(final Root root, final String name) {
         super(null);
@@ -38,6 +37,6 @@ Faulting<T> extends Fulfilled<T>  {
 
     // org.ref_send.promise.Volatile interface
 
-    @SuppressWarnings("unchecked") public T
-    cast() { return (T)root.fetch(null, name); }
+    public Object
+    cast() { return root.fetch(null, name); }
 }

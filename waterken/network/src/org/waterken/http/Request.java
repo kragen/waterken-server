@@ -116,6 +116,25 @@ Request extends Struct implements Content, Record, Serializable {
     }
     
     /**
+     * Does the client already have the current version of a resource?
+     * @param etag  entity-tag for the current version of the resource.
+     * @return <code>true</code> if the client should use its cached version,
+     *         else <code>false</code>
+     */
+    public boolean
+    hasVersion(final String etag) {
+        final StringBuilder ifNoneMatch = new StringBuilder();
+        for (final Header h : header) {
+            if ("If-None-Match".equalsIgnoreCase(h.name)) {
+                if (ifNoneMatch.length() != 0) { ifNoneMatch.append(","); }
+                ifNoneMatch.append(h.value);
+            }
+        }
+        final String cached = ifNoneMatch.toString();
+        return -1 != cached.indexOf(etag) || "*".equals(cached);
+    }
+    
+    /**
      * Constructs a <code>TRACE</code> response.
      */
     public Response

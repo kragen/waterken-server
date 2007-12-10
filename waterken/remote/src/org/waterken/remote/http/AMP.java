@@ -35,6 +35,7 @@ import org.web_send.graph.Collision;
 import org.web_send.graph.Framework;
 import org.web_send.graph.Publisher;
 import org.web_send.graph.Spawn;
+import org.web_send.graph.Unavailable;
 
 /**
  * HTTP web-AMP implementation
@@ -46,7 +47,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
     /**
      * MIME Media-Type for marshalled arguments
      */
-    static /* package */ final String contentType = "application/jsonrequest";
+    static protected final String contentType = "application/jsonrequest";
     
     // org.waterken.remote.Remoting interface
 
@@ -134,9 +135,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
             public void
             bind(final String name, final Object value) throws Collision {
                 vet(name);
-                final Token x = new Token();
-                if (x != mother.fetch(x, name)) { throw new Collision(); }
-                mother.store(name, value);
+                mother.link(name, value);
             }
 
             @SuppressWarnings("unchecked") public <T> T
@@ -156,17 +155,17 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                     run(final Root local) throws Exception {
                         final String here =
                             base + URLEncoding.encode(local.getModelName())+"/";
-                        local.store(Remoting.here, here);
+                        local.link(Remoting.here, here);
                         if (null != client) {
-                            local.store(Remoting.client, client);
-                            local.store(Root.wake, new Wake());
-                            local.store(outbound, new Outbound());
+                            local.link(Remoting.client, client);
+                            local.link(Root.wake, new Wake());
+                            local.link(outbound, new Outbound());
                         }
                         final Token deferred = new Token();
-                        local.store(Remoting.deferred, deferred);
+                        local.link(Remoting.deferred, deferred);
                         final Eventual _ = new Eventual(deferred,
                             (Loop)local.fetch(null, Root.enqueue));
-                        local.store(Remoting._, _);
+                        local.link(Remoting._, _);
                         final Publisher publisher = publish(local);
                         final Framework framework = new Framework(
                             _,
@@ -184,10 +183,10 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
             
             private void
             vet(final String name) throws Collision {
-                if (name.startsWith(".")) { throw new Collision(); }
+                if (name.startsWith(".")) { throw new Unavailable(); }
                 for (int i = name.length(); i-- != 0;) {
                     if (disallowed.indexOf(name.charAt(i)) != -1) {
-                        throw new Collision();
+                        throw new Unavailable();
                     }
                 }
             }
@@ -196,7 +195,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
     }
 
     static private final class
-    Wake extends Struct implements Transaction<Void>, Serializable {
+    Wake extends Struct implements Transaction<Void>, Powerless, Serializable {
         static private final long serialVersionUID = 1L;
 
         public Void
@@ -209,5 +208,5 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
         }
     }
     
-    static /* package */ final String outbound = ".outbound";
+    static protected final String outbound = ".outbound";
 }

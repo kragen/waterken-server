@@ -129,7 +129,7 @@ HTTP extends Struct implements Messenger, Serializable {
         Pipeline msgs = (Pipeline)local.fetch(null, peerKey);
         if (null == msgs) {
             msgs = new Pipeline(peer, local);
-            local.store(peerKey, msgs);
+            local.link(peerKey, msgs);
         }
         return new Caller(msgs, local);
     }

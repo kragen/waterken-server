@@ -10,14 +10,12 @@ import org.joe_e.array.ByteArray;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.promise.Promise;
 
 /**
  * A DNS resource record.
  */
 public class
-Resource extends Struct
-         implements Promise<Resource>, Powerless, Record, Serializable {
+Resource extends Struct implements Powerless, Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -31,12 +29,12 @@ Resource extends Struct
     static public final short IN = 1;
     
     /**
-     * RR type code
+     * RR type code, such as {@link #A}
      */
     public final short type;
     
     /**
-     * class of {@link #data}
+     * class of {@link #data}, such as {@link #IN}
      */
     public final short clazz;
     
@@ -67,12 +65,4 @@ Resource extends Struct
         this.ttl = ttl;
         this.data = data;
     }
-    
-    // org.ref_send.promise.Promise interface
-    
-    /**
-     * @return <code>this</code>
-     */
-    public Resource
-    cast() { return this; }
 }

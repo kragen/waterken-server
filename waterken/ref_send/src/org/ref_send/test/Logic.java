@@ -2,17 +2,17 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.test;
 
-import static org.ref_send.Slot.var;
 import static org.ref_send.promise.Fulfilled.ref;
+import static org.ref_send.var.Variable.var;
 
 import java.io.Serializable;
 
-import org.ref_send.Slot;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.var.Variable;
 
 /**
  * Test condition operations.
@@ -49,7 +49,7 @@ Logic {
     and(final Eventual _, final Volatile<Boolean>... condition) {
         if (0 == condition.length) { return ref(true); }
         final Channel<Boolean> answer = _.defer();
-        final Slot<Integer> todo = var(condition.length);
+        final Variable<Integer> todo = var(condition.length);
         for (final Volatile<Boolean> test : condition) {
             class AND extends Do<Boolean,Void> implements Serializable {
                 static private final long serialVersionUID = 1L;
@@ -57,7 +57,7 @@ Logic {
                 public Void
                 fulfill(final Boolean value) {
                     if (value) {
-                        todo.put(todo.get() - 1);
+                        todo.set(todo.get() - 1);
                         if (0 == todo.get()) {
                             answer.resolver.fulfill(true);
                         }

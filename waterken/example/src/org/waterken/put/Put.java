@@ -2,11 +2,11 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.put;
 
-import static org.ref_send.Slot.var;
 import static org.ref_send.promise.Fulfilled.ref;
+import static org.ref_send.var.Variable.var;
 
-import org.ref_send.Variable;
-import org.ref_send.promise.Volatile;
+import org.ref_send.promise.Promise;
+import org.ref_send.var.Variable;
 import org.web_send.graph.Framework;
 
 /**
@@ -22,17 +22,12 @@ Put {
      * Constructs an instance.
      * @param framework model framework
      */
-    static public Variable<Volatile<Byte>>
-    build(final Framework framework) {
-        return make();
-    }
+    static public Promise<Variable<Byte>>
+    build(final Framework framework) { return ref(make()); }
     
     /**
      * Constructs an instance.
      */
-    static public Variable<Volatile<Byte>>
-    make() {
-        final Volatile<Byte> zero = ref((byte)0);
-        return var(zero);
-    }
+    static public Variable<Byte>
+    make() { return var((byte)0); }
 }

@@ -7,7 +7,7 @@ import java.io.Serializable;
 import org.joe_e.Struct;
 
 /**
- * A {@link Root} binding.
+ * A {@link Root} {@linkplain Root#link binding}.
  */
 final class
 SymbolicLink extends Struct implements Serializable {

@@ -17,11 +17,10 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 
 import org.joe_e.file.Filesystem;
-import org.ref_send.Variable;
-import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
+import org.ref_send.var.Variable;
 import org.waterken.dns.Resource;
 import org.waterken.dns.editor.DomainMaster;
 import org.waterken.dns.editor.redirectory.Redirectory;
@@ -239,11 +238,10 @@ GenKey {
                        out.close();
                        
                        // setup an IP updater
-                       _.when(master.answers.add(),
-                         new Do<Variable<? extends Promise<Resource>>,Void>() {
+                       _.when(master.answers.grow(),
+                              new Do<Variable<Resource>,Void>() {
                           public Void
-                          fulfill(final Variable<? extends Promise<Resource>> a)
-                                                              throws Exception {
+                          fulfill(final Variable<Resource> a) throws Exception {
                                final File ip = new File("ip.json");
                                final OutputStream out = Filesystem.writeNew(ip);
                                new JSONSerializer().run(Serializer.render,

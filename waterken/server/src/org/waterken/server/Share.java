@@ -89,15 +89,17 @@ Share {
                         }
 
                         public void
-                        store(final String name, final Object value) {
-                            throw new AssertionError();
-                        }
+                        link(final String name,
+                             final Object value) { throw new AssertionError(); }
 
                         public String
                         export(final Object value) {throw new AssertionError();}
 
                         public String
                         pipeline(final String m) { throw new AssertionError(); }
+
+                        public String
+                        tag(final String name) { throw new AssertionError(); }
                     };
                     final Creator creator =
                         (Creator)local.fetch(null, Root.creator);

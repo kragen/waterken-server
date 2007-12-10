@@ -138,7 +138,7 @@ Eventual implements Equatable, Serializable {
     /**
      * {@link Deferred} permission
      */
-    /* package */ final Token deferred;
+    protected final Token deferred;
 
     /**
      * Schedules a task for execution in a future turn.

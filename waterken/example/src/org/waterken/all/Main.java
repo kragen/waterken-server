@@ -8,11 +8,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import org.joe_e.Struct;
-import org.ref_send.Variable;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.test.Test;
+import org.ref_send.var.Variable;
 import org.waterken.bang.Bang;
 import org.waterken.bang.Drum;
 import org.waterken.bounce.Bounce;
@@ -61,8 +60,8 @@ Main extends Struct implements Test, Serializable {
         final Drum drum_ = framework.publisher.spawn("drum", Bang.class);
         r.add(new org.waterken.bang.Main(_).test(drum_, 0));
         
-        final Variable<Volatile<Byte>> slot_ = framework.spawn.run(Put.class);
-        r.add(new org.waterken.put.Main(_).test(slot_, (byte)0));
+        final Promise<Variable<Byte>> slot = framework.spawn.run(Put.class);
+        r.add(new org.waterken.put.Main(_).test(slot, (byte)0));
 
         return and(_, r.toArray(new Promise[r.size()]));
     }

@@ -41,7 +41,6 @@ Slicer extends ObjectOutputStream {
         } else if (Constructor.class == type){
             x = new ConstructorWrapper((Constructor)x);
         } else if (value == x) {
-        } else if (null == x) {
         } else if (Fulfilled.class == type) {
             x = new Faulting(root, root.export(((Fulfilled)x).cast()));
         } else if (!inline(x)) {

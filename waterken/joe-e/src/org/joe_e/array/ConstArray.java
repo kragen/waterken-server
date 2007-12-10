@@ -244,4 +244,11 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
         newArr[arr.length] = newE;
         return new ConstArray<E>(newArr);       
     }
+    
+    public ConstArray<E> without(final int i) {
+        final Object[] newArr = new Object[arr.length - 1];
+        System.arraycopy(arr, 0, newArr, 0, i);
+        System.arraycopy(arr, i + i, newArr, i, newArr.length - i);
+        return new ConstArray<E>(newArr);
+    }
 }

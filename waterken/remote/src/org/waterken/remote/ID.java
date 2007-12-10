@@ -5,10 +5,11 @@ package org.waterken.remote;
 import java.io.Serializable;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 
+import org.joe_e.Powerless;
 import org.joe_e.Selfless;
 import org.joe_e.Struct;
-import org.ref_send.Brand;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
 import org.waterken.uri.Path;
@@ -18,7 +19,7 @@ import org.waterken.uri.URI;
  * A foreign identifier.
  */
 final class
-ID<T> implements Brand<T>, Member, Selfless, Serializable {
+ID implements Type, Member, Powerless, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**

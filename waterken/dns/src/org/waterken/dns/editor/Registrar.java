@@ -6,10 +6,10 @@ import org.ref_send.promise.Promise;
 import org.web_send.graph.Collision;
 
 /**
- * An {@link DomainMaster} factory.
+ * A {@link DomainMaster} factory.
  */
 public interface
-Zone {
+Registrar {
 
     /**
      * Creates a new domain.

@@ -58,7 +58,7 @@ TCP implements Runnable {
                         err.println(prefix + ": processing...");
                         socket.setSoTimeout(soTimeout);
                         daemon.accept(socket).run();
-                    } catch (final Exception e) {
+                    } catch (final Throwable e) {
                         err.println(prefix + ": " + e.getMessage());
                     } finally {
                         try { socket.close(); } catch (final Exception e) {}

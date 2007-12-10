@@ -28,7 +28,7 @@ Proxy extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
 
     static private final ThreadGroup threads = new ThreadGroup("HTTP");
-    static /* package */ final Execution thread = new Execution() {
+    static protected final Execution thread = new Execution() {
         public void
         sleep(final long ms) throws InterruptedException { Thread.sleep(ms); }
         
@@ -52,7 +52,7 @@ Proxy extends Struct implements Server, Serializable {
         return r;
     }
 
-    static /* package */ final HashMap<String,Locator> protocols =
+    static protected final HashMap<String,Locator> protocols =
         new HashMap<String,Locator>();
     
     public void

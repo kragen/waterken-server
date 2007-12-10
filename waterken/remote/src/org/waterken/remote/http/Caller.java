@@ -12,7 +12,6 @@ import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.Variable;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
@@ -21,6 +20,7 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Resolver;
 import org.ref_send.type.Typedef;
+import org.ref_send.var.Setter;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.id.Importer;
@@ -120,22 +120,22 @@ Caller extends Struct implements Messenger, Serializable {
     @SuppressWarnings("unchecked") public Object
     invoke(final String URL, final Object proxy,
            final Method method, final Object... arg) {
-        return "put".equals(method.getName()) && proxy instanceof Variable &&
+        return "set".equals(method.getName()) && proxy instanceof Setter &&
                null != arg && 1 == arg.length 
-            ? put(URL, (Variable)proxy, arg[0])
+            ? put(URL, arg[0])
         : (null != Java.property(method)
             ? get(URL, proxy, method)
         : post(URL, proxy, method, arg));
     }
     
     private <T> Void
-    put(final String URL, final Variable<T> proxy, final T arg) {
+    put(final String URL, final T arg) {
         class PUT extends Message implements Update, Query {
             static private final long serialVersionUID = 1L;
 
             Request
             send() throws Exception {
-                return serialize(URI.resolve(URL, "?p=put&s="+Exports.key(URL)),
+                return serialize(URI.resolve(URL, "?p=set&s="+Exports.key(URL)),
                                  ConstArray.array(new Object[] { arg }));
             }
 
@@ -147,8 +147,8 @@ Caller extends Struct implements Messenger, Serializable {
 
                         @SuppressWarnings("unchecked") public Void
                         fulfill(final Object object) throws Exception {
-                            ((Variable<T>)_.cast(Variable.class,
-                                    Eventual.promised(object))).put(arg);
+                            ((Setter<T>)_.cast(Setter.class,
+                                    Eventual.promised(object))).set(arg);
                             return null;
                         }
                     }

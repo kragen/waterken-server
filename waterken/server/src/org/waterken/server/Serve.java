@@ -3,6 +3,7 @@
 package org.waterken.server;
 
 import static org.joe_e.file.Filesystem.file;
+import static org.ref_send.promise.Fulfilled.ref;
 import static org.waterken.io.MediaType.MIME;
 
 import java.io.File;
@@ -20,9 +21,10 @@ import java.util.Enumeration;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
-import org.ref_send.Variable;
+import org.ref_send.promise.Promise;
+import org.ref_send.var.Variable;
 import org.waterken.dns.Resource;
-import org.waterken.dns.editor.ResourceSlot;
+import org.waterken.dns.editor.ResourceGuard;
 import org.waterken.dns.udp.NameServer;
 import org.waterken.http.Server;
 import org.waterken.http.mirror.Mirror;
@@ -134,9 +136,8 @@ Serve {
         if (ip.isFile()) {
             final InetAddress a = dynip();
             System.err.println("Updating DNS to: " +a.getHostAddress()+ "...");
-            final ByteArray quad = ByteArray.array(a.getAddress());
-            update(ip).put(new Resource(Resource.A, Resource.IN,
-                                        ResourceSlot.minTTL, quad));
+            update(ip).setter.set(ref(new Resource(Resource.A, Resource.IN,
+                    ResourceGuard.minTTL, ByteArray.array(a.getAddress()))));
         }
     }
     
@@ -159,7 +160,7 @@ Serve {
         return r;
     }
     
-    @SuppressWarnings("unchecked") static private Variable<Resource>
+    @SuppressWarnings("unchecked") static private Variable<Promise<Resource>>
     update(final File ip) throws Exception {
         final ClassLoader code = GenKey.class.getClassLoader();
         final Browser browser = Browser.make(
@@ -167,9 +168,9 @@ Serve {
             Concurrent.loop(Thread.currentThread().getThreadGroup(), "dynip"));
         final InputStream in = Filesystem.read(ip);
         final Type type = Variable.class;
-        final Variable<Resource> updater = (Variable)new JSONDeserializer().
+        final Variable<Promise<Resource>> r = (Variable)new JSONDeserializer().
             run("",browser.connect,code,in,PowerlessArray.array(type)).get(0);
         in.close();
-        return browser._._(updater);
+        return r;
     }
 }

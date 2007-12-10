@@ -117,12 +117,12 @@ Client implements Server {
      */
     
     class Connection implements Outbound {
-        private       SocketAddress mostRecent;
-        private       Outbound retry;
+        private         SocketAddress mostRecent;
+        private         Outbound retry;
         
-        private       Socket socket;
-        /* package */ InputStream in;
-        /* package */ OutputStream out;
+        private         Socket socket;
+        protected       InputStream in;
+        protected       OutputStream out;
         
         Connection(final SocketAddress mostRecent, final Outbound retry) {
             this.mostRecent = mostRecent;
@@ -174,9 +174,9 @@ Client implements Server {
         }
     }
     class Exchange extends Do<Response,Void> {
-        /* package */ final Promise<Request> request;
-        private       final Do<Response,?> respond;
-        private       final Outbound pop;
+        protected final Promise<Request> request;
+        private   final Do<Response,?> respond;
+        private   final Outbound pop;
         
         Exchange(final Promise<Request> request,
                  final Do<Response,?> respond,

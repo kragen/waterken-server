@@ -191,16 +191,8 @@ Files {
                 }
 
                 // Support conditional GET.
-                final StringBuilder ifNoneMatch = new StringBuilder();
-                for (final Header h : request.header) {
-                    if ("If-None-Match".equalsIgnoreCase(h.name)) {
-                        if (ifNoneMatch.length()!=0) {ifNoneMatch.append(",");}
-                        ifNoneMatch.append(h.value);
-                    }
-                }
-                final String cached = ifNoneMatch.toString();
                 final String etag = tag.run(file);
-                if (-1 != cached.indexOf(etag) || "*".equals(cached)) {
+                if (request.hasVersion(etag)) {
                     respond.fulfill(new Response(
                         "HTTP/1.1", "304", "Not Modified",
                         PowerlessArray.array(

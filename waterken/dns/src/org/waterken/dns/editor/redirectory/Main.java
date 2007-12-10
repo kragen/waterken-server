@@ -7,11 +7,11 @@ import java.io.Serializable;
 import org.joe_e.Struct;
 import org.ref_send.promise.Promise;
 import org.waterken.dns.editor.DomainMaster;
-import org.waterken.dns.editor.Zone;
-import org.waterken.dns.editor.ZoneMaster;
+import org.waterken.dns.editor.Registrar;
+import org.waterken.dns.editor.RegistrarMaker;
 import org.waterken.uri.Label;
-import org.web_send.graph.Collision;
 import org.web_send.graph.Framework;
+import org.web_send.graph.Unavailable;
 
 /**
  * A {@link Redirectory} implementation.
@@ -42,28 +42,28 @@ Main extends Struct implements Serializable {
     // org.waterken.dns.editor.redirectory.Main interface
     
     static private final String prefix = "y-";
-    static private final int MINCHARS = prefix.length() + 80 / 5;
+    static private final int minChars = prefix.length() + 80 / 5;
     
     /**
      * Creates a zone and publishes the redirectory interface.
      * @param suffix    hostname suffix
      * @return created zone
      */
-    public Zone
+    public Registrar
     publish(final String suffix) {
-        final Zone zone = ZoneMaster.build(framework);
+        final Registrar registrar = RegistrarMaker.build(framework);
         class RedirectoryX extends Struct implements Redirectory, Serializable {
             static private final long serialVersionUID = 1L;
 
             public Promise<DomainMaster>
-            register(final String fingerprint) throws Collision {
-                if (!fingerprint.startsWith(prefix)) { throw new Collision(); }
-                if (fingerprint.length() < MINCHARS) { throw new Collision(); }
+            register(final String fingerprint) {
+                if (!fingerprint.startsWith(prefix)) {throw new Unavailable();}
+                if (fingerprint.length() < minChars) {throw new Unavailable();}
                 Label.vet(fingerprint);
-                return zone.claim(fingerprint + suffix);
+                return registrar.claim(fingerprint + suffix);
             }
         }
         framework.publisher.bind("redirectory", new RedirectoryX());
-        return zone;
+        return registrar;
     }
 }

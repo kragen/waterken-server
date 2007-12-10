@@ -3,12 +3,12 @@
 package org.waterken.remote;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.security.SecureRandom;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
-import org.ref_send.Brand;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
@@ -23,6 +23,7 @@ import org.waterken.syntax.json.Java;
 import org.waterken.uri.Path;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
+import org.web_send.Entity;
 
 /**
  * A web-key interface to a {@link Root}.
@@ -109,10 +110,11 @@ Exports extends Struct implements Serializable {
             public String
             run(final Object object) {
                 final String key = local.export(object);
-                return object instanceof Brand.Local
+                return object instanceof Type
                     ? key
                 : (object instanceof Volatile ||
                         null == object || Java.isPBC(object.getClass()) ||
+                        object instanceof Entity ||
                         !(Eventual.promised(object) instanceof Fulfilled)
                     ? "./?src=." : "./") + "#" + key; 
             }
@@ -137,23 +139,30 @@ Exports extends Struct implements Serializable {
     reply() { return Java.export(ID.export(export())); }
     
     /**
+     * Calls {@link Root#tag}.
+     * @param name  name of the binding
+     * @return corresponding state tag, or <code>null</code> if none
+     */
+    public String
+    tag(final String name) { return local.tag(name); }
+    
+    /**
      * Does an operation at most once.
-     * @param <P> operand type
-     * @param <R> return type
      * @param mid   {@link #mid}, or <code>null</code> for idempotent operator
      * @param p     operand
      * @param op    operator
      * @return <code>op</code> return
      * @throws Exception    any exception produced by the <code>op</code>
      */
-    @SuppressWarnings("unchecked") public <P,R> R
-    once(final String mid, final P p, final Do<P,R> op) throws Exception {
+    public Object
+    once(final String mid, final Object p,
+         final Do<Object,Object> op) throws Exception {
         final String pipe = null == mid ? null : local.pipeline(mid);
         final Token pumpkin = new Token();
-        R r = (R)(null == pipe ? pumpkin : local.fetch(pumpkin, pipe));
+        Object r = null == pipe ? pumpkin : local.fetch(pumpkin, pipe);
         if (pumpkin == r) {
             r = op.fulfill(p);
-            if (null != pipe) { local.store(pipe, r); }
+            if (null != pipe) { local.link(pipe, r); }
         }
         return r;
     }
@@ -176,20 +185,9 @@ Exports extends Struct implements Serializable {
             return R.isInstance(response) ? (R)response : _.cast(R, response);
         }
         final String pipe = local.pipeline(mid);
-        local.store(pipe, response);
-        return (R)Remote.use(local).run(R, href(base, pipe, here));
-    }
-    
-    /**
-     * Constructs a pipeline web-key.
-     * @param dst   target model URL
-     * @param key   pipeline key
-     * @param src   local model URL
-     */
-    static private String
-    href(final String dst, final String key, final String src) {
-        return URI.resolve(dst,
-            "./?src=" + URLEncoding.encode(URI.relate(dst, src)) + "#" + key);
+        local.link(pipe, response);
+        return (R)Remote.use(local).run(R, URI.resolve(base,
+            "./?src=" + URLEncoding.encode(URI.relate(base, here)) + "#"+pipe));
     }
 
     /**

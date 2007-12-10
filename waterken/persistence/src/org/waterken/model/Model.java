@@ -68,7 +68,7 @@ Model {
      * If {@link #extend} is specified, the implementation MUST check that no
      * existing state was modified. If state was modified, the transaction MUST
      * be aborted, in the same manner described previously.
-     * {@linkplain Root#store Storing} a new {@link Root root} binding is
+     * {@linkplain Root#link Linking} a new {@link Root root} value is
      * considered a modification.
      * </p>
      * <p>
@@ -76,7 +76,7 @@ Model {
      * in the model beyond completion of the transaction. The model
      * implementation can rely on the <code>body</code> being well-behaved in
      * this respect. An identifier for an object in the model may be retained
-     * across transactions by either {@linkplain Root#store storing}, or
+     * across transactions by either {@linkplain Root#link linking}, or
      * {@linkplain Root#export exporting} it.
      * </p>
      * <p>

@@ -10,18 +10,20 @@ import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
-import org.ref_send.Variable;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
+import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.test.Test;
+import org.ref_send.var.Setter;
+import org.ref_send.var.Variable;
 import org.web_send.graph.Framework;
 
 /**
- * A {@link Variable} test.
+ * A {@link Setter} test.
  */
 public final class
 Main extends Struct implements Test, Serializable {
@@ -76,27 +78,39 @@ Main extends Struct implements Test, Serializable {
      * Starts a {@link #test test}.
      */
     public Promise<Boolean>
-    start() throws Exception { return test(subject(), (byte)0); }
+    start() throws Exception { return test(ref(subject()), (byte)0); }
     
     // org.waterken.put.Main interface
     
     /**
      * Creates a new test subject.
      */
-    public Variable<Volatile<Byte>>
+    public Variable<Byte>
     subject() { return Put.make(); }
+
+    static private final Byte one = 1;
     
     /**
-     * Tests a {@link Variable}.
+     * Tests a {@link Setter}.
      * @param x test subject
-     * @param n initial {@link Variable#get value}
+     * @param n initial {@link org.ref_send.var.Getter#get value}
      */
     public Promise<Boolean>
-    test(final Variable<Volatile<Byte>> x, final Byte n) throws Exception {
-        final Variable<Volatile<Byte>> x_ = _._(x);
-        final Promise<Boolean> zero = _.when(x_.get(), was(n));
-        x_.put(ref((byte)1));
-        final Promise<Boolean> one = _.when(x_.get(), was((byte)1));
-        return and(_, zero, one);
+    test(final Volatile<Variable<Byte>> x, final Byte n) {
+        class Test extends Do<Variable<Byte>,Promise<Boolean>>
+                   implements Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public Promise<Boolean>
+            fulfill(final Variable<Byte> v) {
+                final Promise<Boolean> before =
+                    _.when(_._(v.getter).get(), was(n));
+                _._(v.setter).set(one);
+                final Promise<Boolean> after =
+                    _.when(_._(v.getter).get(), was(one));
+                return and(_, before, after);
+            }
+        }
+        return _.when(x, new Test());
     }
 }

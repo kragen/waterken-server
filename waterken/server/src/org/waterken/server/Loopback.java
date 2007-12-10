@@ -24,7 +24,7 @@ Loopback {
     private
     Loopback() {}
     
-    static /*package*/ final InetAddress addr;
+    static protected final InetAddress addr;
     static {
         try {
             addr = InetAddress.getByAddress(new byte[] { 127, 0, 0, 1 });
