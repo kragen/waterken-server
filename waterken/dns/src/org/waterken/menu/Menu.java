@@ -4,31 +4,24 @@ package org.waterken.menu;
 
 import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Promise;
+import org.ref_send.var.Variable;
 
 /**
- * An editable list of values.
+ * An editable list of {@link Variable}s.
  * @param <T> value type
  */
 public interface
 Menu<T> {
 
     /**
-     * Gets the entries.
+     * Gets a snapshot of the current variable values.
      */
     Promise<ConstArray<T>>
-    getEntries();
+    getSnapshot();
     
     /**
      * Generates a new {@link #getEntries entry}.
-     * @return new entry
      */
-    Promise<T>
+    Promise<Variable<T>>
     grow();
-    
-    /**
-     * Removes an {@link #getEntries entry}.
-     * @param index index of {@link #getEntries entry} to be removed
-     */
-    void
-    remove(int index);
 }

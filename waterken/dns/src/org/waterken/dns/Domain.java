@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.dns;
 
-import org.joe_e.array.PowerlessArray;
+import org.joe_e.array.ConstArray;
 
 /**
  * The public information about a hostname.
@@ -18,6 +18,6 @@ Domain {
     /**
      * Gets the standard query response.
      */
-    PowerlessArray<Resource>
+    ConstArray<Resource>
     getAnswers();
 }

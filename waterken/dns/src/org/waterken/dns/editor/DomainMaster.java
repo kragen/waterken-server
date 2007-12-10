@@ -8,7 +8,6 @@ import org.joe_e.Struct;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.var.Variable;
 import org.waterken.dns.Domain;
 import org.waterken.dns.Resource;
 import org.waterken.menu.Menu;
@@ -28,7 +27,7 @@ DomainMaster extends Struct implements Record, Serializable {
     /**
      * {@link Domain#getAnswers() answers} editor
      */
-    public final Menu<Variable<Resource>> answers;
+    public final Menu<Resource> answers;
     
     /**
      * additional domain management features
@@ -43,7 +42,7 @@ DomainMaster extends Struct implements Record, Serializable {
      */
     public @deserializer
     DomainMaster(@name("destruct") final Runnable destruct,
-                 @name("answers") final Menu<Variable<Resource>> answers,
+                 @name("answers") final Menu<Resource> answers,
                  @name("extension") final Extension extension) {
         this.destruct = destruct;
         this.answers = answers;

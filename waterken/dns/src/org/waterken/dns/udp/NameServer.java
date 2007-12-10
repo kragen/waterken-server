@@ -12,7 +12,7 @@ import java.net.SocketAddress;
 
 import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
-import org.joe_e.array.PowerlessArray;
+import org.joe_e.array.ConstArray;
 import org.joe_e.charset.ASCII;
 import org.ref_send.promise.eventual.Do;
 import org.waterken.dns.Domain;
@@ -130,12 +130,12 @@ NameServer {
                 }
                 
                 // see if we've got any answers
-                final PowerlessArray<Resource> answers;
+                final ConstArray<Resource> answers;
                 try {
                     answers = JODB.connect(file(master, qname.toLowerCase())).
                             enter(Model.extend,
-                                  new Transaction<PowerlessArray<Resource>>() {
-                        public PowerlessArray<Resource>
+                                  new Transaction<ConstArray<Resource>>() {
+                        public ConstArray<Resource>
                         run(final Root local) throws Exception {
                             final Domain face =
                                 (Domain)local.fetch(null, Domain.name);

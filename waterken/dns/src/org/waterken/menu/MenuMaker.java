@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.menu;
 
+import static org.joe_e.array.ConstArray.array;
 import static org.ref_send.promise.Fulfilled.ref;
 
 import java.io.Serializable;
@@ -9,6 +10,7 @@ import java.io.Serializable;
 import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Promise;
 import org.ref_send.var.Factory;
+import org.ref_send.var.Variable;
 
 /**
  * A {@link Menu} maker.
@@ -26,27 +28,30 @@ MenuMaker {
      * @param factory       menu entry factory
      */
     static public <T> Menu<T>
-    make(final int maxEntries, final Factory<T> factory) {
+    make(final int maxEntries, final Factory<Variable<T>> factory) {
         class MenuX implements Menu<T>, Serializable {
             static private final long serialVersionUID = 1L;
 
-            private ConstArray<T> entries = ConstArray.array();
+            private ConstArray<Variable<T>> editors = array();
 
             public Promise<ConstArray<T>>
-            getEntries() { return ref(entries); }
-
-            public Promise<T>
-            grow() {
-                final T r = factory.run();
-
-                if (entries.length() == maxEntries) { throw new TooMany(); }
-                entries = entries.with(r);
-                return ref(r);
+            getSnapshot() {
+                final T[] r = alloc(editors.length());
+                int i = 0;
+                for (final Variable<T> x : editors) { r[i++] = x.get(); }
+                return ref(array(r));
             }
+            
+            @SuppressWarnings("unchecked") private T[]
+            alloc(final int length) { return (T[])new Object[length]; }
 
-            public void
-            remove(final int index) {
-                entries = entries.without(index);
+            public Promise<Variable<T>>
+            grow() {
+                final Variable<T> r = factory.run();
+
+                if (editors.length() == maxEntries) { throw new TooMany(); }
+                editors = editors.with(r);
+                return ref(r);
             }
         }
         return new MenuX();

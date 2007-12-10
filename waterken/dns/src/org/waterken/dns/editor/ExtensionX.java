@@ -5,7 +5,6 @@ package org.waterken.dns.editor;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.ref_send.var.Variable;
 import org.waterken.dns.Resource;
 import org.waterken.menu.Menu;
 import org.web_send.graph.Framework;
@@ -21,10 +20,10 @@ ExtensionX extends Struct implements Extension, Serializable {
     private final Framework framework;
     
     @SuppressWarnings("unused")
-    private final Menu<Variable<Resource>> answers;
+    private final Menu<Resource> answers;
     
     ExtensionX(final Framework framework,
-               final Menu<Variable<Resource>> answers) {
+               final Menu<Resource> answers) {
         this.framework = framework;
         this.answers = answers;
     }

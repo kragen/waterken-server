@@ -11,7 +11,6 @@ import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
-import org.joe_e.array.PowerlessArray;
 import org.ref_send.var.Factory;
 import org.ref_send.var.Variable;
 import org.waterken.dns.Domain;
@@ -35,20 +34,12 @@ DomainMaker {
      */
     static public DomainMaster
     build(final Framework framework) {
-        final Menu<Variable<Resource>> answers =
-            MenuMaker.make(8, new ResourceVariableFactory());
+        final Menu<Resource> answers = MenuMaker.make(8, new RVF());
         class DomainX extends Struct implements Domain, Serializable {
             static private final long serialVersionUID = 1L;
 
-            public PowerlessArray<Resource>
-            getAnswers() {
-                final ConstArray<Variable<Resource>> entries =
-                    near(answers.getEntries());
-                final Resource[] r = new Resource[entries.length()];
-                int i = 0;
-                for (final Variable<Resource> x : entries) { r[i++] = x.get(); }
-                return PowerlessArray.array(r);
-            }
+            public ConstArray<Resource>
+            getAnswers() { return near(answers.getSnapshot()); }
         }
         framework.publisher.bind(Domain.name, new DomainX());
         return new DomainMaster(framework.destruct, answers,
@@ -56,8 +47,7 @@ DomainMaker {
     }
     
     static final class
-    ResourceVariableFactory extends Factory<Variable<Resource>>
-                            implements Powerless, Serializable {
+    RVF extends Factory<Variable<Resource>> implements Powerless, Serializable {
         static private final long serialVersionUID = 1L;
 
         public Variable<Resource>
