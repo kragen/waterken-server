@@ -8,7 +8,7 @@ fi
 if [ "$1" = 'ref_send' ]
 then
     NAME="ref_send"
-    VERSION="1.9"
+    VERSION="1.10"
 else
     NAME="waterken server"
     MAJOR=4
@@ -43,7 +43,7 @@ javadoc \
     -group 'Eventual Control Flow' 'org.ref_send.promise*' \
     -group 'Example Applications' \
         'org.waterken.all:org.waterken.bang:org.waterken.bounce:org.waterken.eq:org.waterken.factorial:org.waterken.put:org.waterken.serial:org.ref_send.test' \
-    -group 'Collection' 'org.joe_e.array:org.ref_send.list' \
+    -group 'Collection' 'org.joe_e.array:org.ref_send.list:org.ref_send.var' \
     -group 'Reflection' 'org.joe_e.reflect:org.ref_send.type' \
     -group 'I/O' 'org.joe_e.charset:org.joe_e.file' \
     -group 'Web Datatypes' 'org.web_send*' \
