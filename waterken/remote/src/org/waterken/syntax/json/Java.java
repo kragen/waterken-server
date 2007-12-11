@@ -258,10 +258,10 @@ Java {
         new Alias(RuntimeException.class, "Error"),
         new Alias(Method.class, "function"),
         new Alias(Type.class, "class"),
-        new Alias(ClassCastException.class, "org.ref-send.Forgery"),
+        new Alias(ClassCastException.class, "org.ref_send.Forgery"),
         new Alias(NullPointerException.class,
-                  "org.ref-send.promise.Indeterminate"),
-        new Alias(Runnable.class, "org.ref-send.Action"),
+                  "org.ref_send.promise.Indeterminate"),
+        new Alias(Runnable.class, "org.ref_send.Action"),
         new Alias(org.joe_e.array.ConstArray.class, "array")
     );
     
@@ -270,7 +270,7 @@ Java {
         for (final Alias a : custom) {
             if (type == a.type) { return a.name; }
         }
-        return type.getName().replace('_', '-').replace('$', '_');
+        return type.getName().replace('$', '-');
     }
     
     static Class
@@ -297,6 +297,6 @@ Java {
             ? short.class
         : ("void".equals(name)
             ? void.class
-        : code.loadClass(name.replace('_', '$').replace('-', '_'))))))))));
+        : code.loadClass(name.replace('-', '$'))))))))));
     }
 }
