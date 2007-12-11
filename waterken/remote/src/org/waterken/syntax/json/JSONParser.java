@@ -420,7 +420,10 @@ JSONParser {
                     pop();
 
                     // find the constructor
-                    final Class actual = Typedef.raw(implicit);
+                    Class actual = Typedef.raw(implicit);
+                    if (!(ConstArray.class.isAssignableFrom(actual))) {
+                        actual = ConstArray.class;
+                    }
                     Method make = null;
                     for (final Method m : Reflection.methods(actual)) {
                         if ("array".equals(m.getName())) {
@@ -428,10 +431,7 @@ JSONParser {
                             break;
                         }
                     }
-                    if (null == make) {
-                        throw new NoSuchMethodException(
-                                actual.getName() + ".array");
-                    }
+                    if (null == make) { throw new NoSuchMethodException(); }
 
                     // determine the array element type: use the type declared
                     // by the array constructor, since it can use primitive
@@ -443,9 +443,13 @@ JSONParser {
 
                     // fill out an array
                     final Object v = Array.newInstance(t, values.size());
-                    int i = 0;
-                    for (final Object x : values) {
-                        Array.set(v, i++, x);
+                    if (v instanceof Object[]) {
+                        values.toArray((Object[])v);
+                    } else {
+                        int i = 0;
+                        for (final Object x : values) {
+                            Array.set(v, i++, x);
+                        }
                     }
                     out.fulfill(Reflection.invoke(make, null, v));
                 } else if (whitespace.indexOf(c) != -1) {
