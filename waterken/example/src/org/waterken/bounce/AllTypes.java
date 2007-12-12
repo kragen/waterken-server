@@ -5,6 +5,15 @@ package org.waterken.bounce;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
+import org.joe_e.array.BooleanArray;
+import org.joe_e.array.ByteArray;
+import org.joe_e.array.CharArray;
+import org.joe_e.array.ConstArray;
+import org.joe_e.array.DoubleArray;
+import org.joe_e.array.FloatArray;
+import org.joe_e.array.IntArray;
+import org.joe_e.array.LongArray;
+import org.joe_e.array.ShortArray;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
@@ -19,42 +28,42 @@ AllTypes extends Struct implements Record, Serializable {
     /**
      * a boolean
      */
-    public final boolean b;
-    
-    /**
-     * a byte
-     */
-    public final byte o;
+    public final BooleanArray b;
     
     /**
      * a char
      */
-    public final char c;
-    
-    /**
-     * a double
-     */
-    public final double d;
-    
+    public final CharArray c; 
+   
     /**
      * a float
      */
-    public final float f;
-    
+    public final FloatArray f;
+ 
     /**
-     * an int
+     * a double
      */
-    public final int i;
-    
+    public final DoubleArray d;
+     
     /**
-     * a long
+     * a byte
      */
-    public final long l;
+    public final ByteArray o;
     
     /**
      * a short
      */
-    public final short s;
+    public final ShortArray s;
+    
+    /**
+     * an int
+     */
+    public final IntArray i;
+    
+    /**
+     * a long
+     */
+    public final LongArray l;
     
     /**
      * a string
@@ -64,7 +73,12 @@ AllTypes extends Struct implements Record, Serializable {
     /**
      * a pass-by-reference
      */
-    public final Runnable r;
+    public final ConstArray<Runnable> r;
+    
+    /**
+     * an array of unknown type
+     */
+    public final Object a;
     
     /**
      * Constructs an instance.
@@ -76,29 +90,32 @@ AllTypes extends Struct implements Record, Serializable {
      * @param i {@link #i}
      * @param l {@link #l}
      * @param s {@link #s}
+     * @param a {@link #a}
      * @param t {@link #t}
      * @param r {@link #r}
      */
     public @deserializer
-    AllTypes(@name("b") final boolean b,
-             @name("o") final byte o,
-             @name("c") final char c,
-             @name("d") final double d,
-             @name("f") final float f,
-             @name("i") final int i,
-             @name("l") final long l,
-             @name("s") final short s,
+    AllTypes(@name("b") final BooleanArray b,
+             @name("c") final CharArray c,
+             @name("f") final FloatArray f,
+             @name("d") final DoubleArray d,
+             @name("o") final ByteArray o,
+             @name("s") final ShortArray s,
+             @name("i") final IntArray i,
+             @name("l") final LongArray l,
              @name("t") final String t,
-             @name("r") final Runnable r) {
+             @name("r") final ConstArray<Runnable> r,
+             @name("a") final Object a) {
         this.b = b;
-        this.o = o;
         this.c = c;
-        this.d = d;
         this.f = f;
+        this.d = d;
+        this.o = o;
+        this.s = s;
         this.i = i;
         this.l = l;
-        this.s = s;
         this.t = t;
         this.r = r;
+        this.a = a;
     }
 }
