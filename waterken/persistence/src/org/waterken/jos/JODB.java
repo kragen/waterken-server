@@ -74,12 +74,15 @@ JODB extends Model {
     /**
      * file path to the directory containing all persistence folders
      */
-    static public  final String dbDirName = "db";
+    static public  final String dbDirPropertyName = "waterken.db";
+    static public  final String dbDirDefaultPath = "db";
     static private final File dbDir;
     static private final String dbDirPath;
     static {
         try {
-            dbDir = new File(dbDirName).getCanonicalFile();
+            final String dbPath =
+                System.getProperty(dbDirPropertyName, dbDirDefaultPath);
+            dbDir = new File(dbPath).getCanonicalFile();
             dbDirPath = dbDir.getPath() + File.separator;
         } catch (final IOException e) {
             throw new ModelError(e);
@@ -108,7 +111,7 @@ JODB extends Model {
         }
     }
 
-    static private final ThreadGroup threads = new ThreadGroup(dbDirName);
+    static private final ThreadGroup threads = new ThreadGroup("db");
 
     /**
      * Connects to an existing model.
@@ -803,10 +806,14 @@ JODB extends Model {
         synchronized (jars) {
             ClassLoader r = jars.fetch(null, project);
             if (null == r) {
-                final File bin = new File(
-                    project + File.separator + "bin" + File.separator);
-                if (!bin.isDirectory()) { throw new IOException("no classes"); }
-                r = new URLClassLoader(new URL[] { bin.toURI().toURL() });
+                final File bins = new File(System.getProperty("waterken.code",
+                    "")).getCanonicalFile();
+                final String jar = System.getProperty("waterken.bin",
+                    File.separator + "bin" + File.separator);
+                final File bin = new File(bins, project + jar);
+                if (!bin.canRead()) { throw new IOException("no classes"); }
+                r = new URLClassLoader(new URL[] { bin.toURI().toURL() },
+                                       JODB.class.getClassLoader());
                 jars.put(project, r);
             }
             return r;
