@@ -35,10 +35,15 @@ Share {
     main(String[] args) throws Exception {
         
         // initialize the static state
-        final File db = new File(System.getProperty(JODB.dbDirPropertyName,
-                JODB.dbDirDefaultPath)).getCanonicalFile();
-        final File keys = new File(System.getProperty("waterken.keys",
-                "keys.jks")).getCanonicalFile();
+        final File home = new File(
+            System.getProperty(JODB.homePathProperty, "")).getCanonicalFile();
+        
+        final String dbPathConfig = System.getProperty(JODB.dbPathProperty);
+        final File db = (null != dbPathConfig
+            ? new File(dbPathConfig)
+        : new File(home, JODB.dbPathDefault)).getCanonicalFile();
+
+        final File keys = new File(home, "keys.jks");
 
         // extract the arguments
         if (args.length < 2) {

@@ -53,12 +53,20 @@ Serve {
     main(String[] args) throws Exception {
         
         // initialize the static state
-        final File db = new File(System.getProperty(JODB.dbDirPropertyName,
-                JODB.dbDirDefaultPath)).getCanonicalFile();
-        final File www = new File(System.getProperty("waterken.www",
-                "www")).getCanonicalFile();
-        final File keys = new File(System.getProperty("waterken.keys",
-                "keys.jks")).getCanonicalFile();
+        final File home = new File(
+            System.getProperty(JODB.homePathProperty, "")).getCanonicalFile();
+        
+        final String dbPathConfig = System.getProperty(JODB.dbPathProperty);
+        final File db = (null != dbPathConfig
+            ? new File(dbPathConfig)
+        : new File(home, JODB.dbPathDefault)).getCanonicalFile();
+        
+        final String wwwPathConfig = System.getProperty("waterken.www");
+        final File www = (null != wwwPathConfig
+            ? new File(wwwPathConfig)
+        : new File(home, "www")).getCanonicalFile();
+
+        final File keys = new File(home, "keys.jks");
 
         // extract the arguments
         int i = 0;
@@ -90,6 +98,7 @@ Serve {
 
         // summarize the configuration information
         final PrintStream err = System.err;
+        err.println("home directory: <" + home + ">");
         err.println("db directory: <" + db + ">");
         err.println("www directory: <" + www + ">");
         err.println("Files served with Cache-Control: max-age=" + maxAge);
@@ -135,7 +144,7 @@ Serve {
         }
         
         // update the DNS
-        final File ip = new File("ip.json");
+        final File ip = new File(home, "ip.json");
         if (ip.isFile()) {
             final InetAddress a = dynip();
             System.err.println("Updating DNS to: " +a.getHostAddress()+ "...");
