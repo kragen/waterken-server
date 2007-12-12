@@ -3,28 +3,13 @@
 package org.waterken.server;
 
 import static org.joe_e.file.Filesystem.file;
-import static org.ref_send.promise.Fulfilled.ref;
 import static org.waterken.io.MediaType.MIME;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.lang.reflect.Type;
 import java.net.DatagramSocket;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.ServerSocket;
-import java.security.SecureRandom;
-import java.util.Enumeration;
 
-import org.joe_e.array.ByteArray;
-import org.joe_e.array.PowerlessArray;
-import org.joe_e.file.Filesystem;
-import org.ref_send.promise.Promise;
-import org.ref_send.var.Variable;
-import org.waterken.dns.Resource;
-import org.waterken.dns.editor.ResourceGuard;
 import org.waterken.dns.udp.NameServer;
 import org.waterken.http.Server;
 import org.waterken.http.mirror.Mirror;
@@ -32,10 +17,7 @@ import org.waterken.http.trace.Trace;
 import org.waterken.jos.JODB;
 import org.waterken.net.http.HTTPD;
 import org.waterken.remote.http.AMP;
-import org.waterken.remote.http.Browser;
 import org.waterken.remote.mux.Mux;
-import org.waterken.syntax.json.JSONDeserializer;
-import org.waterken.thread.Concurrent;
 
 /**
  * Starts the server.
@@ -67,7 +49,7 @@ Serve {
         : new File(home, "www")).getCanonicalFile();
 
         final File keys = new File(home, "keys.jks");
-
+        
         // extract the arguments
         int i = 0;
         int backlog = 100;
@@ -122,14 +104,15 @@ Serve {
                 Proxy.protocols.put("http", Loopback.client(80));
                 listener = new TCP(err, new ThreadGroup(service), "http",
                     HTTPD.make("http", server, Proxy.thread), soTimeout,
-                    new ServerSocket(port, backlog, Loopback.addr));
+                    new ServerSocket(port, backlog, Loopback.addr), null);
             } else if ("https".equals(protocol)) {
                 final Credentials credentials=SSL.keystore("TLS",keys,"nopass");
                 Proxy.protocols.put("https", SSL.client(443, credentials));
                 final ServerSocket listen = credentials.getContext().
                     getServerSocketFactory().createServerSocket(port, backlog);
                 listener = new TCP(err, new ThreadGroup(service), "https",
-                    HTTPD.make("https",server,Proxy.thread), soTimeout, listen);
+                    HTTPD.make("https",server,Proxy.thread), soTimeout, listen,
+                    new File(home, "ip.json"));
             } else if ("dns".equals(protocol)) {
                 listener = new UDP(err, "dns",
                     NameServer.make(file(db, "dns")),
@@ -142,47 +125,5 @@ Serve {
             // run the corresponding daemon
             new Thread(listener, service).start();
         }
-        
-        // update the DNS
-        final File ip = new File(home, "ip.json");
-        if (ip.isFile()) {
-            final InetAddress a = dynip();
-            System.err.println("Updating DNS to: " +a.getHostAddress()+ "...");
-            update(ip).setter.set(ref(new Resource(Resource.A, Resource.IN,
-                    ResourceGuard.minTTL, ByteArray.array(a.getAddress()))));
-        }
-    }
-    
-    static private InetAddress
-    dynip() throws Exception {
-        InetAddress r = Loopback.addr;
-        for (final Enumeration<NetworkInterface> j =
-                                NetworkInterface.getNetworkInterfaces();
-                                                     j.hasMoreElements();) {
-            for (final Enumeration<InetAddress> k =
-                                j.nextElement().getInetAddresses();
-                                                     k.hasMoreElements();) {
-                final InetAddress a = k.nextElement();
-                if (a instanceof Inet4Address && !a.isLoopbackAddress()) {
-                    if (!a.isSiteLocalAddress()) { return a; }
-                    r = a;
-                }
-            }
-        }
-        return r;
-    }
-    
-    @SuppressWarnings("unchecked") static private Variable<Promise<Resource>>
-    update(final File ip) throws Exception {
-        final ClassLoader code = GenKey.class.getClassLoader();
-        final Browser browser = Browser.make(
-            new Proxy(), new SecureRandom(), code,
-            Concurrent.loop(Thread.currentThread().getThreadGroup(), "dynip"));
-        final InputStream in = Filesystem.read(ip);
-        final Type type = Variable.class;
-        final Variable<Promise<Resource>> r = (Variable)new JSONDeserializer().
-            run("",browser.connect,code,in,PowerlessArray.array(type)).get(0);
-        in.close();
-        return r;
     }
 }
