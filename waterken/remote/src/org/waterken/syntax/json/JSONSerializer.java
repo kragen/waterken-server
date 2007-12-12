@@ -392,11 +392,10 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         out.write("[");
         String separator = " ";
         final String comma = ", ";
-        final String inset = indent + "  ";
         final Type valueType = Typedef.bound(T, implicit);
         for (final Object value : (ConstArray)object) {
             out.write(separator);
-            serialize(describe, valueType, value, export, inset, out);
+            serialize(describe, valueType, value, export, indent, out);
             separator = comma;
         }
         out.write(" ]");

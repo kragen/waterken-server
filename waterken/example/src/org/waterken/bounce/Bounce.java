@@ -55,12 +55,14 @@ Bounce {
                     BooleanArray.array(true, false),
                     CharArray.array('a', '\"', '\\', '/', '\b',
                                     '\f', '\n', '\r', '\t', '\0'),
-                    FloatArray.array(
-                          0.0F, Float.MAX_VALUE, Float.MIN_VALUE,
+                    FloatArray.array(0.0F,
+                          Float.MAX_VALUE, Float.MIN_VALUE,
+                          -Float.MAX_VALUE, -Float.MIN_VALUE,
                           Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY,
                           Float.NaN),
-                    DoubleArray.array(
-                          0.0, Double.MAX_VALUE, Double.MIN_VALUE,
+                    DoubleArray.array(0.0,
+                          Double.MAX_VALUE, Double.MIN_VALUE,
+                          -Double.MAX_VALUE, -Double.MIN_VALUE,
                           Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
                           Double.NaN),
                     ByteArray.array((byte)0, Byte.MAX_VALUE, Byte.MIN_VALUE),

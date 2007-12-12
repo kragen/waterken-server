@@ -261,6 +261,7 @@ Java {
         new Alias(ClassCastException.class, "org.ref_send.Forgery"),
         new Alias(NullPointerException.class,
                   "org.ref_send.promise.Indeterminate"),
+        new Alias(ArithmeticException.class, "org.ref_send.BadArithmetic"),
         new Alias(Runnable.class, "org.ref_send.Action"),
         new Alias(org.joe_e.array.ConstArray.class, "array")
     );
