@@ -14,8 +14,16 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 
 import org.joe_e.Equatable;
+import org.joe_e.array.BooleanArray;
+import org.joe_e.array.ByteArray;
+import org.joe_e.array.CharArray;
 import org.joe_e.array.ConstArray;
+import org.joe_e.array.DoubleArray;
+import org.joe_e.array.FloatArray;
+import org.joe_e.array.IntArray;
+import org.joe_e.array.LongArray;
 import org.joe_e.array.PowerlessArray;
+import org.joe_e.array.ShortArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.deserializer;
 import org.ref_send.name;
@@ -412,6 +420,7 @@ JSONParser {
     parseArray(final Type implicit, final Do<Object,?> out) {
         final Type valueType = Typedef.bound(T, implicit);
         final Type r = Typedef.value(R, valueType);
+        final Type expected = null != r ? r : valueType;
         final ArrayList<Object> values = new ArrayList<Object>(); 
         return new State() {
             public void
@@ -419,26 +428,37 @@ JSONParser {
                 if (']' == c) {
                     pop();
 
-                    // find the constructor
-                    Class actual = Typedef.raw(implicit);
-                    if (!(ConstArray.class.isAssignableFrom(actual))) {
-                        actual = ConstArray.class;
-                    }
-                    Method make = null;
-                    for (final Method m : Reflection.methods(actual)) {
-                        if ("array".equals(m.getName())) {
-                            make = m;
-                            break;
-                        }
-                    }
-                    if (null == make) { throw new NoSuchMethodException(); }
-
-                    // determine the array element type: use the type declared
-                    // by the array constructor, since it can use primitive
-                    // types, whereas the template parameters cannot.
-                    Class<?> t = make.getParameterTypes()[0].getComponentType();
-                    if (Object.class == t) {
+                    // determine the array element type
+                    final Class<?> t;
+                    final Class<?> vt;
+                    final Class actual = Typedef.raw(implicit);
+                    if (ByteArray.class == actual) {
+                        t = byte.class;
+                        vt = byte[].class;
+                    } else if (ShortArray.class == actual) {
+                        t = short.class;
+                        vt = short[].class;
+                    } else if (IntArray.class == actual) {
+                        t = int.class;
+                        vt = int[].class;
+                    } else if (LongArray.class == actual) {
+                        t = long.class;
+                        vt = long[].class;
+                    } else if (FloatArray.class == actual) {
+                        t = float.class;
+                        vt = float[].class;
+                    } else if (DoubleArray.class == actual) {
+                        t = double.class;
+                        vt = double[].class;
+                    } else if (BooleanArray.class == actual) {
+                        t = boolean.class;
+                        vt = boolean[].class;
+                    } else if (CharArray.class == actual) {
+                        t = char.class;
+                        vt = char[].class;
+                    } else {
                         t = Typedef.raw(valueType);
+                        vt = Object[].class;
                     }
 
                     // fill out an array
@@ -451,12 +471,19 @@ JSONParser {
                             Array.set(v, i++, x);
                         }
                     }
+
+                    // determine the constructor
+                    final Method make = Reflection.method(
+                        ConstArray.class.isAssignableFrom(actual)
+                            ? actual
+                        : ConstArray.class, "array", vt);
+
                     out.fulfill(Reflection.invoke(make, null, v));
                 } else if (whitespace.indexOf(c) != -1) {
                     // ignore whitespace
                 } else {
                     push(parseContinuation(']'));
-                    push(parseValue(null!=r?r:valueType, new Do<Object,Void>() {
+                    push(parseValue(expected, new Do<Object,Void>() {
                         public Void
                         fulfill(final Object x) {
                             values.add(null != r ? Eventual.promised(x) : x);
@@ -644,14 +671,14 @@ JSONParser {
             public void
             run(final char c) throws Exception {
                 u <<= 4;
-                if (0 >= c && 9 >= c) {
+                if ('0' <= c && '9' >= c) {
                     u |= (c - '0') & 0x0F;
                 } else if ('A' <= c && 'F' >= c) {
                     u |= (c - 'A' + 10) & 0x0F;
                 } else if ('a' <= c && 'f' >= c) {
                     u |= (c - 'a' + 10) & 0x0F;
                 } else {
-                    throw new Exception("" + c);
+                    throw new Exception("0x" + Integer.toHexString(c));
                 }
                 if (--i == 0) {
                     pop();
