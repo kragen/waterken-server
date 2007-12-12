@@ -74,15 +74,20 @@ JODB extends Model {
     /**
      * file path to the directory containing all persistence folders
      */
-    static public  final String dbDirPropertyName = "waterken.db";
-    static public  final String dbDirDefaultPath = "db";
+    static public  final String homePathProperty = "waterken.home";
+    static private final File home;
+    static public  final String dbPathProperty = "waterken.db";
+    static public  final String dbPathDefault = "db";
     static private final File dbDir;
     static private final String dbDirPath;
     static {
         try {
-            final String dbPath =
-                System.getProperty(dbDirPropertyName, dbDirDefaultPath);
-            dbDir = new File(dbPath).getCanonicalFile();
+            home = new File(
+                System.getProperty(homePathProperty, "")).getCanonicalFile();
+            final String dbPathConfig = System.getProperty(dbPathProperty);
+            dbDir = (null != dbPathConfig
+                ? new File(dbPathConfig)
+            : new File(home, dbPathDefault)).getCanonicalFile();
             dbDirPath = dbDir.getPath() + File.separator;
         } catch (final IOException e) {
             throw new ModelError(e);
@@ -806,8 +811,9 @@ JODB extends Model {
         synchronized (jars) {
             ClassLoader r = jars.fetch(null, project);
             if (null == r) {
-                final File bins = new File(System.getProperty("waterken.code",
-                    "")).getCanonicalFile();
+                final String codePathConfig=System.getProperty("waterken.code");
+                final File bins =
+                    null != codePathConfig ? new File(codePathConfig) : home;
                 final String jar = System.getProperty("waterken.bin",
                     File.separator + "bin" + File.separator);
                 final File bin = new File(bins, project + jar);
