@@ -33,6 +33,14 @@ Share {
      */
     static public void
     main(String[] args) throws Exception {
+        
+        // initialize the static state
+        final File db = new File(System.getProperty(JODB.dbDirPropertyName,
+                JODB.dbDirDefaultPath)).getCanonicalFile();
+        final File keys = new File(System.getProperty("waterken.keys",
+                "keys.jks")).getCanonicalFile();
+
+        // extract the arguments
         if (args.length < 2) {
             final PrintStream log = System.err;
             log.println("Creates a new database.");
@@ -41,15 +49,11 @@ Share {
             System.exit(-1);
             return;
         }
-        
-        // extract the arguments
         final String projectValue = args[0];
         final String typename = args[1];
         final String label = 2 < args.length ? args[2] : null;
 
         // determine the local address
-        final File home = new File("").getAbsoluteFile();
-        final File keys = new File(home, "keys.jks");
         final String hereValue;
         if (keys.isFile()) {
             final Credentials credentials = SSL.keystore("TLS",keys,"nopass");
@@ -62,53 +66,53 @@ Share {
         final Proxy clientValue = new Proxy();
         
         // create the database
-        final String r = JODB.connect(new File(JODB.dbDirName)).
-            enter(Model.change, new Transaction<String>() {
-                public String
-                run(final Root local) throws Exception {
-                    final Token deferredValue = new Token();
-                    final Eventual _Value = new Eventual(deferredValue, null);
-                    final Root synthetic = new Root() {
-                        
-                        public String
-                        getModelName() { return local.getModelName(); }
+        final String r = JODB.connect(db).enter(Model.change,
+                                                new Transaction<String>() {
+            public String
+            run(final Root local) throws Exception {
+                final Token deferredValue = new Token();
+                final Eventual _Value = new Eventual(deferredValue, null);
+                final Root synthetic = new Root() {
+                    
+                    public String
+                    getModelName() { return local.getModelName(); }
 
-                        public Object
-                        fetch(final Object otherwise, final String name) {
-                            return Root.project.equals(name)
-                                ? projectValue
-                            : (Remoting.here.equals(name)
-                                ? hereValue
-                            : (Remoting.client.equals(name)
-                                ? clientValue
-                            : (Remoting.deferred.equals(name)
-                                ? deferredValue
-                            : (Remoting._.equals(name)
-                                ? _Value
-                            : local.fetch(otherwise, name)))));
-                        }
+                    public Object
+                    fetch(final Object otherwise, final String name) {
+                        return Root.project.equals(name)
+                            ? projectValue
+                        : (Remoting.here.equals(name)
+                            ? hereValue
+                        : (Remoting.client.equals(name)
+                            ? clientValue
+                        : (Remoting.deferred.equals(name)
+                            ? deferredValue
+                        : (Remoting._.equals(name)
+                            ? _Value
+                        : local.fetch(otherwise, name)))));
+                    }
 
-                        public void
-                        link(final String name,
-                             final Object value) { throw new AssertionError(); }
+                    public void
+                    link(final String name,
+                         final Object value) { throw new AssertionError(); }
 
-                        public String
-                        export(final Object value) {throw new AssertionError();}
+                    public String
+                    export(final Object value) {throw new AssertionError(); }
 
-                        public String
-                        pipeline(final String m) { throw new AssertionError(); }
+                    public String
+                    pipeline(final String m) { throw new AssertionError(); }
 
-                        public String
-                        tag(final String name) { throw new AssertionError(); }
-                    };
-                    final Creator creator =
-                        (Creator)local.fetch(null, Root.creator);
-                    final ClassLoader code = creator.load(projectValue);
-                    final Class<?> factory = code.loadClass(typename);
-                    return Remote.bind(synthetic, null).
-                        run(AMP.publish(synthetic).spawn(label, factory));
-                }
-            });
+                    public String
+                    tag(final String name) { throw new AssertionError(); }
+                };
+                final Creator creator =
+                    (Creator)local.fetch(null, Root.creator);
+                final ClassLoader code = creator.load(projectValue);
+                final Class<?> factory = code.loadClass(typename);
+                return Remote.bind(synthetic, null).
+                    run(AMP.publish(synthetic).spawn(label, factory));
+            }
+        });
         System.out.println(URI.resolve(hereValue, r));
     }
 }

@@ -52,13 +52,15 @@ Serve {
     static public void
     main(String[] args) throws Exception {
         
-        // Initialize the static state.
-        final File home = new File("").getAbsoluteFile();
-        final File www = file(home, "www");
-        final File db = file(home, JODB.dbDirName);
-        final File keys = new File(home, "keys.jks");
+        // initialize the static state
+        final File db = new File(System.getProperty(JODB.dbDirPropertyName,
+                JODB.dbDirDefaultPath)).getCanonicalFile();
+        final File www = new File(System.getProperty("waterken.www",
+                "www")).getCanonicalFile();
+        final File keys = new File(System.getProperty("waterken.keys",
+                "keys.jks")).getCanonicalFile();
 
-        // Extract the arguments.
+        // extract the arguments
         int i = 0;
         int backlog = 100;
         int maxAge = 0;
@@ -71,7 +73,7 @@ Serve {
                 args = new String[] { "http=8080" };
             }
         } else {
-            // Pop any server arguments.
+            // pop any server arguments
             for (; i != args.length; ++i) {
                 if (args[i].startsWith("backlog=")) {
                     backlog = Integer.parseInt(args[i].substring(9));
@@ -80,24 +82,25 @@ Serve {
                 } else if (args[i].startsWith("so-timeout=")) {
                     soTimeout = Integer.parseInt(args[i].substring(11));
                 } else {
-                    // Assume this is the start of the service list.
+                    // assume this is the start of the service list
                     break;
                 }
             }
         }
 
-        // Summarize the configuration information.
+        // summarize the configuration information
         final PrintStream err = System.err;
-        err.println("Home directory: <" + home + ">");
+        err.println("db directory: <" + db + ">");
+        err.println("www directory: <" + www + ">");
         err.println("Files served with Cache-Control: max-age=" + maxAge);
         err.println("Using server socket backlog: " + backlog);
         err.println("Using connection socket timeout: " + soTimeout + " ms");
 
-        // Configure the server.
+        // configure the server
         final Server server = Trace.make(Mux.make(db, new AMP(),
                 Mirror.make(maxAge, new LastModified(), www, MIME)));
 
-        // Start the inbound network services.
+        // start the inbound network services
         for (; i != args.length; ++i) {
 
             final String service = args[i];
