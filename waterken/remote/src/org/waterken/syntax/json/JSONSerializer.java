@@ -404,22 +404,15 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     
     static private PowerlessArray<String>
     upto(final Class<?> bottom, final Class<?> top) {
-        final Class<?> limit= top.isAssignableFrom(bottom) ? top : Object.class;
-        final Class<?> end = Object.class == limit
-            ? (Struct.class.isAssignableFrom(bottom)
-                ? Struct.class
-            : (RuntimeException.class.isAssignableFrom(bottom)
-                ? Exception.class
-            : (Exception.class.isAssignableFrom(bottom)
-                ? Throwable.class
-            : Object.class)))
-        : (Throwable.class == limit
-            ? (RuntimeException.class.isAssignableFrom(bottom)
-                ? Exception.class
-            : Throwable.class)
-        : limit);
+        final Class<?> limit = Struct.class.isAssignableFrom(bottom)
+            ? Struct.class
+        : RuntimeException.class.isAssignableFrom(bottom)
+            ? Exception.class
+        : Exception.class.isAssignableFrom(bottom)
+            ? Throwable.class
+        : Object.class;
         final ArrayList<String> r = new ArrayList<String>(4);
-        for (Class<?> i = bottom; end != i; i = i.getSuperclass()) {
+        for (Class<?> i = bottom; top != i && limit != i; i=i.getSuperclass()) {
             if (Modifier.isPublic(i.getModifiers())) { r.add(Java.name(i)); }
         }
         return PowerlessArray.array(r.toArray(new String[r.size()]));
