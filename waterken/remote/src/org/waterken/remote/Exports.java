@@ -57,6 +57,12 @@ Exports extends Struct implements Serializable {
      */
     public String
     getProject() { return (String)local.fetch(null, Root.project); }
+
+    /**
+     * Calls {@link Root#getTransactionTag()}.
+     */
+    public String
+    getTransactionTag() { return local.getTransactionTag(); }
     
     /**
      * Fetches an exported reference.
@@ -137,14 +143,6 @@ Exports extends Struct implements Serializable {
      */
     public Exporter
     reply() { return Java.export(ID.export(export())); }
-    
-    /**
-     * Calls {@link Root#tag}.
-     * @param name  name of the binding
-     * @return corresponding state tag, or <code>null</code> if none
-     */
-    public String
-    tag(final String name) { return local.tag(name); }
     
     /**
      * Does an operation at most once.

@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.lang.ref.ReferenceQueue;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -232,17 +233,17 @@ JODB extends Model {
      */
     static final class
     Bucket extends Struct {
-        final boolean created;          // Is a newly created bucket?
-        final Object value;             // contained object
-        final ByteArray fingerprint;    // secure hash of serialization, or
-                                        // <code>null</code> if not known
+        final boolean created;      // Is a newly created bucket?
+        final Object value;         // contained object
+        final ByteArray version;    // secure hash of serialization, or
+                                    // <code>null</code> if not known
 
         Bucket(final boolean created,
                final Object value,
-               final ByteArray fingerprint) {
+               final ByteArray version) {
             this.created = created;
             this.value = value;
-            this.fingerprint = fingerprint;
+            this.version = version;
         }
     }
 
@@ -339,21 +340,6 @@ JODB extends Model {
                 : b.value;
             }
 
-            public String
-            tag(final String name) {
-                if (!active[0]) { throw new AssertionError(); }
-
-                final Bucket b = load(name.toLowerCase());
-                if (null == b) { return null; }
-                if (b.value instanceof SymbolicLink) {
-                    final String key = o2k.get(((SymbolicLink)b.value).target);
-                    if (null != key) { return tag(key); }
-                }
-                if (null == b.fingerprint) { return null; }
-                return '\"' + Base32.encode(b.fingerprint.toByteArray()).
-                                            substring(0, 2 * keyChars) + '\"';
-            }
-
             /**
              * for detecting cyclic object graphs
              */
@@ -421,6 +407,8 @@ JODB extends Model {
                 }
                 return bucket;
             }
+            
+            private boolean externalStateAccessed = false;
 
             /**
              * Reads a stored object graph.
@@ -431,25 +419,28 @@ JODB extends Model {
             read(final File file) {
                 InputStream fin = null;
                 try {
-                    final Mac hash = allocHash(this);
+                    final Mac mac = allocMac(this);
                     fin = Filesystem.read(file);
-                    fin = new MacInputStream(fin, hash);
+                    fin = new MacInputStream(fin, mac);
                     final Root loader = this;
                     final SubstitutionStream in =
                             new SubstitutionStream(true, JODB.this.code, fin) {
                         protected Object
-                        resolveObject(final Object x) throws IOException {
-                            return x instanceof Wrapper
-                                ? ((Wrapper)x).peel(loader)
-                            : x;
+                        resolveObject(Object x) throws IOException {
+                            if (x instanceof File) {
+                                externalStateAccessed = true;
+                            } else if (x instanceof Wrapper) {
+                                x = ((Wrapper)x).peel(loader);
+                            }
+                            return x;
                         }
                     };
                     fin = in;
                     final Object value = in.readObject();
                     fin.close();
-                    final ByteArray fingerprint=ByteArray.array(hash.doFinal());
-                    freeHash(hash);
-                    return new Bucket(false, value, fingerprint);
+                    final byte[] version = mac.doFinal();
+                    freeMac(mac);
+                    return new Bucket(false, value, ByteArray.array(version));
                 } catch (final Exception e) {
                     if (null != fin) {
                         try { fin.close(); } catch (final Exception e2) {}
@@ -461,6 +452,23 @@ JODB extends Model {
                     }
                     throw new ModelError(e);
                 }
+            }
+            
+            public String
+            getTransactionTag() {
+                if (!active[0]) { throw new AssertionError(); }
+                
+                if (externalStateAccessed) { return null; }
+
+                final MessageDigest hash;
+                try {
+                    hash = MessageDigest.getInstance("SHA-256");
+                } catch (final Exception e) { throw new ModelError(e); }
+                for (final Bucket b : k2b.values()) {
+                    if (null!=b.version) {hash.update(b.version.toByteArray());}
+                }
+                final byte[] id = hash.digest();
+                return '\"' + Base32.encode(id).substring(0, 2*keyChars) + '\"';
             }
 
             public String
@@ -474,14 +482,14 @@ JODB extends Model {
                         // otherwise, determine the persistent identity
                         final byte[] id;
                         try {
-                            final Mac hash = allocHash(this);
+                            final Mac mac = allocMac(this);
                             final Slicer out = new Slicer(value, this,
-                                    new MacOutputStream(sink, hash));
+                                    new MacOutputStream(sink, mac));
                             out.writeObject(value);
                             out.flush();
                             out.close();
-                            id = hash.doFinal();
-                            freeHash(hash);
+                            id = mac.doFinal();
+                            freeMac(mac);
                         } catch (final Exception e) {
                             throw new ModelError(e);
                         }
@@ -497,7 +505,7 @@ JODB extends Model {
                                 xxx.add(key);
                                 break;
                             }
-                            if (fingerprint.equals(b.fingerprint)) { break; }
+                            if (fingerprint.equals(b.version)) { break; }
                             for (int i = 0; i != d.length; ++i) {
                                 if (0 != ++d[i]) { break; }
                             }
@@ -686,21 +694,20 @@ JODB extends Model {
             while (!xxx.isEmpty()) {
                 final Iterator<String> i = xxx.iterator();
                 final String key = i.next();
-                final Bucket x = k2b.get(key);
+                final Bucket b = k2b.get(key);
                 i.remove();
 
                 OutputStream fout;
-                if (extend && !x.created) {
-                    fout = new MacOutputStream(sink, allocHash(root)) {
+                if (extend && !b.created) {
+                    fout = new MacOutputStream(sink, allocMac(root)) {
                         public void
                         close() throws IOException {
                             super.close();
-                            final ByteArray fingerprint =
-                                ByteArray.array(hash.doFinal());
-                            freeHash(hash);
-                            if (!fingerprint.equals(x.fingerprint)) {
-                                throw new ProhibitedModification(null != x.value
-                                    ? x.value.getClass() : Void.class);
+                            final ByteArray v = ByteArray.array(mac.doFinal());
+                            freeMac(mac);
+                            if (!v.equals(b.version)) {
+                                throw new ProhibitedModification(null != b.value
+                                    ? b.value.getClass() : Void.class);
                             }
                         }
                     };
@@ -712,9 +719,9 @@ JODB extends Model {
                     fout = Filesystem.writeNew(file(pending, key + ext));
                 }
                 try {
-                    final Slicer out = new Slicer(x.value, root, fout);
+                    final Slicer out = new Slicer(b.value, root, fout);
                     fout = out;
-                    out.writeObject(x.value);
+                    out.writeObject(b.value);
                     out.flush();
                 } catch (final Exception e) {
                     try { fout.close(); } catch (final Exception e2) {}
@@ -852,7 +859,7 @@ JODB extends Model {
     private SecretKeySpec master;
 
     private Mac
-    allocHash(final Root local) throws Exception {
+    allocMac(final Root local) throws Exception {
         if (!macs.isEmpty()) { return macs.remove(macs.size() - 1); }
         if (null == master) {
             final ByteArray bits = (ByteArray)config(folder, secret);
@@ -864,7 +871,7 @@ JODB extends Model {
     }
 
     private void
-    freeHash(final Mac h) { macs.add(h); }
+    freeMac(final Mac h) { macs.add(h); }
 
     /**
      * an output sink

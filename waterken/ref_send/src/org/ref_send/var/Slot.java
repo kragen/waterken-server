@@ -10,7 +10,7 @@ import org.ref_send.promise.eventual.Eventual;
 /**
  * A simple {@link Variable} implementation.
  */
-public final class
+final class
 Slot<T> implements Getter<T>, Serializable {
     static private final long serialVersionUID = 1L;
 

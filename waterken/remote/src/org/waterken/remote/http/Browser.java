@@ -89,9 +89,6 @@ Browser extends Struct implements Record, Serializable {
                 }
                 return otherwise;
             }
-            
-            public String
-            tag(final String name) { return null; }
 
             public void
             link(final String name, final Object value) throws Collision {
@@ -107,6 +104,9 @@ Browser extends Struct implements Record, Serializable {
 
             public String
             pipeline(final String m) { throw new AssertionError(); }
+
+            public String
+            getTransactionTag() { throw new AssertionError(); }
         };
         final Model model = new Model((Loop)enqueue) {
             public <R> R

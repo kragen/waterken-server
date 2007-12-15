@@ -98,14 +98,6 @@ Root {
     fetch(Object otherwise, String name);
 
     /**
-     * Gets the entity-tag of a stored value before the current transaction.
-     * @param name  name of the binding
-     * @return corresponding HTTP entity-tag, or <code>null</code> if none
-     */
-    String
-    tag(String name);
-
-    /**
      * Assigns a chosen name to a given value.
      * @param name  name to bind
      * @param value value to store
@@ -121,4 +113,12 @@ Root {
      */
     String
     export(Object value);
+    
+    /**
+     * Creates an entity-tag identifying all the state accessed by the current
+     * transaction.
+     * @return corresponding HTTP entity-tag, or <code>null</code> if none
+     */
+    String
+    getTransactionTag();
 }

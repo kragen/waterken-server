@@ -14,11 +14,11 @@ class
 MacInputStream extends InputStream {
 
     protected final InputStream in;
-    protected final Mac hash;
+    protected final Mac mac;
     
-    MacInputStream(final InputStream in, final Mac hash) {
+    MacInputStream(final InputStream in, final Mac mac) {
         this.in = in;
-        this.hash = hash;
+        this.mac = mac;
     }
     
     // java.io.InputStream interface
@@ -32,14 +32,14 @@ MacInputStream extends InputStream {
     @Override public int
     read() throws IOException {
         final int r = in.read();
-        if (-1 != r) { hash.update((byte)r); }
+        if (-1 != r) { mac.update((byte)r); }
         return r;
     }
 
     @Override public int
     read(final byte[] b, final int off, final int len) throws IOException {
         final int r = in.read(b, off, len);
-        if (-1 != r) { hash.update(b, off, r); }
+        if (-1 != r) { mac.update(b, off, r); }
         return r;
     }
 }

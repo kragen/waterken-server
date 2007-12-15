@@ -14,11 +14,11 @@ class
 MacOutputStream extends OutputStream {
 
     protected final OutputStream out;
-    protected final Mac hash;
+    protected final Mac mac;
     
-    MacOutputStream(final OutputStream out, final Mac hash) {
+    MacOutputStream(final OutputStream out, final Mac mac) {
         this.out = out;
-        this.hash = hash;
+        this.mac = mac;
     }
     
     // java.io.OutputStream interface
@@ -26,19 +26,19 @@ MacOutputStream extends OutputStream {
     @Override public void
     write(final int b) throws IOException {
         out.write(b);
-        hash.update((byte)b);
+        mac.update((byte)b);
     }
 
     @Override public void
     write(final byte[] v, final int off, final int len) throws IOException {
         out.write(v, off, len);
-        hash.update(v, off, len);
+        mac.update(v, off, len);
     }
 
     @Override public void
     write(final byte[] v) throws IOException {
         out.write(v);
-        hash.update(v);
+        mac.update(v);
     }
 
     @Override public void

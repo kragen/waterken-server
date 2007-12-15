@@ -20,7 +20,6 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.var.Slot;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -150,32 +149,26 @@ Callee extends Struct implements Server, Serializable {
             if (null != Java.property(lambda)) {
                 if ("GET".equals(request.method) ||
                         "HEAD".equals(request.method)) {
-                    if ("".equals(p) && Slot.class == target.getClass()) {
-                        final String etag = exports.tag(s);
-                        if (null != etag && request.hasVersion(etag)) {
-                            respond.fulfill(new Response(
-                                "HTTP/1.1", "304", "Not Modified",
-                                PowerlessArray.array(
-                                    new Header("ETag", etag),
-                                    new Header("Cache-Control", "max-age=0")
-                                ), null));
-                        } else {
-                            final Object value = ((Slot)target).get();
-                            Response r = serialize(request.method, "200", "OK",
-                                ephemeral, Serializer.render, value);
-                            if (null != etag) { r = r.with("ETag", etag); }
-                            respond.fulfill(r);
-                        }
+                    Object value;
+                    try {
+                        // AUDIT: call to untrusted application code
+                        value = Reflection.invoke(lambda, target);
+                    } catch (final Exception e) {
+                        value = new Rejected(e);
+                    }
+                    final String etag = exports.getTransactionTag();
+                    if (null != etag && request.hasVersion(etag)) {
+                        respond.fulfill(new Response(
+                            "HTTP/1.1", "304", "Not Modified",
+                            PowerlessArray.array(
+                                new Header("ETag", etag),
+                                new Header("Cache-Control", "max-age=0")
+                            ), null));
                     } else {
-                        Object value;
-                        try {
-                            // AUDIT: call to untrusted application code
-                            value = Reflection.invoke(lambda, target);
-                        } catch (final Exception e) {
-                            value = new Rejected(e);
-                        }
-                        respond.fulfill(serialize(request.method, "200", "OK",
-                                ephemeral, Serializer.render, value));
+                        Response r = serialize(request.method, "200", "OK",
+                            ephemeral, Serializer.render, value);
+                        if (null != etag) { r = r.with("ETag", etag); }
+                        respond.fulfill(r);
                     }
                 } else {
                   respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));

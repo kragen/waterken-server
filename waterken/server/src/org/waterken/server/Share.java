@@ -108,7 +108,7 @@ Share {
                     pipeline(final String m) { throw new AssertionError(); }
 
                     public String
-                    tag(final String name) { throw new AssertionError(); }
+                    getTransactionTag() { throw new AssertionError(); }
                 };
                 final Creator creator =
                     (Creator)local.fetch(null, Root.creator);
