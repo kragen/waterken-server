@@ -165,9 +165,10 @@ Callee extends Struct implements Server, Serializable {
                                 new Header("Cache-Control", "max-age=0")
                             ), null));
                     } else {
+                        final boolean var= !"getClass".equals(lambda.getName());
                         Response r = serialize(request.method, "200", "OK",
-                            ephemeral, Serializer.render, value);
-                        if (null != etag) { r = r.with("ETag", etag); }
+                          var ? ephemeral : forever, Serializer.render, value);
+                        if (null != etag && var) { r = r.with("ETag", etag); }
                         respond.fulfill(r);
                     }
                 } else {
