@@ -86,7 +86,7 @@ Responder {
                     phrase = e.phrase;
                 } else {
                     status = "400";
-                    phrase = "Bad Request";
+                    phrase = reason.toString();
                 }
                 final Do<Response,Void> output = this;
                 final String resource = URI.resolve("file:///res/", status); 
