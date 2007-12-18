@@ -12,7 +12,6 @@ import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Channel;
@@ -91,7 +90,7 @@ Caller extends Struct implements Messenger, Serializable {
                     ), null);
             }
 
-            public Void
+            @SuppressWarnings("unchecked") public Void
             fulfill(final Response response) {
                 Volatile<P> value;
                 try {
@@ -116,7 +115,7 @@ Caller extends Struct implements Messenger, Serializable {
         return r_;
     }
    
-    @SuppressWarnings("unchecked") public Object
+    public Object
     invoke(final String URL, final Object proxy,
            final Method method, final Object... arg) {
         return "set".equals(method.getName()) && proxy instanceof Setter &&
