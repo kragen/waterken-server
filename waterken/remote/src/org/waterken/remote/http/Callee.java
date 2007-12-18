@@ -57,7 +57,7 @@ Callee extends Struct implements Server, Serializable {
 
     // org.waterken.http.Server interface
 
-    @SuppressWarnings("unchecked") public void
+    public void
     serve(final String resource,
           final Volatile<Request> requestor,
           final Do<Response,?> respond) throws Exception {
@@ -176,7 +176,8 @@ Callee extends Struct implements Server, Serializable {
                 }
             } else if ("POST".equals(request.method)) {
                 final String m = Query.arg(null, query, "m");
-                final Object value = exports.once(m, target, new Do() {
+                final Object value = exports.once(m, target,
+                                                  new Do<Object,Object>() {
                     @Override public Object
                     fulfill(final Object target) throws Exception {
                         final ConstArray<?> argv =
