@@ -12,6 +12,18 @@ import org.ref_send.promise.eventual.Eventual;
 
 /**
  * The authority provided to the creator of a new model.
+ * <p>
+ * A {@link Framework} provides permissions to a model, as in the
+ * Model-View-Control (MVC) pattern. An application should be composed of
+ * separate classes that fall into only one of these categories. Objects forming
+ * the application's model should be stored in the model to make them
+ * persistent. Objects in the other categories should be transient and so
+ * reconstructed each time the application is revived from its persistent state.
+ * Following this convention reduces the number of classes with a persistent
+ * representation that MUST be supported across application upgrade. When
+ * designing classes for your model, take care to limit their complexity and
+ * plan for upgrade.
+ * </p>
  */
 public final class
 Framework extends Struct implements Record, Serializable {
