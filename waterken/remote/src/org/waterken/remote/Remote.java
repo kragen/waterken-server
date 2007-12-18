@@ -154,32 +154,32 @@ Remote<T> extends Deferred<T> implements Promise<T> {
     
     // org.ref_send.promise.eventual.Deferred interface
 
-    @SuppressWarnings("unchecked") protected <R> R
+    protected <R> R
     when(final Class<?> R, final Do<T,R> observer) {
         final String here = (String)local.fetch(null, Remoting.here);
         final String target = null == here ? URL : URI.resolve(here, URL);
         return message(target).when(target, R, observer);
     }
 
-    @SuppressWarnings("unchecked") private Messenger
+    private Messenger
     message(final String target) {
         final String scheme = URI.scheme("", target);
         if ("https".equals(scheme)) { return new HTTP("https", 443, local); }
         if ("http".equals(scheme)) { return new HTTP("http", 80, local); }
-        final Rejected p = new Rejected(new UnknownScheme(scheme));
+        final UnknownScheme reason = new UnknownScheme(scheme);
         return new Messenger() {
             
             public <P,R> R
             when(final String URL, final Class<?> R, final Do<P,R> observer) {
                 final Eventual _ = (Eventual)local.fetch(null, Remoting._);
-                return _.when((Rejected<P>)p, observer);
+                return _.when(new Rejected<P>(reason), observer);
             }
             
             public Object
             invoke(final String URL, final Object proxy, 
                    final Method method, final Object... arg) {
                 try {
-                    return p.invoke(proxy, method, arg);
+                    return new Rejected(reason).invoke(proxy, method, arg);
                 } catch (final Exception e) {
                     throw new Error(e);
                 }
