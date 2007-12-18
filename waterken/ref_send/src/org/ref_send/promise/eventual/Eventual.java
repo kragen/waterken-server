@@ -252,7 +252,7 @@ Eventual implements Equatable, Serializable {
         public T
         cast() throws Exception { return untrusted.cast(); }
 
-        @SuppressWarnings("unchecked") public <R> R
+        public <R> R
         when(final Class<?> R, final Do<T,R> observer) {
             final R r;
             final Do<T,?> forwarder;
@@ -261,8 +261,7 @@ Eventual implements Equatable, Serializable {
                 forwarder = observer;
             } else {
                 final Channel<R> x = _.defer();
-                r = R.isAssignableFrom(Promise.class)
-                        ? (R)x.promise : _.cast(R, x.promise);
+                r = _.cast(R, x.promise);
                 forwarder = compose(observer, x.resolver);
             }
             class Sample extends Struct implements Task, Serializable {
@@ -481,7 +480,7 @@ Eventual implements Equatable, Serializable {
             public T
             cast() throws Exception { return state.cast().value.cast(); }
 
-            @SuppressWarnings("unchecked") public <R> R
+            public <R> R
             when(final Class<?> R, final Do<T,R> observer) {
                 final R r;
                 final Do<T,?> forwarder;
@@ -490,8 +489,7 @@ Eventual implements Equatable, Serializable {
                     forwarder = observer;
                 } else {
                     final Channel<R> x = _.defer();
-                    r = R.isAssignableFrom(Promise.class)
-                            ? (R)x.promise : _.cast(R, x.promise);
+                    r = _.cast(R, x.promise);
                     forwarder = compose(observer, x.resolver);
                 }
 
@@ -559,7 +557,9 @@ Eventual implements Equatable, Serializable {
     @SuppressWarnings("unchecked") public <T> T
     cast(final Class type, final Volatile<T> promise) {
         try {
-            return null == promise
+            return type.isAssignableFrom(Promise.class)
+                ? (T)promise
+            : null == promise
                 ? new Rejected<T>(new NullPointerException())._(type)
             : Rejected.class == promise.getClass()
                 ? ((Rejected<T>)promise)._(type)
