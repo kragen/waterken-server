@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
+import static org.ref_send.promise.Fulfilled.ref;
+
 import java.io.Serializable;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import org.joe_e.Token;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.Promise;
+import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
@@ -109,10 +113,22 @@ Browser extends Struct implements Record, Serializable {
             getTransactionTag() { throw new AssertionError(); }
         };
         final Model model = new Model((Loop)enqueue) {
-            public <R> R
+            
+            private boolean busy = false;
+            
+            public synchronized <R> Promise<R>
             enter(final boolean extend,
-                  final Transaction<R> body) throws Exception, Error {
-                return body.run(local);
+                  final Transaction<R> body) throws Exception {
+                if (busy) { throw new Exception(); }
+                busy = true;
+                try {
+                    final R r = body.run(local);
+                    busy = false;
+                    return ref(r);
+                } catch (final Exception e) {
+                    busy = false;
+                    return new Rejected<R>(e);
+                }
             }
         };
         local.link(Root.code, code);
@@ -134,10 +150,10 @@ Browser extends Struct implements Record, Serializable {
                            Remote.bind(local, null));
     }
 
-    private static final class
+    static private final class
     Binding {
         final String key;
-              Object value;
+        final Object value;
         
         Binding(final String key, final Object value) {
             this.key = key;

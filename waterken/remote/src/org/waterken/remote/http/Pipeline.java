@@ -222,7 +222,7 @@ Pipeline implements Serializable {
         private Void
         resolve(final Promise<Response> response) throws Exception {
             try {
-                return model.enter(Model.change, new Transaction<Void>() {
+                model.enter(Model.change, new Transaction<Void>() {
                     public Void
                     run(final Root local) throws Exception {
                         final Outbound outbound =
@@ -239,9 +239,8 @@ Pipeline implements Serializable {
                         return respond.fulfill(value);
                     }
                 });
-            } catch (final FileNotFoundException e) {
-                return null;    // model is dead
-            }
+            } catch (final FileNotFoundException e) { /* model is dead */ }
+            return null;
         }
     }
 }

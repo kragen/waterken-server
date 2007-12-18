@@ -12,7 +12,9 @@ import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
+import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
+import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
@@ -69,39 +71,31 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                     }
                     buffered = q;
                 }
-                Response response;
-                try {
-                    response = model.enter("GET".equals(buffered.method) ||
-                                           "HEAD".equals(buffered.method) ||
-                                           "OPTIONS".equals(buffered.method) ||
-                                           "TRACE".equals(buffered.method),
-                                           new Transaction<Response>() {
-                        public Response
-                        run(final Root local) throws Exception {
-                            final Response[] response = { null };
-                            new Callee(bootstrap, local).serve(resource,
-                                    ref(buffered), new Do<Response,Void>() {
-                                public Void
-                                fulfill(Response r) throws Exception {
-                                    if (null != r.body &&
-                                        !(r.body instanceof Snapshot)) {
-                                        r = new Response(r.version, r.status,
-                                            r.phrase, r.header, Snapshot.
-                                                snapshot(r.getContentLength(),
-                                                         r.body));
-                                    }
-                                    response[0] = r;
-                                    return null;
+                respond.fulfill(model.enter("GET".equals(buffered.method) ||
+                                            "HEAD".equals(buffered.method) ||
+                                            "OPTIONS".equals(buffered.method) ||
+                                            "TRACE".equals(buffered.method),
+                                            new Transaction<Response>() {
+                    public Response
+                    run(final Root local) throws Exception {
+                        final Response[] response = { null };
+                        new Callee(bootstrap, local).serve(resource,
+                                ref(buffered), new Do<Response,Void>() {
+                            public Void
+                            fulfill(Response r) throws Exception {
+                                if (null != r.body &&
+                                    !(r.body instanceof Snapshot)) {
+                                    r= new Response(r.version,r.status,r.phrase,
+                                        r.header, Snapshot.snapshot(
+                                            r.getContentLength(), r.body));
                                 }
-                            });
-                            return response[0];
-                        }
-                    });
-                } catch (final Exception e) {
-                    respond.reject(e);
-                    return;
-                }
-                respond.fulfill(response);
+                                response[0] = r;
+                                return null;
+                            }
+                        });
+                        return response[0];
+                    }
+                }).cast());
             }
         };
     }
@@ -150,35 +144,43 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 final String base = (String)mother.fetch(null, here);
                 final Server client= (Server)mother.fetch(null,Remoting.client);
                 final Creator creator= (Creator)mother.fetch(null,Root.creator);
-                final String URL = creator.create(new Transaction<String>() {
-                    public String
-                    run(final Root local) throws Exception {
-                        final String here =
-                            base + URLEncoding.encode(local.getModelName())+"/";
-                        local.link(Remoting.here, here);
-                        if (null != client) {
-                            local.link(Remoting.client, client);
-                            local.link(Root.wake, new Wake());
-                            local.link(outbound, new Outbound());
+                final Class<?> T = build.getReturnType();
+                final String URL;
+                try {
+                    URL = creator.create(new Transaction<String>() {
+                        public String
+                        run(final Root local) throws Exception {
+                            final String here = base +
+                                URLEncoding.encode(local.getModelName()) + "/";
+                            local.link(Remoting.here, here);
+                            if (null != client) {
+                                local.link(Remoting.client, client);
+                                local.link(Root.wake, new Wake());
+                                local.link(outbound, new Outbound());
+                            }
+                            final Token deferred = new Token();
+                            local.link(Remoting.deferred, deferred);
+                            final Eventual _ = new Eventual(deferred,
+                                (Loop)local.fetch(null, Root.enqueue));
+                            local.link(Remoting._, _);
+                            final Publisher publisher = publish(local);
+                            final Framework framework = new Framework(
+                                _,
+                                new Destruct(
+                                    (Runnable)local.fetch(null, Root.destruct)),
+                                AMP.spawn(publisher),
+                                null != name ? publisher : null
+                            );
+                            return URI.resolve(here, new Exports(local).reply().
+                                run(Reflection.invoke(build, null, framework)));
                         }
-                        final Token deferred = new Token();
-                        local.link(Remoting.deferred, deferred);
-                        final Eventual _ = new Eventual(deferred,
-                            (Loop)local.fetch(null, Root.enqueue));
-                        local.link(Remoting._, _);
-                        final Publisher publisher = publish(local);
-                        final Framework framework = new Framework(
-                            _,
-                            new Destruct(
-                                (Runnable)local.fetch(null, Root.destruct)),
-                            AMP.spawn(publisher),
-                            null != name ? publisher : null
-                        );
-                        return URI.resolve(here, new Exports(local).reply().run(
-                            Reflection.invoke(build, null, framework)));
-                    }
-                }, (String)mother.fetch(null, Root.project), name);
-                return (T)Remote.use(mother).run(build.getReturnType(), URL);
+                    }, (String)mother.fetch(null, Root.project), name);
+                } catch (final Exception e) {
+                    final Rejected<T> r = new Rejected<T>(e);
+                    return (T)(T.isInstance(r) ||
+                               !Proxies.isImplementable(T) ? r : r._(T));
+                }
+                return (T)Remote.use(mother).run(T, URL);
             }
             
             private void
