@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.jos;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 import org.waterken.model.Root;
@@ -18,5 +19,5 @@ Wrapper extends Serializable {
      * @return unwrapped object
      */
     Object
-    peel(Root root);
+    peel(Root root) throws IOException;
 }

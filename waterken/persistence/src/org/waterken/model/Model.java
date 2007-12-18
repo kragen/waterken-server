@@ -4,20 +4,14 @@ package org.waterken.model;
 
 import java.io.FileNotFoundException;
 
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Loop;
+import org.web_send.graph.Framework;
 
 /**
  * A persistent application model.
  * <p>
- * This class gets its name from the Model in the Model-View-Control (MVC)
- * pattern. An application should be composed of separate classes that fall into
- * only one of these categories. Objects forming the application's model should
- * be stored in the {@link Model} to make them persistent. Objects in the other
- * categories should be transient and so reconstructed each time the application
- * is revived from its persistent state. Following this convention reduces the
- * number of classes with a persistent representation that MUST be supported
- * across application upgrade. When designing classes for your model, take care
- * to limit their complexity and plan for upgrade.
+ * This class implements the abstraction described by a {@link Framework}.
  * </p>
  */
 public abstract class
@@ -29,7 +23,8 @@ Model {
     static public final boolean change = false;
 
     /**
-     * indicates a {@linkplain #enter transaction} only queries existing state
+     * indicates a {@linkplain #enter transaction} only queries existing state,
+     * and does not persist any new selfish objects
      */
     static public final boolean extend = true;
 
@@ -53,21 +48,20 @@ Model {
      * The implementation MUST ensure only one transaction is active in the
      * model at any time. An invocation from another thread MUST block until the
      * model becomes available. A recursive invocation from the same thread MUST
-     * cause an error.
+     * throw an {@link Exception}.
      * </p>
      * <p>
      * If {@linkplain Transaction#run invocation} of the <code>body</code>
-     * causes an {@link Error}, all modifications to objects in the model MUST
-     * be discarded, and the {@link Error} allowed to propagate up the call
-     * chain. For subsequent transactions, it MUST be as if the aborted
+     * causes an {@link Error}, the transaction MUST be aborted. When a
+     * transaction is aborted, all modifications to objects in the model MUST be
+     * discarded. For subsequent transactions, it MUST be as if the aborted
      * transaction was never attempted.
      * </p>
      * <p>
      * The implementation MUST NOT rely on the <code>extend</code> argument
      * accurately describing the behavior of the <code>body</code> argument.
-     * If {@link #extend} is specified, the implementation MUST check that no
-     * existing state was modified. If state was modified, the transaction MUST
-     * be aborted, in the same manner described previously.
+     * If {@link #extend} is specified, the implementation MUST check that the
+     * constraints are met; if not, the transaction MUST be aborted.
      * {@linkplain Root#link Linking} a new {@link Root root} value is
      * considered a modification.
      * </p>
@@ -80,25 +74,24 @@ Model {
      * {@linkplain Root#export exporting} it.
      * </p>
      * <p>
-     * If invocation of this method returns without producing an {@link Error},
-     * all modifications to objects in the model MUST be committed. Only if the
-     * current transaction commits will the {@linkplain Root#effect enqueued}
-     * {@link Effect}s be {@linkplain Transaction#run executed}; otherwise, the
-     * implementation MUST discarded them. The effects MUST be executed in the
-     * same order as they were enqueued. Effects from a subsequent transaction
-     * MUST NOT be executed until all effects from the current transaction have
-     * been executed. An {@link Effect} MUST NOT access objects in the model,
-     * but may schedule additional effects.
+     * If invocation of this method returns normally, all modifications to
+     * objects in the model MUST be committed. Only if the current transaction
+     * commits will the {@linkplain Root#effect enqueued} {@link Effect}s be
+     * {@linkplain Transaction#run executed}; otherwise, the implementation
+     * MUST discarded them. The effects MUST be executed in the same order as
+     * they were enqueued. Effects from a subsequent transaction MUST NOT be
+     * executed until all effects from the current transaction have been
+     * executed. An {@link Effect} MUST NOT access objects in the model, but may
+     * schedule additional effects.
      * </p>
      * @param <R> <code>body</code>'s return type
      * @param extend either {@link #change} or {@link #extend}
      * @param body transaction body
-     * @return <code>body</code>'s return
-     * @throws FileNotFoundException    model no longer exists
-     * @throws Exception any exception thrown from the <code>body</code>
-     * @throws Error any problem in processing the transaction
+     * @return promise for <code>body</code>'s return
+     * @throws FileNotFoundException model no longer exists
+     * @throws Exception problem completing the transaction, which may or may
+     *                   not be committed
      */
-    public abstract <R> R
-    enter(boolean extend, Transaction<R> body) throws FileNotFoundException,
-                                                      Exception, Error;
+    public abstract <R> Promise<R>
+    enter(boolean extend, Transaction<R> body) throws Exception;
 }

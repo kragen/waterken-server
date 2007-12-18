@@ -8,15 +8,15 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * Signals an attempt to modify persistent state in an {@link Model#extend}
+ * Signals an attempt to create selfish state in an {@link Model#extend}
  * {@link Model#enter transaction}.
  */
 public class
-ProhibitedModification extends RuntimeException implements Powerless, Record {
+ProhibitedCreation extends RuntimeException implements Powerless, Record {
     static private final long serialVersionUID = 1L;
     
     /**
-     * modified object type
+     * created object type
      */
     public final Class type;
     
@@ -25,7 +25,7 @@ ProhibitedModification extends RuntimeException implements Powerless, Record {
      * @param type  {@link #type}
      */
     public @deserializer
-    ProhibitedModification(@name("type") final Class type) {
+    ProhibitedCreation(@name("type") final Class type) {
         super(type.getName());
         this.type = type;
     }

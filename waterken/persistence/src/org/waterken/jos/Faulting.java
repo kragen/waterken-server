@@ -38,5 +38,11 @@ Faulting extends Fulfilled<Object>  {
     // org.ref_send.promise.Volatile interface
 
     public Object
-    cast() { return root.fetch(null, name); }
+    cast() {
+        try {
+            return root.fetch(null, name);
+        } catch (final Exception e) {
+            throw new Error(e);
+        }
+    }
 }

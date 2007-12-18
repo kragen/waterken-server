@@ -27,5 +27,5 @@ Creator {
      */
     <R> R
     create(Transaction<R> initialize,
-           String project, String name) throws Collision;
+           String project, String name) throws Exception;
 }

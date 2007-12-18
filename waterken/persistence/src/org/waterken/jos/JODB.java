@@ -45,7 +45,7 @@ import org.waterken.model.Creator;
 import org.waterken.model.CyclicGraph;
 import org.waterken.model.Effect;
 import org.waterken.model.Model;
-import org.waterken.model.ModelError;
+import org.waterken.model.ProhibitedCreation;
 import org.waterken.model.ProhibitedModification;
 import org.waterken.model.Root;
 import org.waterken.model.Service;
@@ -91,7 +91,7 @@ JODB extends Model {
             : new File(home, dbPathDefault)).getCanonicalFile();
             dbDirPath = dbDir.getPath() + File.separator;
         } catch (final IOException e) {
-            throw new ModelError(e);
+            throw new Error(e);
         }
     }
     static private final Cache<File,JODB> live =
@@ -104,15 +104,11 @@ JODB extends Model {
      * @throws FileNotFoundException    <code>id</code> not a persistence folder
      */
     static public Model
-    open(final File id,
-         final Loop<Service> service) throws FileNotFoundException {
-        final File folder;
-        try {
-            folder = id.getCanonicalFile();
-        } catch (final IOException e) { throw new ModelError(e); }
+    open(final File id, final Loop<Service> service) throws Exception {
+        final File folder = id.getCanonicalFile();
         if (!folder.isDirectory()) { throw new FileNotFoundException(); }
         synchronized (live) {
-            if (null != live.fetch(null,folder)) { throw new AssertionError(); }
+            if (null != live.fetch(null, folder)) { throw new Exception(); }
             return load(folder, service);
         }
     }
@@ -129,11 +125,8 @@ JODB extends Model {
      * @throws FileNotFoundException    <code>id</code> not a persistence folder
      */
     static public Model
-    connect(final File id) throws FileNotFoundException {
-        final File folder;
-        try {
-            folder = id.getCanonicalFile();
-        } catch (final IOException e) { throw new ModelError(e); }
+    connect(final File id) throws Exception {
+        final File folder = id.getCanonicalFile();
         if (!folder.isDirectory()) { throw new FileNotFoundException(); }
         synchronized (live) {
             final JODB r = live.fetch(null, folder);
@@ -173,56 +166,41 @@ JODB extends Model {
     /**
      * Processes a transaction within this model.
      */
-    public synchronized <R> R
+    public synchronized <R> Promise<R>
     enter(final boolean extend, final Transaction<R> body) throws Exception {
-        if (busy) { throw new AssertionError(); }
+        if (busy) { throw new Exception(); }
         busy = true;
         try {
             if (!awake) {
-                final Promise<Boolean> woken;
-                try {
-                    woken = process(Model.extend, new Transaction<Boolean>() {
-                        @SuppressWarnings("unchecked") public Boolean
-                        run(final Root local) {
-                            try {
-                                // start up a runner if necessary
-                                if (null == runner && null != service) {
-                                    final List<Task> q =
-                                        (List)local.fetch(null, tasks);
-                                    if (null != q && !q.isEmpty()) {
-                                        final Run x = new Run();
-                                        service.run(x);
-                                        runner = x;
-                                    }
-                                }
-
-                                // start up any other configured services
-                                final Transaction<?> wake =
-                                    (Transaction)local.fetch(null, Root.wake);
-                                if (null != wake) { wake.run(local); }
-
-                                return true;
-                            } catch (final Exception e) {
-                                // abort transaction if initialization fails
-                                throw new ModelError(e);
+                awake = process(Model.extend, new Transaction<Boolean>() {
+                    @SuppressWarnings("unchecked") public Boolean
+                    run(final Root local) throws Exception {
+                        // start up a runner if necessary
+                        if (null == runner && null != service) {
+                            final List<Task> q = (List)local.fetch(null, tasks);
+                            if (null != q && !q.isEmpty()) {
+                                final Run x = new Run();
+                                service.run(x);
+                                runner = x;
                             }
                         }
-                    });
-                } catch (final Exception e) {
-                    // abort transaction if initializer not run
-                    throw new ModelError(e);
-                }
-                awake = woken.cast();   // either returns true or
-                                        // throws FileNotFoundException
-            }
 
-            final Promise<R> r;
-            try {
-                r = process(extend, body);
-            } catch (final Exception e) {
-                throw new ModelError(e);
+                        // start up any other configured services
+                        final Transaction<?> wake =
+                            (Transaction)local.fetch(null, Root.wake);
+                        if (null != wake) { wake.run(local); }
+
+                        return true;
+                    }
+                }).cast();
             }
-            return r.cast();
+            return process(extend, body);
+        } catch (final Error e) {
+            // allow the caller to recover from an aborted transaction
+            if (e instanceof OutOfMemoryError) { System.gc(); }
+            final Throwable cause = e.getCause();
+            if (cause instanceof Exception) { throw (Exception)cause; }
+            throw new Exception(e);
         } finally {
             busy = false;
         }
@@ -282,15 +260,16 @@ JODB extends Model {
 
             public String
             pipeline(final String m) {
+                final byte[] key = Base32.decode(m);
+                if (128/Byte.SIZE != key.length) {throw new RuntimeException();}
                 try {
-                    final byte[] key = Base32.decode(m);
-                    final byte[] plaintext = new byte[key.length];
-                    final byte[] cyphertext = new byte[key.length];
+                    final byte[] plaintext = new byte[128 / Byte.SIZE];
+                    final byte[] cyphertext = new byte[128 / Byte.SIZE];
                     final Cipher aes = Cipher.getInstance("AES/ECB/NoPadding");
                     aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key,"AES"));
                     aes.doFinal(plaintext, 0, plaintext.length, cyphertext);
                     return Base32.encode(cyphertext);
-                } catch (final Exception e) { throw new AssertionError(); }
+                } catch (final Exception e) { throw new Error(e); }
             }
 
             /**
@@ -322,7 +301,9 @@ JODB extends Model {
                 if (extend) { throw new ProhibitedModification(Root.class); }
 
                 final String key = name.toLowerCase();
-                if (null != load(key)) { throw new Collision(); }
+                try {
+                    if (null != load(key)) { throw new Collision(); }
+                } catch (final Exception e) { throw new Collision(); }
                 Filesystem.checkName(key + ext);
                 k2b.put(key, new Bucket(true, new SymbolicLink(value), null));
                 xxx.add(key);
@@ -385,23 +366,24 @@ JODB extends Model {
                         type[n] = Object.class;
                         InputStream fin = null;
                         try {
+                            final int pos = n;
                             fin = Filesystem.read(file(folder, at + ext));
                             final SubstitutionStream in= new SubstitutionStream(
                                     true, JODB.this.code, fin) {
                                 protected Object
-                                resolveObject(final Object x) {
-                                    return x instanceof Wrapper ? null : x;
+                                resolveObject(Object x) {
+                                    if (x instanceof Wrapper) {
+                                        type[pos] = x.getClass();
+                                        x = null;
+                                    }
+                                    return x;
                                 }
                             };
                             fin = in;
                             final Object x = in.readObject();
-                            type[n] = null != x ? x.getClass() : Void.class;
-                        } catch (final Exception e) {
-                            // can't figure out the type
-                        }
-                        if (null != fin) {
-                            try { fin.close(); } catch (final IOException e) {}
-                        }
+                            if (null != x) { type[n] = x.getClass(); }
+                        } catch (final Exception e) { /* unknown type */ }
+                        if(null!=fin){ try{fin.close();}catch(IOException e){} }
                     }
                     throw new CyclicGraph(PowerlessArray.array(type));
                 }
@@ -419,8 +401,8 @@ JODB extends Model {
             read(final File file) {
                 InputStream fin = null;
                 try {
-                    final Mac mac = allocMac(this);
                     fin = Filesystem.read(file);
+                    final Mac mac = allocMac(this);
                     fin = new MacInputStream(fin, mac);
                     final Root loader = this;
                     final SubstitutionStream in =
@@ -442,15 +424,13 @@ JODB extends Model {
                     freeMac(mac);
                     return new Bucket(false, value, ByteArray.array(version));
                 } catch (final Exception e) {
-                    if (null != fin) {
-                        try { fin.close(); } catch (final Exception e2) {}
-                    }
-                    if (e instanceof CyclicGraph) { throw (CyclicGraph)e; }
-                    if (e instanceof UnknownClass) { throw (UnknownClass)e; }
+                    if (null != fin) {try {fin.close();} catch (Exception x){}}
+                    if (e instanceof IOException) { throw new Error(e); }
+                    if(e instanceof RuntimeException){throw(RuntimeException)e;}
                     if (e instanceof ClassNotFoundException) {
                         throw new UnknownClass(e.getMessage());
                     }
-                    throw new ModelError(e);
+                    throw new RuntimeException(e);
                 }
             }
             
@@ -463,7 +443,7 @@ JODB extends Model {
                 final MessageDigest hash;
                 try {
                     hash = MessageDigest.getInstance("SHA-256");
-                } catch (final Exception e) { throw new ModelError(e); }
+                } catch (final Exception e) { throw new Error(e); }
                 for (final Bucket b : k2b.values()) {
                     if (null!=b.version) {hash.update(b.version.toByteArray());}
                 }
@@ -491,26 +471,34 @@ JODB extends Model {
                             id = mac.doFinal();
                             freeMac(mac);
                         } catch (final Exception e) {
-                            throw new ModelError(e);
+                            throw new Error(e);
                         }
-                        final ByteArray fingerprint = ByteArray.array(id);
+                        final ByteArray version = ByteArray.array(id);
                         final byte[] d = new byte[keyBytes];
                         System.arraycopy(id, 0, d, 0, d.length);
                         while (true) {
                             key = key(d);
-                            final Bucket b = load(key);
-                            if (null == b) {
-                                k2b.put(key,new Bucket(true,value,fingerprint));
-                                o2k.put(value, key);
-                                xxx.add(key);
-                                break;
-                            }
-                            if (fingerprint.equals(b.version)) { break; }
+                            try {
+                                final Bucket b = load(key);
+                                if (null == b) {
+                                    k2b.put(key,new Bucket(true,value,version));
+                                    o2k.put(value, key);
+                                    xxx.add(key);
+                                    break;
+                                }
+                                if (version.equals(b.version)) { break; }
+                            } catch (final Exception e) {/*skip broken bucket*/}
                             for (int i = 0; i != d.length; ++i) {
                                 if (0 != ++d[i]) { break; }
                             }
                         }
                     } else {
+                        // to support caching of query responses, forbid
+                        // creation of selfish state in an extend transaction
+                        if (extend) {
+                            throw new ProhibitedCreation(value.getClass());
+                        }
+
                         // assign a new persistent identity
                         do {
                             final byte[] d = new byte[keyBytes];
@@ -547,6 +535,8 @@ JODB extends Model {
         final Runnable destruct = new Runnable() {
             public void
             run() {
+                if (!active[0]) { throw new AssertionError(); }
+
                 root.link(dead, true);
                 effect.run(new Effect() {
                     public void
@@ -577,12 +567,12 @@ JODB extends Model {
 
             public <T> T
             create(final Transaction<T> initialize,
-                   final String project, final String name) throws Collision {
+                   final String project, final String name) throws Exception {
                 if (!active[0]) { throw new AssertionError(); }
                 if (extend) { throw new ProhibitedModification(Creator.class); }
 
                 if (!modified[0]) {
-                    if (!pending.mkdir()) { throw new Error(); }
+                    if (!pending.mkdir()) {throw new Error(new IOException());}
                     modified[0] = true;
                 }
 
@@ -601,14 +591,15 @@ JODB extends Model {
                     }
                     key = x;
                 }
+                final File sub = file(pending, key);
+                if (!sub.mkdir()) { throw new Error(new IOException()); }
+                if (null != project) { setConfig(sub, Root.project, project); }
+                final byte[] bits = new byte[128 / Byte.SIZE];
+                prng.nextBytes(bits);
+                setConfig(sub, secret, ByteArray.array(bits));
+                final Promise<T> r;
                 try {
-                    final File sub = file(pending, key);
-                    if (!sub.mkdir()) { throw new IOException(); }
-                    if (null != project) { init(sub, Root.project, project); }
-                    final byte[] bits = new byte[128 / Byte.SIZE];
-                    prng.nextBytes(bits);
-                    init(sub, secret, ByteArray.array(bits));
-                    return new JODB(sub,null).enter(change,new Transaction<T>(){
+                    r = new JODB(sub, null).enter(change, new Transaction<T>() {
                         public T
                         run(final Root local) throws Exception {
                             final List<Task> q = List.list();
@@ -616,7 +607,10 @@ JODB extends Model {
                             return initialize.run(local);
                         }
                     });
-                } catch (final Exception e) { throw new ModelError(e); }
+                } catch (final Exception e) {
+                    throw new Error(e);
+                }
+                return r.cast();
             }
 
             /**
@@ -647,7 +641,7 @@ JODB extends Model {
                     if (!file(pending, was).createNewFile()) {
                         throw new Collision();
                     }
-                } catch (final IOException e) { throw new ModelError(e); }
+                } catch (final IOException e) { throw new Error(e); }
                 return key;
             }
         };
@@ -762,21 +756,22 @@ JODB extends Model {
      * @param key       configuration key
      */
     static private Object
-    config(final File folder, final String key) throws Exception {
-        final File file = file(folder, key + ext);
-        if (!file.isFile()) { return null; }
-        final Object r;
-        InputStream in = Filesystem.read(file);
+    getConfig(final File folder, final String key) throws Exception {
+        InputStream in = null;
         try {
+            final File file = file(folder, key + ext);
+            if (!file.isFile()) { return null; }
+            in = Filesystem.read(file);
             final ObjectInputStream oin = new ObjectInputStream(in);
             in = oin;
-            r = oin.readObject();
+            final Object r = oin.readObject();
+            in.close();
+            return r;
         } catch (final Exception e) {
-            try { in.close(); } catch (final Exception e2) {}
+            if (null != in) { try { in.close(); } catch (final Exception x) {} }
+            if (e instanceof IOException) { throw new Error(e); }
             throw e;
         }
-        in.close();
-        return r;
     }
 
     /**
@@ -786,19 +781,21 @@ JODB extends Model {
      * @param value     configured value
      */
     static private void
-    init(final File folder,
-         final String key, final Object value) throws Exception {
-        OutputStream out = Filesystem.writeNew(file(folder, key + ext));
+    setConfig(final File folder,
+              final String key, final Object value) throws Exception {
+        OutputStream out = null;
         try {
+            out = Filesystem.writeNew(file(folder, key + ext));
             final ObjectOutputStream oout = new ObjectOutputStream(out);
             out = oout;
             oout.writeObject(value);
             oout.flush();
+            out.close();
         } catch (final Exception e) {
-            try { out.close(); } catch (final Exception e2) {}
+            if (null!=out) { try { out.close(); } catch (final Exception x) {} }
+            if (e instanceof IOException) { throw new Error(e); }
             throw e;
         }
-        out.close();
     }
 
     static private final Cache<String,ClassLoader> jars =
@@ -839,7 +836,7 @@ JODB extends Model {
      */
     static ClassLoader
     application(final File folder) throws Exception {
-        return jar((String)config(folder, Root.project));
+        return jar((String)getConfig(folder, Root.project));
     }
 
     /**
@@ -862,7 +859,7 @@ JODB extends Model {
     allocMac(final Root local) throws Exception {
         if (!macs.isEmpty()) { return macs.remove(macs.size() - 1); }
         if (null == master) {
-            final ByteArray bits = (ByteArray)config(folder, secret);
+            final ByteArray bits = (ByteArray)getConfig(folder, secret);
             master = new SecretKeySpec(bits.toByteArray(), "HmacSHA256");
         }
         final Mac r = Mac.getInstance("HmacSHA256");
