@@ -20,7 +20,7 @@ import org.ref_send.promise.eventual.Eventual;
  * persistent. Objects in the other categories should be transient and so
  * reconstructed each time the application is revived from its persistent state.
  * Following this convention reduces the number of classes with a persistent
- * representation that MUST be supported across application upgrade. When
+ * representation that must be supported across application upgrade. When
  * designing classes for your model, take care to limit their complexity and
  * plan for upgrade.
  * </p>
