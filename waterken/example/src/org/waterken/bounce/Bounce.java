@@ -6,7 +6,6 @@ import static org.ref_send.promise.Fulfilled.ref;
 
 import java.io.Serializable;
 
-import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.array.BooleanArray;
 import org.joe_e.array.ByteArray;
@@ -46,7 +45,10 @@ Bounce {
      */
     static public Wall
     make() {
-        class WallX extends Struct implements Wall, Powerless, Serializable {
+        final Runnable normal = new Normal();
+        final Runnable rejected =
+            new Rejected<Runnable>(new Exception())._(Runnable.class);
+        class WallX extends Struct implements Wall, Serializable {
             static private final long serialVersionUID = 1L;
 
             public Promise<AllTypes>
@@ -70,9 +72,7 @@ Bounce {
                     IntArray.array(0, Integer.MAX_VALUE, Integer.MIN_VALUE),
                     LongArray.array(0L, Long.MAX_VALUE, Long.MIN_VALUE),
                     "a \" \\ / \b \f \n \r \t \0",
-                    ConstArray.array((Runnable)new Normal(), null,
-                        new Rejected<Runnable>(new Exception()).
-                            _(Runnable.class)),
+                    ConstArray.array(normal, null, rejected),
                     ConstArray.array(
                         ImmutableArray.array(PowerlessArray.array(true)))));
             }

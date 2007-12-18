@@ -22,12 +22,12 @@ Put {
      * Constructs an instance.
      * @param framework model framework
      */
-    static public Promise<Variable<Byte>>
+    static public Promise<Variable<Boolean>>
     build(final Framework framework) { return ref(make()); }
     
     /**
      * Constructs an instance.
      */
-    static public Variable<Byte>
-    make() { return var((byte)0); }
+    static public Variable<Boolean>
+    make() { return var(false); }
 }

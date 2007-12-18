@@ -60,8 +60,8 @@ Main extends Struct implements Test, Serializable {
         final Drum drum_ = framework.publisher.spawn("drum", Bang.class);
         r.add(new org.waterken.bang.Main(_).test(drum_, 0));
         
-        final Promise<Variable<Byte>> slot = framework.spawn.run(Put.class);
-        r.add(new org.waterken.put.Main(_).test(slot, (byte)0));
+        final Promise<Variable<Boolean>> slot = framework.spawn.run(Put.class);
+        r.add(new org.waterken.put.Main(_).test(slot, false));
 
         return and(_, r.toArray(new Promise[r.size()]));
     }

@@ -78,17 +78,15 @@ Main extends Struct implements Test, Serializable {
      * Starts a {@link #test test}.
      */
     public Promise<Boolean>
-    start() throws Exception { return test(ref(subject()), (byte)0); }
+    start() throws Exception { return test(ref(subject()), false); }
     
     // org.waterken.put.Main interface
     
     /**
      * Creates a new test subject.
      */
-    public Variable<Byte>
+    public Variable<Boolean>
     subject() { return Put.make(); }
-
-    static private final Byte one = 1;
     
     /**
      * Tests a {@link Setter}.
@@ -96,18 +94,18 @@ Main extends Struct implements Test, Serializable {
      * @param n initial {@link org.ref_send.var.Getter#get value}
      */
     public Promise<Boolean>
-    test(final Volatile<Variable<Byte>> x, final Byte n) {
-        class Test extends Do<Variable<Byte>,Promise<Boolean>>
+    test(final Volatile<Variable<Boolean>> x, final boolean n) {
+        class Test extends Do<Variable<Boolean>,Promise<Boolean>>
                    implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public Promise<Boolean>
-            fulfill(final Variable<Byte> v) {
+            fulfill(final Variable<Boolean> v) {
                 final Promise<Boolean> before =
                     _.when(_._(v.getter).get(), was(n));
-                _._(v.setter).set(one);
+                _._(v.setter).set(!n);
                 final Promise<Boolean> after =
-                    _.when(_._(v.getter).get(), was(one));
+                    _.when(_._(v.getter).get(), was(!n));
                 return and(_, before, after);
             }
         }
