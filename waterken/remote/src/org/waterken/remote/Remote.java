@@ -39,11 +39,6 @@ Remote<T> extends Deferred<T> implements Promise<T> {
      */
     private final String URL;
 
-    /**
-     * Constructs an instance.
-     * @param local local address space
-     * @param URL   reference relative URL
-     */
     private
     Remote(final Root local, final String URL) {
         super((Eventual)local.fetch(null, Remoting._),
@@ -51,6 +46,21 @@ Remote<T> extends Deferred<T> implements Promise<T> {
         if (null == URL) { throw new NullPointerException(); }
         this.local = local;
         this.URL = URL;
+    }
+    
+    /**
+     * Creates a remote reference.
+     * @param <T>   referent type
+     * @param type  referent type
+     * @param local local address space
+     * @param URL   reference URL
+     */
+    static protected <T> T
+    _(final Class<?> type, final Root local, final String URL) {
+        final String here = (String)local.fetch(null, Remoting.here);
+        final String target = null == here ? URL : URI.relate(here, URL);
+        final Remote<T> rp = new Remote<T>(local, target);
+        return rp._.cast(type, rp);
     }
     
     /**
@@ -63,12 +73,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
             static private final long serialVersionUID = 1L;
 
             public Object
-            run(final Class<?> type, final String id) {
-                final String here = (String)local.fetch(null, Remoting.here);
-                final String target = null == here ? id : URI.relate(here, id);
-                final Remote<?> rp = new Remote(local, target);
-                return rp._.cast(type, rp);
-            }
+            run(final Class<?> type, final String id) {return _(type,local,id);}
         }
         return new ImporterX();
     }

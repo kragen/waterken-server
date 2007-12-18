@@ -174,7 +174,7 @@ Exports extends Struct implements Serializable {
      * @param response  client-side copy of a return promise
      * @return remote reference to the server-side copy of the return value
      */
-    @SuppressWarnings("unchecked") public <R> R
+    public <R> R
     far(final String base, final String mid,
         final Class<?> R, final Promise<R> response) {
         final String here = (String)local.fetch(null, Remoting.here);
@@ -184,7 +184,7 @@ Exports extends Struct implements Serializable {
         }
         final String pipe = local.pipeline(mid);
         local.link(pipe, response);
-        return (R)Remote.use(local).run(R, URI.resolve(base,
+        return Remote._(R, local, URI.resolve(base,
             "./?src=" + URLEncoding.encode(URI.relate(base, here)) + "#"+pipe));
     }
 
