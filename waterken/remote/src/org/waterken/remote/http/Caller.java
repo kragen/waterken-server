@@ -65,7 +65,7 @@ Caller extends Struct implements Messenger, Serializable {
      */
     static private final TypeVariable DoP = Typedef.name(Do.class, "P");
 
-    @SuppressWarnings("unchecked") public <P,R> R
+    public <P,R> R
     when(final String URL, final Class<?> R, final Do<P,R> observer) {
         final R r_;
         final Resolver<R> resolver;
@@ -74,8 +74,7 @@ Caller extends Struct implements Messenger, Serializable {
             resolver = null;
         } else {
             final Channel<R> x = _.defer();
-            r_ = R.isAssignableFrom(Promise.class)
-                    ? (R)x.promise : _.cast(R, x.promise);
+            r_ = _.cast(R, x.promise);
             resolver = x.resolver;
         }
         class When extends Message {
@@ -223,8 +222,6 @@ Caller extends Struct implements Messenger, Serializable {
             Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
         return void.class == R || Void.class == R
             ? null
-        : R.isAssignableFrom(Promise.class)
-            ? (R)r.promise
         : _.cast(R, r.promise);
     }
     

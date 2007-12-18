@@ -180,7 +180,7 @@ Exports extends Struct implements Serializable {
         final String here = (String)local.fetch(null, Remoting.here);
         if (null == here) {
             final Eventual _ = (Eventual)local.fetch(null, Remoting._);
-            return R.isInstance(response) ? (R)response : _.cast(R, response);
+            return _.cast(R, response);
         }
         final String pipe = local.pipeline(mid);
         local.link(pipe, response);

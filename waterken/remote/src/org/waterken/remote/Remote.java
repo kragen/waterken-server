@@ -67,9 +67,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
                 final String here = (String)local.fetch(null, Remoting.here);
                 final String target = null == here ? id : URI.relate(here, id);
                 final Remote<?> rp = new Remote(local, target);
-                return type.isInstance(rp) || !Proxies.isImplementable(type)
-                    ? rp
-                : rp._.cast(type, rp);
+                return rp._.cast(type, rp);
             }
         }
         return new ImporterX();
