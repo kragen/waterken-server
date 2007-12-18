@@ -117,7 +117,7 @@ Share {
                 return Remote.bind(synthetic, null).
                     run(AMP.publish(synthetic).spawn(label, factory));
             }
-        });
+        }).cast();
         System.out.println(URI.resolve(hereValue, r));
     }
 }

@@ -33,8 +33,8 @@ UDP extends Struct implements Runnable {
     
     public void
     run() {
-        err.println("Running " + protocol +
-                    " at " + port.getLocalSocketAddress() + " ...");
+        err.println(protocol + ": " + "running at " +
+                    port.getLocalSocketAddress() + " ...");
         while (true) {
             try {
                 final DatagramPacket in = new DatagramPacket(new byte[512],512);
@@ -53,7 +53,7 @@ UDP extends Struct implements Runnable {
                     }
                 });
             } catch (final Throwable e) {
-                e.printStackTrace();
+                err.println(protocol + ": " + e);
             }
         }
     }

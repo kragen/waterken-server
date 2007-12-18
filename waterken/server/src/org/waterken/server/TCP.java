@@ -60,8 +60,8 @@ TCP implements Runnable {
 
     public void
     run() {
-        err.println("Running " + protocol +
-                    " at " + port.getLocalSocketAddress() + " ...");
+        err.println(protocol + ": " + "running at " +
+                    port.getLocalSocketAddress() + " ...");
         
         final Setter<Resource> updater_;
         if (null != ip && ip.isFile()) {
@@ -71,7 +71,7 @@ TCP implements Runnable {
                 port.setSoTimeout(60 * 1000);
             } catch (final Exception e) {
                 tmp_ = null;
-                err.println(protocol + ": " + e.getMessage());
+                err.println(protocol + ": " + e);
             }
             updater_ = tmp_;
         } else {
@@ -104,17 +104,16 @@ TCP implements Runnable {
                 e.printStackTrace();
                 continue;
             }
-            final String name = "" + count++;
+            final String name = protocol + "-" + count++;
             new Thread(threads, new Runnable() {
                 public void
                 run() {
-                    final String prefix = threads.getName() + "." + name;
                     try {
-                        err.println(prefix + ": processing...");
+                        err.println(name + ": processing...");
                         socket.setSoTimeout(soTimeout);
                         daemon.accept(socket).run();
                     } catch (final Throwable e) {
-                        err.println(prefix + ": " + e.getMessage());
+                        err.println(name + ": " + e);
                     } finally {
                         try { socket.close(); } catch (final Exception e) {}
                     }
