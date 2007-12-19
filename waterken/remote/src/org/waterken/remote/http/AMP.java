@@ -143,7 +143,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 final String base = (String)mother.fetch(null, here);
                 final Server client= (Server)mother.fetch(null,Remoting.client);
                 final Creator creator= (Creator)mother.fetch(null,Root.creator);
-                final Class<?> T = build.getReturnType();
+                final Class<T> T = (Class)build.getReturnType();
                 final String URL;
                 try {
                     URL = creator.create(new Transaction<String>() {

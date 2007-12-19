@@ -56,7 +56,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
      * @param URL   reference URL
      */
     static public <T> T
-    _(final Class<?> type, final Root local, final String URL) {
+    _(final Class<T> type, final Root local, final String URL) {
         final String here = (String)local.fetch(null, Remoting.here);
         final String target = null == here ? URL : URI.relate(here, URL);
         final Remote<T> rp = new Remote<T>(local, target);
