@@ -45,7 +45,7 @@ Concurrent {
                 // Start processing tasks.
                 if (!running) {
                     new Thread(group, name) {
-                        @SuppressWarnings("finally") public void
+                        public void
                         run() {
                             // System.err.println("Processing: " + name);
                             try {
@@ -65,13 +65,9 @@ Concurrent {
                                     }
                                     yield();
                                 }
-                            } catch (final Error e) {
+                            } catch (final Throwable e) {
                                 // provide debugging support
-                                try {
-                                    e.printStackTrace();
-                                } finally {
-                                    throw e;
-                                }
+                                e.printStackTrace();
                             }
                             // System.err.println("Idle: " + name);
                         }

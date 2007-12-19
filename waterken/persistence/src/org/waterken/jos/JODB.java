@@ -173,11 +173,11 @@ JODB extends Model {
         try {
             if (!awake) {
                 awake = process(Model.extend, new Transaction<Boolean>() {
-                    @SuppressWarnings("unchecked") public Boolean
+                    public Boolean
                     run(final Root local) throws Exception {
                         // start up a runner if necessary
                         if (null == runner && null != service) {
-                            final List<Task> q = (List)local.fetch(null, tasks);
+                            final List q = (List)local.fetch(null, tasks);
                             if (null != q && !q.isEmpty()) {
                                 final Run x = new Run();
                                 service.run(x);
