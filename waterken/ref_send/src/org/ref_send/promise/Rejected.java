@@ -113,7 +113,7 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
      *              {@linkplain Proxies#isImplementable allowed} proxy type
      * @throws Error    invalid <code>type</code> argument
      */
-    @SuppressWarnings("unchecked") public T
+    public T
     _(final Class type) {
         try {
             return type.isAssignableFrom(Promise.class)

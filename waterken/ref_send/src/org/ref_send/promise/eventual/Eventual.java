@@ -343,7 +343,7 @@ Eventual implements Equatable, Serializable {
      */
     private Fulfilled allocatedWhens;
 
-    @SuppressWarnings("unchecked") private <T> Fulfilled<When<T>>
+    private <T> Fulfilled<When<T>>
     allocateWhen(final Do<T,?> observer) {
         final Fulfilled<When<T>> r;
         if (null != allocatedWhens) {
@@ -360,7 +360,7 @@ Eventual implements Equatable, Serializable {
         return r;
     }
 
-    @SuppressWarnings("unchecked") private <T> void
+    private <T> void
     freeWhen(final Fulfilled<When<T>> p) {
         final When<T> x = p.cast();
         x.next = allocatedWhens;
@@ -554,7 +554,7 @@ Eventual implements Equatable, Serializable {
      * @param promise   promise for the referent
      * @return corresponding eventual reference
      */
-    @SuppressWarnings("unchecked") public <T> T
+    public <T> T
     cast(final Class type, final Volatile<T> promise) {
         try {
             return type.isAssignableFrom(Promise.class)
@@ -635,7 +635,7 @@ Eventual implements Equatable, Serializable {
      * @throws Error    <code>null</code> <code>reference</code> or
      *                  <code>T</code> not an allowed proxy type
      */
-    @SuppressWarnings("unchecked") public <T> T
+    public <T> T
     _(final T reference) {
         if (reference instanceof Proxy) {
             try {
@@ -765,7 +765,7 @@ Eventual implements Equatable, Serializable {
      * @param reference immediate or eventual reference
      * @return corresponding {@linkplain Volatile promise}
      */
-    @SuppressWarnings("unchecked") static public <T> Volatile<T>
+    static public <T> Volatile<T>
     promised(final T reference) {
         if (reference instanceof Volatile) { return (Volatile)reference; }
         if (reference instanceof Proxy) {
