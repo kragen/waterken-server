@@ -92,9 +92,7 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
             final Type R = Typedef.bound(method.getGenericReturnType(),
                                          proxy.getClass());
             return when(Typedef.raw(R), new Invoke());
-        } catch (final Exception e) {
-            throw new Error(e);
-        }
+        } catch (final Exception e) { throw new Error(e); }
     }
 
     // org.ref_send.promise.Volatile interface

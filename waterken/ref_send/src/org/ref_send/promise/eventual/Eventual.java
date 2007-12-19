@@ -212,9 +212,7 @@ Eventual implements Equatable, Serializable {
         try {
             final Class R= Typedef.raw(Typedef.value(Do.R,observer.getClass()));
             return trust(promise).when(R, observer);
-        } catch (final Exception reason) {
-            throw new Error(reason);
-        }
+        } catch (final Exception reason) { throw new Error(reason); }
     }
 
     private <T> Deferred<T>
@@ -564,9 +562,7 @@ Eventual implements Equatable, Serializable {
             : Rejected.class == promise.getClass()
                 ? ((Rejected<T>)promise)._(type)
             : (T)proxy(trust(promise), type, Selfless.class);
-        } catch (final Exception e) {
-            throw new Error(e);
-        }
+        } catch (final Exception e) { throw new Error(e); }
     }
 
     /**
@@ -661,9 +657,7 @@ Eventual implements Equatable, Serializable {
                 types[n] = Selfless.class;
             }
             return (T)proxy(new Enqueue<T>(this, detach(reference)), types);
-        } catch (final Exception e) {
-            throw new Error(e);
-        }
+        } catch (final Exception e) { throw new Error(e); }
     }
 
     /**
