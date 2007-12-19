@@ -113,7 +113,7 @@ Browser extends Struct implements Record, Serializable {
             public String
             getTransactionTag() { throw new AssertionError(); }
         };
-        final Model model = new Model(reuse(enqueue)) {
+        final Model model = new Model((Loop)enqueue) {
             
             private boolean busy = false;
             
@@ -150,9 +150,6 @@ Browser extends Struct implements Record, Serializable {
                            Remote.use(local),
                            Remote.bind(local, null));
     }
-    
-    static @SuppressWarnings("unchecked") private Loop<Service>
-    reuse(final Loop loop) { return loop; }
 
     static private final class
     Binding {

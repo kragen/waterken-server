@@ -58,7 +58,6 @@ Pipeline implements Serializable {
     private       int halts = 0;    // number of pending pipeline flushes
     private       int queries = 0;  // number of queries after the last flush
     
-    @SuppressWarnings("unchecked")
     Pipeline(final String peer, final Root local) {
         this.peer = peer;
         effect = (Loop)local.fetch(null, Root.effect);
@@ -133,7 +132,7 @@ Pipeline implements Serializable {
                    public void
                    run() throws Exception {
                        model.enter(Model.extend, new Transaction<Void>() {
-                           @SuppressWarnings("unchecked") public Void
+                           public Void
                            run(final Root local) throws Exception {
                                final Server client =
                                    (Server)local.fetch(null, Remoting.client);

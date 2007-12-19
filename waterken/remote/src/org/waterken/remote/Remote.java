@@ -131,7 +131,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
     /**
      * @return <code>this</code>
      */
-    @SuppressWarnings("unchecked") public T
+    public T
     cast() { return (T)this; }
     
     // java.lang.reflect.InvocationHandler interface

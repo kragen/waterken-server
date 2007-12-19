@@ -107,7 +107,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
         class SpawnX extends Struct implements Spawn, Serializable {
             static private final long serialVersionUID = 1L;
             
-            public @SuppressWarnings("unchecked") <T> T
+            public <T> T
             run(final Class<?> factory) {
                 final Object r = publisher.spawn(null, factory);
                 return (T)r;
@@ -160,7 +160,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                             final Token deferred = new Token();
                             local.link(Remoting.deferred, deferred);
                             final Eventual _ = new Eventual(deferred,
-                                                            enqueue(local));
+                                    (Loop)local.fetch(null, Root.enqueue));
                             local.link(Remoting._, _);
                             final Publisher publisher = publish(local);
                             final Framework framework = new Framework(
@@ -192,9 +192,6 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
         }
         return new PublisherX();
     }
-    
-    static @SuppressWarnings("unchecked") private Loop<Task>
-    enqueue(final Root local) { return (Loop)local.fetch(null, Root.enqueue); }
 
     static private final class
     Wake extends Struct implements Transaction<Void>, Powerless, Serializable {

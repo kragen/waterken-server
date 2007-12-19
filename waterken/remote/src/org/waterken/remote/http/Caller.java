@@ -90,7 +90,7 @@ Caller extends Struct implements Messenger, Serializable {
                     ), null);
             }
 
-            @SuppressWarnings("unchecked") public Void
+            public Void
             fulfill(final Response response) {
                 Volatile<P> value;
                 try {
@@ -143,7 +143,7 @@ Caller extends Struct implements Messenger, Serializable {
                     class Retry extends Do<Object,Void> implements Serializable{
                         static private final long serialVersionUID = 1L;
 
-                        @SuppressWarnings("unchecked") public Void
+                        public Void
                         fulfill(final Object object) throws Exception {
                             ((Setter)_.cast(Setter.class,
                                     Eventual.promised(object))).set(arg);
