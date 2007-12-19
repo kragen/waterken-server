@@ -132,11 +132,13 @@ NameServer {
             if ((255 == qtype || qtype == a.type) &&
                 (255 == qclass || qclass == a.clazz)) {
                 final byte[] data = a.data.toByteArray();
-                if (data.length > 0xFFFF) { continue; }
-                
+                if (data.length > 0xFFFF) {
+                    truncated = true;
+                    continue;
+                }
                 if (response.size() + 12 + data.length > 512) {
                     truncated = true;
-                    break;
+                    continue;
                 }
                 
                 response.write(QP >>> 8);
