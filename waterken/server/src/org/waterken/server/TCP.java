@@ -141,7 +141,7 @@ TCP implements Runnable {
         return r;
     }
     
-    @SuppressWarnings("unchecked") static private Setter<Resource>
+    static private Setter<Resource>
     update(final File ip) throws Exception {
         final ClassLoader code = GenKey.class.getClassLoader();
         final Browser browser = Browser.make(

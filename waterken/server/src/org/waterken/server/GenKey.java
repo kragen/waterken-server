@@ -226,7 +226,7 @@ GenKey {
                    run(Redirectory.class, redirectoryURL);
                _.when(redirectory_.register(fingerprint),
                       new Do<DomainMaster,Void>() {
-                   @SuppressWarnings("unchecked") public Void
+                   public Void
                    fulfill(final DomainMaster master) throws Exception {
                        
                        // save the registration
