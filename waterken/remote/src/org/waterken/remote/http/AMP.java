@@ -12,13 +12,13 @@ import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
-import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
+import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -106,9 +106,8 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
     spawn(final Publisher publisher) {
         class SpawnX extends Struct implements Spawn, Serializable {
             static private final long serialVersionUID = 1L;
-
-            @SuppressWarnings("unchecked")
-            public <T> T
+            
+            public @SuppressWarnings("unchecked") <T> T
             run(final Class<?> factory) {
                 final Object r = publisher.spawn(null, factory);
                 return (T)r;
@@ -132,7 +131,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 mother.link(name, value);
             }
 
-            @SuppressWarnings("unchecked") public <T> T
+            public <T> T
             spawn(final String name, final Class<?> factory) throws Collision {
                 if (null != name) { vet(name); }
                 final Method build;
@@ -161,7 +160,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                             final Token deferred = new Token();
                             local.link(Remoting.deferred, deferred);
                             final Eventual _ = new Eventual(deferred,
-                                (Loop)local.fetch(null, Root.enqueue));
+                                                            enqueue(local));
                             local.link(Remoting._, _);
                             final Publisher publisher = publish(local);
                             final Framework framework = new Framework(
@@ -176,11 +175,9 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                         }
                     }, (String)mother.fetch(null, Root.project), name);
                 } catch (final Exception e) {
-                    final Rejected<T> r = new Rejected<T>(e);
-                    return (T)(T.isInstance(r) ||
-                               !Proxies.isImplementable(T) ? r : r._(T));
+                    return new Rejected<T>(e)._(T);
                 }
-                return (T)Remote.use(mother).run(T, URL);
+                return Remote._(T, mother, URL);
             }
             
             private void
@@ -195,6 +192,9 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
         }
         return new PublisherX();
     }
+    
+    static @SuppressWarnings("unchecked") private Loop<Task>
+    enqueue(final Root local) { return (Loop)local.fetch(null, Root.enqueue); }
 
     static private final class
     Wake extends Struct implements Transaction<Void>, Powerless, Serializable {

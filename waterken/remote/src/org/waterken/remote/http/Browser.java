@@ -23,6 +23,7 @@ import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
+import org.waterken.model.Service;
 import org.waterken.model.Transaction;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
@@ -72,7 +73,7 @@ Browser extends Struct implements Record, Serializable {
      * @param code      local class loader
      * @param enqueue   local event loop
      */
-    @SuppressWarnings("unchecked") static public Browser
+    static public Browser
     make(final Server client,
          final SecureRandom prng,
          final ClassLoader code,
@@ -112,7 +113,7 @@ Browser extends Struct implements Record, Serializable {
             public String
             getTransactionTag() { throw new AssertionError(); }
         };
-        final Model model = new Model((Loop)enqueue) {
+        final Model model = new Model(reuse(enqueue)) {
             
             private boolean busy = false;
             
@@ -149,6 +150,9 @@ Browser extends Struct implements Record, Serializable {
                            Remote.use(local),
                            Remote.bind(local, null));
     }
+    
+    static @SuppressWarnings("unchecked") private Loop<Service>
+    reuse(final Loop loop) { return loop; }
 
     static private final class
     Binding {

@@ -49,7 +49,7 @@ HTTP extends Struct implements Messenger, Serializable {
      */
     static private final TypeVariable DoP = Typedef.name(Do.class, "P");
 
-    @SuppressWarnings("unchecked") public <P,R> R
+    public <P,R> R
     when(final String URL, final Class<?> R, final Do<P,R> observer) {
         final String src = Exports.src(URL);
         if (null != src) {
@@ -82,7 +82,7 @@ HTTP extends Struct implements Messenger, Serializable {
             forwarder = Eventual.compose(observer, x.resolver);
         }
         final Class<?> P = Typedef.raw(Typedef.value(DoP, observer.getClass()));
-        final P a = (P)Remote.use(local).run(P, URL);
+        final P a = Remote._(P, local, URL);
         class Fulfill extends Struct implements Task, Serializable {
             static private final long serialVersionUID = 1L;
 

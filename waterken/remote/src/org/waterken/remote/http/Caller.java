@@ -126,8 +126,8 @@ Caller extends Struct implements Messenger, Serializable {
         : post(URL, proxy, method, arg));
     }
     
-    private <T> Void
-    put(final String URL, final T arg) {
+    private Void
+    put(final String URL, final Object arg) {
         class PUT extends Message implements Update, Query {
             static private final long serialVersionUID = 1L;
 
@@ -145,7 +145,7 @@ Caller extends Struct implements Messenger, Serializable {
 
                         @SuppressWarnings("unchecked") public Void
                         fulfill(final Object object) throws Exception {
-                            ((Setter<T>)_.cast(Setter.class,
+                            ((Setter)_.cast(Setter.class,
                                     Eventual.promised(object))).set(arg);
                             return null;
                         }
@@ -161,10 +161,10 @@ Caller extends Struct implements Messenger, Serializable {
         return null;
     }
     
-    @SuppressWarnings("unchecked") private <R> R
+    private Object
     get(final String URL, final Object proxy, final Method method) {
-        final Channel<R> r = _.defer();
-        final Resolver<R> resolver = r.resolver;
+        final Channel<Object> r = _.defer();
+        final Resolver<Object> resolver = r.resolver;
         class GET extends Message implements Query {
             static private final long serialVersionUID = 1L;
 
@@ -188,7 +188,7 @@ Caller extends Struct implements Messenger, Serializable {
 
                         public Void
                         fulfill(final Object object) throws Exception {
-                            return resolver.fulfill((R)Reflection.invoke(method,
+                            return resolver.fulfill(Reflection.invoke(method,
                                 _.cast(method.getDeclaringClass(),
                                        Eventual.promised(object))));
                         }
@@ -202,13 +202,13 @@ Caller extends Struct implements Messenger, Serializable {
                             run(Object.class, URL), new Retry());
                     return null;
                 }
-                Volatile<R> value;
+                Volatile<Object> value;
                 try {
                     final Type R = Typedef.bound(method.getGenericReturnType(),
                                                  proxy.getClass());
-                    value = Eventual.promised((R)deserialize(R, URL, response));
+                    value = Eventual.promised(deserialize(R, URL, response));
                 } catch (final Exception e) {
-                    value = new Rejected<R>(e);
+                    value = new Rejected<Object>(e);
                 }
                 return resolver.resolve(value);
             }
@@ -219,12 +219,10 @@ Caller extends Struct implements Messenger, Serializable {
         msgs.enqueue(new GET());
         final Class<?> R = Typedef.raw(
             Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
-        return void.class == R || Void.class == R
-            ? null
-        : _.cast(R, r.promise);
+        return void.class == R || Void.class == R ? null : _.cast(R, r.promise);
     }
     
-    @SuppressWarnings("unchecked") private <R> R
+    private Object
     post(final String URL, final Object proxy,
          final Method method, final Object... arg) {
         
@@ -232,13 +230,13 @@ Caller extends Struct implements Messenger, Serializable {
         final String m = exports.mid();
         final Class<?> R = Typedef.raw(
             Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
-        final R r_;
-        final Resolver<R> resolver;
+        final Object r_;
+        final Resolver<Object> resolver;
         if (void.class == R || Void.class == R) {
             r_ = null;
             resolver = null;
         } else {
-            final Channel<R> x = _.defer();
+            final Channel<Object> x = _.defer();
             r_ = exports.far(URI.resolve(URL, "."), m, R, x.promise);
             resolver = x.resolver;
         }
@@ -263,7 +261,7 @@ Caller extends Struct implements Messenger, Serializable {
 
                         public Void
                         fulfill(final Object object) throws Exception {
-                            final R r = (R)Reflection.invoke(method,
+                            final Object r = Reflection.invoke(method,
                                 _.cast(method.getDeclaringClass(),
                                        Eventual.promised(object)),
                                 argv.toArray(new Object[argv.length()]));
@@ -282,13 +280,13 @@ Caller extends Struct implements Messenger, Serializable {
                     return null;
                 }
                 if (null != resolver) {
-                    Volatile<R> value;
+                    Volatile<Object> value;
                     try {
                         final Type R = Typedef.bound(
                             method.getGenericReturnType(), proxy.getClass());
-                        value=Eventual.promised((R)deserialize(R,URL,response));
+                        value=Eventual.promised(deserialize(R,URL,response));
                     } catch (final Exception e) {
-                        value = new Rejected<R>(e);
+                        value = new Rejected<Object>(e);
                     }
                     resolver.resolve(value);
                 }
