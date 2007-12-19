@@ -284,7 +284,7 @@ Caller extends Struct implements Messenger, Serializable {
                     try {
                         final Type R = Typedef.bound(
                             method.getGenericReturnType(), proxy.getClass());
-                        value=Eventual.promised(deserialize(R,URL,response));
+                        value = Eventual.promised(deserialize(R,URL,response));
                     } catch (final Exception e) {
                         value = new Rejected<Object>(e);
                     }
