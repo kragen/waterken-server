@@ -116,7 +116,9 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
     @SuppressWarnings("unchecked") public T
     _(final Class type) {
         try {
-            return (T)Proxies.proxy(this, type, Powerless.class,Selfless.class);
+            return type.isAssignableFrom(Promise.class)
+                ? (T)this
+            : (T)Proxies.proxy(this, type, Powerless.class, Selfless.class);
         } catch (final Exception e) {
             throw new Error(e);
         }
