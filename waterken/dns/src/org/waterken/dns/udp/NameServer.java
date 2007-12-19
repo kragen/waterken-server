@@ -127,11 +127,17 @@ NameServer {
         response.write(header);                     // output a header
         response.write(in, header.length, qlen);    // echo the question
         int ancount = 0;
+        boolean truncated = false;
         for (final Resource a : answers) {
             if ((255 == qtype || qtype == a.type) &&
                 (255 == qclass || qclass == a.clazz)) {
                 final byte[] data = a.data.toByteArray();
                 if (data.length > 0xFFFF) { continue; }
+                
+                if (response.size() + 12 + data.length > 512) {
+                    truncated = true;
+                    break;
+                }
                 
                 response.write(QP >>> 8);
                 response.write(QP      );
@@ -150,14 +156,9 @@ NameServer {
                 ++ancount;
             }
         }
-        final byte[] responseBuffer = response.toByteArray();
-        final byte[] out;
-        if (responseBuffer.length > 512) {
-            out = new byte[512];
-            System.arraycopy(responseBuffer, 0, out, 0, out.length);
-            out[2] |= 0x20;             // set the TC bit
-        } else {
-            out = responseBuffer;
+        final byte[] out = response.toByteArray();
+        if (truncated) {
+            out[2] |= 0x20; // set the TC bit
         }
         out[6] = (byte)(ancount >>> 8);
         out[7] = (byte)(ancount      );
