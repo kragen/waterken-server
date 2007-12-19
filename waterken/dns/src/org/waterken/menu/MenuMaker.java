@@ -42,7 +42,7 @@ MenuMaker {
                 return ref(array(r));
             }
             
-            @SuppressWarnings("unchecked") private T[]
+            private T[]
             alloc(final int length) { return (T[])new Object[length]; }
 
             public Promise<Variable<T>>
