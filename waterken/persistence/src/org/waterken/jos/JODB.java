@@ -516,7 +516,7 @@ JODB extends Model {
         };
         final boolean[] scheduled = { false };
         final Loop<Task> enqueue = new Loop<Task>() {
-            @SuppressWarnings("unchecked") public void
+            public void
             run(final Task task) {
                 if (!active[0]) { throw new AssertionError(); }
 
@@ -904,7 +904,7 @@ JODB extends Model {
         public void
         run() throws Exception {
             enter(change, new Transaction<Void>() {
-                @SuppressWarnings("unchecked") public Void
+                public Void
                 run(final Root local) throws Exception {
                     runner = null;
                     final List<Task> q = (List)local.fetch(null, tasks);
