@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.bounce;
 
+import static org.ref_send.promise.eventual.Eventual.near;
 import static org.ref_send.test.Logic.and;
 import static org.ref_send.test.Logic.was;
 
@@ -85,7 +86,7 @@ Main extends Struct implements Test, Serializable {
      * Creates a new test subject.
      */
     public Wall
-    subject() { return Bounce.make(); }
+    subject() { return Bounce.make(_); }
     
     /**
      * Tests a {@link Wall}.
@@ -103,6 +104,8 @@ Main extends Struct implements Test, Serializable {
             fulfill(final AllTypes a) { return _.when(x_.bounce(a), was(a)); }
         }
         r.add(_.when(x_.getAll(), new Re()));
+        final AllTypes a = near(subject().getAll());
+        r.add(_.when(x_.bounce(a), was(a)));
 
         final Entity payload = new Entity("application/octet-stream",
             ByteArray.array(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));

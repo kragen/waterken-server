@@ -21,7 +21,10 @@ import org.joe_e.array.ShortArray;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
+import org.ref_send.promise.eventual.Channel;
+import org.ref_send.promise.eventual.Eventual;
 import org.web_send.graph.Framework;
+import java.math.BigDecimal;
 
 /**
  * A {@link Wall} implementation.
@@ -38,17 +41,18 @@ Bounce {
      */
     static public Wall
     build(final Framework framework) {
-        return make();
+        return make(framework._);
     }
     
     /**
      * Constructs an instance.
      */
     static public Wall
-    make() {
+    make(final Eventual _) {
         final Runnable normal = new Normal();
         final Rejected<Runnable> rejected =
             new Rejected<Runnable>(new Exception());
+        final Channel<Boolean> d = _.defer(); 
         class WallX extends Struct implements Wall, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -75,9 +79,9 @@ Bounce {
                     "a \" \\ / \b \f \n \r \t \0",
                     ConstArray.array(normal, null, rejected._(Runnable.class)),
                     ConstArray.array((Volatile)ref(false),
-                                     ref('a'),
                                      ref(Integer.MAX_VALUE),
-                                     ref("a")),
+                                     ref("a"),
+                                     d.promise),
                     ConstArray.array(
                         ImmutableArray.array(PowerlessArray.array(true)))));
             }
