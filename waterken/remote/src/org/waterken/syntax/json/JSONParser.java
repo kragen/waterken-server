@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax.json;
 
+import static org.ref_send.promise.Fulfilled.ref;
+
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -32,7 +34,6 @@ import org.ref_send.promise.PositiveInfinity;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
-import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.type.Typedef;
 import org.waterken.id.Importer;
 import org.waterken.uri.URI;
@@ -41,6 +42,13 @@ final class
 JSONParser {
     
     static private final String whitespace = " \n\r\t";
+    
+    static private void
+    eatWhitespace(final char c) throws Exception {
+        if (whitespace.indexOf(c) == -1) {
+            throw new Exception("0x" + Integer.toHexString(c));
+        }
+    }
     
     static private interface
     State extends Equatable {
@@ -79,11 +87,7 @@ JSONParser {
           final PowerlessArray<Type> parameters) throws Exception {
         final State done = new State() {
             public void
-            run(final char c) throws Exception {
-                if (whitespace.indexOf(c) == -1) {
-                    throw new Exception("" + c);
-                }
-            }
+            run(final char c) throws Exception { eatWhitespace(c); }
         };
         push(done);
         final ConstArray[] root = { null };
@@ -126,18 +130,11 @@ JSONParser {
                     to(parseTuple(parameters, out));
                     break;
                 default:
-                    if (whitespace.indexOf(c) == -1) {
-                        throw new Exception("" + c);
-                    }
+                    eatWhitespace(c);
                 }
             }
         };
     }
-
-    /**
-     * {@link Volatile} expected type
-     */
-    static private final TypeVariable R = Typedef.name(Volatile.class, "T");
     
     private State
     parseTuple(final PowerlessArray<Type> parameters,
@@ -155,12 +152,10 @@ JSONParser {
                     // ignore whitespace
                 } else {
                     push(parseContinuation(']'));
-                    final Type p = parameters.get(i);
-                    final Type r = Typedef.value(R, p);
-                    push(parseValue(null != r ? r : p, new Do<Object,Void>() {
+                    push(parseValue(parameters.get(i), new Do<Object,Void>() {
                         public Void
                         fulfill(final Object x) {
-                            arg[i++] = null != r ? Eventual.promised(x) : x;
+                            arg[i++] = x;
                             return null;
                         }
                     }));
@@ -200,27 +195,33 @@ JSONParser {
                     current().run(c);
                     break;
                 case 't':
-                    to(parseToken("true", Boolean.TRUE, out));
+                    to(parseToken(implicit, "true", Boolean.TRUE, out));
                     break;
                 case 'f':
-                    to(parseToken("false", Boolean.FALSE, out));
+                    to(parseToken(implicit, "false", Boolean.FALSE, out));
                     break;
                 case 'n':
-                    to(parseToken("null", null, out));
+                    to(parseToken(implicit, "null", null, out));
                     break;
                 default:
-                    if (whitespace.indexOf(c) == -1) {
-                        throw new Exception("" + c);
-                    }
+                    eatWhitespace(c);
                 }
             }
         };
     }
+
+    /**
+     * {@link Volatile} expected type
+     */
+    static private final TypeVariable T = Typedef.name(Volatile.class, "T");
     
     private State
     parseObject(final Type implicit, final Do<Object,?> out) {
         return new State() {
-            private Class actual;
+            private Class declared;     // type declared in JSON data
+            private Type promised;      // T if implicit is Volatile
+            
+            // deserializer information for the determined type
             private Constructor make;
             private Type[] paramv;
             private String[] namev;
@@ -231,14 +232,13 @@ JSONParser {
              */
             private void
             determine() throws NoSuchMethodException {
-                final Type declared = null == actual ? implicit : actual;
-                
-                if (null == actual) {
-                    actual = Typedef.raw(implicit);
-                }
-                for (final Constructor i : Reflection.constructors(actual)) {
-                    if (i.isAnnotationPresent(deserializer.class)) {
-                        make = i;
+                promised = Typedef.value(T, implicit);
+                final Type expected = null != promised ? promised : implicit;
+                final Class actual =
+                    null != declared ? declared : Typedef.raw(expected);
+                for (final Constructor c : Reflection.constructors(actual)) {
+                    if (c.isAnnotationPresent(deserializer.class)) {
+                        make = c;
                         break;
                     }
                 }
@@ -247,8 +247,8 @@ JSONParser {
                 }
                 paramv = make.getGenericParameterTypes();
                 int i = 0;
-                for (Type p : paramv) {
-                    paramv[i++] = Typedef.bound(p, declared);
+                for (final Type p : paramv) {
+                    paramv[i++] = Typedef.bound(p, expected);
                 }
                 namev = new String[paramv.length];
                 i = 0;
@@ -268,7 +268,7 @@ JSONParser {
             run(final char c) throws Exception {
                 if ('}' == c) {
                     pop();
-                    if (null == actual) { determine(); }
+                    if (null == make) { determine(); }
                     final Object r = Reflection.construct(make, argv);
                     if (r instanceof Rejected) {
                         final Rejected p = (Rejected)r;
@@ -289,22 +289,17 @@ JSONParser {
                                 out.fulfill(Float.NaN);
                             }
                         } else {
-                            final Class<?> R = Typedef.raw(implicit);
-                            if (!R.isInstance(r) && R.isInterface()) {
-                                out.fulfill(p._(R));
-                            } else {
-                                out.fulfill(r);
-                            }
+                            out.fulfill(p._(Typedef.raw(implicit)));
                         }
                     } else {
-                        out.fulfill(r);
+                        out.fulfill(null != promised ? ref(r) : r);
                     }
                 } else if ('\"' == c) {
                     push(parseString(String.class, new Do<Object,Void>() {
                         public Void
                         fulfill(final Object name) throws Exception {
                             if ("$".equals(name)) {
-                                if (null != actual) { throw new Exception(); }
+                                if (null != make) { throw new Exception(); }
                                 push(parseContinuation('}'));
                                 push(parsePairValue(ConstArray.class, 
                                                     new Do<Object,Void>() {
@@ -312,8 +307,8 @@ JSONParser {
                                     fulfill(final Object x) throws Exception {
                                         for (final Object i : (ConstArray)x) {
                                             try {
-                                                actual = Java.load(code,
-                                                                   (String)i);
+                                                declared =
+                                                    Java.load(code, (String)i);
                                                 break;
                                             } catch(ClassNotFoundException e) {}
                                         }
@@ -322,8 +317,7 @@ JSONParser {
                                     }
                                 }));
                             } else if ("@".equals(name)) {
-                                if (null != actual) { throw new Exception(); }
-                                actual = Typedef.raw(implicit);
+                                if (null != make) { throw new Exception(); }
                                 pop();
                                 push(new State() {
                                     public void
@@ -331,37 +325,33 @@ JSONParser {
                                         if ('}' == c) {
                                             pop();
                                         } else {
-                                            if (whitespace.indexOf(c) == -1) {
-                                                throw new Exception("" + c);
-                                            }
+                                            eatWhitespace(c);
                                         }
                                     }
                                 });
-                                push(parsePairValue(implicit, 
+                                push(parsePairValue(String.class, 
                                                     new Do<Object,Void>() {
                                     public Void
                                     fulfill(final Object x) throws Exception {
-                                        final String id = (String)x;
-                                        out.fulfill(connect.run(actual,
-                                               URI.resolve(base, id)));
+                                        out.fulfill(connect.run(
+                                            Typedef.raw(implicit),
+                                            URI.resolve(base, (String)x)));
                                         return null;
                                     }
                                 }));
                             } else {
-                                if (null == actual) { determine(); }
+                                if (null == make) { determine(); }
                                 int i = namev.length;
                                 while (0 != i-- && !name.equals(namev[i])) {}
                                 final int position = i;
-                                final Type p = -1!=i ? paramv[i] : Object.class;
-                                final Type r = Typedef.value(R, p);
                                 push(parseContinuation('}'));
-                                push(parsePairValue(null != r ? r : p,
-                                                    new Do<Object,Void>() {
+                                push(parsePairValue(
+                                        -1 != i ? paramv[i] : Object.class,
+                                        new Do<Object,Void>() {
                                     public Void
                                     fulfill(final Object x) throws Exception {
                                         if (-1 != position) {
-                                            argv[position] = null != r
-                                                ? Eventual.promised(x) : x;
+                                            argv[position] = x;
                                         }
                                         return null;
                                     }
@@ -371,9 +361,7 @@ JSONParser {
                         }
                     }));
                 } else {
-                    if (whitespace.indexOf(c) == -1) {
-                        throw new Exception("" + c);
-                    }
+                    eatWhitespace(c);
                 }
             }
         };
@@ -390,9 +378,7 @@ JSONParser {
                     pop();
                     current().run(c);
                 } else {
-                    if (whitespace.indexOf(c) == -1) {
-                        throw new Exception("" + c);
-                    }
+                    eatWhitespace(c);
                 }
             }
         };
@@ -406,21 +392,19 @@ JSONParser {
                 if (':' == c) {
                     to(parseValue(implicit, out));
                 } else {
-                    if (whitespace.indexOf(c) == -1) {
-                        throw new Exception("" + c);
-                    }
+                    eatWhitespace(c);
                 }
             }
         };
     }
 
-    static private final TypeVariable T = Typedef.name(Iterable.class, "T");
+    static private final TypeVariable E = Typedef.name(ConstArray.class, "E");
     
     private State
     parseArray(final Type implicit, final Do<Object,?> out) {
-        final Type valueType = Typedef.bound(T, implicit);
-        final Type r = Typedef.value(R, valueType);
-        final Type expected = null != r ? r : valueType;
+        final Type promised = Typedef.value(T, implicit);
+        final Type expected = null != promised ? promised : implicit;
+        final Type valueType = Typedef.bound(E, expected);
         final ArrayList<Object> values = new ArrayList<Object>(); 
         return new State() {
             public void
@@ -431,7 +415,7 @@ JSONParser {
                     // determine the array element type
                     final Class<?> t;
                     final Class<?> vt;
-                    final Class actual = Typedef.raw(implicit);
+                    final Class actual = Typedef.raw(expected);
                     if (ByteArray.class == actual) {
                         t = byte.class;
                         vt = byte[].class;
@@ -477,16 +461,16 @@ JSONParser {
                         ConstArray.class.isAssignableFrom(actual)
                             ? actual
                         : ConstArray.class, "array", vt);
-
-                    out.fulfill(Reflection.invoke(make, null, v));
+                    final Object r = Reflection.invoke(make, null, v);
+                    out.fulfill(null != promised ? ref(r) : r);
                 } else if (whitespace.indexOf(c) != -1) {
                     // ignore whitespace
                 } else {
                     push(parseContinuation(']'));
-                    push(parseValue(expected, new Do<Object,Void>() {
+                    push(parseValue(valueType, new Do<Object,Void>() {
                         public Void
                         fulfill(final Object x) {
-                            values.add(null != r ? Eventual.promised(x) : x);
+                            values.add(x);
                             return null;
                         }
                     }));
@@ -513,38 +497,42 @@ JSONParser {
                 } else {
                     pop();
                     final String text = buffer.toString();
-                    if (int.class == implicit || Integer.class == implicit) {
-                        out.fulfill(Integer.parseInt(text));
-                    } else if (long.class==implicit || Long.class == implicit) {
-                        out.fulfill(Long.parseLong(text));
-                    } else if (byte.class==implicit || Byte.class == implicit) {
-                        out.fulfill(Byte.parseByte(text));
-                    } else if (short.class==implicit || Short.class==implicit) {
-                        out.fulfill(Short.parseShort(text));
-                    } else if (BigInteger.class == implicit) {
-                        out.fulfill(new BigInteger(text));
-                    } else if (double.class==implicit||Double.class==implicit) {
-                        out.fulfill(Double.valueOf(text));
-                    } else if (float.class==implicit || Float.class==implicit) {
-                        out.fulfill(Float.valueOf(text));
-                    } else if (BigDecimal.class == implicit) {
-                        out.fulfill(new BigDecimal(text));
+                    final Type promised = Typedef.value(T, implicit);
+                    final Type expected= null != promised ? promised : implicit;
+                    final Number r;
+                    if (int.class == expected || Integer.class == expected) {
+                        r = Integer.parseInt(text);
+                    } else if (long.class==expected || Long.class == expected) {
+                        r = Long.parseLong(text);
+                    } else if (byte.class==expected || Byte.class == expected) {
+                        r = Byte.parseByte(text);
+                    } else if (short.class==expected || Short.class==expected) {
+                        r = Short.parseShort(text);
+                    } else if (BigInteger.class == expected) {
+                        r = new BigInteger(text);
+                    } else if (double.class==expected||Double.class==expected) {
+                        r = Double.valueOf(text);
+                    } else if (float.class==expected || Float.class==expected) {
+                        r = Float.valueOf(text);
+                    } else if (BigDecimal.class == expected) {
+                        r = new BigDecimal(text);
                     } else {
                         final BigInteger x = new BigInteger(text);
                         int bits = x.bitLength();
                         if (x.signum() > 0) { ++bits; }
                         if (bits <= Byte.SIZE) {
-                            out.fulfill(x.byteValue());
+                            r = x.byteValue();
                         } else if (bits <= Short.SIZE) {
-                            out.fulfill(x.shortValue());
+                            r = x.shortValue();
                         } else if (bits <= Integer.SIZE) {
-                            out.fulfill(x.intValue());
+                            r = x.intValue();
                         } else if (bits <= Long.SIZE) {
-                            out.fulfill(x.longValue());
+                            r = x.longValue();
                         } else {
-                            out.fulfill(x);
+                            r = x;
                         }
                     }
+                    out.fulfill(null != promised ? ref(r) : r);
                     current().run(c);
                 }
             }
@@ -562,21 +550,26 @@ JSONParser {
                 } else {
                     pop();
                     final String text = buffer.toString();
-                    if (double.class == implicit || Double.class == implicit) {
-                        out.fulfill(Double.valueOf(text));
-                    } else if (float.class==implicit || Float.class==implicit) {
-                        out.fulfill(Float.valueOf(text));
+                    final Type promised = Typedef.value(T, implicit);
+                    final Type expected= null != promised ? promised : implicit;
+                    final Number r;
+                    if (double.class == expected || Double.class == expected) {
+                        r = Double.valueOf(text);
+                    } else if (float.class==expected || Float.class==expected) {
+                        r = Float.valueOf(text);
                     } else {
-                        out.fulfill(new BigDecimal(text));
+                        r = new BigDecimal(text);
                     }
+                    out.fulfill(null != promised ? ref(r) : r);
                     current().run(c);
                 }
             }
         };
     }
     
-    private <T> State
-    parseToken(final String name, final T value, final Do<T,?> out) {
+    private State
+    parseToken(final Type implicit, final String name,
+               final Object value, final Do<Object,?> out) {
         return new State() {
             private int i = 1;
             
@@ -585,7 +578,8 @@ JSONParser {
                 if (name.charAt(i) != c) { throw new Exception(); }
                 if (++i == name.length()) {
                     pop();
-                    out.fulfill(value);
+                    final Type promised = Typedef.value(T, implicit);
+                    out.fulfill(null != promised ? ref(value) : value);
                 }
             }
         };
@@ -599,12 +593,16 @@ JSONParser {
             run(final char c) throws Exception {
                 if ('\"' == c) {
                     pop();
-                    if (char.class == implicit || Character.class == implicit) {
+                    final Type promised = Typedef.value(T, implicit);
+                    final Type expected= null != promised ? promised : implicit;
+                    final Object r;
+                    if (char.class == expected || Character.class == expected) {
                         if (1 != buffer.length()) { throw new Exception(); }
-                        out.fulfill(buffer.charAt(0));
+                        r = buffer.charAt(0);
                     } else {
-                        out.fulfill(buffer.toString());
+                        r = buffer.toString();
                     }
+                    out.fulfill(null != promised ? ref(r) : r);
                 } else if ('\\' == c) {
                     push(parseEscape(buffer));
                 } else {
@@ -656,7 +654,7 @@ JSONParser {
                     to(parseUnicode(out));
                     break;
                 default:
-                    throw new Exception("" + c);
+                    throw new Exception("0x" + Integer.toHexString(c));
                 }
             }            
         };
