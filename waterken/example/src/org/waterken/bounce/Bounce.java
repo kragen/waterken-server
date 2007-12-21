@@ -20,6 +20,7 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.array.ShortArray;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
+import org.ref_send.promise.Volatile;
 import org.web_send.graph.Framework;
 
 /**
@@ -46,8 +47,8 @@ Bounce {
     static public Wall
     make() {
         final Runnable normal = new Normal();
-        final Runnable rejected =
-            new Rejected<Runnable>(new Exception())._(Runnable.class);
+        final Rejected<Runnable> rejected =
+            new Rejected<Runnable>(new Exception());
         class WallX extends Struct implements Wall, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -72,7 +73,11 @@ Bounce {
                     IntArray.array(0, Integer.MAX_VALUE, Integer.MIN_VALUE),
                     LongArray.array(0L, Long.MAX_VALUE, Long.MIN_VALUE),
                     "a \" \\ / \b \f \n \r \t \0",
-                    ConstArray.array(normal, null, rejected),
+                    ConstArray.array(normal, null, rejected._(Runnable.class)),
+                    ConstArray.array((Volatile)ref(false),
+                                     ref('a'),
+                                     ref(Integer.MAX_VALUE),
+                                     ref("a")),
                     ConstArray.array(
                         ImmutableArray.array(PowerlessArray.array(true)))));
             }

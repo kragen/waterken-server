@@ -17,6 +17,7 @@ import org.joe_e.array.ShortArray;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.Volatile;
 
 /**
  * A record containing a field of each type.
@@ -26,57 +27,62 @@ AllTypes extends Struct implements Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * a boolean
+     * boolean
      */
     public final BooleanArray b;
     
     /**
-     * a char
+     * char
      */
     public final CharArray c; 
    
     /**
-     * a float
+     * float
      */
     public final FloatArray f;
  
     /**
-     * a double
+     * double
      */
     public final DoubleArray d;
      
     /**
-     * a byte
+     * byte
      */
     public final ByteArray o;
     
     /**
-     * a short
+     * short
      */
     public final ShortArray s;
     
     /**
-     * an int
+     * int
      */
     public final IntArray i;
     
     /**
-     * a long
+     * long
      */
     public final LongArray l;
     
     /**
-     * a string
+     * string
      */
     public final String t;
     
     /**
-     * a pass-by-reference
+     * pass-by-reference
      */
     public final ConstArray<Runnable> r;
     
     /**
-     * an array of unknown type
+     * promise
+     */
+    public final ConstArray<Volatile> p;
+    
+    /**
+     * unknown type
      */
     public final Object a;
     
@@ -105,6 +111,7 @@ AllTypes extends Struct implements Record, Serializable {
              @name("l") final LongArray l,
              @name("t") final String t,
              @name("r") final ConstArray<Runnable> r,
+             @name("p") final ConstArray<Volatile> p,
              @name("a") final Object a) {
         this.b = b;
         this.c = c;
@@ -116,6 +123,7 @@ AllTypes extends Struct implements Record, Serializable {
         this.l = l;
         this.t = t;
         this.r = r;
+        this.p = p;
         this.a = a;
     }
 }
