@@ -52,7 +52,7 @@ Files {
                   final Volatile<Request> requestor,
                   final Do<Response,?> respond) throws Exception {
 
-                // Determine the request.
+                // determine the request
                 final Request request;
                 try {
                     request = requestor.cast();
@@ -60,27 +60,40 @@ Files {
                     respond.reject(e);
                     return;
                 }
-                request.expectContinue(respond);
 
-                // Check that folder still exists.
-                if (!folder.isDirectory()) {
-                    respond.reject(Failure.gone());
-                    return;
+                // check pre-conditions
+                if ("GET".equals(request.method) ||
+                    "HEAD".equals(request.method) ||
+                    "OPTIONS".equals(request.method) ||
+                    "TRACE".equals(request.method)) {
+                    request.expectContinue(respond);
                 }
-
-                // We made it to the final processor, so bounce a TRACE.
+                
+                // we made it to the final processor, so bounce a TRACE
                 if ("TRACE".equals(request.method)) {
                     respond.fulfill(request.trace());
                     return;
                 }
+                
+                if (!("GET".equals(request.method) ||
+                      "HEAD".equals(request.method))) {
+                  respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
+                  return;
+                }
 
-                // Check that there is no query.
+                // check that there is no query
                 if (null != URI.query(null, resource)) {
                     respond.reject(Failure.notFound());
                     return;
                 }
 
-                // Extract the filename.
+                // check that folder still exists
+                if (!folder.isDirectory()) {
+                    respond.reject(Failure.gone());
+                    return;
+                }
+
+                // extract the filename
                 String name = Path.name(URI.path(resource));
                 if ("".equals(name)) {
                     name = "index";
@@ -89,7 +102,7 @@ Files {
                     return;
                 }
 
-                // Determine the file.
+                // determine the file
                 String ext = Filename.ext(name);
                 MediaType contentType = MediaType.binary;
                 File file = null;
@@ -119,7 +132,7 @@ Files {
                     }
                     if (null == file) {
 
-                        // Check for a sub-folder.
+                        // check for a sub-folder
                         final File sub = Filesystem.file(folder, name);
                         if (sub.isDirectory()) {
                             respond.fulfill(new Response(
@@ -131,7 +144,7 @@ Files {
                             return;
                         }
 
-                        // Check for a redirect.
+                        // check for a redirect
                         final String x = Filename.key(name) + MediaType.uri.ext;
                         final File redirect = Filesystem.file(folder, x);
                         if (redirect.isFile()) {
@@ -149,10 +162,10 @@ Files {
                     return;
                 }
                 
-                // Check for a redirect of any method.
+                // check for a redirect of any method
                 if (MediaType.uri.equals(contentType)) {
 
-                    // Load the redirect URI.
+                    // load the redirect URI
                     String location = null;
                     final BufferedReader in = new BufferedReader(
                         ASCII.input(Filesystem.read(file)));
@@ -183,15 +196,7 @@ Files {
                     return;
                 }
 
-                // Determine the method.
-                if (!("GET".equals(request.method) ||
-                      "HEAD".equals(request.method))) {
-                    respond.fulfill(
-                            request.respond("TRACE, OPTIONS, GET, HEAD"));
-                    return;
-                }
-
-                // Support conditional GET.
+                // support conditional GET
                 final String etag = tag.run(file);
                 if (request.hasVersion(etag)) {
                     respond.fulfill(new Response(
