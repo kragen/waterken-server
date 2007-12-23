@@ -187,7 +187,9 @@ Request extends Struct implements Content, Record, Serializable {
     expectContinue(final Do<Response,?> respond) throws Exception {
         for (final Header h : header) {
             if ("Expect".equalsIgnoreCase(h.name)) {
-                if ("100-continue".equals(h.value)) {
+                if ("100-continue".equals(h.value) &&
+                    !(version.equals("HTTP/1.0") ||
+                      version.startsWith("HTTP/0."))) {
                     final PowerlessArray<Header> header= PowerlessArray.array(); 
                     respond.fulfill(new Response("HTTP/1.1", "100", "Continue",
                                                  header, null));
