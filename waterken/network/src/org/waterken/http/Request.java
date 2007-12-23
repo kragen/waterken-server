@@ -12,9 +12,12 @@ import org.joe_e.charset.ASCII;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.eventual.Do;
 import org.waterken.io.Content;
 import org.waterken.io.open.Open;
 import org.waterken.uri.Header;
+import org.waterken.uri.URI;
+import org.web_send.Failure;
 
 /**
  * An HTTP request.
@@ -36,7 +39,7 @@ Request extends Struct implements Content, Record, Serializable {
     /**
      * <code>Request-URI</code>
      */
-    public final String URI;
+    public final String URL;
 
     /**
      * each header: [ name =&gt; line ]
@@ -52,7 +55,7 @@ Request extends Struct implements Content, Record, Serializable {
      * Constructs an instance.
      * @param version   {@link #version}
      * @param method    {@link #method}
-     * @param URI       {@link #URI}
+     * @param URI       {@link #URL}
      * @param header    {@link #header}
      * @param body      {@link #body}
      */
@@ -64,7 +67,7 @@ Request extends Struct implements Content, Record, Serializable {
             @name("body") final Content body) {
         this.version = version;
         this.method = method;
-        this.URI = URI;
+        this.URL = URI;
         this.header = header;
         this.body = body;
     }
@@ -78,7 +81,7 @@ Request extends Struct implements Content, Record, Serializable {
         // Output the Request-Line.
         hout.write(method);
         hout.write(" ");
-        hout.write(URI);
+        hout.write(URL);
         hout.write(" ");
         hout.write(version);
         hout.write("\r\n");
@@ -113,6 +116,17 @@ Request extends Struct implements Content, Record, Serializable {
     public int
     getContentLength() {
         return Integer.parseInt(Header.find("-1", header, "Content-Length"));
+    }
+    
+    /**
+     * Gets the base URL for the {@link #body content}.
+     * @param target    request URL
+     */
+    public String
+    base(final String target) {
+        final String location = Header.find(null, header, "Content-Location");
+        if (null != location) { return URI.resolve(target, location); }
+        return target;
     }
     
     /**
@@ -161,5 +175,26 @@ Request extends Struct implements Content, Record, Serializable {
                 new Header("Allow", allow),
                 new Header("Content-Length", "0")
             ), null);
+    }
+    
+    /**
+     * Handles an <code>Expect</code> header.
+     * @param respond   corresponding response processor
+     * @throws Failure      unexpected token
+     * @throws Exception    any problem
+     */
+    public void
+    expectContinue(final Do<Response,?> respond) throws Exception {
+        for (final Header h : header) {
+            if ("Expect".equalsIgnoreCase(h.name)) {
+                if ("100-continue".equals(h.value)) {
+                    final PowerlessArray<Header> header= PowerlessArray.array(); 
+                    respond.fulfill(new Response("HTTP/1.1", "100", "Continue",
+                                                 header, null));
+                } else {
+                    throw new Failure("417", "Expectation Failed");
+                }
+            }
+        }
     }
 }

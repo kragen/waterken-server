@@ -65,7 +65,8 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                     if (null != q.body) {
                         final int length = q.getContentLength();
                         if (length > maxContentSize) { throw Failure.tooBig(); }
-                        q = new Request(q.version, q.method, q.URI, q.header,
+                        q.expectContinue(respond);
+                        q = new Request(q.version, q.method, q.URL, q.header,
                             Snapshot.snapshot(length < 0 ? 1024 : length,
                                 Limited.limit(maxContentSize, q.body)));
                     }

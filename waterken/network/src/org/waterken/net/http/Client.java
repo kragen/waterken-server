@@ -351,12 +351,12 @@ Client implements Server {
 
         // Output the Request-Line.
         HTTP.vetToken(request.method);
-        HTTP.vet(" ", request.URI);
+        HTTP.vet(" ", request.URL);
         
         final Writer hout = ASCII.output(Open.output(out));
         hout.write(request.method);
         hout.write(" ");
-        hout.write(request.URI);
+        hout.write(request.URL);
         hout.write(" HTTP/1.1\r\n");
 
         // Output the header.

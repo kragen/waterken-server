@@ -149,8 +149,9 @@ Session implements Task {
             } catch (final Exception e) {
                 done = true;
                 current.setClosing();
-                respond.reject(
-                    e instanceof Failure ? e : new Failure("500",e.toString()));
+                respond.reject(e instanceof Failure
+                    ? e
+                : new Failure("500", e.toString()));
                 throw e;
             }
             current = next;

@@ -38,6 +38,9 @@ Serve {
         final File home = new File(
             System.getProperty(JODB.homePathProperty, "")).getCanonicalFile();
         
+        final String base =
+            System.getProperty(Share.baseProperty, Share.baseDefault);
+        
         final String dbPathConfig = System.getProperty(JODB.dbPathProperty);
         final File db = (null != dbPathConfig
             ? new File(dbPathConfig)
@@ -88,7 +91,7 @@ Serve {
         err.println("Using connection socket timeout: " + soTimeout + " ms");
 
         // configure the server
-        final Server server = Trace.make(Mux.make(db, new AMP(),
+        final Server server = Trace.make(Mux.make(base, db, new AMP(),
                 Mirror.make(maxAge, new LastModified(), www, MIME)));
 
         // start the inbound network services

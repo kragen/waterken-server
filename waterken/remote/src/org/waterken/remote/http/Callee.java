@@ -20,6 +20,7 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.var.Factory;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -92,7 +93,7 @@ Callee extends Struct implements Server, Serializable {
         
         // check that there is no path name
         if (!"".equals(Path.name(URI.path(resource)))) {
-            respond.fulfill(notFound(request.method));
+            respond.fulfill(never(request.method));
             return;
         }
         
@@ -130,7 +131,7 @@ Callee extends Struct implements Server, Serializable {
 
         // to preserve message order, force settling of a promise
         if (!(subject instanceof Fulfilled)) {
-            respond.fulfill(notFound(request.method));
+            respond.fulfill(never(request.method));
             return;
         }
         // AUDIT: call to untrusted application code
@@ -138,7 +139,7 @@ Callee extends Struct implements Server, Serializable {
         
         // prevent access to local implementation details
         if (null == target || Java.isPBC(target.getClass())) {
-            respond.fulfill(notFound(request.method));
+            respond.fulfill(never(request.method));
             return;
         }
         
@@ -156,7 +157,8 @@ Callee extends Struct implements Server, Serializable {
                     } catch (final Exception e) {
                         value = new Rejected(e);
                     }
-                    final String etag = exports.getTransactionTag();
+                    final boolean constant= "getClass".equals(lambda.getName());
+                    final String etag=constant?null:exports.getTransactionTag();
                     if (null != etag && request.hasVersion(etag)) {
                         respond.fulfill(new Response(
                             "HTTP/1.1", "304", "Not Modified",
@@ -165,25 +167,24 @@ Callee extends Struct implements Server, Serializable {
                                 new Header("Cache-Control", "max-age=0")
                             ), null));
                     } else {
-                        final boolean var= !"getClass".equals(lambda.getName());
                         Response r = serialize(request.method, "200", "OK",
-                          var ? ephemeral : forever, Serializer.render, value);
-                        if (null != etag && var) { r = r.with("ETag", etag); }
+                            constant?forever:ephemeral,Serializer.render,value);
+                        if (null != etag) { r = r.with("ETag", etag); }
                         respond.fulfill(r);
                     }
                 } else {
                   respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
                 }
             } else if ("POST".equals(request.method)) {
-                final String m = Query.arg(null, query, "m");
-                final Object value = exports.once(m, target,
-                                                  new Do<Object,Object>() {
+                final Object value = exports.once(Query.arg(null, query, "m"),
+                                                  new Factory<Object>() {
                     @Override public Object
-                    fulfill(final Object target) throws Exception {
-                        final ConstArray<?> argv =
-                            deserialize(request, PowerlessArray.array(
-                                lambda.getGenericParameterTypes()));
+                    run() {
                         try {
+                            final ConstArray<?> argv =
+                                deserialize(request, PowerlessArray.array(
+                                    lambda.getGenericParameterTypes()));
+
                             // AUDIT: call to untrusted application code
                             return Reflection.invoke(lambda, target,
                                     argv.toArray(new Object[argv.length()]));
@@ -224,7 +225,7 @@ Callee extends Struct implements Server, Serializable {
      * Constructs a 404 response.
      */
     private Response
-    notFound(final String method) throws Exception {
+    never(final String method) throws Exception {
         return serialize(method, "404", "never", forever, Serializer.render,
                          new Rejected(new NullPointerException()));
     }
@@ -262,8 +263,8 @@ Callee extends Struct implements Server, Serializable {
         if (!AMP.contentType.equalsIgnoreCase(contentType)) {
             return ConstArray.array(new Entity(contentType, content));
         }
-        final String here = exports.getHere();
-        return new JSONDeserializer().run(here, exports.connect(here), code,
+        final String base = request.base(exports.getHere());
+        return new JSONDeserializer().run(base, exports.connect(base), code,
                                           content.open(), parameters);
     }
 }

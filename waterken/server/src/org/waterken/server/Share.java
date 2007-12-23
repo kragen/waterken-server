@@ -15,7 +15,6 @@ import org.waterken.model.Transaction;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
 import org.waterken.remote.http.AMP;
-import org.waterken.remote.mux.Mux;
 import org.waterken.uri.Hostname;
 import org.waterken.uri.URI;
 
@@ -29,6 +28,12 @@ Share {
     Share() {}
     
     /**
+     * URI sub-hierarchy for persistent databases
+     */
+    static protected final String baseProperty = "waterken.base";
+    static protected final String baseDefault = "-/";
+    
+    /**
      * @param args  command line arguments
      */
     static public void
@@ -37,7 +42,7 @@ Share {
         // initialize the static state
         final File home = new File(
             System.getProperty(JODB.homePathProperty, "")).getCanonicalFile();
-        
+        final String base = System.getProperty(baseProperty, baseDefault);
         final String dbPathConfig = System.getProperty(JODB.dbPathProperty);
         final File db = (null != dbPathConfig
             ? new File(dbPathConfig)
@@ -64,9 +69,9 @@ Share {
             final Credentials credentials = SSL.keystore("TLS",keys,"nopass");
             final String host = credentials.getHostname();
             Hostname.vet(host);
-            hereValue = "https://" + host + "/" + Mux.dbPathPrefix;
+            hereValue = "https://" + host + "/" + base;
         } else {
-            hereValue = "http://localhost:8080/" + Mux.dbPathPrefix;
+            hereValue = "http://localhost:8080/" + base;
         }
         final Proxy clientValue = new Proxy();
         

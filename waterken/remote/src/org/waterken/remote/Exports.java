@@ -14,6 +14,7 @@ import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.var.Factory;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
 import org.waterken.id.base.Base;
@@ -104,6 +105,22 @@ Exports extends Struct implements Serializable {
         }
         return new ImporterX();
     }
+    
+    /**
+     * Constructs an invocation argument exporter.
+     * @param base  base URL of the recipient
+     */
+    public Exporter
+    send(final String base) {
+        return Java.export(ID.export(
+                Base.relative(base, Base.absolute(getHere(), export()))));
+    }
+    
+    /**
+     * Constructs a return argument exporter.
+     */
+    public Exporter
+    reply() { return Java.export(ID.export(export())); }
 
     /**
      * Constructs a reference exporter.
@@ -129,37 +146,18 @@ Exports extends Struct implements Serializable {
     }
     
     /**
-     * Constructs an invocation argument exporter.
-     * @param base  base URL of the recipient
-     */
-    public Exporter
-    send(final String base) {
-        return Java.export(ID.export(
-                Base.relative(base, Base.absolute(getHere(), export()))));
-    }
-    
-    /**
-     * Constructs a return argument exporter.
-     */
-    public Exporter
-    reply() { return Java.export(ID.export(export())); }
-    
-    /**
      * Does an operation at most once.
      * @param mid   {@link #mid}, or <code>null</code> for idempotent operator
-     * @param p     operand
-     * @param op    operator
-     * @return <code>op</code> return
-     * @throws Exception    any exception produced by the <code>op</code>
+     * @param make  return value factory
+     * @return <code>make</code> return
      */
     public Object
-    once(final String mid, final Object p,
-         final Do<Object,Object> op) throws Exception {
+    once(final String mid, final Factory<Object> make) {
         final String pipe = null == mid ? null : local.pipeline(mid);
         final Token pumpkin = new Token();
         Object r = null == pipe ? pumpkin : local.fetch(pumpkin, pipe);
         if (pumpkin == r) {
-            r = op.fulfill(p);
+            r = make.run();
             if (null != pipe) { local.link(pipe, r); }
         }
         return r;

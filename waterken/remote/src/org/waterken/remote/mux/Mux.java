@@ -29,18 +29,15 @@ Mux {
     Mux() {}
     
     /**
-     * URI sub-hierarchy for persistent databases
-     */
-    static public final String dbPathPrefix = "-/";
-    
-    /**
      * Constructs an instance.
-     * @param db        persistence directory
-     * @param remoting  remoting protocol
-     * @param next      default server
+     * @param dbPathPrefix  URI sub-hierarchy for persistent databases
+     * @param db            persistence directory
+     * @param remoting      remoting protocol
+     * @param next          default server
      */
     static public Server
-    make(final File db, final Remoting remoting, final Server next) {
+    make(final String dbPathPrefix, final File db,
+         final Remoting remoting, final Server next) {
         class ServerX extends Struct implements Server, Serializable {
             static private final long serialVersionUID = 1L;
 
