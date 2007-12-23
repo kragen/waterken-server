@@ -63,7 +63,8 @@ MediaType implements Powerless, Selfless, Record, Serializable {
         new MediaType(".gif",       "image/gif",                        null),
         new MediaType(".png",       "image/png",                        null),
         new MediaType(".jpg",       "image/jpeg",                       null),
-        new MediaType(".ico",       "image/vnd.microsoft.icon",         null)
+        new MediaType(".ico",       "image/vnd.microsoft.icon",         null),
+        binary
     );
 
     /**
