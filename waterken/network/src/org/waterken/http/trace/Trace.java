@@ -48,6 +48,7 @@ Trace {
                     respond.reject(e);
                     return;
                 }
+                request.expectContinue(respond);
 
                 // We made it to the final processor, so bounce a TRACE.
                 if ("TRACE".equals(request.method) ||

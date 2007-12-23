@@ -60,6 +60,7 @@ Files {
                     respond.reject(e);
                     return;
                 }
+                request.expectContinue(respond);
 
                 // Check that folder still exists.
                 if (!folder.isDirectory()) {

@@ -18,7 +18,6 @@ import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
-import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -69,6 +68,8 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                         q = new Request(q.version, q.method, q.URL, q.header,
                             Snapshot.snapshot(length < 0 ? 1024 : length,
                                 Limited.limit(maxContentSize, q.body)));
+                    } else {
+                        q.expectContinue(respond);
                     }
                     buffered = q;
                 }
