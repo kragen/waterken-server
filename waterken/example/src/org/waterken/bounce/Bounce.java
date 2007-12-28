@@ -25,6 +25,7 @@ import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Eventual;
 import org.web_send.graph.Framework;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
  * A {@link Wall} implementation.
@@ -83,7 +84,10 @@ Bounce {
                                      ref("a"),
                                      d.promise),
                     ConstArray.array(
-                        ImmutableArray.array(PowerlessArray.array(true)))));
+                        ImmutableArray.array(PowerlessArray.array(true)),
+                        new BigInteger("9223372036854775808"),
+                        new BigDecimal("3.14")
+                    )));
             }
 
             public <A> Promise<A>

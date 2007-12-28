@@ -66,6 +66,6 @@ ConstructorWrapper implements Wrapper, Powerless {
 
     // org.waterken.jos.Wrapper interface
     
-    public Object
+    public Constructor
     peel(final Root root) { return code; }
 }

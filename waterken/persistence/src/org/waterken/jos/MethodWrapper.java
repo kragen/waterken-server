@@ -70,6 +70,6 @@ MethodWrapper implements Wrapper, Powerless {
 
     // org.waterken.jos.Wrapper interface
     
-    public Object
+    public Method
     peel(final Root root) { return code; }
 }

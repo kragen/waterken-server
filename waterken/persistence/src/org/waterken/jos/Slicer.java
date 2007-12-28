@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.joe_e.JoeE;
 import org.ref_send.promise.Fulfilled;
@@ -40,6 +42,10 @@ Slicer extends ObjectOutputStream {
             x = new MethodWrapper((Method)x);
         } else if (Constructor.class == type){
             x = new ConstructorWrapper((Constructor)x);
+        } else if (BigInteger.class == type) {
+            x = new BigIntegerWrapper((BigInteger)x);
+        } else if (BigDecimal.class == type) {
+            x = new BigDecimalWrapper((BigDecimal)x);
         } else if (value == x) {
         } else if (Fulfilled.class == type) {
             x = new Faulting(root, root.export(((Fulfilled)x).cast()));

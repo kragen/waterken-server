@@ -1,26 +1,27 @@
-// Copyright 2006 Waterken Inc. under the terms of the MIT X license
+// Copyright 2007 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.jos;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.joe_e.Powerless;
 import org.waterken.model.Root;
 
 /**
- * A persistent field.
+ * Hides the mutable state inside a {@link BigDecimal}.
  */
 final class
-FieldWrapper implements Wrapper, Powerless {
+BigDecimalWrapper implements Wrapper, Powerless {
     static private final long serialVersionUID = 1;
 
-    private transient Field code;
+    private transient BigDecimal value;
     
-    FieldWrapper(final Field code) {
-        this.code = code;
+    BigDecimalWrapper(final BigDecimal value) {
+        this.value = value;
     }
     
     // java.io.Serializable interface
@@ -29,8 +30,8 @@ FieldWrapper implements Wrapper, Powerless {
     writeObject(final ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
 
-        out.writeObject(code.getDeclaringClass());
-        out.writeUTF(code.getName());
+        out.writeObject(value.unscaledValue());
+        out.writeInt(value.scale());
     }
 
     private void
@@ -38,17 +39,13 @@ FieldWrapper implements Wrapper, Powerless {
                                                   ClassNotFoundException {
         in.defaultReadObject();
 
-        final Class declarer = (Class)in.readObject();
-        final String name = in.readUTF();
-        try {
-            code = declarer.getField(name);
-        } catch (final NoSuchFieldException e) {
-            throw new ClassNotFoundException(declarer.getName() + "#" + name);
-        }
+        final BigInteger unscaledValue = (BigInteger)in.readObject();
+        final int scale = in.readInt();
+        value = new BigDecimal(unscaledValue, scale);
     }
-    
+
     // org.waterken.jos.Wrapper interface
     
-    public Field
-    peel(final Root root) { return code; }
+    public BigDecimal
+    peel(final Root root) { return value; }
 }
