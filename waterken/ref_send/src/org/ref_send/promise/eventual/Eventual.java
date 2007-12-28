@@ -555,12 +555,12 @@ Eventual implements Equatable, Serializable {
     public <T> T
     cast(final Class type, final Volatile<T> promise) {
         try {
-            return type.isAssignableFrom(Promise.class)
-                ? (T)promise
-            : null == promise
+            return null == promise
                 ? new Rejected<T>(new NullPointerException())._(type)
             : Rejected.class == promise.getClass()
                 ? ((Rejected<T>)promise)._(type)
+            : type.isAssignableFrom(Promise.class)
+                ? (T)promise
             : (T)proxy(trust(promise), type, Selfless.class);
         } catch (final Exception e) { throw new Error(e); }
     }

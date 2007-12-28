@@ -23,7 +23,6 @@ import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
-import org.waterken.model.Service;
 import org.waterken.model.Transaction;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
