@@ -52,7 +52,7 @@ MethodWrapper implements Wrapper, Powerless {
         try {
             code = declarer.getMethod(name, parameter);
         } catch (final NoSuchMethodException e) {
-            final StringBuffer buffer = new StringBuffer();
+            final StringBuilder buffer = new StringBuilder();
             buffer.append(declarer.getName());
             buffer.append("#");
             buffer.append(name);

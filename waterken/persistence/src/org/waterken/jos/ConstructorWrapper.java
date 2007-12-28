@@ -50,7 +50,7 @@ ConstructorWrapper implements Wrapper, Powerless {
         try {
             code = declarer.getConstructor(parameter);
         } catch (final NoSuchMethodException e) {
-            final StringBuffer buffer = new StringBuffer();
+            final StringBuilder buffer = new StringBuilder();
             buffer.append(declarer.getName());
             buffer.append("#new(");
             for (int i = 0; i != parameter.length; ++i) {
