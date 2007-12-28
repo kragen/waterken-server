@@ -145,7 +145,7 @@ Request extends Struct implements Content, Record, Serializable {
             }
         }
         final String cached = ifNoneMatch.toString();
-        return -1 != cached.indexOf(etag) || "*".equals(cached);
+        return (null!=etag && -1 != cached.indexOf(etag)) || "*".equals(cached);
     }
     
     /**

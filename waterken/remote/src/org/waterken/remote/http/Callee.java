@@ -3,10 +3,8 @@
 package org.waterken.remote.http;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
@@ -145,79 +143,59 @@ Callee extends Struct implements Server, Serializable {
         
         // determine the requested member
         final Member member = Java.dispatch(target.getClass(), p);
-        if (member instanceof Method) {
-            final Method lambda = (Method)member;
-            if (null != Java.property(lambda)) {
-                if ("GET".equals(request.method) ||
-                        "HEAD".equals(request.method)) {
-                    Object value;
-                    try {
-                        // AUDIT: call to untrusted application code
-                        value = Reflection.invoke(lambda, target);
-                    } catch (final Exception e) {
-                        value = new Rejected(e);
-                    }
-                    final boolean constant= "getClass".equals(lambda.getName());
-                    final String etag=constant?null:exports.getTransactionTag();
-                    if (null != etag && request.hasVersion(etag)) {
-                        respond.fulfill(new Response(
-                            "HTTP/1.1", "304", "Not Modified",
-                            PowerlessArray.array(
-                                new Header("ETag", etag),
-                                new Header("Cache-Control", "max-age=0")
-                            ), null));
-                    } else {
-                        Response r = serialize(request.method, "200", "OK",
-                            constant?forever:ephemeral,Serializer.render,value);
-                        if (null != etag) { r = r.with("ETag", etag); }
-                        respond.fulfill(r);
-                    }
-                } else {
-                  respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
-                }
-            } else if ("POST".equals(request.method)) {
-                final Object value = exports.once(Query.arg(null, query, "m"),
-                                                  new Factory<Object>() {
-                    @Override public Object
-                    run() {
-                        try {
-                            final ConstArray<?> argv =
-                                deserialize(request, PowerlessArray.array(
-                                    lambda.getGenericParameterTypes()));
+        if (!(member instanceof Method)) {
+            respond.fulfill(never(request.method));
+            return;
+        }
 
-                            // AUDIT: call to untrusted application code
-                            return Reflection.invoke(lambda, target,
-                                    argv.toArray(new Object[argv.length()]));
-                        } catch (final Exception e) {
-                            return new Rejected(e);
-                        }
-                    }
-                });
-                respond.fulfill(serialize(request.method, "200", "OK",
-                                          ephemeral, Serializer.render, value));
-            } else {
-                respond.fulfill(request.respond("TRACE, OPTIONS, POST"));
-            }
-        } else if (member instanceof Field) {
-            final Field field = (Field)member;
-            final boolean constant = Modifier.isFinal(field.getModifiers());
+        // process the request
+        final Method lambda = (Method)member;
+        if (null != Java.property(lambda)) {
             if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
-                final Object value = Reflection.get(field, target);
-                respond.fulfill(serialize(request.method, "200", "OK",
-                    constant ? forever : ephemeral, Serializer.render, value));
-            } else if ("POST".equals(request.method) && !constant) {
-                final Object arg = deserialize(request,
-                        PowerlessArray.array(field.getGenericType()));
-                Reflection.set(field, target, arg);
-                respond.fulfill(serialize(request.method, "200", "OK",
-                                          ephemeral, Serializer.render, null));
+                Object value;
+                try {
+                    // AUDIT: call to untrusted application code
+                    value = Reflection.invoke(lambda, target);
+                } catch (final Exception e) {
+                    value = new Rejected(e);
+                }
+                final boolean constant = "getClass".equals(lambda.getName());
+                final int maxAge = constant ? forever : ephemeral; 
+                final String etag=constant ? null : exports.getTransactionTag();
+                Response r = request.hasVersion(etag)
+                    ? new Response("HTTP/1.1", "304", "Not Modified",
+                        PowerlessArray.array(
+                            new Header("Cache-Control", "max-age=" + maxAge)
+                        ), null)
+                : serialize(request.method, "200", "OK",
+                            maxAge, Serializer.render, value);
+                if (null != etag) { r = r.with("ETag", etag); }
+                respond.fulfill(r);
             } else {
-                respond.fulfill(request.respond(constant
-                    ? "TRACE, OPTIONS, GET, HEAD"
-                : "TRACE, OPTIONS, GET, HEAD, POST"));
+                respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
             }
+        } else if ("POST".equals(request.method)) {
+            final Object value = exports.once(Query.arg(null, query, "m"),
+                                              new Factory<Object>() {
+                @Override public Object
+                run() {
+                    try {
+                        final ConstArray<?> argv =
+                            deserialize(request, PowerlessArray.array(
+                                lambda.getGenericParameterTypes()));
+
+                        // AUDIT: call to untrusted application code
+                        return Reflection.invoke(lambda, target,
+                                argv.toArray(new Object[argv.length()]));
+                    } catch (final Exception e) {
+                        return new Rejected(e);
+                    }
+                }
+            });
+            respond.fulfill(serialize(request.method, "200", "OK",
+                                      ephemeral, Serializer.render, value));
         } else {
-            respond.fulfill(request.respond("TRACE, OPTIONS"));
+            respond.fulfill(request.respond("TRACE, OPTIONS, POST"));
         }
     }
     
