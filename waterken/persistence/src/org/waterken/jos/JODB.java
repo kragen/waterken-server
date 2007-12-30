@@ -14,7 +14,6 @@ import java.io.OutputStream;
 import java.lang.ref.ReferenceQueue;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -440,14 +439,17 @@ JODB extends Model {
                 
                 if (externalStateAccessed) { return null; }
 
-                final MessageDigest hash;
+                final Mac mac;
                 try {
-                    hash = MessageDigest.getInstance("SHA-256");
+                    mac = allocMac(this);
                 } catch (final Exception e) { throw new Error(e); }
                 for (final Bucket b : k2b.values()) {
-                    if (null!=b.version) {hash.update(b.version.toByteArray());}
+                    if (!b.created && null != b.version) {
+                        mac.update(b.version.toByteArray());
+                    }
                 }
-                final byte[] id = hash.digest();
+                final byte[] id = mac.doFinal();
+                freeMac(mac);
                 return '\"' + Base32.encode(id).substring(0, 2*keyChars) + '\"';
             }
 
