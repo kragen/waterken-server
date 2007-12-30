@@ -8,8 +8,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 /**
- * @author tyler
- *
+ * A ClassLoader with a max-age timestamp.
  */
 final class
 Project extends URLClassLoader {
