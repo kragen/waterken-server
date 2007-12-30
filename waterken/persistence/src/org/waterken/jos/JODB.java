@@ -12,8 +12,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.ref.ReferenceQueue;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -448,6 +446,14 @@ JODB extends Model {
                         mac.update(b.version.toByteArray());
                     }
                 }
+                if (JODB.this.code instanceof Project) {
+                    // include code timestamp in the ETag
+                    long buffer = ((Project)JODB.this.code).timestamp;
+                    for (int i = Long.SIZE; 0 != i; i -= Byte.SIZE) {
+                        mac.update((byte)buffer);
+                        buffer >>>= Byte.SIZE;
+                    }
+                }
                 final byte[] id = mac.doFinal();
                 freeMac(mac);
                 return '\"' + Base32.encode(id).substring(0, 2*keyChars) + '\"';
@@ -822,10 +828,7 @@ JODB extends Model {
                     null != codePathConfig ? new File(codePathConfig) : home;
                 final String jar = System.getProperty("waterken.bin",
                     File.separator + "bin" + File.separator);
-                final File bin = new File(bins, project + jar);
-                if (!bin.canRead()) { throw new IOException("no classes"); }
-                r = new URLClassLoader(new URL[] { bin.toURI().toURL() },
-                                       JODB.class.getClassLoader());
+                r = new Project(new File(bins, project + jar));
                 jars.put(project, r);
             }
             return r;
