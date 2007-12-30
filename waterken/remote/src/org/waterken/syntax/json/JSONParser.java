@@ -218,8 +218,8 @@ JSONParser {
     private State
     parseObject(final Type implicit, final Do<Object,?> out) {
         return new State() {
-            private Class declared;     // type declared in JSON data
-            private Type promised;      // T if implicit is Volatile
+            private Class explicit;     // type declared in JSON data
+            private Type promised;      // T if implicit is Volatile, else null
             
             // deserializer information for the determined type
             private Constructor make;
@@ -235,7 +235,7 @@ JSONParser {
                 promised = Typedef.value(T, implicit);
                 final Type expected = null != promised ? promised : implicit;
                 final Class actual =
-                    null != declared ? declared : Typedef.raw(expected);
+                    null != explicit ? explicit : Typedef.raw(expected);
                 for (final Constructor c : Reflection.constructors(actual)) {
                     if (c.isAnnotationPresent(deserializer.class)) {
                         make = c;
@@ -307,7 +307,7 @@ JSONParser {
                                     fulfill(final Object x) throws Exception {
                                         for (final Object i : (ConstArray)x) {
                                             try {
-                                                declared =
+                                                explicit =
                                                     Java.load(code, (String)i);
                                                 break;
                                             } catch(ClassNotFoundException e) {}
