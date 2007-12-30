@@ -18,8 +18,8 @@ Project extends URLClassLoader {
     Project(final File bin) throws IOException {
         super(new URL[] { bin.toURI().toURL() },
               Project.class.getClassLoader());
+
         if (!bin.canRead()) { throw new IOException("no classes"); }
-        
         timestamp = findNewest(0L, bin);
     }
     
