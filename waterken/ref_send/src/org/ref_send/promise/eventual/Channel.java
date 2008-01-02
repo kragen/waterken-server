@@ -15,7 +15,7 @@ import org.ref_send.promise.Promise;
  * reference: {@link #promise -}<code>-</code>{@link #resolver &gt;}.
  * @param <T> referent type
  */
-public final class
+public class
 Channel<T> extends Struct implements Record, Serializable {
     static private final long serialVersionUID = 1L;
 
