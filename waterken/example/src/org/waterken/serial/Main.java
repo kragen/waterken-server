@@ -12,7 +12,6 @@ import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
@@ -21,6 +20,12 @@ import org.web_send.graph.Framework;
 
 /**
  * Eventual invocation tests.
+ * <p>
+ * This class provides an introduction to eventual operations by using them to
+ * test the elements of a series that isn't produced until later. Within these
+ * lines, time and space are not just curved, they're bent. You should also
+ * probably save this example until later.
+ * </p>
  */
 public final class
 Main extends Struct implements Test, Serializable {
@@ -82,7 +87,7 @@ Main extends Struct implements Test, Serializable {
     /**
      * Creates a new test subject.
      */
-    public Series<Volatile<Integer>>
+    public Series<Integer>
     subject() { return Serial.make(_); }
     
     /**
@@ -91,14 +96,23 @@ Main extends Struct implements Test, Serializable {
      * @param n number of test iterations
      */
     public Promise<Boolean>
-    test(final Series<Volatile<Integer>> x, final int n) {
+    test(final Series<Integer> x, final int n) {
+        /*
+         * Check that the first n integers in the series will be the numbers
+         * from 0 through n.
+         */
         Promise<Boolean> r = ref(true);
         for (int i = 0; i != n; ++i) {
             r = and(_, r, _.when(x.consume(), was(i)));
         }
+        
+        /*
+         * Append the numbers 0 through n to the series.
+         */
         for (int i = 0; i != n; ++i) {
             x.produce(ref(i));
         }
+        
         return r;
     }
 }
