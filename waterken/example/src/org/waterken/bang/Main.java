@@ -19,6 +19,10 @@ import org.web_send.graph.Framework;
 
 /**
  * Eventual invocation tests.
+ * <p>
+ * This class provides an introduction to eventual operations by using them to
+ * update and query a counter held in an object of type {@link Drum}.
+ * </p>
  */
 public final class
 Main extends Struct implements Test, Serializable {
@@ -26,6 +30,17 @@ Main extends Struct implements Test, Serializable {
 
     /**
      * eventual operator
+     * <p>
+     * By convention, an instance of {@link Eventual} is held in a variable
+     * named "_" and referred to as the "eventual operator". The eventual
+     * operator provides all eventual control flow operations, as well as the
+     * ability to produce "eventual references", which are references that
+     * schedule future invocation of a method, instead of invoking a method
+     * immediately. All references known to be eventual are also stored in
+     * variables whose name is suffixed with the '_' character. Consequently,
+     * you can scan down a page of code, looking for the character sequence "_."
+     * to find all the operations that are expected to be eventual.
+     * </p>
      */
     private final Eventual _;
 
@@ -47,7 +62,8 @@ Main extends Struct implements Test, Serializable {
      * application object created in a new database. The return from this method
      * is the reference returned to the creator of the new database. In this
      * case, the database creator will get an eventual reference of type
-     * {@link Test} to an instance of this class.
+     * {@link Test} to an instance of this class. In all cases, the return type
+     * for a build() method must be either an interface, or a {@link Promise}.
      * </p>
      * @param framework model framework
      */
@@ -121,21 +137,22 @@ Main extends Struct implements Test, Serializable {
         /*
          * Start by checking that the caller provided the correct value for the
          * current hit count on the provided drum. We get the initial hit count
-         * by sending an eventual invocation of the getHits() method. If the
+         * by doing an eventual invocation of the getHits() method. If the
          * provided drum is in another database, this invocation will result in
          * an HTTP GET request being sent to the hosting server. The return from
          * the getHits() invocation is a promise for the number of hits. Using
-         * the when() method, we register an observer on this promise, to
-         * receive a notification after the HTTP GET response has come back. The
-         * observer, constructed by the was() method, produces a promise for a
-         * boolean, indicating whether or not the number of hits specified in
-         * the HTTP GET response was the number expected. We'll hold onto this
-         * promise and use it to produce the promise returned to our caller.
+         * the when() method of the eventual operator, we register an observer
+         * on this promise, to receive a notification after the HTTP GET
+         * response has come back. The observer, constructed by the was()
+         * method, produces a promise for a boolean, indicating whether or not
+         * the number of hits specified in the HTTP GET response was the number
+         * expected. We'll hold onto this promise and use it to produce the
+         * promise returned to our caller.
          */
         final Promise<Boolean> zero = _.when(x_.getHits(), was(n));
         
         /*
-         * Increment the hit counter by sending an eventual invocation of the
+         * Increment the hit counter by doing an eventual invocation of the
          * bang() method. If the provided drum is in another database, this
          * invocation will result in an HTTP POST request being sent to the
          * hosting server.
@@ -160,20 +177,24 @@ Main extends Struct implements Test, Serializable {
          * hit count. We'll combine these 3 promises into 1 by doing an eventual
          * AND operation on them. The promise returned to our caller will
          * resolve as soon as any one of these 3 promises doesn't resolve to
-         * true, or after all of them have resolved to true.
+         * true, or after all of them have resolved to true. Note that none of
+         * the HTTP requests have actually been sent yet; we've just scheduled
+         * them to be sent and setup code to be run when the responses
+         * eventually come back.
          */
         return and(_, zero, one, three);
         
         /*
-         * In total, we've sent 3 GET requests and 2 POST requests and produced
-         * a promise which will only resolve to true after all of these network
-         * requests have completed successfully. If any of these communications
-         * are interrupted, due to a server crash or lost connection, the
-         * software will remember where it left off and resume as soon as
-         * network connections can be re-established, which the software will
-         * also periodically retry. Regardless of how often this process is
-         * interrupted, or for how long, the hit count on the drum will only
-         * be incremented by 3, the number specified by the algorithm above.
+         * In total, we've scheduled 3 GET requests and 2 POST requests and
+         * produced a promise which will only resolve to true after all of these
+         * network requests have completed successfully. If any of these
+         * communications are interrupted, due to a server crash or lost
+         * connection, the software will remember where it left off and resume
+         * as soon as network connections can be re-established, which the
+         * software will also periodically retry. Regardless of how often this
+         * process is interrupted, or for how long, the hit count on the drum
+         * will only be incremented by 3, the number specified by the algorithm
+         * above.
          */
     }
 }
