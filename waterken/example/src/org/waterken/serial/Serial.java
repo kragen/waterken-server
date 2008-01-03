@@ -94,8 +94,8 @@ Serial {
                  * Produce a promise for what will be the value of the first
                  * element and hold onto an eventual reference for what will be
                  * the next element in the list, which is now the new first
-                 * element, even though it may not have been added to the series
-                 * yet.
+                 * element,... even though it may not have been added to the
+                 * series yet.
                  */
                 final Volatile<T> r = front_.getValue();
                 front_ = front_.getNext();
