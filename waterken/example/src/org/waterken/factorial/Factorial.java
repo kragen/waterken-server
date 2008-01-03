@@ -26,6 +26,17 @@ Factorial {
     static public Promise<Integer>
     factorial(final Eventual _, final int n) {
         if (n < 0) { return new Rejected<Integer>(new Exception()); }
+        /*
+         * We'll simulate tail recursive calls by doing eventual invocations of
+         * our loop function. Since the call is eventual, the current stack
+         * frame is popped right away and the loop's stack frame isn't created
+         * until the next event loop turn. The same trick is used inside the
+         * loop itself. The chain of promises produced by these calls also
+         * collapses during each event loop turn, so that there's always only
+         * a constant number of objects referenced. The efficiency of this
+         * probably isn't as good as in a VM designed for tail recursion, but
+         * may be good enough for some purposes.
+         */
         final Recursion loop_ = _._(new Recursion() {
             public Promise<Integer>
             run(final Recursion loop_, final int n, final int acc) {
