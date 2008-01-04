@@ -111,7 +111,7 @@ Main extends Struct implements Test, Serializable {
     // org.ref_send.test.Test interface
 
     /**
-     * Starts a {@link #test test}.
+     * Starts a {@linkplain #test test}.
      */
     public Promise<Boolean>
     start() { return test(subject(), 0); }
@@ -126,21 +126,21 @@ Main extends Struct implements Test, Serializable {
     
     /**
      * Tests a {@link Drum}.
-     * @param x test subject
-     * @param n initial {@link Drum#getHits hit count}
+     * @param drum  test subject
+     * @param n     initial {@linkplain Drum#getHits hit count}
      */
     public Promise<Boolean>
-    test(final Drum x, final int n) {
+    test(final Drum drum, final int n) {
         /*
          * First, ensure that we have an eventual reference, since the caller
          * may have provided an immediate reference. The _() operation takes
          * a reference that may be either immediate or eventual and returns a
          * reference that is guaranteed to be eventual.
          */ 
-        final Drum x_ = _._(x);
+        final Drum drum_ = _._(drum);
         
         /*
-         * All tests are now done using the created eventual reference, the
+         * All tests are now done using the created eventual reference. The
          * provided reference is no longer used, since it can't be trusted to be
          * an eventual reference.
          */
@@ -160,7 +160,7 @@ Main extends Struct implements Test, Serializable {
          * GET response was the number expected. We'll hold onto this promise
          * and use it to produce the promise returned to our caller.
          */
-        final Promise<Boolean> zero = _.when(x_.getHits(), was(n));
+        final Promise<Boolean> zero = _.when(drum_.getHits(), was(n));
         
         /*
          * Increment the hit counter by doing an eventual invocation of the
@@ -168,20 +168,20 @@ Main extends Struct implements Test, Serializable {
          * invocation will result in an HTTP POST request being sent to the
          * hosting server.
          */
-        x_.bang(1);
+        drum_.bang(1);
         
         /*
          * Requests sent on an eventual reference are sent in order, and so
          * another check of the drum's hit count will see a value 1 more than
          * the previous check.
          */
-        final Promise<Boolean> one = _.when(x_.getHits(), was(n + 1));
+        final Promise<Boolean> one = _.when(drum_.getHits(), was(n + 1));
         
         // We can queue up as many requests as we like...
-        x_.bang(2);
+        drum_.bang(2);
         
         // ...and they will all be sent in order.
-        final Promise<Boolean> three = _.when(x_.getHits(), was(n + 3));
+        final Promise<Boolean> three = _.when(drum_.getHits(), was(n + 3));
         
         /*
          * We now have 3 promises for checks on the expected value of the drum's
