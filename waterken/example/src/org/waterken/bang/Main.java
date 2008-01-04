@@ -70,7 +70,7 @@ Main extends Struct implements Test, Serializable {
     static public Test
     build(final Framework framework) {
         /*
-         * In this case we only need the eventual operator, so the rest of the
+         * In this case, we only need the eventual operator, so the rest of the
          * provided permissions are ignored.
          */ 
         return new Main(framework._);
