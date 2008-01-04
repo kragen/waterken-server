@@ -60,8 +60,8 @@ Main extends Struct implements Test, Serializable {
      * lifecycle of databases. The method must have the exact declaration shown
      * below. The sole parameter is the set of permissions provided to the first
      * application object created in a new database. The return from this method
-     * is the reference returned to the creator of the new database. In this
-     * case, the database creator will get an eventual reference of type
+     * is an object that will be returned to the creator of the new database. In
+     * this case, the database creator will get an eventual reference of type
      * {@link Test} to an instance of this class. In all cases, the return type
      * for a build() method must be either an interface, or a {@link Promise}.
      * </p>
