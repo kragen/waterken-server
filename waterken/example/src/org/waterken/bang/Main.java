@@ -69,8 +69,10 @@ Main extends Struct implements Test, Serializable {
      */
     static public Test
     build(final Framework framework) {
-        // A Main object only needs the eventual operator, so the rest of the
-        // provided permissions are ignored.
+        /*
+         * A Main object only needs the eventual operator, so the rest of the
+         * provided permissions are ignored.
+         */ 
         return new Main(framework._);
     }
     
@@ -80,14 +82,21 @@ Main extends Struct implements Test, Serializable {
      * Executes the test.
      * <p>
      * This class can also be run from the command line, to run tests against a
-     * transient {@link Drum}. Most factory classes won't provide a command line
-     * test suite and so won't have a {@link #main} method.
+     * local, transient {@link Drum}. Most factory classes won't provide a
+     * command line test suite and so won't have a {@link #main} method.
      * </p>
      * @param args  ignored
      * @throws Exception    test failed
      */
     static public void
     main(final String[] args) throws Exception {
+        /*
+         * All the eventual control flow operations bottom out in runnable tasks
+         * on an event loop. This method provides a simple implementation for
+         * the event loop. The Waterken Server provides a more complete
+         * implementation that supports multiple concurrent event loops with
+         * transparent persistence and across the network messaging.
+         */
         final List<Task> work = List.list();
         final Eventual _ = new Eventual(new Token(), new Loop<Task>() {
             public void
@@ -124,7 +133,9 @@ Main extends Struct implements Test, Serializable {
     test(final Drum x, final int n) {
         /*
          * First, ensure that we have an eventual reference, since the caller
-         * may have provided an immediate reference.
+         * may have provided an immediate reference. The _() operation takes
+         * a reference that may be either immediate or eventual and returns a
+         * reference that is guaranteed to be eventual.
          */ 
         final Drum x_ = _._(x);
         
@@ -135,19 +146,19 @@ Main extends Struct implements Test, Serializable {
          */
         
         /*
-         * Start by checking that the caller provided the correct value for the
-         * current hit count on the provided drum. We get the initial hit count
-         * by doing an eventual invocation of the getHits() method. If the
-         * provided drum is in another database, this invocation will result in
-         * an HTTP GET request being sent to the hosting server. The return from
-         * the getHits() invocation is a promise for the number of hits. Using
-         * the when() method of the eventual operator, we register an observer
-         * on this promise, to receive a notification after the HTTP GET
-         * response has come back. The observer, constructed by the was()
-         * method, produces a promise for a boolean, indicating whether or not
-         * the number of hits specified in the HTTP GET response was the number
-         * expected. We'll hold onto this promise and use it to produce the
-         * promise returned to our caller.
+         * Start the test sequence by checking that the caller provided the
+         * correct value for the current hit count on the provided drum. We get
+         * the initial hit count by doing an eventual invocation of the
+         * getHits() method. If the provided drum is in another database, this
+         * invocation will result in an HTTP GET request being sent to the
+         * hosting server. The return from the getHits() invocation is a promise
+         * for the number of hits. Using the when() method of the eventual
+         * operator, we register an observer on this promise, to receive a
+         * notification after the HTTP GET response has come back. The observer,
+         * constructed by the was() method, produces a promise for a boolean,
+         * indicating whether or not the number of hits specified in the HTTP
+         * GET response was the number expected. We'll hold onto this promise
+         * and use it to produce the promise returned to our caller.
          */
         final Promise<Boolean> zero = _.when(x_.getHits(), was(n));
         
