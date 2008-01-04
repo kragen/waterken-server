@@ -18,7 +18,7 @@ import org.ref_send.test.Test;
 import org.web_send.graph.Framework;
 
 /**
- * Eventual invocation tests.
+ * An introduction to eventual operations in Java.
  * <p>
  * This class provides an introduction to eventual operations by using them to
  * update and query a counter held in an object of type {@link Drum}.
