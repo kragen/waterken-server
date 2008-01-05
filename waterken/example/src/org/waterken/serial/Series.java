@@ -5,7 +5,7 @@ package org.waterken.serial;
 import org.ref_send.promise.Volatile;
 
 /**
- * An open ended series of elements.
+ * An infinite series of elements.
  * <p>
  * A series is a FIFO list of values where the values can be removed from the
  * list before they have been added. An invocation of {@link #consume} returns
