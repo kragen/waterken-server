@@ -38,7 +38,10 @@ Serial {
      */
     static public <T> Series<T>
     make(final Eventual _) {
-        // Create a promise for what will be the very first element in the list. 
+        /*
+         * The implementation starts with a promise for the initial element,
+         * from which all other promises are derived.
+         */ 
         final Channel<Element<T>> initial = _.defer();
         class SeriesX implements Series<T>, Serializable {
             static private final long serialVersionUID = 1L;
