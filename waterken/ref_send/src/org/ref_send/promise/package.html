@@ -73,8 +73,8 @@ example, the expression "<code>0.0 / 0.0 + 1.0</code>" also returns
 coded such that it always runs to completion and the error condition is
 propagated through to the return value. A {@link org.ref_send.promise.Rejected}
 promise can be used in a similar way by
-{@linkplain org.ref_send.promise.Rejected#_ casting} it to an interface, which
-can then be used like any other object implementing that interface. For example:
+{@linkplain org.ref_send.promise.Rejected#_ creating a proxy}, which can then be
+used like any other object implementing the specified interface. For example:
 </p>
 <pre>
 public interface
