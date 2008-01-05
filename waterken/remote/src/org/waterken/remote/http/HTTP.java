@@ -8,7 +8,6 @@ import java.lang.reflect.TypeVariable;
 
 import org.joe_e.Struct;
 import org.joe_e.charset.URLEncoding;
-import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Do;
@@ -100,9 +99,8 @@ HTTP extends Struct implements Messenger, Serializable {
     invoke(final String URL, final Object proxy,
            final Method method, final Object... arg) {
         // To ensure invocations are delivered in the same order as enqueued,
-        // only send an invocation on a resolved remote reference, or a pipeline
-        // web-key generated from this model. Client code should do a when on
-        // a remote promise before sending invocations.
+        // only send an invocation on a remote reference, or a pipeline
+        // promise generated from this model.
         final String src = Exports.src(URL);
         if (null == src || src.equals(local.fetch(null, Remoting.here))) {
             return message(URL).invoke(URL, proxy, method, arg);
@@ -110,8 +108,7 @@ HTTP extends Struct implements Messenger, Serializable {
         final Class<?> R = Typedef.raw(
             Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
         if (void.class == R || Void.class == R) { return null; }
-        final Rejected<?> p = new Rejected<Object>(new NullPointerException());
-        return R.isAssignableFrom(Promise.class) ? p : p._(R);
+        return new Rejected<Object>(new CannotInvokeRemotePromise())._(R);
     }
     
     private Messenger

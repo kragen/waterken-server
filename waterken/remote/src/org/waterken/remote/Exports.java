@@ -12,7 +12,6 @@ import org.joe_e.charset.URLEncoding;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
-import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.var.Factory;
 import org.waterken.id.Exporter;

@@ -95,11 +95,7 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
         try {
             final Class<?> R = Typedef.raw(Typedef.bound(
                     method.getGenericReturnType(), proxy.getClass()));
-            return void.class == R || Void.class == R
-                ? null
-            : R.isAssignableFrom(Promise.class)
-                ? this
-            : _(R);
+            return void.class == R || Void.class == R ? null : _(R);
         } catch (final Exception e) { throw new Error(e); }
     }
     
