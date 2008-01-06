@@ -6,6 +6,16 @@
 
 A promise interface.
 <p>
+The ref_send API provides a language for expressing eventual control flow, where
+operations are only scheduled to happen later, instead of being executed
+immediately, as is the case with the normal flow of control in Java. To support
+eventual control flow, the ref_send API uses a different kind of reference,
+called a promise. A promise is a reference to an object which has yet to be
+determined. It's this flexibility that enables coding of an algorithm that
+manipulates values which won't be calculated until later, as is done in eventual
+control flow.
+</p>
+<p>
 One way to think about promises is as a generalization of floating point
 numbers. Floating point arithmetic has a special way of dealing with error
 conditions, different from that used in integer arithmetic. For example, the
@@ -16,9 +26,9 @@ returning a special value called a <code>NaN</code> and allowing the current
 flow of control to continue.
 </p>
 <p>
-Like a floating point number, a promise can represent both a normal value, as
-well as an error condition. A {@link org.ref_send.promise.Fulfilled} promise is
-a wrapper containing a normal Java reference. A
+Like a floating point number, a promise can represent either a normal value or
+an error condition. A {@link org.ref_send.promise.Fulfilled} promise is a
+wrapper containing a normal Java reference. A
 {@link org.ref_send.promise.Rejected} promise is a wrapper containing an
 {@link java.lang.Exception} specifying the details of the error condition.
 Instead of throwing an exception, thus terminating the current flow of control,
@@ -72,8 +82,8 @@ example, the expression "<code>0.0 / 0.0 + 1.0</code>" also returns
 <code>NaN</code>. An algorithm that uses floating point numbers can thus be
 coded such that it always runs to completion and the error condition is
 propagated through to the return value. A {@link org.ref_send.promise.Rejected}
-promise can be used in a similar way by
-{@linkplain org.ref_send.promise.Rejected#_ creating a proxy}, which can then be
+promise can be used in a similar way by turning it
+{@linkplain org.ref_send.promise.Rejected#_ into a proxy}, which can then be
 used like any other object implementing the specified interface. For example:
 </p>
 <pre>

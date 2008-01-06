@@ -5,18 +5,19 @@ package org.ref_send.promise;
 /**
  * A promise for a referent.
  * <p>
- * If you conceptualize a reference as being like an arrow, a promise is like
- * the tail end of the arrow. The promise end of the arrow can be used before
- * the head end of the arrow points to a referent. This flexibility means that a
- * promise can refer to something which is yet to be determined, or which does
- * not yet even exist.
+ * If you conceptualize a reference as being like an arrow, where an invocation
+ * is started at the tail end of the arrow and delivered to the object pointed
+ * to by the head end of the arrow, then a promise is like the tail end of an
+ * arrow which doesn't yet point to anything. The object referred to by a
+ * promise can be determined later. Using a promise, an algorithm can refer to
+ * an object which will be the result of future computation.
  * </p>
  * <pre>
- *                  reference
- *                  |
- *       referrer ----&gt; referent
- *                |
- *                promise end of the reference
+ *                       reference
+ *                       |
+ *            referrer ----&gt; referent
+ *                     |
+ *                     promise end of the reference
  * </pre>
  * <p>
  * There are three states for a promise: fulfilled, rejected and deferred. A
