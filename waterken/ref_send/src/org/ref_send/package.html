@@ -30,9 +30,12 @@ public fields to its constructor parameters. For example:
 <pre>
 package org.example.membership;
 
-import org.joe_e.Struct;
-import org.ref_send.deserializer;
-import org.ref_send.name;
+import org.joe_e.{@link org.joe_e.Struct};
+import org.ref_send.{@link org.ref_send.deserializer};
+import org.ref_send.{@link org.ref_send.name};
+import org.ref_send.{@link org.ref_send.Record};
+
+import java.io.{@link java.io.Serializable};
 
 /**
  * Information about a club member.
@@ -85,7 +88,7 @@ steps are:
  <li>annotate one public constructor with the {@link org.ref_send.deserializer}
      annotation</li>
  <li>annotate each parameter in the deserialization constructor with the
-     {@link org.ref_send.name} of the corresponding public field</li>
+     {@linkplain org.ref_send.name} of the corresponding public field</li>
  <li>implement the deserialization constructor as a simple assignment of
      arguments to member fields</li>
  <li>extend the {@link org.joe_e.Struct} class, which provides default
@@ -112,14 +115,15 @@ The networking code in the Waterken Server automatically recognizes which
 invocation arguments are {@link org.ref_send.Record} objects and produces the
 corresponding JSON data for them.  You can create an arbitrarily large JSON
 document by constructing an arbitrarily deep tree of {@link org.ref_send.Record}
-objects. For example, the class below adds an address and array of tags:
+objects. For example, the class below adds an address and
+{@linkplain org.joe_e.array array} of tags:
 </p>
 <pre>
 package org.example.membership;
 
-import org.joe_e.array.PowerlessArray;
-import org.ref_send.deserializer;
-import org.ref_send.name;
+import org.joe_e.array.{@link org.joe_e.array.PowerlessArray};
+import org.ref_send.{@link org.ref_send.deserializer};
+import org.ref_send.{@link org.ref_send.name};
 
 /**
  * Postal information about a club member.
