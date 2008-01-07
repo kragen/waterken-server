@@ -19,8 +19,8 @@ Client code is often much simpler when all the data it needs can be provided as
 one bundle. To support creating such data bundles, this package defines an API
 for declaring a pass-by-construction class. When an object of such a class is
 sent in a method invocation, or return, its publicly accessible state is sent,
-instead of a remote reference. Similarly, such a class can be reconstructed when
-its state is received as part of a method invocation.
+instead of a remote reference. Similarly, such an object can be reconstructed
+when its state is received as part of a method invocation.
 </p>
 <p>
 A class can be made pass-by-construction simply by declaring it to be so and
