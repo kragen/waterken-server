@@ -3,7 +3,6 @@
 <TITLE></TITLE>
 </HEAD>
 <BODY>
-
 A promise interface.
 <p>
 The ref_send API provides a language for expressing eventual control flow, where
@@ -21,9 +20,9 @@ numbers. Floating point arithmetic has a special way of dealing with error
 conditions, different from that used in integer arithmetic. For example, the
 expression "<code>0 / 0</code>" will throw an
 {@link java.lang.ArithmeticException}, which aborts the current flow of control.
-In contrast, the expression "0.0 / 0.0" does not throw an exception, instead
-returning a special value called a <code>NaN</code> and allowing the current
-flow of control to continue.
+In contrast, the expression "<code>0.0 / 0.0</code>" does not throw an
+exception, instead returning a special value called a <code>NaN</code> and
+allowing the current flow of control to continue.
 </p>
 <p>
 Like a floating point number, a promise can represent either a normal value or
@@ -51,7 +50,7 @@ import static org.ref_send.promise.Fulfilled.ref;
     &hellip;
 </pre>
 <p>
-The static {@link org.ref_send.promise.Fulfilled#ref ref}() function takes a
+The static {@link org.ref_send.promise.Fulfilled#ref ref()} function takes a
 normal Java reference and returns a corresponding
 {@link org.ref_send.promise.Promise}.
 </p>
