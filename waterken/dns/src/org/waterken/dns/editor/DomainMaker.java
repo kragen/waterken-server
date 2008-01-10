@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.dns.editor;
 
+import static org.ref_send.promise.Fulfilled.ref;
 import static org.ref_send.promise.eventual.Eventual.near;
 import static org.ref_send.var.Variable.var;
 
@@ -11,6 +12,7 @@ import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
+import org.ref_send.promise.Promise;
 import org.ref_send.var.Factory;
 import org.ref_send.var.Variable;
 import org.waterken.dns.Domain;
@@ -32,7 +34,7 @@ DomainMaker {
      * Constructs an instance.
      * @param framework model framework
      */
-    static public DomainMaster
+    static public Promise<DomainMaster>
     build(final Framework framework) {
         final Menu<Resource> answers = MenuMaker.make(8, new RVF());
         class DomainX extends Struct implements Domain, Serializable {
@@ -42,8 +44,8 @@ DomainMaker {
             getAnswers() { return near(answers.getSnapshot()); }
         }
         framework.publisher.bind(Domain.name, new DomainX());
-        return new DomainMaster(framework.destruct, answers,
-                                new ExtensionX(framework, answers));
+        return ref(new DomainMaster(framework.destruct, answers,
+                                    new ExtensionX(framework, answers)));
     }
     
     static final class
