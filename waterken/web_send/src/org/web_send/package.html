@@ -49,7 +49,7 @@ class Was extends Do&lt;Integer,Boolean&gt; implements Serializable {
     }
 
     public Boolean
-    rejected(final Exception reason) {
+    reject(final Exception reason) {
         if (reason instanceof {@link org.web_send.Failure}) {
             // HTTP request failed
             final Failure e = (Failure)reason;
