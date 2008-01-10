@@ -146,7 +146,8 @@ Exports extends Struct implements Serializable {
     
     /**
      * Does an operation at most once.
-     * @param mid   {@link #mid}, or <code>null</code> for idempotent operator
+     * @param mid   message identifier,
+     *              or <code>null</code> for idempotent operation
      * @param make  return value factory
      * @return <code>make</code> return
      */
@@ -166,7 +167,7 @@ Exports extends Struct implements Serializable {
      * Produces a promise for the server-side copy of a return value.
      * @param <R> return type
      * @param base      base URL for the server
-     * @param mid       {@link #mid}
+     * @param mid       message identifier
      * @param R         return type
      * @param response  client-side copy of a return promise
      * @return remote reference to the server-side copy of the return value
