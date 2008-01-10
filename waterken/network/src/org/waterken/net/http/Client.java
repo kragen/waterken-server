@@ -71,7 +71,9 @@ Client implements Server {
     Nap extends IOException implements Powerless {
         static private final long serialVersionUID = 1L;
         
-        Nap() {}
+        Nap(final String message) {
+            super(message);
+        }
     }
     
     static public interface
@@ -427,7 +429,7 @@ Client implements Server {
 
         // read the Status-Line
         final String statusLine = hin.readln();
-        if (!statusLine.startsWith("HTTP/1.")) { throw new Nap(); }
+        if (!statusLine.startsWith("HTTP/1.")) {throw new Nap("incompatible");}
         final int endStatusLine = statusLine.length();
 
         // parse the Status-Line
@@ -443,7 +445,7 @@ Client implements Server {
         final String phrase = statusLine.substring(endStatus + 1);
 
         // sleep on a 5xx response
-        if (status.startsWith("5")) { throw new Nap(); }
+        if (status.startsWith("5")) { throw new Nap(phrase); }
 
         // parse the response headers
         final ArrayList<Header> header = new ArrayList<Header>(16);
