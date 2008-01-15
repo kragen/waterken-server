@@ -78,7 +78,7 @@ Model {
      * objects in the model MUST be committed. Only if the current transaction
      * commits will the {@linkplain Root#effect enqueued} {@link Effect}s be
      * {@linkplain Transaction#run executed}; otherwise, the implementation
-     * MUST discarded them. The effects MUST be executed in the same order as
+     * MUST discard them. The effects MUST be executed in the same order as
      * they were enqueued. Effects from a subsequent transaction MUST NOT be
      * executed until all effects from the current transaction have been
      * executed. An {@link Effect} MUST NOT access objects in the model, but may
