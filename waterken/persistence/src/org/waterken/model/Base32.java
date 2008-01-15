@@ -11,7 +11,7 @@ Base32 {
     private
     Base32() {}
 
-    // org.waterken.uri.Base32 interface
+    // org.waterken.model.Base32 interface
 
     /**
      * Encodes binary data in base32.
@@ -76,15 +76,15 @@ Base32 {
     locate(final char c) throws InvalidBase32 {
         return 'a' <= c && 'z' >= c
             ? c - 'a'
-        : ('2' <= c && '7' >= c
+        : '2' <= c && '7' >= c
             ? 26 + (c - '2')
-        : ('A' <= c && 'Z' >= c
+        : 'A' <= c && 'Z' >= c
             ? c - 'A'
-        : ('0' == c
+        : '0' == c
             ? 'o' - 'a'
-        : ('1' == c
+        : '1' == c
             ? 'l' - 'a'
-        : invalid()))));
+        : invalid();
     }
 
     static private int
