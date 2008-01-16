@@ -16,9 +16,9 @@ Entity implements Powerless, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * maximum number of bytes in {@link #content}
+     * maximum number of bytes in {@link #content}: {@value}
      */
-    static public final int maxContentSize = 64 * 1024;
+    static public final int maxContentSize = 256 * 1024;
 
     /**
      * MIME Media Type
