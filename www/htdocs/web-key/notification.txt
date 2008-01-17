@@ -1,0 +1,138 @@
+From: www2008@easychair.org
+Sent: Tuesday, January 15, 2008 9:54 AM
+To: Close, Tyler J.
+Subject: WWW2008 notification
+
+Dear author:
+
+We regret to inform you that your paper, referenced below, has not
+been accepted at WWW2008.  We received a record of more than 880
+submissions this year and could accommodate only a small fraction of
+them.
+
+The reviews for your paper are attached below.
+
+You might also be interested in submitting to the developers track.
+More information on the developers track can be found at
+http://www2008.org/CFP/developers.html.  The deadline for
+the developers track is January 18, 2008.
+
+There are also a variety of workshops at WWW2008.  Information can be
+found at http://www2008.org/CFP/workshops.html.
+
+TRAVEL: If you plan to attend WWW2008, please note that you are
+responsible for obtaining appropriate travel documents (e.g.,
+passports and visas) well in advance of your planned trip to China.
+
+Wei-Ying Ma
+Andrew Tomkins
+Xiaodong Zhang
+WWW2008 Program Co-chairs
+
+
+
+---------------------------------------------
+
+Paper: 605
+Title: Web-key: Mashing with Permission
+
+
+-------------------- review 1 --------------------
+
+OVERALL RATING: 0 (borderline paper)
+REVIEWER'S CONFIDENCE: 2 (medium)
+Technical Quality: 4 (good)
+Presentation: 4 (good)
+
+----------------------- REVIEW --------------------
+
+The paper presents a convincing approach for URL-based transferable permission in Web applications. The motivation is mainly based on mashup applications which so far do not address permission-required websites.
+
+The paper is well written, and no objection about the implementation.
+
+My concerns is that the approach is too biased towards mashup applications. That is, the approach certainly facilitates mashup development, but it is not enough motivated that the URL-based permission outperforms traditional approaches such as the username/password. After all, websites are not developed for being mashuped. Hence, a more stronger case would be possible if the authors can broad the utility of the appraoch being applied outside mashups.
+
+Related work. A comparison should be included with Yahoo's Browser-Based Authentication (please refer to http://com3.devnet.re3.yahoo.com/auth/ for more details)
+
+
+-------------------- review 2 --------------------
+
+OVERALL RATING: 2 (accept)
+REVIEWER'S CONFIDENCE: 3 (high)
+Technical Quality: 4 (good)
+Presentation: 3 (fair)
+
+----------------------- REVIEW --------------------
+
+This is a good paper on an important topic with a very interesting approach to eliminating the need for user/password dialogs on the Web and, more importantly, providing a solution to the
+access control problem of private web resources such that the access control mechanism follows the philosophy and architectural principles that made the Web what it is today. I think the
+topic of the paper is relevant to Web engineering and that the proposed technique would provoke lively debate at the conference.
+
+I have a few suggestions/requests for the author:
+
+1. The paper has a strongly informal tone, and while computer science papers tend to be less formal than papers found in other scientific disciplines, I think you have crossed too far over the
+boundary and so should attempt to formalize the paper's tone and presentation a bit more. You've got an interesting technique, don't let it be discounted by some people simply because you
+decided to present it alongside references to Mad Magazine!
+
+2. You may only include the phrase "Architecture of the World Wide Web, Volumne One" in your paper once. Please delete all instances of this phrase that appear after the first paragraph of
+the paper.
+
+3. I think the paper would be improved if you included an example of transforming a web application that currently does not use web-keys into one that does. How much work am I looking
+at? How long will it take? If I currently manage a web site consisting of static web pages that are nevertheless meant to be private, what work would I have to do?
+
+
+-------------------- review 3 --------------------
+
+OVERALL RATING: 2 (accept)
+REVIEWER'S CONFIDENCE: 3 (high)
+Technical Quality: 3 (fair)
+Presentation: 3 (fair)
+
+----------------------- REVIEW --------------------
+
+I was anxious after "bidding" on this paper since the title suggests research work relevant to Web 2.0. As it turns out, references to "mashups" really appears significantly only in the title and abstract.
+
+I don't think that this paper is appropriate for the Web Engineering track. The methods described are not really WE, there is no reference to WE in the general terms or keywords, and no citations to WE works in the bibliography. The work is, in my opinion, more closely related to Web authentication and security (i.e., significant references to XSRF).
+
+In addition, I see the work addressing an issue (specifically with respect to "mashups") that has been covered by research in Web Services (used by some Web 2.0 mashups). It does not acknowledge common use of cookies for authentication or the "packaging" of credentials in SOAP messages (e.g., SAML). That said, I take strong exception to the author's reference, "the most popular mechanism for implementing access control over private resources on the Web, *and the one recommended by the W3C* is the username/password."
+
+Given the merger of the Web Engineering and Web Services tracks, I have no problem recommending this paper for acceptance.
+
+
+-------------------- review 4 --------------------
+
+OVERALL RATING: -1 (weak reject)
+REVIEWER'S CONFIDENCE: 4 (expert)
+Technical Quality: 3 (fair)
+Presentation: 3 (fair)
+
+----------------------- REVIEW --------------------
+
+This paper describes "web-key", an architecture for revealing limited access to controlled web pages without requiring usernames or passwords.
+
+What's going on here is something that predates the web by decades: security people call this a "capability".  If you know the name, then you can access the object.  Don't know the name?  Can't see the object. Andrew Tanenbaum et al. sorted out how to do this over a network in 1986:
+
+Tanenbaum, A.S., Mullender, S.J., and van Renesse, R.: Using Sparse Capabilities in a Distributed Operating System,  Proc. Sixth Int'l Conf. on Distr. Computer Systems, IEEE, pp. 558-563, 1986.
+
+In terms of adapting this idea to the web, the core idea (sparse capabilities) has been used on the web for quite a while.  For example, Google's PicasaWeb sends emails that have sparse capabilities when you "invite a friend" to view a private photo gallery.  The novelty here, to the extent that it's all that novel, is to store the capability bits as a fragment after the URL rather that as part of the URL itself.  The main benefit of this is that the fragment is not included in the referer portion of a URL.  To make this work in practice, a "skeleton" web page is loaded which can read the fragment and then fetch the "real" content via XMLHttpRequest or whatever else.
+
+This works for URLs sent via email, but would not necessarily work in more automated settings, like mashups.  Of course, in a setting like that, referrer headers will only ever have the outmost URL rather than the inner gadget's URL.  This issue needs additional discussion.
+
+This paper includes some discussion on the benefits of capability-style security architectures and quotes Mark Miller, who has written extensively on the topic.  However, there are no citations to the three-decades old literature on this exact issue.  Capabilities are *always* easier to implement, and the tradeoff is *always* about giving up control.  You don't know who the users are any more.  Maybe you don't care (as Google's PicasaWeb clearly doesn't care), but maybe you do care.  Of course, all sorts of extensions have been proposed in the past, such as single-use capabilities (which would render the referrer tag leakage issue irrelevant).  None of this is cited or discussed.
+
+
+-------------------- review 5 --------------------
+
+OVERALL RATING: -2 (reject)
+REVIEWER'S CONFIDENCE: 4 (expert)
+Technical Quality: 3 (fair)
+Presentation: 3 (fair)
+
+----------------------- REVIEW --------------------
+
+I suggest the authors to give a thorough discussion how configuring and managing these URI capabilities. Ahead-of-time manual resource management doesn't seem to be flexible.
+
+Also, allowing cross-domain communications can also enable fine-grained access control. I'd also urge the author to compare and contrast with alternative mechanisms for achieving access control.
+
+Furthermore, many sites are already using  URL with query-string-based authentication key for capability-passing. I suggest the authors to give a more thorough related work comparison and contrast, including citing the tradition OS capability work.
+
