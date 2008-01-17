@@ -2,36 +2,737 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
- <title>web-key - Web-based access-control</title>
- <link rel="StyleSheet" type="text/css" href="../res/style.css"></link>
- <link rel="icon" type="image/gif" href="../res/icon.gif"></link>
+<title>web-key - Web-based access-control</title>
+<link rel="StyleSheet" type="text/css" href="../res/style.css"></link>
+<link rel="icon" type="image/gif" href="../res/icon.gif"></link>
 </head>
 <body>
- <div class="navigation">
-  <a href="../"><img src="../res/icon.gif" width="16" height="16" border="0" alt="home"></img></a>
-  <span class="heading">&rarr; web-key</span>
- </div>
- <div class="main">
- <h2>Using web-keys for access-control on the Web</h2>
- <h3>WWW 2008 submission</h3>
- <h4>Abstract</h4>
- <p>Mashups, web applications that interact with other web applications, are
- receiving increasing developer interest and providing users with valuable new
- functionality. When one or more of the interacting applications have access
- control requirements, many design challenges arise. Failure to meet these
- challenges brings unnecessary risk to the user. Addressing the challenges
- using a poorly suited technique can add significant complexity to both the
- application code and the user interface, all while not reducing risk to the
- user. This paper introduces the web-key, an https URL convention for
- representing a transferable permission in a web application. Using web-keys,
- access control challenges can be effectively solved using existing development
- tools for web applications deployed to existing web browsers.</p>
- <ul>
-  <li><a href="web-key-submission.pdf">PDF submitted to WWW 2008</a></li>
-  <li><a href="notification.txt">reviewer comments from WWW 2008</a></li>
- </ul>
- </div>
- <p class="footer">
- </p>
+<div class="navigation">
+<a href="../"><img src="../res/icon.gif" width="16" height="16" border="0" alt="home"></img></a> <span class="heading">&rarr; web-key</span>
+</div>
+<div class="main">
+<a href="web-key-submission.pdf">WWW 2008 submission</a>
+<a href="notification.txt">WWW 2008 reviewer comments</a>
+<h1>Web-key: Mashing with Permission</h1>
+<h2><a name="abstract" href="#abstract">Abstract</a></h2>
+<p>Mashups, web applications that interact with other web applications, are
+receiving increasing developer interest and providing users with valuable new
+functionality. When one or more of the interacting applications have access
+control requirements, many design challenges arise. Failure to meet these
+challenges brings unnecessary risk to the user.  Addressing the challenges
+using a poorly suited technique can add significant complexity to both the
+application code and the user interface, all while not reducing risk to the
+user.  This paper introduces the web-key, an https URL convention for
+representing a transferable permission in a web application. Using web-keys,
+access control challenges can be effectively solved using existing development
+tools for web applications deployed to existing web browsers.</p>
+<h2><a name="introduction" href="#introduction">Introduction</a></h2>
+<p>The World Wide Web uses relatively simple technologies with sufficient
+scalability, efficiency and utility that they have resulted in a remarkable
+information space of interrelated resources, growing across languages,
+cultures, and media<sup><a href="#f1">1</a></sup>; but not access control
+boundaries.  Core to these simple technologies is the URI, which is used for
+both identification and interaction: a document can link to a discussed
+resource using a URI and a web agent can interact with a resource by directing
+a request using a URI. As elucidated in the W3C's Architecture of the World
+Wide Web, Volume One [<a href="#webarch">webarch</a>], the URI provides a
+powerful architectural base upon which to build an information space. This
+information space includes the wikis, blogs, search engines, e-commerce sites
+and web-applications that so permeate our daily lives. So long as there are no
+permissions required, an interaction across this information space is
+successfully enabled through the use of URIs. The proliferation of mashups
+which integrate information from publicly accessible sites like Google Maps and
+Craigslist is testament to the flexibility and utility of the Web's
+architecture. However, by convention, and official decrees, a URI is not
+typically used to transfer permission in a Web interaction. Consequently, a
+mashup developer seeking to integrate data from a non-public source, such as a
+user's web-mail account, must augment the architectural base provided by the
+URI with some other mechanism for handling permissions. These architectural
+additions have not exhibited the same scalability and utility properties, as
+evidenced by the dearth of mashups involving non-public information. Typically,
+non-public information is made available to a web agent within a walled garden
+protected by a username/password. Within this walled garden, Web interactions
+take place as before, but are accompanied by proof of knowledge of the
+username/password. To interact with a resource in the walled garden, a web
+agent must possess this proof. Consequently, a mashup application targeted at
+resources in this walled garden typically must be given the corresponding
+username/password. This condition holds even if the mashup application only
+needs access to a small subset of the resources in the walled garden. For
+example, the web-mail mashup may only need read permission on a particular
+email folder and not permission to send email as the user. Unfortunately, this
+user password model does not enable expression of such a restriction.</p>
+<p>In addition to discouraging and complicating Web interactions, augmenting
+the architectural base provided by the URI with user passwords does not provide
+the protection commonly claimed and expected. Under some circumstances, user
+passwords may help a server protect itself from a malicious client, but this
+mechanism alone does not help a client protect its server-side resources from
+other clients. So the discussed web-mail application may be able to prevent an
+interaction from a non-user by requiring a password, but this requirement does
+not help a legitimate user protect his permission to use the web-mail
+application from other users. Using a technique popularized under the name
+Cross Site Request Forgery (XSRF), an attacker can abuse a legitimate user's
+permission, and so use server-side resources according to his wishes and the
+victim's responsibility. Passwords also bring multiple usability problems,
+notably a user interaction highly susceptible to phishing.</p>
+<p>This paper discusses the problems with current approaches to access control
+on the Web and presents the web-key, an https URL<sup><a href="#f2">2</a></sup>
+convention for implementing transferable permission on the Web. This convention
+enables solution of access control challenges within the architectural model
+provided by the URI, thus enabling non-public resources to also benefit from
+the advantages coming from the principles identified by the W3C in
+[<a href="#webarch">webarch</a>].  This compatibility also means that the
+web-key technique can be applied using existing web development tools to create
+web applications deployed to existing web browsers.</p>
+<p>The web-key technique has been implemented in the Waterken Server
+[<a href="#waterken">waterken</a>], an Open Source web application server. Web
+applications developed on this server have been successfully tested in many
+mainstream web browsers, including Internet Explorer, Firefox, Safari and
+Opera. Many applications have been created on this platform, including an
+access controlled wiki, a toy stock market and a two man year personal
+collaboration project currently underway at HP Labs.</p>
+<p>
+Section 2 of this paper examines the difficulties created by the walled garden
+approach to access control currently popular on the Web. Section 3 explains the
+implementation of a web-key, the proposed alternate approach to access control.
+Section 4 shows how the web-key proposal addresses the previously discussed
+problems with access control on the Web. Section 5 addresses previously raised
+concerns with pursuing an approach like the web-key.</p>
+<h2><a name="walled_garden" href="#walled_garden">The walled garden</a></h2>
+<p>The most popular mechanism for implementing access control over private
+resources on the Web, and the one recommended by the W3C
+[<a href="#deep_linking">deep linking</a>], is the username/password. This
+section examines the impact of this technology on the Web.</p>
+<h3><a name="acl_webarch" href="#acl_webarch">Broken web architecture</a></h3>
+<p>The importance of the URI to Web architecture is most clearly expressed by
+the following quote from [<a href="#webarch">webarch</a>]:</p>
+<blockquote>
+"One goal of the Web, since its inception, has been to build a global community
+in which any party can share information with any other party. To achieve this
+goal, the Web makes use of a single global identification system: the URI. URIs
+are a cornerstone of Web architecture, providing identification that is common
+across the Web."
+</blockquote>
+<p>This identification is only common across the Web for things that have been
+assigned a URI. Most often, permission to access a private resource is not
+assigned a URI; instead, a URI plus a separate username/password is used.
+Augmenting the identification system in this way undermines core architectural
+principles of the Web.</p>
+<h4><a name="lost_guid" href="#lost_guid">Loss of global identification</a></h4>
+<p>Quoting again from [<a href="#webarch">webarch</a>]:</p>
+<blockquote>
+"It is a strength of Web Architecture that links can be made and shared; a user
+who has found an interesting part of the Web can share this experience just by
+republishing a URI."
+</blockquote>
+<p>When access to a resource is protected by a username/password, even the most
+basic operation of dereferencing the URI requires presentation of these
+additional identifiers. Consequently, a user cannot share access with another
+just by passing a URI. For example, a user of the described web-mail
+application may have access to a resource which stores the current contact
+information of a friend. Rather than maintain this state on behalf of the
+friend, the user may wish to directly delegate access to the contact resource
+to the friend, so that it may be updated directly when contact information
+changes. If the web-application is protected by a username/password, the user
+cannot share access to the contact resource simply by sending their friend the
+URI. Instead, sharing access to the contact resource may require sharing full
+control over the web-mail account by giving the user's username/password to the
+friend. Alternatively, the web-application may support some process whereby the
+friend may be given their own username/password, and an access control list
+updated by the user to give the friend access to the contact resource. Some may
+think this latter scenario plausible, others not, but it is certainly different
+from the interaction for sharing access to a publicly accessible resource and
+so cannot be assumed to have the same architectural properties. If the single
+global identification system provided by the URI is as crucial as the W3C
+states, then the publicly accessible Web would never have been built under the
+regime currently in place for private resources. The dearth of mashups
+involving private resources may be seen as evidence for this position.</p>
+<h4><a name="lost_orthogonality" href="#lost_orthogonality">Loss of orthogonality</a></h4>
+<p>Since the URI alone is insufficient to direct a web agent to a private
+resource protected by a username/password, the additional identifiers must be
+transmitted somehow. The only other option in web architecture is the
+representation, so the data format for the representation must be designed to
+accommodate these additional identifiers. This additional responsibility breaks
+the Web's orthogonality principle [<a href="#webarch">webarch</a>]:</p>
+<blockquote>
+"Identification, interaction, and representation are orthogonal concepts,
+meaning that technologies used for identification, interaction, and
+representation may evolve independently."
+</blockquote>
+<p>To accommodate private resource access, each representation format would
+have to provide its own conventions for encoding access permission and evolve
+in lockstep with this identification technology. The task of representing a
+link is no longer fully delegated to the URI. The alternative to this
+requirement is loss of global scope, which occurs when only part of the access
+identifier is represented.</p>
+<h4><a name="lost_scope" href="#lost_scope">Loss of global scope</a></h4>
+<p>Loss of orthogonality is awkward and so many data formats, such as HTML,
+don't augment their hyperlink encoding with user credential information and
+instead assume this information is held in the ambient environment provided by
+the user agent. For each web interaction, the user agent automatically augments
+the request with the user's credentials. But this practice is not always safe.
+For example, left unrestricted, this practice would allow a visited web page to
+read and modify any resource the user can access. If the source hyperlink for
+an interaction included the credentials to be used, these could be safely
+included in the outgoing request. However, since the data format does not
+support encoding of this information, and the ambient credential information
+cannot be safely used, the communication must be
+banned<sup><a href="f3">3</a></sup>. This communication ban is known as the
+Same Origin Policy: a visited web page can only read representations produced
+by the web page's own host. This policy stands in stark contrast to the stated
+goal of enabling a "global community in which any party can share information
+with any other party". Within the web browser, this sharing is prohibited, as a
+consequence of failing to implement global identification for private resource
+access; a visited web page is unable to specify its permission to access a
+private resource.</p>
+<h3><a name="acl_usability" href="#acl_usability">Poor usability</a></h3>
+<p>In theory, a user's password protects their private resources in a web
+application from abuse by other web applications. In practice, there is no such
+barrier. Remembering an unguessable password is a difficult burden for a human.
+Remembering dozens of them is simply not feasible. To cope with the burden that
+has been foisted upon them, many users reuse passwords across multiple web
+applications [<a href="#password_habits">password habits</a>]. In this case,
+there is no protection barrier between web applications: each has complete
+access to the other. This reality is not a failing of the user, but of the user
+interaction design, which is predicated upon the user doing the
+impractical.</p>
+<h3><a name="acl_phishing" href="#acl_phishing">Phishing</a></h3>
+<p>In addition to remembering an unguessable password, the user is also asked
+to determine the source of a presented login prompt and only reveal the
+password if the source can be authenticated as being the intended recipient. In
+user testing, this burden has proven to be too great
+[<a href="#why_phishing_works">why phishing works</a>]
+[<a href="#wsc-usecases">wsc-usecases</a>]. Part of the problem arises from the
+similarity between a legitimate interaction and an attack. Consider the
+following interaction, presented by the W3C as a textbook case for use of
+access control on the Web [<a href="#webarch">webarch</a>]:</p>
+<blockquote>
+"Nadia sends to Dirk the URI of the current article she is reading. With his
+browser, Dirk follows the hypertext link and is asked to enter his subscriber
+username and password. Since Dirk is also a subscriber to services provided by
+'weather.example.com,' he can access the same information as Nadia."
+</blockquote>
+<p>From Dirk's perspective, the above scenario is also a textbook case for
+phishing in the case where Nadia is the phisher and the URI sent to Dirk refers
+to the phishing site created by Nadia.</p>
+<h3><a name="acl_xsrf" href="#acl_xsrf">Cross Site Request Forgery (XSRF)</a></h3>
+<p>Unless a web application has taken additional precautions, stealing the
+user's password using a phishing attack is unnecessary since the user's web
+browser will readily employ the user's credentials under the attacker's
+directions.</p>
+<p>For example, the discussed web-mail application may have a feature to setup
+a forwarding address. When in use, this feature automatically forwards a copy
+of incoming email to a specified email address, in addition to keeping a copy
+for use within the web-mail application. The resource to setup this feature may
+be located at a URL like:
+<code>&lt;https://mail.example.com/user123/forward&gt;</code>.  A POST request
+sent to this resource provides the forwarded to email address and starts email
+forwarding. Normally, the user activates this feature from an HTML page served
+by the web-mail application, but this need not be the case. In an attack
+scenario, another web site could serve an HTML page that contains an identical
+form, pre-populated with the attacker's email address. Using Javascript, this
+form can be automatically submitted on page load. Assuming the user has already
+logged into the web-mail application in the current browsing session, the
+user's browser will send the POST request to the web-mail application and
+include any cookies, or HTTP authentication credentials, setup with the
+web-mail application. The web-mail application receives a POST request
+containing exactly the same Request-URI, entity body and cookies as in the
+normal case. The user may see nothing out of the ordinary in the web browser's
+presentation. Though not directly possessing the user's credentials, the
+attacker can nonetheless use them as desired. The walls of this walled garden
+only keep out the well intentioned, not intruders.</p>
+<p>The attack described above is not enabled by a peculiarity of the Web, but
+rather is endemic to applications that treat client authentication as an access
+control mechanism<sup><a href="#f4">4</a></sup>. <em>Client authentication only
+establishes that a particular request was sent by a particular client; it does
+not establish which of the client's permissions the client intends to exercise
+with the request.</em> The latter is required to effectively implement access
+control<sup><a href="#f5">5</a></sup>.  When a request is produced by the
+client without communication with others, it may be the case that the server
+can assume that the client permissions to be exercised are the ones that must
+be exercised in order to service the request.  However, this unstated
+assumption is readily violated when a client communicates with other parties.
+In the described attack, the client request was produced in collaboration with
+the attacker and so included a private resource identifier specified by the
+attacker: <code>&lt;https://mail.example.com/user123/forward&gt;</code>.  The
+server's assumption that the client intended to apply its email forwarding
+permission to the current request was therefore invalid, thus enabling the
+attack. The user only intended to view a web page, not apply any permission to
+any request generated by the page.</p>
+<p>This attack can be defended against by eliminating the assumption about
+which of the client's permissions should be exercised by a request, instead
+making this selection explicit and unforgeable. A popular way to express this
+intent involves reifying the permission as an unguessable secret [<a
+href="#XSRF">XSRF</a>]. For example, when browsing the
+<code>&lt;https://mail.example.com/user123/forward&gt;</code> resource, the
+HTML form in the returned web page includes a hidden field containing a
+randomly generated secret. When the form is submitted, the resource checks that
+the received request includes the expected secret; if so, the request is
+processed and not otherwise. The Same Origin Policy prevents the attacker from
+reading a secret produced by the web-mail application and so the attacker is
+unable to generate an HTML form that includes a valid secret for the email
+forwarding resource.</p>
+<p>The above defense protects a POST request from abuse by an attacker, but
+does not protect a GET request. For example, consider a user with access to a
+confidential report on company finances at:
+<code>&lt;https://portal.example.com/audit/summary.html&gt;</code>. An attacker
+could direct the user to a blog post which claimed knowledge of the report.
+Since the URL for the report summary is guessable, the attacker can guess it
+and reference it from an IFRAME in the blog post. This IFRAME may have no
+visible border, and so to the user, the blog post appears to contain a copy of
+the report summary.  When rendering the IFRAME, the user's browser submits a
+GET request for the report to the portal along with any cookies setup for the
+user.  The blog post asks: "Do you wish to make any statements before I go
+public with this information?" It appears the blogger already has access to the
+confidential report, and so the victim may engage in a conversation that
+reveals the confidential information. As in the previous example, the user only
+intended to view a web page, not enable inclusion of confidential information
+in the web page's presentation.</p>
+<p>The discussed defense for the POST request can be extended to also cover GET
+requests, and other HTTP methods, by putting the explicit permission secret in
+the URL for the identified resource. In addition to protecting against XSRF,
+this approach also enables a solution to the architectural and usability
+problems created by passwords. The detailed design is explained in the
+following section.</p>
+<h2><a name="implementation" href="#implementation">Web-key implementation</a></h2>
+<p>This section presents the web-key https URL convention for representing
+transferable permission and describes the resulting web browser interactions.</p>
+<h3><a name="what" href="#what">How to represent permission?</a></h3>
+<p>According to RFC 3986 [<a href="#URI">URI</a>], one of the main design
+considerations for the URI is transmission between users via transcription.
+Preserving this feature in a URI that conveys permission creates a number of
+design constraints.  Transcription is an offline process, meaning that
+delegation of permission from one user to another must also be an offline
+process. The act of transcription must also be sufficient to complete the
+delegation, as no other data is exchanged. Transcription can be a manual task
+for the user, such as when using pencil and paper, so the URI should be kept
+short.</p>
+<p>These design constraints can be met by binding each permission issued from
+the web application to a randomly generated bit string, of sufficient length to
+frustrate a brute force online search. An encoded representation of the bit
+string is included in the https URL for the permission. An attacker is limited
+to an online search, since only the web application can determine whether or
+not a particular bit string corresponds to an issued permission, or is just
+random garbage.</p>
+<p>For many applications, a bit string of length 64 provides sufficient
+protection against brute force search. Assuming the web application issues
+fewer than a million unique permissions and has a maximum throughput of one
+HTTP request per millisecond, an attacker would have to saturate the web
+application for 292 years before having even a 50% chance of guessing even a
+single valid bit string. When base32 encoded, a bit string of length 64 is 13
+characters long. For example, such a character string looks like:
+<kbd>"mhbqcmmva5ja3"</kbd>.</p>
+<h3><a name="where" href="#where">Where does the key go?</a></h3>
+<p>An https URL consists of multiple components, each of which could
+conceivably house the key; however, details of the HTTP protocol
+[<a href="#HTTP">HTTP</a>] eliminate almost all the available options.</p>
+<p>HTTP defines an optional Referer header which is enthusiastically
+implemented by web browsers. When following a hyperlink, the Referer header is
+automatically generated by the browser and specifies the URL of the page
+containing the hyperlink<sup><a href="#f6">6</a></sup>.  To see why this
+feature is potentially a problem when using a permission bearing URL, consider
+the following example. A user dereferences a URL which provides access to an
+email in their web-mail application. The identified email contains a link to a
+web page discussed in the email. The user clicks on the hyperlink, whereupon
+the browser sends a GET request to the identified server with a Referer header
+specifying the URL for the email. The operator of the server referred to by the
+hyperlink now has the URL for the email and so can fetch the contents of the
+possibly private email.  A more Web 2.0 style web-mail application might have
+only a single top level web page from which all interactions take place. In
+this case, the permission bearing URL leaked via the Referer header would
+provide access to the user's entire email account.</p>
+</p>This leakage of a permission bearing URL via the Referer header is only a
+problem in practice if the target host of a hyperlink is different from the
+source host, and so potentially malicious. RFC 2616 foresaw the danger of such
+leakage of information and so provided security guidance in section 15.1.3:</p>
+<blockquote>
+"Because the source of a link might be private information or might reveal an
+otherwise private information source, &hellip; Clients SHOULD NOT include a
+Referer header field in a (non-secure) HTTP request if the referring page was
+transferred with a secure protocol."
+</blockquote>
+<p>Unfortunately, clients have implemented this guidance to the letter, meaning
+the Referer header is sent if both the referring page and the destination page
+use HTTPS, but are served by different hosts.</p>
+<p>This enthusiastic use of the Referer header would present a significant
+barrier to implementation of the web-key concept were it not for one unrelated,
+but rather fortunate, requirement placed on use of the Referer header. Section
+14.36 of RFC 2616, which governs use of the Referer header, states that: "The
+URI MUST NOT include a fragment." Testing of deployed web browsers has shown
+this requirement is commonly implemented.</p>
+<p>Putting the unguessable permission key in the fragment segment produces an
+https URL that looks like:
+<code>&lt;https://www.example.com/app/#mhbqcmmva5ja3&gt;</code>.</p>
+<h3><a name="browser_how" href="#browser_how">Fetching a representation</a></h3>
+<p>Placing the key in the URL fragment component prevents leakage via the
+Referer header but also complicates the dereference operation, since the
+fragment is also not sent in the Request-URI of an HTTP request. This
+complication is overcome using the two cornerstones of Web 2.0: JavaScript and
+XMLHttpRequest.</p>
+<p>For some set of resources, all issued web-keys use the same path and differ
+only in the fragment. The representation served for the corresponding
+Request-URI is a skeleton HTML page specifying an onload event handler. When
+invoked, the onload handler extracts the key from the document.location
+provided by the DOM API. The handler then constructs a new https URL that
+includes the key as a query string argument. This new URL is made the target of
+a GET request sent using the XMLHttpRequest API. The response to this request
+is a representation of the referenced resource. The onload handler uses this
+representation to dynamically update the skeleton HTML page to depict the
+representation information. The complete interaction is depicted in Figure
+1.</p>
+<div class="figure">
+<img src="initialGET.gif"/>
+<p class="caption">Figure 1: On the initial visit to the web application two HTTP requests
+are needed to fetch a representation. The first request fetches a skeleton page
+which can be cached forever. The second HTTP request, initiated using
+XMLHttpRequest, fetches the resource representation to be dynamically added to
+the skeleton page.</p>
+</div>
+<p>Since the skeleton HTML page is the same for every web-key, the HTTP server
+can mark it as cacheable. Consequently, the initial GET is only sent to the
+server on the very first visit to the web application. On subsequent web-key
+dereference operations, only the GET generated via XMLHttpRequest is sent. This
+optimized interaction is depicted in Figure 2.</p>
+<div class="figure">
+<img src="subsequentGET.gif"/>
+<p class="caption">Figure 2: On a subsequent visit to the web application only
+a single HTTP request is needed to fetch a representation, the same number as
+for a traditional web page.</p>
+</div>
+<p>In the GET request that fetches the actual resource representation, the key
+is placed in the query, as opposed to the path, to protect it from a security
+feature of modern browsers. Many modern browsers include an option to report
+each visited URL to a central phishing detection service. The IE7
+implementation of this feature first truncates the URL to omit the query
+string. The IEblog indicates this approach was taken to protect user privacy
+and security [<a href="#phishing_filter">phishing filter</a>]. Unfortunately,
+this precaution is not taken in other browsers. Users of these other browsers
+who enable online phishing detection must trust that confidentiality is
+adequately maintained by the remote service.  Automatically extracting data
+from an end-to-end encrypted communications channel and transmitting it to a
+third party defeats the intent of the encryption. Hopefully this iatrogenic
+security flaw<sup><a href="#f7">7</a></sup> can be fixed in future releases of
+these other browsers.</p>
+<h3><a name="script_how" href="#script_how">Subsequent requests</a></h3>
+<p>After the initial representation fetch completes, the initialized skeleton
+page may make subsequent requests using web-keys contained in the resource
+representation. For these requests, the URL transformation done by the onload
+handler is done right away by the caller and the request sent out using the
+XMLHttpRequest API.</p>
+<h2><a name="open_safe" href="#open_safe">Deep linking in a free world</a></h2>
+<p>This section shows how the web-key proposal addresses the previously
+discussed problems with access control on the Web, supports safe cooperation
+between web-applications and enables a Web free from the restraints of the Same
+Origin Policy.</p>
+<h3><a name="cap_webarch" href="#cap_webarch">Good web architecture</a></h3>
+<p>By providing a convention for representing a permission as a URL, the
+web-key brings permissions into the architectural model created by the URI.
+Using the web-key convention, a URL provides global identification for private
+resource access. Consequently, no remaining responsibilities are left to the
+representation data format. Orthogonality between resource identification and
+representation is restored. Restoration of orthogonality means the web-key can
+be used with existing representation formats, such as HTML. Since a web-key
+carries all the permission identification needed to make a request, such
+requests need not be augmented with user credentials taken from the ambient
+environment of the user agent. Consequently, global scope is restored.</p>
+<h3><a name="cap_usability" href="#cap_usability">Simpler interaction</a></h3>
+<p>A web-application using web-keys in effect generates passwords on behalf of
+the user and provides them in a form that can be managed using existing user
+agent features, such as bookmarks. Each generated password is much stronger
+than anything a user could be expected to generate and is unique to the
+corresponding permission, instead of being shared across multiple
+web-applications, each of which encompasses multiple permissions. A typical
+application may have a single top-level resource, whose web-key is bookmarked
+by the user. Other resources are then accessed by traversing the hypermedia web
+rooted at the top-level resource. From the user's perspective, it's all just
+clicking on hyperlinks, a few of which are bookmarks. The user is never
+required to generate, nor remember, any secrets. The login prompt can be a
+thing of the past.</p>
+<h3><a name="cap_phishing" href="#cap_phishing">Phishing resistant</a></h3>
+<p>When a user clicks on a web-key, the web user agent uses the hostname
+provided by the authority component of the https URL to authenticate the remote
+party. Only if this authentication attempt succeeds is the GET request carrying
+the permission key sent to the remote party. This entire interaction is
+automatically handled by the user agent software, without requiring user
+intervention. Essentially, a web-key binds a shared secret to the
+authentication credentials for the party the secret is shared with.</p>
+<p>This interaction for exchange of a shared secret is much different than that
+for a username/password. In a traditional login scenario, it is the user's
+responsibility to determine whether or not the login form was securely
+presented by the party the password is shared with. A phishing attack preys
+upon the user's difficulty fulfilling this responsibility. By eliminating this
+user task, a web-key eliminates one vector for phishing.</p>
+<h3><a name="cap_xsrf" href="#cap_xsrf">Solves XSRF</a></h3>
+<p>An XSRF attack depends upon the attacker's ability to specify an HTTP
+request that the attacker is unable to directly produce, but that the victim
+can. When permission to access a resource is reified as a web-key, the attacker
+is unable to specify an HTTP request that uses that permission. For example, in
+the previously discussed XSRF attack, the abused permission was identified by
+the URL <code>&lt;https://mail.example.com/user123/forward&gt;</code> in
+combination with the user's username/password. When using web-keys, such a
+permission is solely identified by a web-key like:
+<code>&lt;https://mail.example.com/user123/#mhbqcmmva5ja3&gt;</code>. Where
+previously the attacker could produce an HTML form whose action attribute
+specified the required URL, now the attacker is unable to do so. Since the
+attacker does not have permission to access the target resource, he does not
+possess the user's web-key and so cannot produce an HTML form that generates a
+request to the target resource.</p>
+<h3><a name="cap_open" href="#cap_open">Does not depend on Same Origin Policy</a></h3>
+<p>Notice that the XSRF defense mounted by a web-key does not depend upon
+enforcement of the Same Origin Policy. In the discussed popular defense to
+XSRF, a GET request to
+<code>&lt;https://mail.example.com/user123/forward&gt;</code> produced the
+secret to be added to the POST request. Consequently, an attacker's web page
+must be prohibited from reading the response to such a GET request, a
+restriction which is enforced by the Same Origin Policy. In the web-key
+solution, there is no resource identified by a well-known URL that will produce
+the corresponding web-key for a protected permission. Consequently, there is no
+need to prevent an attacker's web page, or anyone else's, from reading the
+response to a GET request it has issued.</p>
+<p>Recently, there have been proposals for APIs that relax the Same Origin
+Policy enforcement in the web browser
+[<a href="#cross-domain_XHR">cross-domain XHR</a>]
+[<a href="#JSONRequest">JSONRequest</a>]. The web-key continues to provide an
+effective solution to the XSRF attack, and other access control challenges, in
+this more open environment. Should these proposals be widely adopted, a new Web
+where any party really can share information with any other party will be
+possible, using web-keys for access control. In the meantime, the web-key
+provides more flexible access control for web agents not confined by the Same
+Origin Policy, such as the server-side code of a mashup application.</p>
+<h3><a name="cap_grain" href="#cap_grain">Fine-grained access control</a></h3>
+<p>In a web-key application, each distinct permission is assigned a distinct
+web-key. Consequently, authority over a restricted set of resources in a
+web-application can be readily delegated to another web agent, such as a
+mashup. The web-mail mashup discussed in the introduction to this paper can be
+enabled by having the user pass the web-key for an email folder to the mashup
+application. The mashup application can then create a presentation that merges
+this email information with information from other sources, but is unable to
+abuse other permissions in the web-mail application, such as permission to send
+email as the user. Similarly, management of the previously discussed contact
+information resource can be delegated to the corresponding friend, simply by
+sending that friend a web-key for the contact resource.</p>
+<h2><a name="rebuttal" href="#rebuttal">WHAT, ME WORRY?</a><sup><a href="#f8">8</a></sup></h2>
+<p>This section examines the convention, and decrees, against including private
+data in a URI. Some confusion is cleared up and some important safety tips are
+discussed.</p>
+<h3><a name="rebut_webarch" href="#rebut_webarch">Web-arch on access control</a></h3>
+<p>The W3C's [<a href="#webarch">webarch</a>], which is frequently cited by
+this paper, also includes a short section on "Linking and access control". This
+section does not declare any principles, constraints, or good practice notes.
+The purpose of the section is further obscured by the conflation of two issues:
+deep linking to publicly accessible resources and access control over private
+resources. The text seems to be mostly motivated by the deep linking issue,
+where the W3C's position is that a web site should use technology, rather than
+public policy, to express constraints on deep links. Unfortunately, this
+position is expressed using an analogy to access control measures in the
+physical world:</p>
+<blockquote>
+"The owners of a building might have a policy that the public may only enter
+the building via the main front door, and only during business hours. People
+who work in the building and who make deliveries to it might use other doors as
+appropriate. Such a policy would be enforced by a combination of security
+personnel and mechanical devices such as locks and pass-cards. One would not
+enforce this policy by hiding some of the building entrances, nor by requesting
+legislation requiring the use of the front door and forbidding anyone to reveal
+the fact that there are other doors to the building."
+</blockquote>
+<p>The analogy seems to be that a web-application is like a physical building
+and that a door is like a URI. In this analogy, the deep linking issue is about
+controlling which of multiple public entrances a member of the public uses,
+since the URI in question leads to a publicly accessible resource. This
+constraint is distinct from one which prevents unauthorized use of a private
+resource, one which has not been made accessible to the public. The analogy
+conflates the two, ending with a statement about the futility of attempting to
+control the dissemination of publicly known information. But a URI providing
+access to a private resource need not be publicly known and restricting
+knowledge of it may be practical, whereas restricting knowledge of the doors to
+a physical building is impractical.</p>
+<p>The laws of physics for a web-application are much different than the laws
+of physics for a brick-and-mortar building. It's feasible for a would-be
+intruder to walk around a physical building to discover all the doors. As
+discussed in section 3.1, it's cheap to construct a URI namespace that an
+intruder cannot feasibly enumerate, nor even discover a single member of. In
+the physical world, it's feasible for an intruder to discover a way into a
+building by watching as authorized users enter. On the Internet, invisibility
+cloaks are cheap and widely available. Using SSL, an authorized user can
+interact with a web-application without being observed by others on the
+network. While hiding may seem tricky or impractical for a physical object,
+it's down to a science for bit strings. Using encryption, the contents of a
+communication are hidden by controlling distribution of a corresponding
+decryption key. Access to a private web resource can similarly be restricted by
+controlling distribution of a corresponding web-key. An SSL session provides a
+safe communications channel over which to exchange such secrets.</p>
+<p>The web-arch document also expresses a concern that everyone be able to
+refer to a resource, even if they are unable to access it. Reifying access to a
+resource as a web-key does not preclude use of a separate well-known URI to
+identify the resource itself. Such a well-known URI may well be part of the
+representation produced when a web-key is dereferenced. Permission to access a
+resource is distinct from the resource itself, so identifying these distinct
+things by distinct URIs is in keeping with the principles, constraints and good
+practice of Web architecture.</p>
+<h3><a name="rebut_rfc3986" href="#rebut_rfc3986">RFCs 2616, 3986 on sensitive information</a></h3>
+<p>Both RFC 2616 on HTTP/1.1 [<a href="#HTTP">HTTP</a>] and RFC 3986 on the URI
+[<a href="#URI">URI</a>] provide security guidance advising against the
+inclusion of sensitive information in a URI. The text from Section 7.5 of RFC
+3986 provides a good summary of the arguments presented:</p>
+<blockquote>
+"URI producers should not provide a URI that contains a username or password
+that is intended to be secret.  URIs are frequently displayed by browsers,
+stored in clear text bookmarks, and logged by user agent history and
+intermediary applications (proxies)."
+</blockquote>
+<h3><a name="proxies" href="#proxies">Proxies</a></h3>
+<p>A web-key is a convention for construction of an https URL. When
+dereferencing such a URL, the HTTP protocol is run over an SSL connection that
+tunnels through proxies. The proxy server sees only the encrypted SSL data and
+not the HTTP requests, nor any contained web-keys.</p>
+<h3><a name="server_logs" href="#server_logs">Server logs</a></h3>
+<p>When deploying a web-application that uses web-keys, it is expected that the
+developer will have the ability to choose, or appropriately configure, the
+server. Configuring the server to not make logs available to unauthorized third
+parties is an important step to take. The web-key https URL convention
+presented in this paper also makes it easy to write a program that sanitizes a
+server log of any contained keys.</p>
+<h3><a name="username-password" href="#username-password">Inclusion of a username/password</a></h3>
+<p>Inclusion of a username/password in a URL is not safe and is not what a
+web-key does. A username/password provides authority over an entire user
+account; whereas a web-key only provides permission to access the identified
+resource. For example, in a web-mail application a particular web-key may
+provide read permission on a specific email. Passing this web-key to another
+user only grants the recipient read permission on the specified email. In a
+non-web-key design, a URL identifying a specific email but also containing the
+user's password, provides the recipient full authority over the web-mail
+account. This excess grant of authority may be very surprising for the user,
+and so lead to unanticipated and detrimental consequences.</p>
+<h3><a name="shoulder_surfing" href="#shoulder_surfing">Shoulder surfing</a></h3>
+<p>When directly viewing a page identified by a web-key in a stock browser, the
+key may be displayed in the browser's address bar. Many stock browsers can be
+easily configured to not show the address bar; however, in many situations,
+this precaution is unnecessary. When manipulating private web resources, the
+user is frequently in a setting where shoulder surfing is not a concern. For
+example, the user may be at home, in a private office or cube, or using a small
+handheld device whose display is not easily seen by onlookers.</p>
+<p>The web-application developer can also take measures to prevent shoulder
+surfing. The top level page for a web-application may be identified by a URL
+containing no sensitive information. This page first puts the user through a
+traditional login ceremony using a password. A successful login yields the
+user's web-keys, which are manipulated by code running inside the top level
+page. From the web browser's perspective, the web-application consists of a
+single page, identified by an innocuous URL, similar to many Web 2.0
+applications.</p>
+<h3><a name="browser_cache" href="#browser_cache">Browser cache</a></h3>
+<p>Even before web-keys, the browser's cache contained much sensitive
+information. Protecting this sensitive information has long received some
+attention and is recently receiving more. For example, Internet Explorer has
+long supported the option: "Do not save encrypted pages to disk". Many browsers
+now support an option to empty the cache when the browser is closed.
+Independent of web-keys, measures such as these to protect the browser cache
+are important. These measures are also sufficient for protection of web-keys in
+the browser cache.</p>
+<h3><a name="bookmarks" href="#bookmarks">Clear text bookmarks</a></h3>
+<p>The web-key is specifically designed to support bookmarking. Bookmarks are
+part of the user interface that has made the publicly accessible Web usable,
+and are needed to bring the same usability to private Web resources. Doing so
+does mean that more care should be taken in storing a bookmarks file.
+Mainstream operating systems provide options to mark a particular file, or even
+an entire user directory, or file system, as one which should be stored
+encrypted on disk. Browser implementers and users should avail themselves of
+these features.</p>
+<p>Without any configuration, many users' bookmarks also acquire a level of
+protection by virtue of the fact that their computer is personal and so not
+shared with others, against whose prying eyes encryption must be used.</p>
+<h2><a name="conclusion" href="#conclusion">Conclusion</a></h2>
+<p>The misconception that client authentication provides access control, and
+the widespread use of this technique on the Web, is the cause of many of the
+problems with today's Web. Cross Site Request Forgery (XSRF) bugs are a direct
+expression of this misconception. Pervasive password prompts are part of the
+implementation of a technique that does not actually provide the required
+functionality. This user interaction conditions users to be easier prey for
+phishing attacks. The requirement that proof of knowledge of a user password
+accompany every request to a private resource undermines core architectural
+principles of the Web: a URI alone is insufficient to direct a web agent to a
+private resource; and resource identification and representation are no longer
+orthogonal, since permission information must be accommodated for by the
+representation format. The Same Origin Policy severely limits communication
+between all sites, in an insufficient attempt to protect those sites suffering
+from this misconception.</p>
+<p>The web-key is an https URL convention for implementing transferable
+permission on the Web. This convention enables solution of access control
+challenges within the architectural model provided by the URI, thus enabling
+non-public resources to also benefit from the advantages coming from the
+principles identified by the W3C in "Architecture of the World Wide Web, Volume
+One" [<a href="#webarch">webarch</a>]. This compatibility also means that the
+web-key technique can be applied using existing web development tools to create
+web applications deployed to existing web browsers. The user interaction for a
+web-key is the same as for other URLs; in particular, no user prompting is
+required, such as is required with passwords. As new technology which relaxes
+the Same Origin Policy is deployed, the web-key technique can be used to
+implement access control in a Web free from communication restrictions.</p>
+<h2><a name="acknowledgments" href="#acknowledgments">Acknowledgments</a></h2>
+<p>Thanks to Ihab Awad, Alan Karp, Mark Miller, Kevin Smathers and Marc
+Stiegler for providing valuable feedback on early drafts of this paper. Though
+the received feedback was instrumental in clarifying the presented arguments,
+any remaining confusion, or error, is the responsibility of the author.</p>
+<h2><a name="footnotes" href="#footnotes">Footnotes</a></h2>
+<ol>
+<li><a name="f1"/>borrowed from the abstract of [<a href="#webarch">webarch</a>]</li>
+<li><a name="f2"/>In this paper, the term URI or URL is used to match the
+terminology used in the discussed reference. Any difference between the two
+terms is not germane to this paper.</li>
+<li><a name="f3"/>Some web sites also treat the client's IP address as a kind
+of password, granting greater access to a client behind a firewall. In this
+case, the URI + client IP address is the global identifier for private resource
+access.</li>
+<li><a name="f4"/>This kind of attack was first described in the context of an
+operating system in [<a href="confused_deputy">confused deputy</a>]</li>
+<li><a name="f5"/>It is unclear why this attack is referred to as a forgery
+attack, since nothing is being forged. For example, no cryptographic signature,
+or other proof, is forged. There simply is no protection in place; client
+authentication does not provide access control.</li>
+<li><a name="f6"/>In an analogy to programming languages, the Referer header
+makes the HTTP protocol like a dynamically scoped language, where the callee
+gets access to the caller's scope, rather than like a lexically scoped language
+which implements an encapsulation boundary between callee and caller. In the
+web-key design, this necessary encapsulation boundary is salvaged by exploiting
+a quirk in HTTP's implementation of dynamic scoping.</li>
+<li><a name="f7"/>The term "iatrogenic" refers to a condition resulting from
+the action of the doctor. Thanks to Mark Miller for the term "iatrogenic
+security flaw".</li>
+<li><a name="f8"/>When the three most important Web standards all say "don't go
+there", it takes a certain amount of irreverence to press on. Thanks to Alfred
+E. Neuman.</li>
+</ol>
+<h2><a name="references" href="#references">References</a></h2>
+<DL>
+<DT><a name="confused_deputy">[confused deputy]</a></DT>
+<DD>Norman Hardy. <a href="http://portal.acm.org/citation.cfm?id=871709">The Confused Deputy</a>. ACM SIGOPS Operating Systems Review Volume 22, Issue 4 (October 1988).</DD>
+<DT><a name="cross-domain_XHR">[cross-domain XHR]</a></DT>
+<DD>Anne van Kesteren. <a href="http://www.w3.org/TR/access-control/">Enabling Read Access for Web Resources</a>. W3C Working Draft. (1 October 2007).</DD>
+<DT><a name="deep_linking">[deep linking]</a></DT>
+<DD>Tim Bray. <a href="http://www.w3.org/2001/tag/doc/deeplinking-20030911">"Deep Linking" in the World Wide Web</a>. W3C Tag Finding. 11 September 2003.</DD>
+<DT><a name="HTTP">[HTTP]</a></DT>
+<DD>R. Fielding, J. Gettys, J. Mogul, H. Frystyk, L. Masinter, P. Leach, T. Berners-Lee.  <a href="http://www.ietf.org/rfc/rfc2616.txt">Hypertext Transfer Protocol -- HTTP/1.1</a>. RFC 2616. June 1999.</DD>
+<DT><a name="JSONRequest">[JSONRequest]</a></DT>
+<DD>Douglas Crockford. <a href="http://json.org/JSONRequest.html">JSONRequest</a>. Json.org publication. (17 April 2006).</DD>
+<DT><a name="password_habits">[password habits]</a></DT>
+<DD>Dinei Florencio, Cormac Herley. <a href="http://www2007.org/paper620.php">A Large-Scale Study of Web Password Habits</a>. WWW 2007 (May 2007)</DD>
+<DT><a name="phishing_filter">[phishing filter]</a></DT>
+<DD>Tariq Sharif. <a href="http://blogs.msdn.com/ie/archive/2005/09/09/463204.aspx">Phishing Filter in IE7</a>. IEBlog (9 September 2005).</DD>
+<DT><a name="URI">[URI]</a></DT>
+<DD>T. Berners-Lee, R. Fielding, L. Masinter. <a href="http://www.ietf.org/rfc/rfc3986.txt">Uniform Resource Identifier (URI): Generic Syntax. RFC 3986</a>. January 2005.</DD>
+<DT><a name="waterken">[waterken]</a></DT>
+<DD>Tyler Close. <a href="http://waterken.sourceforge.net/">Waterken Server</a>. Open Source project hosted on SourceForge. first released in 1999.</DD>
+<DT><a name="webarch">[webarch]</a></DT>
+<DD>Ian Jacobs and Norman Walsh. <a href="http://www.w3.org/TR/2004/REC-webarch-20041215/">Architecture of the World Wide Web, Volume One</a>. W3C Recommendation (15 December 2004).</DD>
+<DT><a name="why_phishing_works">[why phishing works]</a></DT>
+<DD>Rachna Dhamija, J.D. Tygar and Marti Hearst. <a href="http://people.deas.harvard.edu/~rachna/papers/why_phishing_works.pdf">Why Phishing Works</a>. Conference on Human Factors in Computing Systems (CHI 2006). 2006.</DD>
+<DT><a name="wsc-usecases">[wsc-usecases]</a></DT>
+<DD>Tyler Close. <a href="http://www.w3.org/TR/wsc-usecases/">Web Security Experience, Indicators and Trust: Scope and Use Cases</a>. W3C Note (1 November 2007).</DD>
+<DT><a name="XSRF">[XSRF]</a></DT>
+<DD>Chris Shiflett. <a href="http://shiflett.org/articles/cross-site-request-forgeries">Security Corner: Cross-Site Request Forgeries</a>. Shiflett.org. 13 December 2004.</DD>
+</DL>
+</div>
+<p class="footer">
+The origial version of this paper was written in the fall of 2007 by Tyler Close.
+</p>
 </body>
 </html>
