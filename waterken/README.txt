@@ -1,3 +1,5 @@
+The server requires JDK >= 1.5
+
 Windows
 -------
 
