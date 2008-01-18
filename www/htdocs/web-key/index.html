@@ -1,14 +1,15 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 <head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <title>web-key - Web-based access-control</title>
-<link rel="StyleSheet" type="text/css" href="../res/style.css"></link>
-<link rel="icon" type="image/gif" href="../res/icon.gif"></link>
+<link rel="StyleSheet" type="text/css" href="../res/style.css">
+<link rel="icon" type="image/gif" href="../res/icon.gif">
 </head>
 <body>
 <div class="navigation">
-<a href="../"><img src="../res/icon.gif" width="16" height="16" border="0" alt="home"></img></a> <span class="heading">&rarr; web-key</span>
+<a href="../"><img src="../res/icon.gif" width="16" height="16" alt="home"></a> <span class="heading">&rarr; web-key</span>
 </div>
 <div class="main">
 <a href="web-key-submission.pdf">WWW 2008 submission</a>
@@ -106,11 +107,11 @@ section examines the impact of this technology on the Web.</p>
 <p>The importance of the URI to Web architecture is most clearly expressed by
 the following quote from [<a href="#webarch">webarch</a>]:</p>
 <blockquote>
-"One goal of the Web, since its inception, has been to build a global community
-in which any party can share information with any other party. To achieve this
-goal, the Web makes use of a single global identification system: the URI. URIs
-are a cornerstone of Web architecture, providing identification that is common
-across the Web."
+<p>"One goal of the Web, since its inception, has been to build a global
+community in which any party can share information with any other party. To
+achieve this goal, the Web makes use of a single global identification system:
+the URI. URIs are a cornerstone of Web architecture, providing identification
+that is common across the Web."</p>
 </blockquote>
 <p>This identification is only common across the Web for things that have been
 assigned a URI. Most often, permission to access a private resource is not
@@ -120,9 +121,9 @@ principles of the Web.</p>
 <h4><a name="lost_guid" href="#lost_guid">Loss of global identification</a></h4>
 <p>Quoting again from [<a href="#webarch">webarch</a>]:</p>
 <blockquote>
-"It is a strength of Web Architecture that links can be made and shared; a user
-who has found an interesting part of the Web can share this experience just by
-republishing a URI."
+<p>"It is a strength of Web Architecture that links can be made and shared; a
+user who has found an interesting part of the Web can share this experience just
+by republishing a URI."</p>
 </blockquote>
 <p>When access to a resource is protected by a username/password, even the most
 basic operation of dereferencing the URI requires presentation of these
@@ -154,9 +155,9 @@ representation, so the data format for the representation must be designed to
 accommodate these additional identifiers. This additional responsibility breaks
 the Web's orthogonality principle [<a href="#webarch">webarch</a>]:</p>
 <blockquote>
-"Identification, interaction, and representation are orthogonal concepts,
+<p>"Identification, interaction, and representation are orthogonal concepts,
 meaning that technologies used for identification, interaction, and
-representation may evolve independently."
+representation may evolve independently."</p>
 </blockquote>
 <p>To accommodate private resource access, each representation format would
 have to provide its own conventions for encoding access permission and evolve
@@ -206,10 +207,10 @@ similarity between a legitimate interaction and an attack. Consider the
 following interaction, presented by the W3C as a textbook case for use of
 access control on the Web [<a href="#webarch">webarch</a>]:</p>
 <blockquote>
-"Nadia sends to Dirk the URI of the current article she is reading. With his
+<p>"Nadia sends to Dirk the URI of the current article she is reading. With his
 browser, Dirk follows the hypertext link and is asked to enter his subscriber
 username and password. Since Dirk is also a subscriber to services provided by
-'weather.example.com,' he can access the same information as Nadia."
+'weather.example.com,' he can access the same information as Nadia."</p>
 </blockquote>
 <p>From Dirk's perspective, the above scenario is also a textbook case for
 phishing in the case where Nadia is the phisher and the URI sent to Dirk refers
@@ -340,15 +341,15 @@ possibly private email.  A more Web 2.0 style web-mail application might have
 only a single top level web page from which all interactions take place. In
 this case, the permission bearing URL leaked via the Referer header would
 provide access to the user's entire email account.</p>
-</p>This leakage of a permission bearing URL via the Referer header is only a
+<p>This leakage of a permission bearing URL via the Referer header is only a
 problem in practice if the target host of a hyperlink is different from the
 source host, and so potentially malicious. RFC 2616 foresaw the danger of such
 leakage of information and so provided security guidance in section 15.1.3:</p>
 <blockquote>
-"Because the source of a link might be private information or might reveal an
+<p>"Because the source of a link might be private information or might reveal an
 otherwise private information source, &hellip; Clients SHOULD NOT include a
 Referer header field in a (non-secure) HTTP request if the referring page was
-transferred with a secure protocol."
+transferred with a secure protocol."</p>
 </blockquote>
 <p>Unfortunately, clients have implemented this guidance to the letter, meaning
 the Referer header is sent if both the referring page and the destination page
@@ -380,7 +381,7 @@ representation to dynamically update the skeleton HTML page to depict the
 representation information. The complete interaction is depicted in Figure
 1.</p>
 <div class="figure">
-<img src="initialGET.gif"/>
+<img alt="2 round trip messages, first cacheable" src="initialGET.gif">
 <p class="caption">Figure 1: On the initial visit to the web application two HTTP requests
 are needed to fetch a representation. The first request fetches a skeleton page
 which can be cached forever. The second HTTP request, initiated using
@@ -393,7 +394,8 @@ server on the very first visit to the web application. On subsequent web-key
 dereference operations, only the GET generated via XMLHttpRequest is sent. This
 optimized interaction is depicted in Figure 2.</p>
 <div class="figure">
-<img src="subsequentGET.gif"/>
+<img alt="2 messages, first satisfied by browser cache"
+     src="subsequentGET.gif">
 <p class="caption">Figure 2: On a subsequent visit to the web application only
 a single HTTP request is needed to fetch a representation, the same number as
 for a traditional web page.</p>
@@ -526,14 +528,14 @@ public policy, to express constraints on deep links. Unfortunately, this
 position is expressed using an analogy to access control measures in the
 physical world:</p>
 <blockquote>
-"The owners of a building might have a policy that the public may only enter
-the building via the main front door, and only during business hours. People
-who work in the building and who make deliveries to it might use other doors as
+<p>"The owners of a building might have a policy that the public may only enter
+the building via the main front door, and only during business hours. People who
+work in the building and who make deliveries to it might use other doors as
 appropriate. Such a policy would be enforced by a combination of security
 personnel and mechanical devices such as locks and pass-cards. One would not
 enforce this policy by hiding some of the building entrances, nor by requesting
 legislation requiring the use of the front door and forbidding anyone to reveal
-the fact that there are other doors to the building."
+the fact that there are other doors to the building."</p>
 </blockquote>
 <p>The analogy seems to be that a web-application is like a physical building
 and that a door is like a URI. In this analogy, the deep linking issue is about
@@ -575,10 +577,10 @@ practice of Web architecture.</p>
 inclusion of sensitive information in a URI. The text from Section 7.5 of RFC
 3986 provides a good summary of the arguments presented:</p>
 <blockquote>
-"URI producers should not provide a URI that contains a username or password
+<p>"URI producers should not provide a URI that contains a username or password
 that is intended to be secret.  URIs are frequently displayed by browsers,
 stored in clear text bookmarks, and logged by user agent history and
-intermediary applications (proxies)."
+intermediary applications (proxies)."</p>
 </blockquote>
 <h3><a name="proxies" href="#proxies">Proxies</a></h3>
 <p>A web-key is a convention for construction of an https URL. When
@@ -674,62 +676,62 @@ the received feedback was instrumental in clarifying the presented arguments,
 any remaining confusion, or error, is the responsibility of the author.</p>
 <h2><a name="footnotes" href="#footnotes">Footnotes</a></h2>
 <ol>
-<li><a name="f1"/>borrowed from the abstract of [<a href="#webarch">webarch</a>]</li>
-<li><a name="f2"/>In this paper, the term URI or URL is used to match the
+<li><a name="f1"></a>borrowed from the abstract of [<a href="#webarch">webarch</a>]</li>
+<li><a name="f2"></a>In this paper, the term URI or URL is used to match the
 terminology used in the discussed reference. Any difference between the two
 terms is not germane to this paper.</li>
-<li><a name="f3"/>Some web sites also treat the client's IP address as a kind
+<li><a name="f3"></a>Some web sites also treat the client's IP address as a kind
 of password, granting greater access to a client behind a firewall. In this
 case, the URI + client IP address is the global identifier for private resource
 access.</li>
-<li><a name="f4"/>This kind of attack was first described in the context of an
+<li><a name="f4"></a>This kind of attack was first described in the context of an
 operating system in [<a href="confused_deputy">confused deputy</a>]</li>
-<li><a name="f5"/>It is unclear why this attack is referred to as a forgery
+<li><a name="f5"></a>It is unclear why this attack is referred to as a forgery
 attack, since nothing is being forged. For example, no cryptographic signature,
 or other proof, is forged. There simply is no protection in place; client
 authentication does not provide access control.</li>
-<li><a name="f6"/>In an analogy to programming languages, the Referer header
+<li><a name="f6"></a>In an analogy to programming languages, the Referer header
 makes the HTTP protocol like a dynamically scoped language, where the callee
 gets access to the caller's scope, rather than like a lexically scoped language
 which implements an encapsulation boundary between callee and caller. In the
 web-key design, this necessary encapsulation boundary is salvaged by exploiting
 a quirk in HTTP's implementation of dynamic scoping.</li>
-<li><a name="f7"/>The term "iatrogenic" refers to a condition resulting from
+<li><a name="f7"></a>The term "iatrogenic" refers to a condition resulting from
 the action of the doctor. Thanks to Mark Miller for the term "iatrogenic
 security flaw".</li>
-<li><a name="f8"/>When the three most important Web standards all say "don't go
+<li><a name="f8"></a>When the three most important Web standards all say "don't go
 there", it takes a certain amount of irreverence to press on. Thanks to Alfred
 E. Neuman.</li>
 </ol>
 <h2><a name="references" href="#references">References</a></h2>
-<DL>
-<DT><a name="confused_deputy">[confused deputy]</a></DT>
-<DD>Norman Hardy. <a href="http://portal.acm.org/citation.cfm?id=871709">The Confused Deputy</a>. ACM SIGOPS Operating Systems Review Volume 22, Issue 4 (October 1988).</DD>
-<DT><a name="cross-domain_XHR">[cross-domain XHR]</a></DT>
-<DD>Anne van Kesteren. <a href="http://www.w3.org/TR/access-control/">Enabling Read Access for Web Resources</a>. W3C Working Draft. (1 October 2007).</DD>
-<DT><a name="deep_linking">[deep linking]</a></DT>
-<DD>Tim Bray. <a href="http://www.w3.org/2001/tag/doc/deeplinking-20030911">"Deep Linking" in the World Wide Web</a>. W3C Tag Finding. 11 September 2003.</DD>
-<DT><a name="HTTP">[HTTP]</a></DT>
-<DD>R. Fielding, J. Gettys, J. Mogul, H. Frystyk, L. Masinter, P. Leach, T. Berners-Lee.  <a href="http://www.ietf.org/rfc/rfc2616.txt">Hypertext Transfer Protocol -- HTTP/1.1</a>. RFC 2616. June 1999.</DD>
-<DT><a name="JSONRequest">[JSONRequest]</a></DT>
-<DD>Douglas Crockford. <a href="http://json.org/JSONRequest.html">JSONRequest</a>. Json.org publication. (17 April 2006).</DD>
-<DT><a name="password_habits">[password habits]</a></DT>
-<DD>Dinei Florencio, Cormac Herley. <a href="http://www2007.org/paper620.php">A Large-Scale Study of Web Password Habits</a>. WWW 2007 (May 2007)</DD>
-<DT><a name="phishing_filter">[phishing filter]</a></DT>
-<DD>Tariq Sharif. <a href="http://blogs.msdn.com/ie/archive/2005/09/09/463204.aspx">Phishing Filter in IE7</a>. IEBlog (9 September 2005).</DD>
-<DT><a name="URI">[URI]</a></DT>
-<DD>T. Berners-Lee, R. Fielding, L. Masinter. <a href="http://www.ietf.org/rfc/rfc3986.txt">Uniform Resource Identifier (URI): Generic Syntax. RFC 3986</a>. January 2005.</DD>
-<DT><a name="waterken">[waterken]</a></DT>
-<DD>Tyler Close. <a href="http://waterken.sourceforge.net/">Waterken Server</a>. Open Source project hosted on SourceForge. first released in 1999.</DD>
-<DT><a name="webarch">[webarch]</a></DT>
-<DD>Ian Jacobs and Norman Walsh. <a href="http://www.w3.org/TR/2004/REC-webarch-20041215/">Architecture of the World Wide Web, Volume One</a>. W3C Recommendation (15 December 2004).</DD>
-<DT><a name="why_phishing_works">[why phishing works]</a></DT>
-<DD>Rachna Dhamija, J.D. Tygar and Marti Hearst. <a href="http://people.deas.harvard.edu/~rachna/papers/why_phishing_works.pdf">Why Phishing Works</a>. Conference on Human Factors in Computing Systems (CHI 2006). 2006.</DD>
-<DT><a name="wsc-usecases">[wsc-usecases]</a></DT>
-<DD>Tyler Close. <a href="http://www.w3.org/TR/wsc-usecases/">Web Security Experience, Indicators and Trust: Scope and Use Cases</a>. W3C Note (1 November 2007).</DD>
-<DT><a name="XSRF">[XSRF]</a></DT>
-<DD>Chris Shiflett. <a href="http://shiflett.org/articles/cross-site-request-forgeries">Security Corner: Cross-Site Request Forgeries</a>. Shiflett.org. 13 December 2004.</DD>
-</DL>
+<dl>
+<dt><a name="confused_deputy">[confused deputy]</a></dt>
+<dd>Norman Hardy. <a href="http://portal.acm.org/citation.cfm?id=871709">The Confused Deputy</a>. ACM SIGOPS Operating Systems Review Volume 22, Issue 4 (October 1988).</dd>
+<dt><a name="cross-domain_XHR">[cross-domain XHR]</a></dt>
+<dd>Anne van Kesteren. <a href="http://www.w3.org/TR/access-control/">Enabling Read Access for Web Resources</a>. W3C Working Draft. (1 October 2007).</dd>
+<dt><a name="deep_linking">[deep linking]</a></dt>
+<dd>Tim Bray. <a href="http://www.w3.org/2001/tag/doc/deeplinking-20030911">"Deep Linking" in the World Wide Web</a>. W3C Tag Finding. 11 September 2003.</dd>
+<dt><a name="HTTP">[HTTP]</a></dt>
+<dd>R. Fielding, J. Gettys, J. Mogul, H. Frystyk, L. Masinter, P. Leach, T. Berners-Lee.  <a href="http://www.ietf.org/rfc/rfc2616.txt">Hypertext Transfer Protocol -- HTTP/1.1</a>. RFC 2616. June 1999.</dd>
+<dt><a name="JSONRequest">[JSONRequest]</a></dt>
+<dd>Douglas Crockford. <a href="http://json.org/JSONRequest.html">JSONRequest</a>. Json.org publication. (17 April 2006).</dd>
+<dt><a name="password_habits">[password habits]</a></dt>
+<dd>Dinei Florencio, Cormac Herley. <a href="http://www2007.org/paper620.php">A Large-Scale Study of Web Password Habits</a>. WWW 2007 (May 2007)</dd>
+<dt><a name="phishing_filter">[phishing filter]</a></dt>
+<dd>Tariq Sharif. <a href="http://blogs.msdn.com/ie/archive/2005/09/09/463204.aspx">Phishing Filter in IE7</a>. IEBlog (9 September 2005).</dd>
+<dt><a name="URI">[URI]</a></dt>
+<dd>T. Berners-Lee, R. Fielding, L. Masinter. <a href="http://www.ietf.org/rfc/rfc3986.txt">Uniform Resource Identifier (URI): Generic Syntax. RFC 3986</a>. January 2005.</dd>
+<dt><a name="waterken">[waterken]</a></dt>
+<dd>Tyler Close. <a href="http://waterken.sourceforge.net/">Waterken Server</a>. Open Source project hosted on SourceForge. first released in 1999.</dd>
+<dt><a name="webarch">[webarch]</a></dt>
+<dd>Ian Jacobs and Norman Walsh. <a href="http://www.w3.org/TR/2004/REC-webarch-20041215/">Architecture of the World Wide Web, Volume One</a>. W3C Recommendation (15 December 2004).</dd>
+<dt><a name="why_phishing_works">[why phishing works]</a></dt>
+<dd>Rachna Dhamija, J.D. Tygar and Marti Hearst. <a href="http://people.deas.harvard.edu/~rachna/papers/why_phishing_works.pdf">Why Phishing Works</a>. Conference on Human Factors in Computing Systems (CHI 2006). 2006.</dd>
+<dt><a name="wsc-usecases">[wsc-usecases]</a></dt>
+<dd>Tyler Close. <a href="http://www.w3.org/TR/wsc-usecases/">Web Security Experience, Indicators and Trust: Scope and Use Cases</a>. W3C Note (1 November 2007).</dd>
+<dt><a name="XSRF">[XSRF]</a></dt>
+<dd>Chris Shiflett. <a href="http://shiflett.org/articles/cross-site-request-forgeries">Security Corner: Cross-Site Request Forgeries</a>. Shiflett.org. 13 December 2004.</dd>
+</dl>
 </div>
 <p class="footer">
 The origial version of this paper was written in the fall of 2007 by Tyler Close.
