@@ -24,10 +24,11 @@ control requirements, many design challenges arise. Failure to meet these
 challenges brings unnecessary risk to the user.  Addressing the challenges
 using a poorly suited technique can add significant complexity to both the
 application code and the user interface, all while not reducing risk to the
-user.  This paper introduces the web-key, an https URL convention for
-representing a transferable permission in a web application. Using web-keys,
-access control challenges can be effectively solved using existing development
-tools for web applications deployed to existing web browsers.</p>
+user.  In addition to examining and explaining these failings, this paper
+introduces a solution, the web-key, an https URL convention for representing a
+transferable permission in a web application. Using web-keys, access control
+challenges can be effectively solved using existing development tools for web
+applications deployed to existing web browsers.</p>
 <h2><a name="introduction" href="#introduction">Introduction</a></h2>
 <p>The World Wide Web uses relatively simple technologies with sufficient
 scalability, efficiency and utility that they have resulted in a remarkable
@@ -653,24 +654,27 @@ implementation of a technique that does not actually provide the required
 functionality. This user interaction conditions users to be easier prey for
 phishing attacks. The requirement that proof of knowledge of a user password
 accompany every request to a private resource undermines core architectural
-principles of the Web: a URI alone is insufficient to direct a web agent to a
-private resource; and resource identification and representation are no longer
-orthogonal, since permission information must be accommodated for by the
-representation format. The Same Origin Policy severely limits communication
-between all sites, in an insufficient attempt to protect those sites suffering
-from this misconception.</p>
-<p>The web-key is an https URL convention for implementing transferable
-permission on the Web. This convention enables solution of access control
-challenges within the architectural model provided by the URI, thus enabling
-non-public resources to also benefit from the advantages coming from the
-principles identified by the W3C in "Architecture of the World Wide Web, Volume
-One" [<a href="#webarch">webarch</a>]. This compatibility also means that the
-web-key technique can be applied using existing web development tools to create
-web applications deployed to existing web browsers. The user interaction for a
-web-key is the same as for other URLs; in particular, no user prompting is
-required, such as is required with passwords. As new technology which relaxes
-the Same Origin Policy is deployed, the web-key technique can be used to
-implement access control in a Web free from communication restrictions.</p>
+principles of the Web. Violation of these principles created the need for the
+Same Origin Policy, which severely limits communication between all sites, in an
+insufficient attempt to protect those sites suffering from this
+misconception.</p>
+<p>In addition to explaining the ill-effects on the Web of the common, and W3C
+recommended, use of client authentication, this paper also introduces a simple
+URL convention for curing these ills in a way that is compatible with the
+existing Web infrastructure.  The web-key is an https URL convention for
+implementing transferable permission on the Web. This convention enables
+solution of access control challenges within the architectural model provided by
+the URI, thus benefitting from the principles identified by the W3C in
+"Architecture of the World Wide Web, Volume One"
+[<a href="#webarch">webarch</a>]; rather than suffering the ill-effects that
+come from violating these principles, as is the status quo.  Adherence to these
+principles also enables application of the web-key technique using existing Web
+development tools to create Web applications deployed to existing Web browsers.
+The user interaction for a web-key is the same as for other URLs; in particular,
+no user prompting is required, such as is required with passwords. While
+providing immediate benefit using today's Web browsers, the web-key technique
+also anticipates and provides for a future Web, free from the restraints of the
+Same Origin Policy.</p>
 <h2><a name="acknowledgments" href="#acknowledgments">Acknowledgments</a></h2>
 <p>Thanks to Ihab Awad, Alan Karp, Mark Miller, Kevin Smathers and Marc
 Stiegler for providing valuable feedback on early drafts of this paper. Though
