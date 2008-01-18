@@ -92,13 +92,13 @@ mainstream web browsers, including Internet Explorer, Firefox, Safari and
 Opera. Many applications have been created on this platform, including an
 access controlled wiki, a toy stock market and a two man year personal
 collaboration project currently underway at HP Labs.</p>
-<p>
-Section 2 of this paper examines the difficulties created by the walled garden
-approach to access control currently popular on the Web. Section 3 explains the
-implementation of a web-key, the proposed alternate approach to access control.
-Section 4 shows how the web-key proposal addresses the previously discussed
-problems with access control on the Web. Section 5 addresses previously raised
-concerns with pursuing an approach like the web-key.</p>
+<p>The next section of this paper examines the difficulties created by the
+walled garden approach to access control currently popular on the Web. The
+following section explains the implementation of a web-key, the proposed
+alternate approach to access control.  The fourth section shows how the web-key
+proposal addresses the previously discussed problems with access control on the
+Web. The fifth section addresses previously raised concerns with pursuing an
+approach like the web-key.</p>
 <h2><a name="walled_garden" href="#walled_garden">The walled garden</a></h2>
 <p>The most popular mechanism for implementing access control over private
 resources on the Web, and the one recommended by the W3C
@@ -552,18 +552,19 @@ a physical building is impractical.</p>
 <p>The laws of physics for a web-application are much different than the laws
 of physics for a brick-and-mortar building. It's feasible for a would-be
 intruder to walk around a physical building to discover all the doors. As
-discussed in section 3.1, it's cheap to construct a URI namespace that an
-intruder cannot feasibly enumerate, nor even discover a single member of. In
-the physical world, it's feasible for an intruder to discover a way into a
-building by watching as authorized users enter. On the Internet, invisibility
-cloaks are cheap and widely available. Using SSL, an authorized user can
-interact with a web-application without being observed by others on the
-network. While hiding may seem tricky or impractical for a physical object,
-it's down to a science for bit strings. Using encryption, the contents of a
-communication are hidden by controlling distribution of a corresponding
-decryption key. Access to a private web resource can similarly be restricted by
-controlling distribution of a corresponding web-key. An SSL session provides a
-safe communications channel over which to exchange such secrets.</p>
+discussed in the implementation section of this paper, it's cheap to construct a
+URI namespace that an intruder cannot feasibly enumerate, nor even discover a
+single member of. In the physical world, it's feasible for an intruder to
+discover a way into a building by watching as authorized users enter. On the
+Internet, invisibility cloaks are cheap and widely available. Using SSL, an
+authorized user can interact with a web-application without being observed by
+others on the network. While hiding may seem tricky or impractical for a
+physical object, it's down to a science for bit strings. Using encryption, the
+contents of a communication are hidden by controlling distribution of a
+corresponding decryption key. Access to a private web resource can similarly be
+restricted by controlling distribution of a corresponding web-key. An SSL
+session provides a safe communications channel over which to exchange such
+secrets.</p>
 <p>The webarch document also expresses a concern that everyone be able to
 refer to a resource, even if they are unable to access it. Reifying access to a
 resource as a web-key does not preclude use of a separate well-known URI to
