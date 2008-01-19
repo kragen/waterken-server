@@ -17,9 +17,16 @@
 <a class="heading" href="http://sourceforge.net/project/platformdownload.php?group_id=93988">download</a>
 <a class="heading" href="http://lists.sourceforge.net/lists/listinfo/waterken-server">mailing list</a>
 <h1>Waterken<font size="-1"><sup>TM</sup></font> Server</h1>
-<p>Asynchronous invocation between event loops is a great model for building
-distributed applications. The Waterken Server provides a platform for building
-such applications in Java and making them accessible to HTTP-based clients.</p>
+<p>Asynchronous messaging between event loops, such as used in AJAX, is a great
+model for building distributed applications. The asynchronous messaging allows
+an application to remain responsive in the face of network latency and event
+loops allow multiple activities to be pursued, without many of the dangers
+inherent in multi-threading. This computing model is made even better with the
+addition of promises, a kind of reference that can refer to the result of future
+computation, such as the response to an asynchronous message. For example,
+promises make it a lot easier to express an algorithm that involves multiple
+asynchronous messages. The Waterken Server provides a platform for building such
+applications in Java and making them accessible to HTTP-based clients.</p>
 <p>Server-side Java code is written to the
 <a href="javadoc/overview-summary.html">ref_send API</a>, which defines the
 asynchronous invocation interface. The Waterken Server implementation of the
