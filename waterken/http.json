@@ -1,0 +1,9 @@
+[ {
+  "$" : [ "org.waterken.net.http.HTTPD" ],
+  "port" : 8080,
+  "backlog" : 100,
+  "soTimeout" : 60000,
+  "scheme" : "http",
+  "server" : { "@" : "server.json" },
+  "exe" : { "@" : "x-system:exe" }
+} ]
