@@ -2,16 +2,12 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
-import static org.joe_e.array.ConstArray.array;
-
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.OutputStream;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
@@ -25,10 +21,6 @@ import org.waterken.dns.Resource;
 import org.waterken.dns.editor.DomainMaster;
 import org.waterken.dns.editor.redirectory.Redirectory;
 import org.waterken.model.Base32;
-import org.waterken.remote.http.Browser;
-import org.waterken.syntax.Serializer;
-import org.waterken.syntax.json.JSONSerializer;
-import org.waterken.thread.Concurrent;
 
 /**
  * A self-signed certificate generator.
@@ -200,54 +192,34 @@ GenKey {
         certs.load(null, password);
         certs.setKeyEntry("mykey", p.getPrivate(), password,
                           new Certificate[] { cert });
-        final File keys = new File("keys.jks");
-        final OutputStream fout = Filesystem.writeNew(keys);
+        final OutputStream fout = Filesystem.writeNew(Config.keys);
         certs.store(fout, password);
         fout.close();
         
         // register the public key
         System.err.println("Registering the public key...");
-        Proxy.protocols.put("http", Loopback.client(80));
-        final Credentials credentials = SSL.keystore("TLS", keys, "nopass");
-        Proxy.protocols.put("https", SSL.client(443, credentials));
-        final Browser browser = Browser.make(
-                new Proxy(), new SecureRandom(),
-                GenKey.class.getClassLoader(),
-                Concurrent.loop(Thread.currentThread().getThreadGroup(),
-                                "enqueue"));
-        final Eventual _ = browser._;
+        Proxy.init();
+        final Eventual _ = Config.browser._;
         final String redirectoryURL = 2 < args.length
             ? args[2]
         : "https://y-hzpaiycw7dur5zcyena5qzq.yurl.net/-/dns/#redirectory";
         _.enqueue.run(new Task() {
            public void
            run() throws Exception {
-               final Redirectory redirectory_ = (Redirectory)browser.connect.
-                   run(Redirectory.class, redirectoryURL);
+               final Redirectory redirectory_ = (Redirectory)Config.browser.
+                   connect.run(Redirectory.class, redirectoryURL);
                _.when(redirectory_.register(fingerprint),
                       new Do<DomainMaster,Void>() {
                    public Void
                    fulfill(final DomainMaster master) throws Exception {
-                       
-                       // save the registration
-                       final File registration = new File("registration.json");
-                       final OutputStream out=Filesystem.writeNew(registration);
-                       new JSONSerializer().run(Serializer.render,
-                               browser.export, array(master)).writeTo(out);
-                       out.flush();
-                       out.close();
+                       Config.init("registration", master);
                        
                        // setup an IP updater
                        _.when(master.answers.grow(),
                               new Do<Variable<Resource>,Void>() {
-                          public Void
-                          fulfill(final Variable<Resource> a) throws Exception {
-                               final File ip = new File("ip.json");
-                               final OutputStream out = Filesystem.writeNew(ip);
-                               new JSONSerializer().run(Serializer.render,
-                                   browser.export, array(a)).writeTo(out);
-                               out.flush();
-                               out.close();
+                           public Void
+                           fulfill(final Variable<Resource> a) throws Exception{
+                               Config.init("ip", a);
 
                                System.err.println(
                                    "Start your server and visit:");

@@ -7,13 +7,13 @@ import static org.joe_e.file.Filesystem.file;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.Serializable;
 import java.net.SocketAddress;
 
-import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.charset.ASCII;
+import org.ref_send.deserializer;
+import org.ref_send.name;
 import org.ref_send.promise.eventual.Do;
 import org.waterken.dns.Domain;
 import org.waterken.dns.Resource;
@@ -21,43 +21,47 @@ import org.waterken.jos.JODB;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
 import org.waterken.model.Transaction;
-import org.waterken.udp.Daemon;
+import org.waterken.udp.UDPDaemon;
 
 /**
  * A DNS name server.
  */
 public final class
-NameServer {
+NameServer extends UDPDaemon {
+    static private final long serialVersionUID = 1L;
 
-    private
-    NameServer() {}
+    private final File master;
     
     /**
      * Constructs an instance.
+     * @param port      {@link #port}
      * @param master    root persistence folder
      */
-    static public Daemon
-    make(final File master) {
-        class DaemonX extends Struct implements Daemon, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public void
-            accept(final SocketAddress from, final ByteArray msg,
-                   final Do<ByteArray,?> respond) throws Exception {
-                final ByteArray response;
-                try {
-                    response = process(master, msg);
-                } catch (final Exception e) {
-                    final byte[] header = respond(msg.toByteArray());
-                    header[3] |= 2;
-                    respond.fulfill(ByteArray.array(header));
-                    return;
-                }
-                respond.fulfill(response);
-            }
-        }
-        return new DaemonX();
+    public @deserializer
+    NameServer(@name("port") final int port,
+               @name("master") final File master) {
+        super(port);
+        this.master = master;
     }
+    
+    // org.waterken.udp.Daemon interface
+
+    public void
+    accept(final SocketAddress from, final ByteArray msg,
+           final Do<ByteArray,?> respond) throws Exception {
+        final ByteArray response;
+        try {
+            response = process(master, msg);
+        } catch (final Exception e) {
+            final byte[] header = respond(msg.toByteArray());
+            header[3] |= 2;
+            respond.fulfill(ByteArray.array(header));
+            return;
+        }
+        respond.fulfill(response);
+    }
+    
+    // org.waterken.dns.udp.NameServer interface
     
     /**
      * address of the first question

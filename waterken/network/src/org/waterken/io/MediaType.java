@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 import org.joe_e.Powerless;
 import org.joe_e.Selfless;
-import org.joe_e.array.PowerlessArray;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
@@ -30,42 +29,10 @@ MediaType implements Powerless, Selfless, Record, Serializable {
         new MediaType("",           "application/octet-stream",         null);
     
     /**
-     * <code>application/json</code> MIME type
-     */
-    static public final MediaType json =
-        new MediaType(".json",      "application/json",                 null);
-
-    /**
      * <code>text/uri-list</code> MIME type
      */
     static public final MediaType uri =
         new MediaType(".uri",       "text/uri-list; charset=US-ASCII",  null);
-
-    /**
-     * known MIME types
-     */
-    static public final PowerlessArray<MediaType> MIME = PowerlessArray.array(
-        uri,
-        json,
-        new MediaType(".html.gz",   "text/html; charset=ISO-8859-1",    gzip),
-        new MediaType(".html",      "text/html; charset=ISO-8859-1",    null),
-        new MediaType(".css.gz",    "text/css; charset=ISO-8859-1",     gzip),
-        new MediaType(".css",       "text/css; charset=ISO-8859-1",     null),
-        new MediaType(".js.gz",     "application/javascript",           gzip),
-        new MediaType(".js",        "application/javascript",           null),
-        new MediaType(".htm.gz",    "text/html; charset=ISO-8859-1",    gzip),
-        new MediaType(".htm",       "text/html; charset=ISO-8859-1",    null),
-        new MediaType(".swf",       "application/x-shockwave-flash",    null),
-        new MediaType(".xml",       "application/xml",                  null),
-        new MediaType(".xsl",       "application/xml",                  null),
-        new MediaType(".txt",       "text/plain; charset=US-ASCII",     null),
-        new MediaType(".rdf",       "application/rdf+xml",              null),
-        new MediaType(".gif",       "image/gif",                        null),
-        new MediaType(".png",       "image/png",                        null),
-        new MediaType(".jpg",       "image/jpeg",                       null),
-        new MediaType(".ico",       "image/vnd.microsoft.icon",         null),
-        binary
-    );
 
     /**
      * filename extension

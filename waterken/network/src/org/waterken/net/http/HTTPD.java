@@ -1,41 +1,62 @@
-// Copyright 2007 Waterken Inc. under the terms of the MIT X license
+// Copyright 2007-2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.net.http;
 
-import java.io.Serializable;
 import java.net.Socket;
 
-import org.joe_e.Struct;
+import org.ref_send.deserializer;
+import org.ref_send.name;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Server;
-import org.waterken.net.Daemon;
 import org.waterken.net.Execution;
+import org.waterken.net.TCPDaemon;
 
 /**
  * HTTP service daemon.
  */
 public final class
-HTTPD {
-
-    private
-    HTTPD() {}
+HTTPD extends TCPDaemon {
+    static private final long serialVersionUID = 1L;
+    
+    /**
+     * connection socket timeout
+     */
+    public final int soTimeout;
 
     /**
-     * Constructs an instance. 
-     * @param scheme    URI scheme
-     * @param server    request server
-     * @param thread    thread control
+     * URI scheme
      */
-    static public Daemon
-    make(final String scheme, final Server server, final Execution thread) {
-        class DaemonX extends Struct implements Daemon, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Task
-            accept(final Socket socket) {
-                return new Session(scheme, server, thread, socket);
-            }
-        }
-        return new DaemonX();
+    public    final String scheme;
+    protected final Server server;
+    protected final Execution exe;
+    
+    /**
+     * Constructs an instance.
+     * @param port      {@link #port}
+     * @param backlog   {@link #backlog}
+     * @param SSL       {@link #SSL}
+     * @param soTimeout {@link #soTimeout}
+     * @param scheme    {@link #scheme}
+     * @param server    request server
+     * @param exe       thread control
+     */
+    public @deserializer
+    HTTPD(@name("port") final int port,
+          @name("backlog") final int backlog,
+          @name("SSL") final boolean SSL,
+          @name("soTimeout") final int soTimeout,
+          @name("scheme") final String scheme,
+          @name("server") final Server server,
+          @name("exe") final Execution exe) {
+        super(port, backlog, SSL);
+        this.soTimeout = soTimeout;
+        this.scheme = scheme;
+        this.server = server;
+        this.exe = exe;
     }
+    
+    // org.waterken.net.Daemon interface
+
+    public Task
+    accept(final Socket socket) { return new Session(this, socket); }
 }

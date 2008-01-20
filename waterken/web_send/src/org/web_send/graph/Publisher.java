@@ -25,11 +25,11 @@ Publisher {
     /**
      * Creates a named model.
      * @param <T> exported object type
-     * @param name      model name
-     * @param factory   object maker, same requirements as in {@link Spawn#run}
+     * @param name  model name
+     * @param maker object maker, same requirements as in {@link Spawn#run}
      * @return promise for an object exported from the new model
      * @throws Collision    <code>name</code> is unavailable
      */
     <T> T
-    spawn(String name, Class<?> factory) throws Collision;
+    spawn(String name, Class<?> maker) throws Collision;
 }

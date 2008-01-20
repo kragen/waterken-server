@@ -8,6 +8,8 @@ import java.io.Serializable;
 import org.joe_e.Struct;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
+import org.ref_send.deserializer;
+import org.ref_send.name;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.waterken.http.Request;
@@ -24,11 +26,14 @@ import org.web_send.Failure;
  * An HTTP mirror site.
  */
 public final class
-Mirror {
-
-    private
-    Mirror() {}
-
+Mirror extends Struct implements Server, Serializable {
+    static private final long serialVersionUID = 1L;
+    
+    private final int maxAge;
+    private final Tag tag;
+    private final File root;
+    private final PowerlessArray<MediaType> MIME;
+    
     /**
      * Constructs an instance.
      * @param maxAge    max-age value
@@ -36,27 +41,31 @@ Mirror {
      * @param root      root folder
      * @param MIME      each known file type
      */
-    static public Server
-    make(final int maxAge, final Tag tag,
-         final File root, final PowerlessArray<MediaType> MIME) {
-        class ServerX extends Struct implements Server, Serializable {
-            static private final long serialVersionUID = 1L;
+    public @deserializer
+    Mirror(@name("maxAge") final int maxAge,
+           @name("tag") final Tag tag,
+           @name("root") final File root,
+           @name("MIME") final PowerlessArray<MediaType> MIME) {
+        this.maxAge = maxAge;
+        this.tag = tag;
+        this.root = root;
+        this.MIME = MIME;
+    }
 
-            public void
-            serve(final String resource,
-                  final Volatile<Request> request,
-                  final Do<Response,?> respond) throws Exception {
-                File f = root;
-                for (final String segment : Path.walk(URI.path(resource))) {
-                    if (segment.startsWith(".")) {
-                        respond.reject(Failure.gone());
-                        return;
-                    }
-                    f = Filesystem.file(f, segment);
-                }
-                Files.make(maxAge,tag,f,MIME).serve(resource, request, respond);
+    // org.waterken.http.Server interface
+    
+    public void
+    serve(final String resource,
+          final Volatile<Request> request,
+          final Do<Response,?> respond) throws Exception {
+        File f = root;
+        for (final String segment : Path.walk(URI.path(resource))) {
+            if (segment.startsWith(".")) {
+                respond.reject(Failure.gone());
+                return;
             }
+            f = Filesystem.file(f, segment);
         }
-        return new ServerX();
+        Files.make(maxAge,tag,f,MIME).serve(resource, request, respond);
     }
 }

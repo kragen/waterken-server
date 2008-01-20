@@ -70,7 +70,7 @@ JODB extends Model {
     }
 
     /**
-     * file path to the directory containing all persistence folders
+     * file path to the folder containing all persistence folders
      */
     static public  final String homePathProperty = "waterken.home";
     static private final File home;
@@ -935,9 +935,9 @@ JODB extends Model {
     }
 
     /**
-     * Move each file in the source directory to the destination directory.
-     * @param from  source directory
-     * @param to    destination directory
+     * Move each file in the source folder to the destination folder.
+     * @param from  source folder
+     * @param to    destination folder
      * @throws IOException  file manipulation failed
      */
     static private void
@@ -951,8 +951,8 @@ JODB extends Model {
     }
 
     /**
-     * Recursively delete a directory.
-     * @param dir   directory to recursively delete
+     * Recursively delete a folder.
+     * @param dir   folder to recursively delete
      * @throws IOException  delete operation failed
      */
     static private void

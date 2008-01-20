@@ -13,10 +13,8 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
-import org.waterken.http.Server;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.stream.Stream;
-import org.waterken.net.Execution;
 import org.waterken.uri.Header;
 import org.waterken.uri.Location;
 import org.waterken.uri.URI;
@@ -28,10 +26,8 @@ import org.web_send.Failure;
 final class
 Session implements Task {
 
-    private final String scheme;
-    private final Server server;
+    private final HTTPD config;
     private final Socket socket;
-    private final Execution thread;
 
     /**
      * Constructs an instance.
@@ -41,16 +37,12 @@ Session implements Task {
      * implementation further attempts to not give the remote client a DOS force
      * multiplier.
      * </p>
-     * @param scheme    URL scheme, trusted to be the correct scheme identifier
-     * @param server    HTTP server, untrusted
+     * @param config    configuration
      * @param socket    connection socket, trusted to behave like a socket, but
      *                  not trusted to be connected to a trusted HTTP client
      */
-    Session(final String scheme, final Server server,
-            final Execution thread, final Socket socket) {
-        this.scheme = scheme;
-        this.server = server;
-        this.thread = thread;
+    Session(final HTTPD config, final Socket socket) {
+        this.config = config;
         this.socket = socket;
     }
 
@@ -59,8 +51,9 @@ Session implements Task {
     public void
     run() throws Exception {
         socket.setTcpNoDelay(true);
+        socket.setSoTimeout(config.soTimeout);
         final InputStream cin = socket.getInputStream();
-        Responder current = new Responder(server, socket.getOutputStream());
+        Responder current=new Responder(config.server,socket.getOutputStream());
         while (true) {
 
             // read the Request-Line
@@ -94,7 +87,7 @@ Session implements Task {
 
             // parse the request based on the protocol version
             boolean done = false;
-            final Responder next = new Responder(server);
+            final Responder next = new Responder(config.server);
             final Do<Response,?> respond = current.respond(version,method,next);
             final InputStream entity;
             try {
@@ -142,10 +135,10 @@ Session implements Task {
                 }
                 final String resource = "*".equals(requestURI)
                     ? "*"
-                : URI.resolve(scheme + "://" + host + "/", requestURI);
+                : URI.resolve(config.scheme + "://" + host + "/", requestURI);
 
                 // process the request
-                server.serve(resource, ref(request), respond);
+                config.server.serve(resource, ref(request), respond);
             } catch (final Exception e) {
                 done = true;
                 current.setClosing();
@@ -165,7 +158,7 @@ Session implements Task {
 
             // Now is a good time for a context switch since we're not holding
             // any locks, or much memory.
-            thread.yield();
+            config.exe.yield();
         }
     }
 }

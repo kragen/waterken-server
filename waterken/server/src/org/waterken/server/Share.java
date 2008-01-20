@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
-import java.io.File;
 import java.io.PrintStream;
 
 import org.joe_e.Token;
@@ -12,6 +11,7 @@ import org.waterken.model.Creator;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
 import org.waterken.model.Transaction;
+import org.waterken.net.http.HTTPD;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
 import org.waterken.remote.http.AMP;
@@ -28,27 +28,10 @@ Share {
     Share() {}
     
     /**
-     * URI sub-hierarchy for persistent databases
-     */
-    static protected final String baseProperty = "waterken.base";
-    static protected final String baseDefault = "-/";
-    
-    /**
      * @param args  command line arguments
      */
     static public void
     main(String[] args) throws Exception {
-        
-        // initialize the static state
-        final File home = new File(
-            System.getProperty(JODB.homePathProperty, "")).getCanonicalFile();
-        final String base = System.getProperty(baseProperty, baseDefault);
-        final String dbPathConfig = System.getProperty(JODB.dbPathProperty);
-        final File db = (null != dbPathConfig
-            ? new File(dbPathConfig)
-        : new File(home, JODB.dbPathDefault)).getCanonicalFile();
-
-        final File keys = new File(home, "keys.jks");
 
         // extract the arguments
         if (args.length < 2) {
@@ -63,20 +46,27 @@ Share {
         final String typename = args[1];
         final String label = 2 < args.length ? args[2] : null;
 
+        // load configured values
+        final String dbURIPathPrefix = (String)Config.read("dbURIPathPrefix");
+
         // determine the local address
         final String hereValue;
-        if (keys.isFile()) {
-            final Credentials credentials = SSL.keystore("TLS",keys,"nopass");
+        final Credentials credentials = Proxy.init();
+        if (null != credentials) {
             final String host = credentials.getHostname();
             Hostname.vet(host);
-            hereValue = "https://" + host + "/" + base;
+            final int portN = ((HTTPD)Config.read("https")).port;
+            final String port = 443 == portN ? "" : ":" + portN;
+            hereValue = "https://" + host + port + "/" + dbURIPathPrefix;
         } else {
-            hereValue = "http://localhost:8080/" + base;
+            final int portN = ((HTTPD)Config.read("http")).port;
+            final String port = 80 == portN ? "" : ":" + portN;
+            hereValue = "http://localhost" + port + "/" + dbURIPathPrefix;
         }
         final Proxy clientValue = new Proxy();
         
         // create the database
-        final String r = JODB.connect(db).enter(Model.change,
+        final String r = JODB.connect(Config.db).enter(Model.change,
                                                 new Transaction<String>() {
             public String
             run(final Root local) throws Exception {

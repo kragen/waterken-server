@@ -1,4 +1,4 @@
-// Copyright 2007 Waterken Inc. under the terms of the MIT X license
+// Copyright 2007-2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.mux;
 
@@ -8,6 +8,8 @@ import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.joe_e.file.Filesystem;
+import org.ref_send.deserializer;
+import org.ref_send.name;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.waterken.http.Request;
@@ -23,53 +25,60 @@ import org.web_send.Failure;
  * Puts the persistent databases into the URI hierarchy.
  */
 public final class
-Mux {
+Mux extends Struct implements Server, Serializable {
+    static private final long serialVersionUID = 1L;
     
-    private
-    Mux() {}
+    private final String dbURIPathPrefix;
+    private final File dbRootFolder;
+    private final Remoting remoting;
+    private final Server next;
     
     /**
      * Constructs an instance.
-     * @param dbPathPrefix  URI sub-hierarchy for persistent databases
-     * @param db            persistence directory
-     * @param remoting      remoting protocol
-     * @param next          default server
+     * @param dbURIPathPrefix   URI sub-hierarchy for persistent databases
+     * @param dbRootFolder      root persistence folder
+     * @param remoting          remoting protocol
+     * @param next              default server
      */
-    static public Server
-    make(final String dbPathPrefix, final File db,
-         final Remoting remoting, final Server next) {
-        class ServerX extends Struct implements Server, Serializable {
-            static private final long serialVersionUID = 1L;
+    public @deserializer
+    Mux(@name("dbURIPathPrefix") final String dbURIPathPrefix,
+        @name("dbRootFolder") final File dbRootFolder,
+        @name("remoting") final Remoting remoting,
+        @name("next") final Server next) {
+        this.dbURIPathPrefix = dbURIPathPrefix;
+        this.dbRootFolder = dbRootFolder;
+        this.remoting = remoting;
+        this.next = next;
+    }
 
-            public void
-            serve(final String resource,
-                  final Volatile<Request> request,
-                  final Do<Response,?> respond) throws Exception {
-                final Server server;
-                final String path = URI.path(resource);
-                if (path.startsWith(dbPathPrefix)) {
-                    final String dbPath = path.substring(dbPathPrefix.length());
-                    File folder = db;
-                    for (final String name : Path.walk(dbPath)) {
-                        if (name.startsWith(".")) {
-                            respond.reject(Failure.gone());
-                            return;
-                        }
-                        folder = Filesystem.file(folder, name);
-                    }
-                    try {
-                        server = remoting.remote(next,
-                            URI.scheme(null, resource), JODB.connect(folder));
-                    } catch (final FileNotFoundException e) {
-                        respond.reject(Failure.gone());
-                        return;
-                    }
-                } else {
-                    server = next;
+    // org.waterken.http.Server interface
+
+    public void
+    serve(final String resource,
+          final Volatile<Request> request,
+          final Do<Response,?> respond) throws Exception {
+        final Server server;
+        final String path = URI.path(resource);
+        if (path.startsWith(dbURIPathPrefix)) {
+            final String dbPath = path.substring(dbURIPathPrefix.length());
+            File folder = dbRootFolder;
+            for (final String name : Path.walk(dbPath)) {
+                if (name.startsWith(".")) {
+                    respond.reject(Failure.gone());
+                    return;
                 }
-                server.serve(resource, request, respond);
+                folder = Filesystem.file(folder, name);
             }
+            try {
+                server = remoting.remote(next,
+                    URI.scheme(null, resource), JODB.connect(folder));
+            } catch (final FileNotFoundException e) {
+                respond.reject(Failure.gone());
+                return;
+            }
+        } else {
+            server = next;
         }
-        return new ServerX();
+        server.serve(resource, request, respond);
     }
 }

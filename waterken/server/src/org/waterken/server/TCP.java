@@ -2,10 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
-import java.io.File;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.lang.reflect.Type;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -13,20 +10,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.security.SecureRandom;
 import java.util.Enumeration;
 
 import org.joe_e.array.ByteArray;
-import org.joe_e.array.PowerlessArray;
-import org.joe_e.file.Filesystem;
 import org.ref_send.var.Setter;
 import org.ref_send.var.Variable;
 import org.waterken.dns.Resource;
 import org.waterken.dns.editor.ResourceGuard;
-import org.waterken.net.Daemon;
-import org.waterken.remote.http.Browser;
-import org.waterken.syntax.json.JSONDeserializer;
-import org.waterken.thread.Concurrent;
+import org.waterken.net.TCPDaemon;
 
 /**
  * A TCP daemon.
@@ -34,46 +25,40 @@ import org.waterken.thread.Concurrent;
 final class
 TCP implements Runnable {
     
+    private final String service;
     private final PrintStream err;
-    private final ThreadGroup threads;
-    private final String protocol;
-    private final Daemon daemon;
-    private final int soTimeout;
+    private final TCPDaemon daemon;
     private final ServerSocket port;
-    private final File ip;
     
     private       long count = 0;
     
-    TCP(final PrintStream err, final ThreadGroup threads,  
-        final String protocol, final Daemon daemon,
-        final int soTimeout, final ServerSocket port,
-        final File ip) {
-        
+    TCP(final String service, final PrintStream err,  
+        final TCPDaemon daemon, final ServerSocket port) {
+        this.service = service;
         this.err = err;
-        this.threads = threads;
-        this.protocol = protocol;
         this.daemon = daemon;
-        this.soTimeout = soTimeout;
         this.port = port;
-        this.ip = ip;
     }
 
     public void
     run() {
-        err.println(protocol + ": " + "running at " +
+        err.println(service + ": " + "running at " +
                     port.getLocalSocketAddress() + " ...");
         
+        final ThreadGroup threads = new ThreadGroup(service);
         final Setter<Resource> updater_;
-        if (null != ip && ip.isFile()) {
-            Setter<Resource> tmp_;
-            try {
-                tmp_ = update(ip);
-                port.setSoTimeout(60 * 1000);
-            } catch (final Exception e) {
-                tmp_ = null;
-                err.println(protocol + ": " + e);
+        if (daemon.SSL) {
+            final Variable<Resource> ip = (Variable)Config.read("ip");
+            if (null != ip) {
+                updater_ = Config.browser._._(ip.setter);
+                try {
+                    port.setSoTimeout(60 * 1000);
+                } catch (final Exception e) {
+                    err.println(service + ": " + e);
+                }
+            } else {
+                updater_ = null;
             }
-            updater_ = tmp_;
         } else {
             updater_ = null;
         }
@@ -100,17 +85,16 @@ TCP implements Runnable {
                 recheck = true;
                 continue;
             } catch (final Exception e) {
-                // Something strange happened.
+                // something strange happened
                 e.printStackTrace();
                 continue;
             }
-            final String name = protocol + "-" + count++;
+            final String name = service + "-" + count++;
             new Thread(threads, new Runnable() {
                 public void
                 run() {
                     try {
                         err.println(name + ": processing...");
-                        socket.setSoTimeout(soTimeout);
                         daemon.accept(socket).run();
                     } catch (final Throwable e) {
                         err.println(name + ": " + e);
@@ -139,19 +123,5 @@ TCP implements Runnable {
             }
         }
         return r;
-    }
-    
-    static private Setter<Resource>
-    update(final File ip) throws Exception {
-        final ClassLoader code = GenKey.class.getClassLoader();
-        final Browser browser = Browser.make(
-            new Proxy(), new SecureRandom(), code,
-            Concurrent.loop(Thread.currentThread().getThreadGroup(), "dynip"));
-        final InputStream in = Filesystem.read(ip);
-        final Type type = Variable.class;
-        final Variable<Resource> r = (Variable)new JSONDeserializer().
-            run("",browser.connect,code,in,PowerlessArray.array(type)).get(0);
-        in.close();
-        return browser._._(r.setter);
     }
 }

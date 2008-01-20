@@ -226,6 +226,7 @@ JSONParser {
             private Type[] paramv;
             private String[] namev;
             private Object[] argv;
+            private boolean[] donev;
             
             /**
              * Determine the deserialization constructor.
@@ -262,6 +263,7 @@ JSONParser {
                     ++i;
                 }
                 argv = new Object[paramv.length];
+                donev = new boolean[paramv.length];
             }
             
             public void
@@ -269,6 +271,30 @@ JSONParser {
                 if ('}' == c) {
                     pop();
                     if (null == make) { determine(); }
+                    for (int i = donev.length; 0 != i--;) {
+                        if (!donev[i]) {
+                            final Object NULL = null;
+                            final Type param = paramv[i];
+                            argv[i] = boolean.class == param
+                                ? Boolean.FALSE
+                            : char.class == param
+                                ? Character.valueOf('\0')
+                            : byte.class == param
+                                ? Byte.valueOf((byte)0)
+                            : short.class == param
+                                ? Short.valueOf((short)0)
+                            : int.class == param
+                                ? Integer.valueOf(0)
+                            : long.class == param
+                                ? Long.valueOf(0)
+                            : float.class == param
+                                ? Float.valueOf(0.0f)
+                            : double.class == param
+                                ? Double.valueOf(0.0)
+                            : NULL;
+                            donev[i] = true;
+                        }
+                    }
                     final Object r = Reflection.construct(make, argv);
                     if (r instanceof Rejected) {
                         final Rejected p = (Rejected)r;
@@ -343,6 +369,10 @@ JSONParser {
                                 if (null == make) { determine(); }
                                 int i = namev.length;
                                 while (0 != i-- && !name.equals(namev[i])) {}
+                                if (-1 != i) {
+                                    if (donev[i]) {throw new Exception("dup");}
+                                    donev[i] = true;
+                                }
                                 final int position = i;
                                 push(parseContinuation('}'));
                                 push(parsePairValue(

@@ -13,6 +13,7 @@ import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
+import org.ref_send.deserializer;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
@@ -49,6 +50,12 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
      * MIME Media-Type for marshalled arguments
      */
     static protected final String contentType = "application/jsonrequest";
+    
+    /**
+     * Constructs an instance.
+     */
+    public @deserializer
+    AMP() {}
     
     // org.waterken.remote.Remoting interface
 
@@ -110,8 +117,8 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
             static private final long serialVersionUID = 1L;
             
             public <T> T
-            run(final Class<?> factory) {
-                final Object r = publisher.spawn(null, factory);
+            run(final Class<?> maker) {
+                final Object r = publisher.spawn(null, maker);
                 return (T)r;
             }
         }
@@ -134,11 +141,11 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
             }
 
             public <T> T
-            spawn(final String name, final Class<?> factory) throws Collision {
+            spawn(final String name, final Class<?> maker) throws Collision {
                 if (null != name) { vet(name); }
                 final Method build;
                 try {
-                    build= Reflection.method(factory, "build", Framework.class);
+                    build = Reflection.method(maker, "build", Framework.class);
                 } catch (final NoSuchMethodException e) {
                     throw new ClassCastException();
                 }

@@ -1,4 +1,4 @@
-// Copyright 2007 Waterken Inc. under the terms of the MIT X license
+// Copyright 2007-2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
@@ -10,7 +10,7 @@ import java.net.SocketAddress;
 import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.ref_send.promise.eventual.Do;
-import org.waterken.udp.Daemon;
+import org.waterken.udp.UDPDaemon;
 
 /**
  * A UDP daemon.
@@ -18,22 +18,22 @@ import org.waterken.udp.Daemon;
 final class
 UDP extends Struct implements Runnable {
 
+    private final String service;
     private final PrintStream err;
-    private final String protocol;
-    private final Daemon daemon;
+    private final UDPDaemon daemon;
     private final DatagramSocket port;
     
-    UDP(final PrintStream err, final String protocol,
-        final Daemon daemon, final DatagramSocket port) {
+    UDP(final String service, final PrintStream err,
+        final UDPDaemon daemon, final DatagramSocket port) {
+        this.service = service;
         this.err = err;
-        this.protocol = protocol;
         this.daemon = daemon;
         this.port = port;
     }
     
     public void
     run() {
-        err.println(protocol + ": " + "running at " +
+        err.println(service + ": " + "running at " +
                     port.getLocalSocketAddress() + " ...");
         while (true) {
             try {
@@ -53,7 +53,7 @@ UDP extends Struct implements Runnable {
                     }
                 });
             } catch (final Throwable e) {
-                err.println(protocol + ": " + e);
+                err.println(service + ": " + e);
             }
         }
     }

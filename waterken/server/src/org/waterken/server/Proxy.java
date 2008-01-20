@@ -15,7 +15,6 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.net.Locator;
-import org.waterken.net.Execution;
 import org.waterken.net.http.Client;
 import org.waterken.thread.Concurrent;
 import org.waterken.uri.URI;
@@ -28,13 +27,6 @@ Proxy extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
 
     static private final ThreadGroup threads = new ThreadGroup("HTTP");
-    static protected final Execution thread = new Execution() {
-        public void
-        sleep(final long ms) throws InterruptedException { Thread.sleep(ms); }
-        
-        public void
-        yield() { Thread.yield(); }
-    };
     static private final Cache<String,Server> connections =
         new Cache<String,Server>(new ReferenceQueue<Server>());
     
@@ -46,14 +38,26 @@ Proxy extends Struct implements Server, Serializable {
                 Concurrent.loop(threads, "=>" + peer);
             final Loop<Client.Inbound> receiver =
                 Concurrent.loop(threads, "<=" + peer);
-            r = Client.make(peer, transport, thread, sender, receiver);
+            r = Client.make(peer, transport, Config.exe, sender, receiver);
             connections.put(peer, r);
         }
         return r;
     }
 
-    static protected final HashMap<String,Locator> protocols =
+    static private final HashMap<String,Locator> protocols =
         new HashMap<String,Locator>();
+    static private       Credentials credentials = null;
+    
+    static protected Credentials
+    init() {
+        if (!protocols.isEmpty()) { throw new Error(); }
+        Proxy.protocols.put("http", Loopback.client(80));
+        if (Config.keys.isFile()) {
+            credentials = SSL.keystore("TLS", Config.keys, "nopass");
+            Proxy.protocols.put("https", SSL.client(443, credentials));
+        }
+        return credentials;
+    }
     
     public void
     serve(final String resource,
