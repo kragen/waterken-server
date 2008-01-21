@@ -45,9 +45,8 @@ Main extends Struct implements Serializable {
     static private final int minChars = prefix.length() + 80 / 5;
     
     /**
-     * Creates a zone and publishes the redirectory interface.
+     * Constructs a {@link Registrar} and publishes the redirectory interface.
      * @param suffix    hostname suffix
-     * @return created zone
      */
     public Registrar
     publish(final String suffix) {
