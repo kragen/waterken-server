@@ -5,6 +5,7 @@ package org.waterken.server;
 import java.io.PrintStream;
 
 import org.joe_e.Token;
+import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
 import org.waterken.jos.JODB;
 import org.waterken.model.Creator;
@@ -109,8 +110,9 @@ Share {
                     (Creator)local.fetch(null, Root.creator);
                 final ClassLoader code = creator.load(projectValue);
                 final Class<?> factory = code.loadClass(typename);
-                return Remote.bind(synthetic, null).
-                    run(AMP.publish(synthetic).spawn(label, factory));
+                final Volatile<?> p = Eventual.promised(
+                        AMP.publish(synthetic).spawn(label, factory));
+                return Remote.bind(synthetic, null).run(p.cast());
             }
         }).cast();
         System.out.println(URI.resolve(hereValue, r));
