@@ -147,15 +147,20 @@ JSONParser {
             run(final char c) throws Exception {
                 if (']' == c) {
                     pop();
+                    for (; i != arg.length; ++i) {
+                        arg[i] = defaultValue(parameters.get(i));
+                    }
                     out.fulfill(ConstArray.array(arg));
                 } else if (whitespace.indexOf(c) != -1) {
                     // ignore whitespace
                 } else {
                     push(parseContinuation(']'));
-                    push(parseValue(parameters.get(i), new Do<Object,Void>() {
+                    push(parseValue(i<arg.length?parameters.get(i):Object.class,
+                                    new Do<Object,Void>() {
                         public Void
                         fulfill(final Object x) {
-                            arg[i++] = x;
+                            if (i < arg.length) { arg[i] = x; }
+                            ++i;
                             return null;
                         }
                     }));
@@ -163,6 +168,28 @@ JSONParser {
                 }
             }
         };
+    }
+    
+    static private Object
+    defaultValue(final Type type) {
+        final Object NULL = null;
+        return boolean.class == type
+            ? Boolean.FALSE
+        : char.class == type
+            ? Character.valueOf('\0')
+        : byte.class == type
+            ? Byte.valueOf((byte)0)
+        : short.class == type
+            ? Short.valueOf((short)0)
+        : int.class == type
+            ? Integer.valueOf(0)
+        : long.class == type
+            ? Long.valueOf(0)
+        : float.class == type
+            ? Float.valueOf(0.0f)
+        : double.class == type
+            ? Double.valueOf(0.0)
+        : NULL;
     }
     
     private State
@@ -273,25 +300,7 @@ JSONParser {
                     if (null == make) { determine(); }
                     for (int i = donev.length; 0 != i--;) {
                         if (!donev[i]) {
-                            final Object NULL = null;
-                            final Type param = paramv[i];
-                            argv[i] = boolean.class == param
-                                ? Boolean.FALSE
-                            : char.class == param
-                                ? Character.valueOf('\0')
-                            : byte.class == param
-                                ? Byte.valueOf((byte)0)
-                            : short.class == param
-                                ? Short.valueOf((short)0)
-                            : int.class == param
-                                ? Integer.valueOf(0)
-                            : long.class == param
-                                ? Long.valueOf(0)
-                            : float.class == param
-                                ? Float.valueOf(0.0f)
-                            : double.class == param
-                                ? Double.valueOf(0.0)
-                            : NULL;
+                            argv[i] = defaultValue(paramv[i]);
                             donev[i] = true;
                         }
                     }
