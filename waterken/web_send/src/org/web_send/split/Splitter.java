@@ -54,9 +54,7 @@ Splitter {
         final Method build;
         try {
             build = Reflection.method(maker, "build", Framework.class);
-        } catch (final NoSuchMethodException e) {
-            throw new ClassCastException();
-        }
+        } catch (final NoSuchMethodException e){throw new ClassCastException();}
         final Class<?> T = build.getReturnType();
         return (T)Proxies.proxy(new X(), T, Selfless.class);
     }
