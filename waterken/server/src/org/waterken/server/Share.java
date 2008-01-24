@@ -7,7 +7,6 @@ import java.io.PrintStream;
 import org.joe_e.Token;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
-import org.waterken.jos.JODB;
 import org.waterken.model.Creator;
 import org.waterken.model.Model;
 import org.waterken.model.Root;
@@ -67,8 +66,7 @@ Share {
         final Proxy clientValue = new Proxy();
         
         // create the database
-        final String r = JODB.connect(Config.db).enter(Model.change,
-                                                new Transaction<String>() {
+        final String r=Config.db().enter(Model.change,new Transaction<String>(){
             public String
             run(final Root local) throws Exception {
                 final Token deferredValue = new Token();

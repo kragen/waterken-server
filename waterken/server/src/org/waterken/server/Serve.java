@@ -30,14 +30,10 @@ Serve {
         }
         
         final Credentials credentials = Proxy.init();
-        final String hostname =
-            null != credentials ? credentials.getHostname() : "localhost";
 
         // summarize the configuration information
         final PrintStream err = System.err;
-        err.println("home folder: <" + Config.home + ">");
-        err.println("db folder: <" + Config.db + ">");
-        err.println("hostname: <" + hostname + ">");
+        Config.summarize(credentials, err);
 
         // start the inbound network services
         for (int i = 0; i != args.length; ++i) {

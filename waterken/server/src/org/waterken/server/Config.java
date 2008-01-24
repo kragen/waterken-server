@@ -7,6 +7,7 @@ import static org.joe_e.array.ConstArray.array;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Type;
 import java.security.SecureRandom;
@@ -19,6 +20,7 @@ import org.joe_e.file.Filesystem;
 import org.waterken.cache.Cache;
 import org.waterken.id.Importer;
 import org.waterken.jos.JODB;
+import org.waterken.model.Model;
 import org.waterken.net.Execution;
 import org.waterken.remote.http.Browser;
 import org.waterken.syntax.Serializer;
@@ -36,19 +38,41 @@ Config {
     Config() {}
 
     // initialize bootstrap configuration from system properties
-    static protected final File home;
-    static protected final File db;
+    static private final File config;
+    static private final File db;
     static {
         try {
-            home = new File(System.getProperty(JODB.homePathProperty, "")).
-                       getCanonicalFile();
-            final String dbPathConfig = System.getProperty(JODB.dbPathProperty);
-            db = (null != dbPathConfig
-                ? new File(dbPathConfig)
-            : Filesystem.file(home, JODB.dbPathDefault)).getCanonicalFile();
+            final File home = new File(System.getProperty(
+                JODB.homePathProperty, "")).getCanonicalFile();
+            config = new File(home, System.getProperty(
+                "waterken.config", "config")).getCanonicalFile();
+            db = new File(home, System.getProperty(
+                JODB.dbPathProperty, JODB.dbPathDefault)).getCanonicalFile();
         } catch (final Exception e) { throw new Error(e); }
     }
-    static protected final File keys = Filesystem.file(home, "keys.jks");
+    static protected final File keys = Filesystem.file(config, "keys.jks");
+    
+    /**
+     * Prints a summary of the configuration information.
+     * @param credentials   SSL credentials
+     * @param err           output stream
+     */
+    static protected void
+    summarize(final Credentials credentials,
+              final PrintStream err) throws Exception {
+        final String hostname =
+            null != credentials ? credentials.getHostname() : "localhost";
+        err.println("hostname: <" + hostname + ">");
+        err.println("config folder: <" + config + ">");
+        err.println("db folder: <" + db + ">");
+    }
+    
+    /**
+     * Gets the root database.
+     * @throws Exception    any problem
+     */
+    static protected Model
+    db() throws Exception { return JODB.connect(db); }
 
     static protected final String ext = ".json";
     
@@ -60,7 +84,7 @@ Config {
     static protected void
     init(final String name, final Object value) {
         try {
-            final File file = Filesystem.file(home, name + ext);
+            final File file = Filesystem.file(config, name + ext);
             final OutputStream out = Filesystem.writeNew(file);
             new JSONSerializer().run(Serializer.render, browser.export,
                                      array(value)).writeTo(out);
@@ -76,7 +100,7 @@ Config {
      */
     static protected Object
     read(final String name) {
-        final File file = Filesystem.file(home, name + ext);
+        final File file = Filesystem.file(config, name + ext);
         if (!file.isFile()) { return null; }
         return new ImporterX().run(Object.class, file.toURI().toString());
     }
