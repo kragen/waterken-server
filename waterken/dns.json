@@ -1,5 +1,0 @@
-[ {
-  "$" : [ "org.waterken.dns.udp.NameServer" ],
-  "port" : 53,
-  "master" : { "@" : "db/dns/" }
-} ]
