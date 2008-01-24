@@ -80,16 +80,12 @@ JODB extends Model {
     static private final String dbDirPath;
     static {
         try {
-            home = new File(
-                System.getProperty(homePathProperty, "")).getCanonicalFile();
-            final String dbPathConfig = System.getProperty(dbPathProperty);
-            dbDir = (null != dbPathConfig
-                ? new File(dbPathConfig)
-            : new File(home, dbPathDefault)).getCanonicalFile();
+            home = new File(System.getProperty(
+                homePathProperty, "")).getCanonicalFile();
+            dbDir = new File(home, System.getProperty(
+                dbPathProperty, dbPathDefault)).getCanonicalFile();
             dbDirPath = dbDir.getPath() + File.separator;
-        } catch (final IOException e) {
-            throw new Error(e);
-        }
+        } catch (final IOException e) { throw new Error(e); }
     }
     static private final Cache<File,JODB> live =
         new Cache<File,JODB>(new ReferenceQueue<JODB>());
@@ -823,11 +819,10 @@ JODB extends Model {
         synchronized (jars) {
             ClassLoader r = jars.fetch(null, project);
             if (null == r) {
-                final String codePathConfig=System.getProperty("waterken.code");
-                final File bins =
-                    null != codePathConfig ? new File(codePathConfig) : home;
-                final String jar = System.getProperty("waterken.bin",
-                    File.separator + "bin" + File.separator);
+                final File bins = new File(home, System.getProperty(
+                    "waterken.code", "")).getCanonicalFile();
+                final String jar = System.getProperty(
+                    "waterken.bin", File.separator + "bin" + File.separator);
                 r = new Project(new File(bins, project + jar));
                 jars.put(project, r);
             }
