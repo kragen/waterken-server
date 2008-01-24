@@ -1,0 +1,35 @@
+[ {
+  "$" : [ "org.waterken.http.trace.Trace" ],
+  "next" : {
+    "$" : [ "org.waterken.remote.mux.Mux" ],
+    "dbURIPathPrefix" : { "@" : "dbURIPathPrefix.json" },
+    "dbRootFolder" : { "@" : "x-system:db" },
+    "remoting" : {
+      "$" : [ "org.waterken.remote.http.AMP" ]
+    },
+    "next" : {
+      "$" : [ "org.waterken.http.mirror.Mirror" ],
+      "maxAge" : 0,
+      "tag" : { "@" : "x-system:tag" },
+      "root" : { "@" : "../www/" },
+      "MIME" : [
+        { "ext" : ".html", "name" : "text/html; charset=UTF-8" },
+        { "ext" : ".htm",  "name" : "text/html; charset=UTF-8" },
+        { "ext" : ".js",   "name" : "application/javascript" },
+        { "ext" : ".css",  "name" : "text/css; charset=ISO-8859-1" },
+        { "ext" : ".png",  "name" : "image/png" },
+        { "ext" : ".gif",  "name" : "image/gif" },
+        { "ext" : ".jpg",  "name" : "image/jpg" },
+        { "ext" : ".swf",  "name" : "application/x-shockwave-flash" },
+        { "ext" : ".xml",  "name" : "application/xml" },
+        { "ext" : ".rdf",  "name" : "application/rdf+xml" },
+        { "ext" : ".xsl",  "name" : "application/xsl" },
+        { "ext" : ".txt",  "name" : "text/plain; charset=US-ASCII" },
+        { "ext" : ".json", "name" : "application/json" },
+        { "ext" : ".ico",  "name" : "image/vnd.microsoft.icon" },
+        { "ext" : ".uri",  "name" : "text/uri-list; charset=US-ASCII" },
+        { "ext" : "",      "name" : "application/octet-stream" }
+      ]
+    }
+  }
+} ]
