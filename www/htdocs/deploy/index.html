@@ -16,10 +16,8 @@
  <h2>Folder layout</h2>
  <p>At runtime, the Waterken Server uses the following folders:</p>
  <dl>
-  <dt><code>home</code></dt>
+  <dt><code>config</code></dt>
   <dd>holds configuration files, such as the SSL key pair</dd>
-  <dt><code>www</code></dt>
-  <dd>holds static web content, such as CSS files and Javascript</dd>
   <dt><code>db</code></dt>
   <dd>holds persistent Java objects</dd>
   <dt><code>code</code></dt>
@@ -29,12 +27,13 @@
       <code>code</code> folder includes a sub-folder named
       <code>example/bin/</code>.</p>
   </dd>
+  <dt><code>www</code></dt>
+  <dd>holds static web content, such as CSS files and Javascript</dd>
  </dl>
  <p>By default, the server will assume the current working directory should be
- used as both the <code>home</code> and <code>code</code> folder.  The
- <code>www</code> folder is then expected to be in a sub-folder named "www"
- and the <code>db</code> folder in a sub-folder named "db". This folder layout is
- the one created when you unpack the waterken-server distribution.</p>
+ used as the <code>code</code> folder.  The other folders are then expected to
+ be in immediate sub-folders.  This folder layout is the one created when you
+ unpack the waterken-server distribution.</p>
  <p>This default folder layout can be customized using Java system properties.
  A Java system property can be defined using a "<code>-D</code>" option to the
  <code>java</code> command used to start a JVM.</p>
@@ -42,9 +41,9 @@
   <dt><code>waterken.home</code></dt>
   <dd>use the specified folder as the <code>home</code> folder (defaults
   to the current working directory)</dd>
-  <dt><code>waterken.www</code></dt>
-  <dd>use the specified folder as the <code>www</code> folder (defaults to the
-  "www" sub-folder of the <code>waterken.home</code> folder)</dd>
+  <dt><code>waterken.config</code></dt>
+  <dd>use the specified folder as the <code>config</code> folder (defaults to the
+  "config" sub-folder of the <code>waterken.home</code> folder)</dd>
   <dt><code>waterken.db</code></dt>
   <dd>use the specified folder as the <code>db</code> folder (defaults to the
   "db" sub-folder of the <code>waterken.home</code> folder)</dd>
@@ -56,6 +55,9 @@
   to get the name of the folder, or JAR file, containing the project's class
   files (defaults to "/bin/")
  </dl>
+ <p>The <code>www</code> folder is determined by the setting in the
+ <code>server.json</code> configuration file in the <code>config</code> folder.
+ </p>
  </div>
  <p class="footer">
  </p>
