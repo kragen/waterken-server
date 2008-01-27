@@ -28,9 +28,7 @@ Loopback {
     static {
         try {
             addr = InetAddress.getByAddress(new byte[] { 127, 0, 0, 1 });
-        } catch (final UnknownHostException e) {
-            throw new AssertionError(e);
-        }
+        } catch (final UnknownHostException e) { throw new AssertionError(e); }
     }
     
     static Locator

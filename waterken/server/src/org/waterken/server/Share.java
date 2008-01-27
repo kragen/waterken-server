@@ -80,15 +80,15 @@ Share {
                     fetch(final Object otherwise, final String name) {
                         return Root.project.equals(name)
                             ? projectValue
-                        : (Remoting.here.equals(name)
+                        : Remoting.here.equals(name)
                             ? hereValue
-                        : (Remoting.client.equals(name)
+                        : Remoting.client.equals(name)
                             ? clientValue
-                        : (Remoting.deferred.equals(name)
+                        : Remoting.deferred.equals(name)
                             ? deferredValue
-                        : (Remoting._.equals(name)
+                        : Remoting._.equals(name)
                             ? _Value
-                        : local.fetch(otherwise, name)))));
+                        : local.fetch(otherwise, name);
                     }
 
                     public void

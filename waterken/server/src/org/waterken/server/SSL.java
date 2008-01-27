@@ -147,8 +147,7 @@ SSL {
     }
     
     static private Connect
-    proxy(final SSLSocketFactory factory,
-          final String hostname, final int port){
+    proxy(final SSLSocketFactory factory,final String hostname, final int port){
         return new Connect() {
             public Socket
             run() throws Exception {
@@ -327,8 +326,7 @@ SSL {
 
             public void
             checkClientTrusted(final X509Certificate[] chain,
-                               final String authType)
-                                           throws CertificateException {
+                    final String authType) throws CertificateException {
                 try {
                     checkY(chain, authType);
                 } catch (final Exception e) {
@@ -338,8 +336,7 @@ SSL {
 
             public void
             checkServerTrusted(final X509Certificate[] chain,
-                               final String authType)
-                                           throws CertificateException {
+                    final String authType) throws CertificateException {
                 try {
                     checkY(chain, authType);
                 } catch (final Exception e) {

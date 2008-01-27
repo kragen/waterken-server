@@ -60,8 +60,7 @@ Proxy extends Struct implements Server, Serializable {
     }
     
     public void
-    serve(final String resource,
-          final Volatile<Request> request,
+    serve(final String resource, final Volatile<Request> request,
           final Do<Response,?> respond) throws Exception {
         final String scheme = URI.scheme(null, resource).toLowerCase();
         final Locator transport = protocols.get(scheme);

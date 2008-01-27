@@ -45,13 +45,13 @@ GenKey {
         final int strength = 0 < args.length ? Integer.parseInt(args[0]) : 80;
         final String suffix = 1 < args.length ? args[1] : ".yurl.net";
         final int keysize =
-            (80 >= strength
+            80 >= strength
                 ? 1024
-            : (112 >= strength
+            : 112 >= strength
                 ? 2048
-            : (128 >= strength
+            : 128 >= strength
                 ? 3072
-            : 4096)));
+            : 4096;
 
         System.err.println("Generating RSA key pair...");
         System.err.println("with keysize: " + keysize);
@@ -283,11 +283,11 @@ GenKey {
                 final int bytes =
                     length <= 0xFF
                         ? 1
-                    : (length <= 0xFFFF
+                    : length <= 0xFFFF
                         ? 2
-                    : (length <= 0xFFFFFF
+                    : length <= 0xFFFFFF
                         ? 3
-                    : 4));
+                    : 4;
                 for (int i = 0; i != bytes; ++i) {
                     writeByte(length >> (i * Byte.SIZE));
                 }
