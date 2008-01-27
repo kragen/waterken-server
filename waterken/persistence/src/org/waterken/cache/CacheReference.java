@@ -16,9 +16,7 @@ CacheReference<K,V> extends SoftReference<V> {
      */
     final K key;
 
-    CacheReference(final V referent,
-                   final ReferenceQueue<V> q,
-                   final K key) {
+    CacheReference(final V referent, final ReferenceQueue<V> q, final K key) {
         super(referent, q);
         this.key = key;
     }

@@ -24,8 +24,7 @@ Slicer extends ObjectOutputStream {
     private final Object value;
     private final Root root;
     
-    Slicer(final Object value,
-           final Root root,
+    Slicer(final Object value, final Root root,
            final OutputStream out) throws IOException {
         super(out);
         this.value = value;

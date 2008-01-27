@@ -31,11 +31,9 @@ MethodWrapper implements Wrapper, Powerless {
 
         out.writeObject(code.getDeclaringClass());
         out.writeUTF(code.getName());
-        final Class[] parameter = code.getParameterTypes();
-        out.writeInt(parameter.length);
-        for (int i = 0; i != parameter.length; ++i) {
-            out.writeObject(parameter[i]);
-        }
+        final Class[] params = code.getParameterTypes();
+        out.writeInt(params.length);
+        for (final Class param : params) { out.writeObject(param); }
     }
 
     private void
@@ -45,23 +43,21 @@ MethodWrapper implements Wrapper, Powerless {
 
         final Class<?> declarer = (Class)in.readObject();
         final String name = in.readUTF();
-        final Class[] parameter = new Class[in.readInt()];
-        for (int i = 0; i != parameter.length; ++i) {
-            parameter[i] = (Class)in.readObject();
+        final Class[] params = new Class[in.readInt()];
+        for (int i = 0; i != params.length; ++i) {
+            params[i] = (Class)in.readObject();
         }
         try {
-            code = declarer.getMethod(name, parameter);
+            code = declarer.getMethod(name, params);
         } catch (final NoSuchMethodException e) {
             final StringBuilder buffer = new StringBuilder();
             buffer.append(declarer.getName());
             buffer.append("#");
             buffer.append(name);
             buffer.append("(");
-            for (int j = 0; j != parameter.length; ++j) {
-                if (0 != j) {
-                    buffer.append(",");
-                }
-                buffer.append(parameter[j].getName());
+            for (int j = 0; j != params.length; ++j) {
+                if (0 != j) { buffer.append(","); }
+                buffer.append(params[j].getName());
             }
             buffer.append(")");
             throw new ClassNotFoundException(buffer.toString());

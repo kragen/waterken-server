@@ -30,11 +30,9 @@ ConstructorWrapper implements Wrapper, Powerless {
         out.defaultWriteObject();
 
         out.writeObject(code.getDeclaringClass());
-        final Class[] parameter = code.getParameterTypes();
-        out.writeInt(parameter.length);
-        for (int i = 0; i != parameter.length; ++i) {
-            out.writeObject(parameter[i]);
-        }
+        final Class[] params = code.getParameterTypes();
+        out.writeInt(params.length);
+        for (final Class param : params) { out.writeObject(param); } 
     }
 
     private void
@@ -43,21 +41,19 @@ ConstructorWrapper implements Wrapper, Powerless {
         in.defaultReadObject();
 
         final Class<?> declarer = (Class)in.readObject();
-        final Class[] parameter = new Class[in.readInt()];
-        for (int i = 0; i != parameter.length; ++i) {
-            parameter[i] = (Class)in.readObject();
+        final Class[] params = new Class[in.readInt()];
+        for (int i = 0; i != params.length; ++i) {
+            params[i] = (Class)in.readObject();
         }
         try {
-            code = declarer.getConstructor(parameter);
+            code = declarer.getConstructor(params);
         } catch (final NoSuchMethodException e) {
             final StringBuilder buffer = new StringBuilder();
             buffer.append(declarer.getName());
             buffer.append("#new(");
-            for (int i = 0; i != parameter.length; ++i) {
-                if (0 != i) {
-                    buffer.append(",");
-                }
-                buffer.append(parameter[i].getName());
+            for (int i = 0; i != params.length; ++i) {
+                if (0 != i) { buffer.append(","); }
+                buffer.append(params[i].getName());
             }
             buffer.append(")");
             throw new ClassNotFoundException(buffer.toString());

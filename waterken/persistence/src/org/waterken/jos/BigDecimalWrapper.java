@@ -39,9 +39,7 @@ BigDecimalWrapper implements Wrapper, Powerless {
                                                   ClassNotFoundException {
         in.defaultReadObject();
 
-        final BigInteger unscaledValue = (BigInteger)in.readObject();
-        final int scale = in.readInt();
-        value = new BigDecimal(unscaledValue, scale);
+        value = new BigDecimal((BigInteger)in.readObject(), in.readInt());
     }
 
     // org.waterken.jos.Wrapper interface

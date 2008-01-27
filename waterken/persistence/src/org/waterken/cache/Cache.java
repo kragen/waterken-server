@@ -67,11 +67,9 @@ Cache<K,V> implements Serializable {
      */
     public V
     fetch(final V otherwise, final K id) {
-        final CacheReference<K,V> ref = entries.get(id);
-        final V value = null != ref ? ref.get() : null;
-        return null != value
-            ? (value instanceof Null ? null : value)
-            : otherwise;
+        final CacheReference<K,V> rv = entries.get(id);
+        final V v = null != rv ? rv.get() : null;
+        return null != v ? (v instanceof Null ? null : v) : otherwise;
     }
 
     /**

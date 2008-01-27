@@ -209,8 +209,7 @@ JODB extends Model {
         final ByteArray version;    // secure hash of serialization, or
                                     // <code>null</code> if not known
 
-        Bucket(final boolean created,
-               final Object value,
+        Bucket(final boolean created, final Object value,
                final ByteArray version) {
             this.created = created;
             this.value = value;
@@ -346,11 +345,9 @@ JODB extends Model {
                     // hit a cyclic reference
 
                     // determine the cycle depth
-                    int n = 0;
-                    for (int i = stack.size(); i-- != 0;) {
-                        ++n;
-                        if (key.equals(stack.get(i))) { break; }
-                    }
+                    int n = 1;
+                    for (int i = stack.size();
+                         i-- != 0 && !key.equals(stack.get(i));) { ++n; }
 
                     // determine the type of object in each file
                     final Class[] type = new Class[n];
@@ -474,9 +471,7 @@ JODB extends Model {
                             out.close();
                             id = mac.doFinal();
                             freeMac(mac);
-                        } catch (final Exception e) {
-                            throw new Error(e);
-                        }
+                        } catch (final Exception e) { throw new Error(e); }
                         final ByteArray version = ByteArray.array(id);
                         final byte[] d = new byte[keyBytes];
                         System.arraycopy(id, 0, d, 0, d.length);
@@ -492,9 +487,7 @@ JODB extends Model {
                                 }
                                 if (version.equals(b.version)) { break; }
                             } catch (final Exception e) {/*skip broken bucket*/}
-                            for (int i = 0; i != d.length; ++i) {
-                                if (0 != ++d[i]) { break; }
-                            }
+                            for (int i = 0; i != d.length && 0 == ++d[i]; ++i);
                         }
                     } else {
                         // to support caching of query responses, forbid
@@ -548,8 +541,7 @@ JODB extends Model {
                         service.run(new Service() {
                             public void
                             run() throws Exception {
-                                final File tmp = file(
-                                    folder.getParentFile(),
+                                final File tmp = file(folder.getParentFile(),
                                     "." + folder.getName() + ".tmp");
                                 while (!folder.renameTo(tmp) &&
                                        folder.isDirectory()) {
@@ -611,9 +603,7 @@ JODB extends Model {
                             return initialize.run(local);
                         }
                     });
-                } catch (final Exception e) {
-                    throw new Error(e);
-                }
+                } catch (final Exception e) { throw new Error(e); }
                 return r.cast();
             }
 

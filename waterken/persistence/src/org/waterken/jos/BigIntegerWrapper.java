@@ -39,8 +39,7 @@ BigIntegerWrapper implements Wrapper, Powerless {
                                                   ClassNotFoundException {
         in.defaultReadObject();
 
-        final int size = in.readInt();
-        final byte[] bytes = new byte[size];
+        final byte[] bytes = new byte[in.readInt()];
         in.readFully(bytes);
         value = new BigInteger(bytes);
     }

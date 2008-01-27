@@ -48,9 +48,7 @@ Touch {
                         try {
                             local.fetch(null, name.substring(
                                 0, name.length() - JODB.ext.length()));
-                        } catch (final Exception e) {
-                            // just ignore any problem with the object
-                        }
+                        } catch (final Exception e) {} // ignore problem object
                         return false;
                     }
                 });

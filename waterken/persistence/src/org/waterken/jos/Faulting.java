@@ -41,8 +41,6 @@ Faulting extends Fulfilled<Object>  {
     cast() {
         try {
             return root.fetch(null, name);
-        } catch (final Exception e) {
-            throw new Error(e);
-        }
+        } catch (final Exception e) { throw new Error(e); }
     }
 }
