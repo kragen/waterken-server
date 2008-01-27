@@ -105,7 +105,7 @@ Config {
         return new ImporterX().run(Object.class, file.toURI().toString());
     }
 
-    static private final Cache<File,Object> settings =
+    static private   final Cache<File,Object> settings =
         new Cache<File,Object>(new ReferenceQueue<Object>());
     static private   final LastModified tag = new LastModified();
     static protected final ClassLoader code = Config.class.getClassLoader();
