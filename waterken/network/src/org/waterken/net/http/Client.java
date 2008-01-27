@@ -157,9 +157,7 @@ Client implements Server {
                     }
                     try {
                         thread.sleep(b);
-                    } catch (final Exception e2) {
-                        // Just go around again.
-                    }
+                    } catch (final Exception e2) { /* just go around again */ }
                 }
             }
             mostRecent = null;
@@ -181,8 +179,7 @@ Client implements Server {
         private   final Outbound pop;
         
         Exchange(final Promise<Request> request,
-                 final Do<Response,?> respond,
-                 final Outbound pop) {
+                 final Do<Response,?> respond, final Outbound pop) {
             this.request = request;
             this.respond = respond;
             this.pop = pop;
@@ -336,8 +333,7 @@ Client implements Server {
     }
 
     public void
-    serve(final String resource,
-          final Volatile<Request> request,
+    serve(final String resource, final Volatile<Request> request,
           final Do<Response,?> respond) { entry.enqueue(request, respond); }
     
     /**
@@ -452,11 +448,9 @@ Client implements Server {
         HTTP.readHeaders(header, hin);
 
         // check for informational response
-        if (status.startsWith("1")) {
-            // RFC 2616, section 10.1:
-            // Unexpected 1xx status responses MAY be ignored by a user agent.
-            return receive(method, cin, respond);
-        }
+        // RFC 2616, section 10.1:
+        // Unexpected 1xx status responses MAY be ignored by a user agent.
+        if (status.startsWith("1")) { return receive(method, cin, respond); }
 
         // build the response
         final boolean persist = HTTP.persist(version, header);

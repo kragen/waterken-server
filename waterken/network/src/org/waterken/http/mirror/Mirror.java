@@ -55,8 +55,7 @@ Mirror extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
     
     public void
-    serve(final String resource,
-          final Volatile<Request> request,
+    serve(final String resource, final Volatile<Request> request,
           final Do<Response,?> respond) throws Exception {
         File f = root;
         for (final String segment : Path.walk(URI.path(resource))) {

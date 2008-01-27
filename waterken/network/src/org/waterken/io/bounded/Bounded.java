@@ -38,9 +38,7 @@ Bounded {
             }
 
             public int
-            read(final byte[] b,
-                 final int off,
-                 final int len) throws IOException {
+            read(final byte[] b,final int off,final int len) throws IOException{
                 if (0L == remaining) { return -1; }
                 final int r = in.read(b, off, (int)Math.min(remaining, len));
                 if (r == -1) { throw new EOFException(); }
@@ -106,8 +104,7 @@ Bounded {
             }
 
             public void
-            write(final byte[] b,
-                  final int off, final int len) throws IOException {
+            write(final byte[] b,final int off,final int len)throws IOException{
                 if (len > remaining) { throw new EOFException(); }
                 out.write(b, off, len);
                 remaining -= len;

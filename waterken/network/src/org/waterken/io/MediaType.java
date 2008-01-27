@@ -59,6 +59,9 @@ MediaType implements Powerless, Selfless, Record, Serializable {
     MediaType(@name("ext") final String ext,
               @name("name") final String name,
               @name("encoding") final String encoding) {
+        if (null == ext) { throw new NullPointerException(); }
+        if (null == name) { throw new NullPointerException(); }
+        
         this.ext = ext;
         this.name = name;
         this.encoding = encoding;
@@ -76,8 +79,7 @@ MediaType implements Powerless, Selfless, Record, Serializable {
         boolean r = null != o && getClass() == o.getClass();
         if (r) {
             final MediaType x = (MediaType)o;
-            r = (null != ext ? ext.equals(x.ext) : null == x.ext) &&
-                (null != name ? name.equals(x.name) : null == x.name) &&
+            r = ext.equals(x.ext) && name.equals(x.name) &&
                 (null!=encoding ?encoding.equals(x.encoding) :null==x.encoding);
         }
         return r;
@@ -88,9 +90,7 @@ MediaType implements Powerless, Selfless, Record, Serializable {
      */
     public int
     hashCode() {
-        return 0x313E719E +
-               (null != ext ? ext.hashCode() : 0) +
-               (null != name ? name.hashCode() : 0) +
+        return 0x313E719E + ext.hashCode() + name.hashCode() +
                (null != encoding ? encoding.hashCode() : 0);
     }
 }

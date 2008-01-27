@@ -35,8 +35,7 @@ Trace extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
 
     public void
-    serve(final String resource,
-          final Volatile<Request> requestor,
+    serve(final String resource, final Volatile<Request> requestor,
           final Do<Response,?> respond) throws Exception {
     
         if (!URI.path(resource).startsWith("trace/")) {

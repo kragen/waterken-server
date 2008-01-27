@@ -29,8 +29,7 @@ Open {
             write(final byte[] b) throws IOException { out.write(b); }
 
             public void
-            write(final byte[] b,
-                  final int off, final int len) throws IOException {
+            write(final byte[] b,final int off,final int len)throws IOException{
                 out.write(b, off, len);
             }
 

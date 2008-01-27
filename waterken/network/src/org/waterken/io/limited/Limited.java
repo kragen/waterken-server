@@ -41,9 +41,7 @@ Limited {
             }
 
             public int
-            read(final byte[] b,
-                 final int off,
-                 final int len) throws IOException {
+            read(final byte[] b,final int off,final int len) throws IOException{
                 if (0L == remaining) { throw Failure.tooBig(); }
                 final int n = in.read(b, off, (int)Math.min(remaining, len));
                 if (n != -1) { remaining -= n; }
@@ -108,8 +106,7 @@ Limited {
             }
 
             public void
-            write(final byte[] b,
-                  final int off, final int len) throws IOException {
+            write(final byte[] b,final int off,final int len)throws IOException{
                 if (len > remaining) { throw Failure.tooBig(); }
                 out.write(b, off, len);
                 remaining -= len;

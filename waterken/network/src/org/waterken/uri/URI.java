@@ -39,12 +39,8 @@ URI {
 
     static private boolean
     isComponentSymbol(final char c) {
-        return ('a' <= c && 'z' >= c) ||
-               ('A' <= c && 'Z' >= c) ||
-               ('0' <= c && '9' >= c) ||
-               '+' == c ||
-               '.' == c ||
-               '-' == c;
+        return ('a' <= c && 'z' >= c) || ('A' <= c && 'Z' >= c) ||
+               ('0' <= c && '9' >= c) || '+' == c || '.' == c || '-' == c;
     }
 
     /**
@@ -79,14 +75,10 @@ URI {
         final int query = uri.indexOf('?', first);
         final int fragment = uri.indexOf('#', first);
         return -1 == query
-            ? (-1 == fragment
-                ? uri.length()
-                : fragment)
-            : (-1 == fragment
-                ? query
-                : (query < fragment
-                    ? query
-                    : fragment));
+            ? (-1 == fragment ? uri.length() : fragment)
+        : (-1 == fragment
+            ? query
+        : (query < fragment ? query : fragment));
     }
 
     /**
@@ -119,9 +111,7 @@ URI {
         final int end = uri.indexOf('#');
         return -1 == end
             ? uri.substring(start + 1)
-            : (start < end
-                ? uri.substring(start + 1, end)
-                : otherwise);
+        : (start < end ? uri.substring(start + 1, end) : otherwise);
     }
 
     /**
@@ -195,13 +185,10 @@ URI {
                 for (int i = 0; authorityLast != i; ++i) {
                     final char c = relative.charAt(i);
                     if (!(URI.unreserved(c) || URI.subdelim(c) ||
-                          "@/:[]%".indexOf(c) != -1)) {
-                        throw new InvalidURI();
-                    }
+                          "@/:[]%".indexOf(c) != -1)) {throw new InvalidURI();}
                 }
                 relativePathFirst = relative.startsWith("/", authorityLast)
-                    ? authorityLast + 1
-                    : authorityLast;
+                    ? authorityLast + 1 : authorityLast;
                 root = relative.substring(0, relativePathFirst);
                 folder = "";
             } else if (relative.startsWith("//")) {
@@ -209,13 +196,10 @@ URI {
                 for (int i = "//".length(); authorityLast != i; ++i) {
                     final char c = relative.charAt(i);
                     if (!(URI.unreserved(c) || URI.subdelim(c) ||
-                          "@:[]%".indexOf(c) != -1)) {
-                        throw new InvalidURI();
-                    }
+                          "@:[]%".indexOf(c) != -1)) { throw new InvalidURI(); }
                 }
                 relativePathFirst = relative.startsWith("/", authorityLast)
-                    ? authorityLast + 1
-                    : authorityLast;
+                    ? authorityLast + 1 : authorityLast;
                 root = base.substring(0, base.indexOf(':') + 1) +
                        relative.substring(0, relativePathFirst);
                 folder = "";
@@ -249,17 +233,15 @@ URI {
             final int queryLast = -1 == hash ? tail.length() : hash;
             for (int i = queryLast; 1 != i--;) {
                 final char c = tail.charAt(i);
-                if (!(URI.pchar(c) || "/?".indexOf(c) != -1)) {
-                    throw new InvalidURI();
-                }
+                if (!(URI.pchar(c) ||
+                      "/?".indexOf(c) != -1)) { throw new InvalidURI(); }
             }
         }
         if (-1 != hash) {
             for (int i = tail.length(); hash != --i;) {
                 final char c = tail.charAt(i);
-                if (!(URI.pchar(c) || "/?".indexOf(c) != -1)) {
-                    throw new InvalidURI();
-                }
+                if (!(URI.pchar(c) ||
+                      "/?".indexOf(c) != -1)) { throw new InvalidURI(); }
             }
         }
         return hierarchy + tail;
@@ -316,8 +298,7 @@ URI {
         }
         return base.regionMatches(last, target, last, f - last) &&
                (f == target.length() || '#' == target.charAt(f))
-            ? target.substring(f)
-        : target.substring(last);
+            ? target.substring(f) : target.substring(last);
     }
     
     static boolean

@@ -48,8 +48,7 @@ Files {
             static private final long serialVersionUID = 1L;
 
             public void
-            serve(final String resource,
-                  final Volatile<Request> requestor,
+            serve(final String resource, final Volatile<Request> requestor,
                   final Do<Response,?> respond) throws Exception {
 
                 // determine the request
