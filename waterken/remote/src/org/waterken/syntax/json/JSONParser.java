@@ -61,9 +61,7 @@ JSONParser {
     private final ClassLoader code;
     private final ArrayList<State> state;
     
-    JSONParser(final String base,
-               final Importer connect,
-               final ClassLoader code) {
+    JSONParser(final String base,final Importer connect,final ClassLoader code){
         this.base = base;
         this.connect = connect;
         this.code = code;
@@ -125,11 +123,9 @@ JSONParser {
         return new State() {
             public void
             run(final char c) throws Exception {
-                switch (c) {
-                case '[':
+                if ('[' == c) {
                     to(parseTuple(parameters, out));
-                    break;
-                default:
+                } else {
                     eatWhitespace(c);
                 }
             }

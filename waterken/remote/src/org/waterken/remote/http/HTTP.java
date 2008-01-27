@@ -86,10 +86,8 @@ HTTP extends Struct implements Messenger, Serializable {
             static private final long serialVersionUID = 1L;
 
             public void
-            run() throws Exception {
-                // AUDIT: call to untrusted application code
-                forwarder.fulfill(a);
-            }
+            run() throws Exception { forwarder.fulfill(a); }
+            // AUDIT: call to untrusted application code
         }
         _.enqueue.run(new Fulfill());
         return r;

@@ -57,8 +57,7 @@ Callee extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
 
     public void
-    serve(final String resource,
-          final Volatile<Request> requestor,
+    serve(final String resource, final Volatile<Request> requestor,
           final Do<Response,?> respond) throws Exception {
 
         // further dispatch the request based on the query string

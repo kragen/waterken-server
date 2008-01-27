@@ -73,10 +73,8 @@ Browser extends Struct implements Record, Serializable {
      * @param enqueue   local event loop
      */
     static public Browser
-    make(final Server client,
-         final SecureRandom prng,
-         final ClassLoader code,
-         final Loop<Task> enqueue) {
+    make(final Server client, final SecureRandom prng,
+         final ClassLoader code, final Loop<Task> enqueue) {
         final Token deferred = new Token();
         final Eventual _ = new Eventual(deferred, enqueue);
         final Root local = new Root() {
@@ -145,9 +143,7 @@ Browser extends Struct implements Record, Serializable {
         local.link(Remoting.client, client);
         local.link(Remoting.deferred, deferred);
         local.link(AMP.outbound, new Outbound());
-        return new Browser(_,
-                           Remote.use(local),
-                           Remote.bind(local, null));
+        return new Browser(_, Remote.use(local), Remote.bind(local, null));
     }
 
     static private final class

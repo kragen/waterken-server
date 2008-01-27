@@ -114,10 +114,8 @@ Remote<T> extends Deferred<T> implements Promise<T> {
      */
     public boolean
     equals(final Object x) {
-        return x instanceof Remote &&
-               _ == ((Remote)x)._ &&
-               URL.equals(((Remote)x).URL) &&
-               local.equals(((Remote)x).local);
+        return x instanceof Remote && _ == ((Remote)x)._ &&
+               URL.equals(((Remote)x).URL) && local.equals(((Remote)x).local);
     }
     
     /**
@@ -152,9 +150,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
             final String here = (String)local.fetch(null, Remoting.here);
             final String target = null == here ? URL : URI.resolve(here, URL);
             return message(target).invoke(target, proxy, method, arg);
-        } catch (final Exception e) {
-            throw new Error(e);
-        }
+        } catch (final Exception e) { throw new Error(e); }
     }
     
     // org.ref_send.promise.eventual.Deferred interface
@@ -185,9 +181,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
                    final Method method, final Object... arg) {
                 try {
                     return new Rejected(reason).invoke(proxy, method, arg);
-                } catch (final Exception e) {
-                    throw new Error(e);
-                }
+                } catch (final Exception e) { throw new Error(e); }
             }
         };
     }
