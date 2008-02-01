@@ -1,65 +1,65 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+<html>
 <head>
- <title>Waterken Deployment Tips</title>
- <link rel="StyleSheet" type="text/css" href="../res/style.css"></link>
- <link rel="icon" type="image/gif" href="../res/icon.gif"></link>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Deployment Tips: Configuration options for the Waterken Server</title>
+<link rel="StyleSheet" type="text/css" href="../res/style.css">
+<link rel="icon" type="image/gif" href="../res/icon.gif">
 </head>
 <body>
- <div class="navigation">
-  <a href="../"><img src="../res/icon.gif" width="16" height="16" border="0" alt="home"></img></a>
-  <span class="heading">&rarr; Deployment Tips</span>
- </div>
- <div class="main">
- <h1><a name="title" href="#title">Configuration options for the Waterken<font size="-1"><sup>TM</sup></font> Server</a></h1>
- <h2><a name="folders" href="#folder">Folder layout</a></h2>
- <p>At runtime, the Waterken Server uses the following folders:</p>
- <dl>
-  <dt><code>config</code></dt>
-  <dd>holds configuration files, such as the SSL key pair</dd>
-  <dt><code>db</code></dt>
-  <dd>holds persistent Java objects</dd>
-  <dt><code>code</code></dt>
-  <dd>holds project specific Java class files
-      <p>This folder is expected to contain an entry for each project. For
-      example, the Waterken Server includes a project named "example", so the
-      <code>code</code> folder includes a sub-folder named
-      <code>example/bin/</code>.</p>
-  </dd>
-  <dt><code>www</code></dt>
-  <dd>holds static web content, such as CSS files and Javascript</dd>
- </dl>
- <p>By default, the server will assume the current working directory should be
- used as the <code>code</code> folder.  The other folders are then expected to
- be in immediate sub-folders.  This folder layout is the one created when you
- unpack the waterken-server distribution.</p>
- <p>This default folder layout can be customized using Java system properties.
- A Java system property can be defined using a "<code>-D</code>" option to the
- <code>java</code> command used to start a JVM.</p>
- <dl>
-  <dt><code>waterken.home</code></dt>
-  <dd>use the specified folder as the <code>home</code> folder (defaults
-  to the current working directory)</dd>
-  <dt><code>waterken.config</code></dt>
-  <dd>use the specified folder as the <code>config</code> folder (defaults to the
-  "config" sub-folder of the <code>waterken.home</code> folder)</dd>
-  <dt><code>waterken.db</code></dt>
-  <dd>use the specified folder as the <code>db</code> folder (defaults to the
-  "db" sub-folder of the <code>waterken.home</code> folder)</dd>
-  <dt><code>waterken.code</code></dt>
-  <dd>use the specified folder as the <code>code</code> folder (defaults to
-  the <code>waterken.home</code> folder)</dd>
-  <dt><code>waterken.bin</code></dt>
-  <dd>use the specified string as the extension to be added to a project name
-  to get the name of the folder, or JAR file, containing the project's class
-  files (defaults to "/bin/")
- </dl>
- <p>The <code>www</code> folder is determined by the setting in the
- <code>server.json</code> configuration file in the <code>config</code> folder.
- </p>
- </div>
- <p class="footer">
- </p>
+<div class="navigation">
+<a href="../"><img alt="home" src="../res/icon.gif" width="16" height="16" border="0"></a>
+<span class="heading">&rarr; Deployment Tips</span>
+</div>
+<div class="main">
+<h1><a name="title" href="#title">Configuration options for the Waterken<sup>TM</sup> Server</a></h1>
+<h2><a name="folders" href="#folder">Folder layout</a></h2>
+<p>At runtime, the Waterken Server uses the following folders:</p>
+<dl>
+<dt><code>config</code></dt>
+<dd>holds configuration files, such as the SSL key pair</dd>
+<dt><code>db</code></dt>
+<dd>holds persistent Java objects</dd>
+<dt><code>code</code></dt>
+<dd>holds project specific Java class files
+<p>This folder is expected to contain an entry for each project. For example,
+the Waterken Server includes a project named "example", so the <code>code</code>
+folder includes a sub-folder named <code>example/bin/</code>.</p>
+</dd>
+<dt><code>www</code></dt>
+<dd>holds static web content, such as CSS files and Javascript</dd>
+</dl>
+<p>By default, the server will assume the current working directory should be
+used as the <code>code</code> folder.  The other folders are then expected to be
+in immediate sub-folders.  This folder layout is the one created when you unpack
+the waterken-server distribution.</p>
+<p>This default folder layout can be customized using Java system properties.  A
+Java system property can be defined using a "<code>-D</code>" option to the
+<code>java</code> command used to start a JVM.</p>
+<dl>
+<dt><code>waterken.home</code></dt>
+<dd>use the specified folder as the <code>home</code> folder (defaults to the
+current working directory)</dd>
+<dt><code>waterken.config</code></dt>
+<dd>use the specified folder as the <code>config</code> folder (defaults to the
+"config" sub-folder of the <code>waterken.home</code> folder)</dd>
+<dt><code>waterken.db</code></dt>
+<dd>use the specified folder as the <code>db</code> folder (defaults to the "db"
+sub-folder of the <code>waterken.home</code> folder)</dd>
+<dt><code>waterken.code</code></dt>
+<dd>use the specified folder as the <code>code</code> folder (defaults to the
+<code>waterken.home</code> folder)</dd>
+<dt><code>waterken.bin</code></dt>
+<dd>use the specified string as the extension to be added to a project name to
+get the name of the folder, or JAR file, containing the project's class files
+(defaults to "/bin/")
+</dl>
+<p>The <code>www</code> folder is determined by the setting in the
+<code>server.json</code> configuration file in the <code>config</code> folder.
+</p>
+</div>
+<p class="footer">
+</p>
 </body>
 </html>
