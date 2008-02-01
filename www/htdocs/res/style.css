@@ -1,10 +1,11 @@
-h1 { font-family: Arial, Helvetica, sans-serif; text-align: center; color: #007FB2 }
-h2 { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
-h3 { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
-h4 { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
-A { text-decoration: none }
-A:hover { color: blue; text-decoration: underline }
-.heading { font-family: Arial, Helvetica, sans-serif; color: #007FB2; text-decoration: none }
+h1 { text-align: center }
+h1 a { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
+h2 a { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
+h3 a { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
+h4 a { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
+.heading { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
+a { text-decoration: none }
+a:hover { color: blue; text-decoration: underline }
 .figure { padding-left: 5em; width: 400px }
 .caption { font-size: large; font-weight: bold }
 caption { font-size: large; font-weight: bold }
