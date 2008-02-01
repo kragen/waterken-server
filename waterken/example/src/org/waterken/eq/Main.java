@@ -82,12 +82,12 @@ Main extends Struct implements Test, Serializable {
      */
     public Promise<Boolean>
     start() throws Exception {
-        final ArrayList<Promise<Boolean>> r = new ArrayList<Promise<Boolean>>();
-        r.add(testNormal());
-        r.add(testNull());
-        r.add(testDouble());
-        r.add(testFloat());
-        return and(_, r.toArray(new Promise[r.size()]));
+        return and(_,
+            testNormal(),
+            testNull(),
+            testDouble(),
+            testFloat()
+        );
     }
     
     // org.waterken.eq.Main interface
