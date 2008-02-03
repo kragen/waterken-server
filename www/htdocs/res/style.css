@@ -1,5 +1,4 @@
-h1 { text-align: center }
-h1 a { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
+h1 a { font-family: Arial, Helvetica, sans-serif; color: #007FB2; text-align: center }
 h2 a { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
 h3 a { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
 h4 a { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
@@ -8,8 +7,8 @@ a { text-decoration: none }
 a:hover { color: blue; text-decoration: underline }
 sup { font-size: x-small }
 .figure { padding-left: 5em; width: 400px }
-.caption { font-size: large; font-weight: bold }
 caption { font-size: large; font-weight: bold }
+.caption { font-size: large; font-weight: bold }
 form { padding: 0px; margin: 0px }
 th { text-align: right; vertical-align: baseline; background-color: #99CCCC }
 .navigation { padding-bottom: 2px }
