@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<title>Subclipse Setup: Using Subversion with the Waterken Server under Eclipse</title>
+<title>Subclipse Setup: Using Subversion with the Waterken server under Eclipse</title>
 <link rel="StyleSheet" type="text/css" href="../res/style.css">
 <link rel="icon" type="image/gif" href="../res/icon.gif">
 </head>
@@ -13,16 +13,16 @@
 <span class="heading">&rarr; Subclipse Setup</span>
 </div>
 <div class="main">
-<h1><a name="title" href="#title">Using Subversion with the Waterken<sup>TM</sup> Server under Eclipse</a></h1>
+<h1><a name="title" href="#title">Using Subversion with the Waterken<sup>TM</sup> server under Eclipse</a></h1>
 <h2><a name="introduction" href="#introduction">Introduction</a></h2>
 <p>This tutorial explains how to build a new Eclipse workspace for the Waterken
-Server with the server code integrated with the Subversion source control
+server with the server code integrated with the Subversion source control
 system.</p>
-<p>The Waterken Server uses the Joe-E verifier to ensure that it uses authority
+<p>The Waterken server uses the Joe-E verifier to ensure that it uses authority
 in a way that minimizes the risk of breach. This tutorial does not include how
 to install the Joe-E verifier plugin and to use it to examine your own code for
 dangerous uses of authority. It does cover installation of the Joe-E files
-because the Waterken Server uses some Joe-E libraries internally.</p>
+because the Waterken server uses some Joe-E libraries internally.</p>
 <h2><a name="steps" href="#steps">Step by step</a></h2>
 <h3><a name="new_workspace" href="#new_workspace">Start new workspace for Waterken under Eclipse</a></h3>
 <p>Start Eclipse. Go to "File/Switch Workspace/Other". You may want to check
@@ -66,7 +66,7 @@ lines (they show up in other sections as well, do not set the wrong ones!),</p>
 <h3><a name="waterken_repository" href="#waterken_repository">Enter the Waterken repository</a></h3>
 <ol>
 <li>Go to "Window/Open Perspective/ Other/ SVN Repository"</li>
-<li>Right-click in the "SVN Repos" tab, click "New", enter the Waterken Server
+<li>Right-click in the "SVN Repos" tab, click "New", enter the Waterken server
 repository:
 <code>&lt;<a href="https://waterken.svn.sourceforge.net/svnroot/waterken/server/trunk/waterken">https://waterken.svn.sourceforge.net/svnroot/waterken/server/trunk/waterken</a>&gt;</code>.
 Click "Next".</li>
@@ -92,7 +92,7 @@ the order is the order of compiler dependencies):
 <li>server</li>
 </ol>
 </li>
-<li>At this point, you should have all the sources for the Waterken Server
+<li>At this point, you should have all the sources for the Waterken server
 installed.  Switch from the Repository view to the Java view, and run
 "Project/Clean..." to ensure it all builds.</li>
 <li>Go back into the Subversion view and checkout the www folder <i>just
@@ -105,7 +105,7 @@ Click "Finish".</li>
 <p>To update, in the Java view, select the folders you want to sync/update,
 right-click, choose "Team/Update". This makes all the setup effort worth it,
 right?</p>
-<h3><a name="run" href="#run">Running the Waterken Server</a></h3>
+<h3><a name="run" href="#run">Running the Waterken server</a></h3>
 <p>To run the server under Eclipse, you need to configure the Run or Debug
 window.  Click "Debug/Open Debug Window... Debug as a Java Application", "Name"
 is "serve", "Main Project" is "server", "Main Class" is
