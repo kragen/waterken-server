@@ -6,7 +6,7 @@ h4 a { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
 .heading { font-family: Arial, Helvetica, sans-serif; color: #007FB2 }
 a { text-decoration: none }
 a:hover { color: blue; text-decoration: underline }
-sup { font-size: x-small }
+sup { font-size: small }
 .figure { padding-left: 5em; width: 400px }
 caption { font-size: large; font-weight: bold }
 .caption { font-size: large; font-weight: bold }
