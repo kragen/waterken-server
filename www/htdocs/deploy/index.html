@@ -75,13 +75,15 @@ waterken-server distribution.</dd>
 types to be consulted when serving files from the <code>www</code> folder.</dd>
 </dl>
 <h2><a name="using" href="#using">Using the server</a></h2>
+<h3><a name="new_model" href="#new_model">Adding a new model</a></h3>
 <p>Persistent Java objects hosted by the Waterken server are grouped into
 collections, each of which is called a "model". The persistent state of each
-model is held a sub-folder of </p>
+model is held a sub-folder of the <code><a href="#db">db</a></code> folder.
+</p>
 <h3><a name="new_project" href="#new_project">Adding a new project</a></h3>
-<p>This section explains how to add a new collection of Java class files to the
-server. There are two steps to this process: putting the Java class files in the
-expected location and configuring the default web page to be served when </p>
+<p>Each model is associated with a given project in the
+<code><a href="#code">code</a></code> folder where the application specific code
+for that model is kept. For each project, there's also a default web page.</p>
 </div>
 <p class="footer">
 </p>
