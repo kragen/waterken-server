@@ -24,9 +24,10 @@ loops allow multiple activities to be pursued, without many of the dangers
 inherent in multi-threading. This computing model is made even better with the
 addition of promises, a kind of reference that can refer to the result of future
 computation, such as the response to an asynchronous message. For example,
-promises make it a lot easier to express an algorithm that involves multiple
-asynchronous messages. The Waterken server provides a platform for building such
-applications in Java and making them accessible to HTTP-based clients.</p>
+promises make it a lot easier to express an algorithm that sends additional
+asynchronous messages depending on the results of past messages.  The Waterken
+server provides a platform for building such applications in Java and making
+them accessible to HTTP-based clients.</p>
 <p>Server-side Java code is written to the
 <a href="javadoc/overview-summary.html">ref_send API</a>, which defines the
 asynchronous invocation interface. The Waterken server implementation of the
