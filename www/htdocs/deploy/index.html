@@ -15,13 +15,16 @@
 <div class="main">
 <h1><a name="title" href="#title">Configuring the Waterken<sup>TM</sup> server</a></h1>
 <h2><a name="setup" href="#setup">Setup</a></h2>
-<p>When the waterken-server distribution is unpacked, it creates an installation
-which is ready to be used. This default setup can be configured in various ways
-to match your desired deployment. This section explains the provided
-configuration options. You can <a href="#using">skip this section</a> if you're
-content to use the provided setup.</p>
+<p>When the
+<a href="http://sourceforge.net/project/platformdownload.php?group_id=93988">waterken-server</a>
+distribution is unpacked, it creates an installation which is ready to be used.
+This default setup can be configured in various ways to match your desired
+deployment. This section explains the provided configuration options. You can
+<a href="#using">skip to the section on using</a> the server if you're content
+to use the provided setup.</p>
 <h3><a name="system_properties" href="#system_properties">Java system properties</a></h3>
-<p>At runtime, the server uses the following folders:</p>
+<p>To bootstrap its configuration, the server needs to know the locations of the
+following folders:</p>
 <dl>
 <dt><code><a name="config" href="#config">config</a></code></dt>
 <dd>holds configuration files, such as the SSL key pair</dd>
@@ -75,6 +78,20 @@ waterken-server distribution.</dd>
 types to be consulted when serving files from the <code>www</code> folder.</dd>
 </dl>
 <h2><a name="using" href="#using">Using the server</a></h2>
+<p>The server can host two kinds of resources: files and Java objects. This
+section shows how to add new resources to the server.</p>
+<h3><a name="new_files" href="#new_files">Adding served files</a></h3>
+<p>The content of any file under the <code><a href="#www">www/</a></code> folder
+can be fetched using a URL whose path names the file. For example, your site's
+homepage is at <code>www/index.html</code> and can be fetched using the URL:
+<code>&lt;<a href="http://localhost:8080/index.html">http://localhost:8080/index.html</a>&gt;</code>.
+</p>
+<p>By convention, the <code>www/res/</code> folder is reserved for shared
+content, such as stylesheets, images and Javascript code, that is referenced by
+many other resources. This folder also provides the content served for HTTP
+error codes. For example, the <code>www/res/404.html</code> file provides the
+default content for any HTTP <code>404</code> error pages returned by the
+server.</p>
 <h3><a name="new_model" href="#new_model">Adding a new model</a></h3>
 <p>Persistent Java objects hosted by the Waterken server are grouped into
 collections, each of which is called a "model". The persistent state of each
