@@ -1,7 +1,29 @@
 // Copyright 2007 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 var _ = function () {
-    function enqueue(task) { setTimeout(task, 0); }
+
+    // Whether or not setTimeout(, 0) executes tasks in order is unspecified, so
+    // a FIFO event loop is implemented below.
+    var enqueue = function () {
+        var active = false;
+        var pending =  [ /* task */ ];
+        var run = function () {
+            var task = pending.shift();
+            if (0 === pending.length) {
+                active = false;
+            } else {
+                setTimeout(run, 0);
+            }
+            task();
+        };
+        return function (task) {
+            pending.push(task);
+            if (!active) {
+                setTimeout(run, 0);
+                active = true;
+            }
+        };
+    } ();
 
     function Promise() {}
 
@@ -47,6 +69,7 @@ var _ = function () {
         if (undefined === value) { return indeterminate_; }
         if (null === value) { return indeterminate_; }
         if (Promise === value.constructor) { return value; }
+        // TODO: handle floating point types.
         return new Fulfilled(value);
     }
 
@@ -367,7 +390,11 @@ var _ = function () {
         },
         defer: function () {
             var p_ = new Tail();
-            return { promise_: p_, resolver: new Head(p_) };
+            return {
+                $: [ 'org.ref_send.promise.eventual.Channel' ],
+                promise: p_,
+                resolver: new Head(p_)
+            };
         },
         connect: function (URL) { return new Remote(URL); }
     };
