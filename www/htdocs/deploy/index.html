@@ -86,26 +86,25 @@ can be fetched using a URL whose path names the file. For example, your site's
 homepage is at <code>www/index.html</code> and can be fetched using the URL:
 <code>&lt;<a href="http://localhost:8080/index.html">http://localhost:8080/index.html</a>&gt;</code>.
 </p>
-<p>By convention, the <code>www/site/</code> folder is reserved for shared
-content, such as stylesheets, images and Javascript code, that is referenced by
-many other resources. This folder also provides the content served for HTTP
-error codes. For example, the <code>www/site/404.html</code> file provides the
-default content for any HTTP <code>404</code> error pages returned by the
-server.</p>
+<p>By convention, the <code>www/site/</code> folder is reserved for resources
+that are shared site-wide, such as stylesheets, images and Javascript code.
+This folder also provides the content served for HTTP error codes. For example,
+the <code>www/site/404.html</code> file provides the default content for any
+HTTP <code>404</code> error pages returned by the server.</p>
 <h3><a name="new_model" href="#new_model">Adding a new model</a></h3>
 <p>Persistent Java objects hosted by the Waterken server are grouped into
 collections, each of which is called a "model". The persistent state of each
 model is held in a sub-folder of the <code><a href="#db">db/</a></code> folder.
-You can create a new model from the command line using <code>share.jar</code>:
+You can create a new model from the command line using <code>spawn.jar</code>:
 </p>
-<p><kbd>java -jar share.jar example org.waterken.bang.Main test</kbd></p>
+<p><kbd>java -jar spawn.jar example org.waterken.bang.Main test</kbd></p>
 <p>The above command enables execution of the
 <a href="../javadoc/org/web_send/graph/Publisher.html#spawn(java.lang.String,%20java.lang.Class)">Publisher#spawn()</a>
 method from the command line. The last argument is the model name and the second
 to last is the fully qualified name of the maker class used to construct the
 first application object in the new model. The web-key for the created object is
-returned on the <code>stdout</code> of the <code>share.jar</code> command. The
-first argument to the <code>share.jar</code> command is the name of the project
+returned on the <code>stdout</code> of the <code>spawn.jar</code> command. The
+first argument to the <code>spawn.jar</code> command is the name of the project
 that defines the maker class.</p>
 <h3><a name="new_project" href="#new_project">Adding a new project</a></h3>
 <p>Each model is associated with a given project in the
