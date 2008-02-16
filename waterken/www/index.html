@@ -1,50 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+<html>
 <head>
- <title>Installation Successful</title>
- <link rel="StyleSheet" type="text/css" href="site/style.css"></link>
- <link rel="icon" type="image/gif" href="site/icon.gif"></link>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Installation Successful</title>
+<link rel="StyleSheet" type="text/css" href="site/style.css">
+<link rel="icon" type="image/gif" href="site/icon.gif">
 </head>
 <body>
- <div class="navigation">
-  <img src="site/icon.gif" border="0" alt="home"></img>
- </div>
- <div class="main">
-  <h1>Waterken<font size="-1"><sup>TM</sup></font> Server is installed!</h1>
-  <p>You have successfully installed the
-  <a href="http://waterken.sourceforge.net/">Waterken<font size="-1"><sup>TM</sup></font> Server</a>.</p>
-  <h2>Configure an SSL key</h2>
-  <p>SSL key pairs for HTTPS must be stored in the <code>keys.jks</code> file.
-  Generate your own key using the following command from the root directory of
-  your installation:</p>
-  <p>
-   <kbd>java -jar genkey.jar</kbd>
-  </p>
-  <p>If you are behind an HTTP proxy, its address must be specified in the above
-  command. For example:</p>
-  <p>
-   <kbd>java -DproxyHost=proxy.example.com -DproxyPort=8088 -DproxySet=true
-        -jar genkey.jar</kbd>
-  <p>Access to the network is needed to register the newly generated hostname.
-  The server must be restarted to begin using the new key pair.</p>
-  <h2>Static files</h2>
-  <p>This file, and other static web content, is served from the
-  <code>www/</code> sub-directory of your installation.</p>
-  <h2>Database creation</h2>
-  <p>Persistent, web-enabled, Java objects are stored under the <code>db/</code>
-  directory. A new database can be created with a command like:</p>
-  <p>
-   <kbd>java -jar share.jar example org.waterken.bang.Main test</kbd>
-  </p>
-  <p>The first argument is the name of the sub directory containing the
-  corresponding class files. The second argument is the fully qualified
-  classname for the object factory used to construct the first object in the
-  database. The third argument is the name for the new database.</p>
- </div>
- <p class="footer">
-  <span class="copyright comment">Copyright 2004-2007 Waterken Inc. All rights reserved.</span>
-  <span class="trademark comment"> Waterken is a registered trademark of Waterken Inc.</span>
- </p>
+<div class="navigation">
+<img src="site/icon.gif" border="0" alt="home">
+</div>
+<div class="main">
+<a href="http://waterken.sourceforge.net/">online documentation</a>
+<h1><a name="title" href="#title">Waterken<sup>TM</sup> server is installed!</a></h1>
+<p>You have successfully installed the
+<a href="http://waterken.sourceforge.net/">Waterken<sup>TM</sup> server</a>.
+Server <a href="http://waterken.sourceforge.net/">documentation</a> is available
+online.</p>
+<h2><a name="todo" href="#todo">Things to do&hellip;</a></h2>
+<ul>
+<li><a href="http://waterken.sourceforge.net/deploy/#keygen">Configure an SSL keypair</a></li>
+<li><a href="http://waterken.sourceforge.net/deploy/#new_files">Edit your homepage</a></li>
+</ul>
+</div>
+<p class="footer">
+<span class="copyright comment">Copyright 2004-2008 Waterken Inc. All rights reserved.</span>
+<span class="trademark comment"> Waterken is a registered trademark of Waterken Inc.</span>
+</p>
 </body>
 </html>
