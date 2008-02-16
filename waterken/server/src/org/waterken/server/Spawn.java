@@ -1,4 +1,4 @@
-// Copyright 2007 Waterken Inc. under the terms of the MIT X license
+// Copyright 2007-2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
@@ -22,10 +22,10 @@ import org.waterken.uri.URI;
  * Command line program to create a new database.
  */
 final class
-Share {
+Spawn {
 
     private
-    Share() {}
+    Spawn() {}
     
     /**
      * @param args  command line arguments
@@ -36,8 +36,8 @@ Share {
         // extract the arguments
         if (args.length < 2) {
             final PrintStream log = System.err;
-            log.println("Creates a new database.");
-            log.println("use: java -jar share.jar " +
+            log.println("Creates a new persistent object folder.");
+            log.println("use: java -jar spawn.jar " +
                 "<project-name> <factory-typename> <database-label>");
             System.exit(-1);
             return;
