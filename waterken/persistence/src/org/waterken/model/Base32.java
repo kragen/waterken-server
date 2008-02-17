@@ -51,7 +51,7 @@ Base32 {
     static public byte[]
     decode(final String chars) throws InvalidBase32 {
         final int end = chars.length();
-        byte[] r = new byte[end * 5 / 8];
+        final byte[] r = new byte[end * 5 / 8];
         int buffer = 0;
         int bufferSize = 0;
         int j = 0;
