@@ -66,7 +66,6 @@ Base32 {
             }
         }
         if (0 != (buffer & ((1 << bufferSize) - 1))) { invalid(); }
-        if (r.length != j) { System.arraycopy(r, 0, r = new byte[j], 0, j); }
         return r;
     }
 
