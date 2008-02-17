@@ -25,16 +25,16 @@ Base32 {
         int bufferSize = 0;
         for (final byte b : bytes) {
             buffer <<= 8;
-            buffer |= b & 0x000000FF;
+            buffer |= b & 0xFF;
             bufferSize += 8;
             while (bufferSize >= 5) {
                 bufferSize -= 5;
-                r.append(at((buffer >>> bufferSize) & 0x1F));
+                r.append(at(buffer >>> bufferSize));
             }
         }
         if (0 != bufferSize) {
             buffer <<= 5 - bufferSize;
-            r.append(at(buffer & 0x1F));
+            r.append(at(buffer));
         }        
         return r.toString();
     }
