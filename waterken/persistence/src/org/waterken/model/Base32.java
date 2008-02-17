@@ -57,14 +57,12 @@ Base32 {
         int j = 0;
         for (int i = 0; i != end; ++i) {
             final char c = chars.charAt(i);
-            if ('-' != c) {
-                buffer <<= 5;
-                buffer |= locate(c);
-                bufferSize += 5;
-                if (bufferSize >= 8) {
-                    bufferSize -= 8;
-                    r[j++] = (byte)(buffer >>> bufferSize);
-                }
+            buffer <<= 5;
+            buffer |= locate(c);
+            bufferSize += 5;
+            if (bufferSize >= 8) {
+                bufferSize -= 8;
+                r[j++] = (byte)(buffer >>> bufferSize);
             }
         }
         if (0 != (buffer & ((1 << bufferSize) - 1))) { invalid(); }
@@ -80,10 +78,6 @@ Base32 {
             ? 26 + (c - '2')
         : 'A' <= c && 'Z' >= c
             ? c - 'A'
-        : '0' == c
-            ? 'o' - 'a'
-        : '1' == c
-            ? 'l' - 'a'
         : invalid();
     }
 
