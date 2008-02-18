@@ -42,7 +42,7 @@ import org.waterken.thread.Concurrent;
 import org.waterken.vat.Creator;
 import org.waterken.vat.CyclicGraph;
 import org.waterken.vat.Effect;
-import org.waterken.vat.Model;
+import org.waterken.vat.Vat;
 import org.waterken.vat.ProhibitedCreation;
 import org.waterken.vat.ProhibitedModification;
 import org.waterken.vat.Root;
@@ -56,7 +56,7 @@ import org.web_send.graph.Unavailable;
  * An object graph stored as a folder of Java Object Serialization files.
  */
 public final class
-JODB extends Model {
+JODB extends Vat {
 
     /**
      * canonical persistence folder
@@ -96,7 +96,7 @@ JODB extends Model {
      * @param service   {@link #service}
      * @throws FileNotFoundException    <code>id</code> not a persistence folder
      */
-    static public Model
+    static public Vat
     open(final File id, final Loop<Service> service) throws Exception {
         final File folder = id.getCanonicalFile();
         if (!folder.isDirectory()) { throw new FileNotFoundException(); }
@@ -117,7 +117,7 @@ JODB extends Model {
      * @param id    persistence folder
      * @throws FileNotFoundException    <code>id</code> not a persistence folder
      */
-    static public Model
+    static public Vat
     connect(final File id) throws Exception {
         final File folder = id.getCanonicalFile();
         if (!folder.isDirectory()) { throw new FileNotFoundException(); }
@@ -130,7 +130,7 @@ JODB extends Model {
         }
     }
 
-    static private Model
+    static private Vat
     load(final File folder,
          final Loop<Service> service) throws FileNotFoundException {
         if (!folder.equals(dbDir) && !folder.getPath().startsWith(dbDirPath)) {
@@ -144,7 +144,7 @@ JODB extends Model {
         return r;
     }
 
-    // org.waterken.model.Model interface
+    // org.waterken.vat.Vat interface
 
     /**
      * Is a {@link #enter transaction} currently being processed?
@@ -165,7 +165,7 @@ JODB extends Model {
         busy = true;
         try {
             if (!awake) {
-                awake = process(Model.extend, new Transaction<Boolean>() {
+                awake = process(Vat.extend, new Transaction<Boolean>() {
                     public Boolean
                     run(final Root local) throws Exception {
                         // start up a runner if necessary

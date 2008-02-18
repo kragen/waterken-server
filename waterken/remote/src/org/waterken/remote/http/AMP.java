@@ -29,7 +29,7 @@ import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
 import org.waterken.uri.URI;
 import org.waterken.vat.Creator;
-import org.waterken.vat.Model;
+import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
 import org.waterken.vat.Transaction;
 import org.web_send.Failure;
@@ -60,7 +60,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
     // org.waterken.remote.Remoting interface
 
     public Server
-    remote(final Server bootstrap, final String scheme, final Model model) {
+    remote(final Server bootstrap, final String scheme, final Vat model) {
         return new Server() {
             public void
             serve(final String resource,

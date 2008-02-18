@@ -5,7 +5,7 @@ package org.waterken.vat;
 import org.web_send.graph.Collision;
 
 /**
- * A {@link Model} factory.
+ * A {@link Vat} factory.
  */
 public interface
 Creator {
@@ -19,7 +19,7 @@ Creator {
     load(String project) throws Exception;
 
     /**
-     * Creates a new {@link Model}.
+     * Creates a new {@link Vat}.
      * @param initialize    first transaction to run on the new model
      * @param project       corresponding project name
      * @param name          model name, or <code>null</code> for generated name

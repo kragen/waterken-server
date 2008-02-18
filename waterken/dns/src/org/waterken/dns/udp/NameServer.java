@@ -19,7 +19,7 @@ import org.waterken.dns.Domain;
 import org.waterken.dns.Resource;
 import org.waterken.jos.JODB;
 import org.waterken.udp.UDPDaemon;
-import org.waterken.vat.Model;
+import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
 import org.waterken.vat.Transaction;
 
@@ -112,7 +112,7 @@ NameServer extends UDPDaemon {
         final ConstArray<Resource> answers;
         try {
             answers = JODB.connect(file(master, qname.toLowerCase())).enter(
-                    Model.extend, new Transaction<ConstArray<Resource>>() {
+                    Vat.extend, new Transaction<ConstArray<Resource>>() {
                 public ConstArray<Resource>
                 run(final Root local) throws Exception {
                     final Domain face = (Domain)local.fetch(null, Domain.name);

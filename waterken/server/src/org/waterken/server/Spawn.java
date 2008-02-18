@@ -14,7 +14,7 @@ import org.waterken.remote.http.AMP;
 import org.waterken.uri.Hostname;
 import org.waterken.uri.URI;
 import org.waterken.vat.Creator;
-import org.waterken.vat.Model;
+import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
 import org.waterken.vat.Transaction;
 
@@ -66,7 +66,7 @@ Spawn {
         final Proxy clientValue = new Proxy();
         
         // create the database
-        final String r=Config.db().enter(Model.change,new Transaction<String>(){
+        final String r=Config.db().enter(Vat.change,new Transaction<String>(){
             public String
             run(final Root local) throws Exception {
                 final Token deferredValue = new Token();

@@ -22,7 +22,7 @@ import org.waterken.io.limited.Limited;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.remote.Remoting;
 import org.waterken.vat.Effect;
-import org.waterken.vat.Model;
+import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
 import org.waterken.vat.Service;
 import org.waterken.vat.Transaction;
@@ -50,7 +50,7 @@ Pipeline implements Serializable {
     
     private final String peer;
     private final Loop<Effect> effect;
-    private final Model model;
+    private final Vat model;
     private final Fulfilled<Outbound> outbound;
     
     private final List<Entry> pending = List.list();
@@ -61,7 +61,7 @@ Pipeline implements Serializable {
     Pipeline(final String peer, final Root local) {
         this.peer = peer;
         effect = (Loop)local.fetch(null, Root.effect);
-        model = (Model)local.fetch(null, Root.model);
+        model = (Vat)local.fetch(null, Root.model);
         outbound = Fulfilled.detach((Outbound)local.fetch(null, AMP.outbound));
     }
 
@@ -121,7 +121,7 @@ Pipeline implements Serializable {
     }
     
     static private Effect
-    restart(final Model model, final String peer,
+    restart(final Vat model, final String peer,
             final int max, final boolean skipTo, final int mid) {
         // Create a transaction effect that will schedule a new extend
         // transaction that actually puts the messages on the wire.
@@ -131,7 +131,7 @@ Pipeline implements Serializable {
                model.service.run(new Service() {
                    public void
                    run() throws Exception {
-                       model.enter(Model.extend, new Transaction<Void>() {
+                       model.enter(Vat.extend, new Transaction<Void>() {
                            public Void
                            run(final Root local) throws Exception {
                                final Server client =
@@ -166,7 +166,7 @@ Pipeline implements Serializable {
     }
     
     static private Effect
-    send(final Model model, final Server client,
+    send(final Vat model, final Server client,
          final String peer, final Entry x) {
         Promise<Request> rendered;
         try {
@@ -187,11 +187,11 @@ Pipeline implements Serializable {
     static private final class
     Receive extends Do<Response,Void> {
         
-        private final Model model;
+        private final Vat model;
         private final String peer;
         private final int mid;
         
-        Receive(final Model model, final String peer, final int mid) {
+        Receive(final Vat model, final String peer, final int mid) {
             this.model = model;
             this.peer = peer;
             this.mid = mid;
@@ -221,7 +221,7 @@ Pipeline implements Serializable {
         private Void
         resolve(final Promise<Response> response) throws Exception {
             try {
-                model.enter(Model.change, new Transaction<Void>() {
+                model.enter(Vat.change, new Transaction<Void>() {
                     public Void
                     run(final Root local) throws Exception {
                         final Outbound outbound =

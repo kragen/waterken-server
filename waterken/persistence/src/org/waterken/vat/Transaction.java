@@ -3,14 +3,14 @@
 package org.waterken.vat;
 
 /**
- * A {@link Model#enter transaction} body.
+ * A {@link Vat#enter transaction} body.
  */
 public interface
 Transaction<R> {
 
     /**
      * Executes the transaction.
-     * @param local {@link Model} root
+     * @param local {@link Vat} root
      * @return any return
      * @throws Exception    any problem
      */

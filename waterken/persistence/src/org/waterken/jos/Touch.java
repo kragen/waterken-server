@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.PrintStream;
 
-import org.waterken.vat.Model;
+import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
 import org.waterken.vat.Transaction;
 
@@ -37,7 +37,7 @@ Touch {
         }
 
         final File folder = new File(args[0]);
-        ((JODB)JODB.connect(folder)).process(Model.change,
+        ((JODB)JODB.connect(folder)).process(Vat.change,
                                              new Transaction<Void>() {
             public Void
             run(final Root local) throws Exception {

@@ -11,8 +11,8 @@ import org.web_send.graph.Collision;
 /**
  * The roots of a persistent object graph.
  * <p>
- * A {@link Root} provides administrative authority over a {@link Model}.
- * {@link Model} infrastructure code can stash hidden state in this mapping
+ * A {@link Root} provides administrative authority over a {@link Vat}.
+ * {@link Vat} infrastructure code can stash hidden state in this mapping
  * by prefixing the binding name with a '<code>.</code>' character.
  * </p>
  */
@@ -32,13 +32,13 @@ Root {
     String creator = ".creator";
     
     /**
-     * {@link Runnable deletes} the corresponding {@link Model}
+     * {@link Runnable deletes} the corresponding {@link Vat}
      */
     String destruct = ".destruct";
 
     /**
      * corresponding {@link Effect} {@link Loop loop} processed only if
-     * the current {@link Model#enter transaction} commits
+     * the current {@link Vat#enter transaction} commits
      */
     String effect = ".effect";
     
@@ -48,7 +48,7 @@ Root {
     String enqueue = ".enqueue";
 
     /**
-     * corresponding {@link Model}
+     * corresponding {@link Vat}
      */
     String model = ".model";
     
@@ -68,11 +68,11 @@ Root {
     String project = ".project";
 
     /**
-     * {@link Model#extend} transaction to run each time model is loaded
+     * {@link Vat#extend} transaction to run each time model is loaded
      */
     String wake = ".wake";
 
-    // org.waterken.model.Root interface
+    // org.waterken.vat.Root interface
     
     /**
      * Gets the name of the containing model.

@@ -23,7 +23,7 @@ import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
-import org.waterken.vat.Model;
+import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
 import org.waterken.vat.Transaction;
 import org.web_send.graph.Collision;
@@ -110,7 +110,7 @@ Browser extends Struct implements Record, Serializable {
             public String
             getTransactionTag() { throw new AssertionError(); }
         };
-        final Model model = new Model((Loop)enqueue) {
+        final Vat model = new Vat((Loop)enqueue) {
             
             private boolean busy = false;
             

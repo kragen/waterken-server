@@ -4,7 +4,7 @@ package org.waterken.remote;
 
 import org.ref_send.promise.eventual.Deferred;
 import org.waterken.http.Server;
-import org.waterken.vat.Model;
+import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
 
 /**
@@ -41,5 +41,5 @@ Remoting {
      * @return network interface
      */
     Server
-    remote(Server bootstrap, String scheme, Model model);
+    remote(Server bootstrap, String scheme, Vat model);
 }

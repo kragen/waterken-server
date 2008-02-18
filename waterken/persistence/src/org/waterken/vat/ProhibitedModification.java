@@ -8,8 +8,8 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * Signals an attempt to modify persistent state in an {@link Model#extend}
- * {@link Model#enter transaction}.
+ * Signals an attempt to modify persistent state in an {@link Vat#extend}
+ * {@link Vat#enter transaction}.
  */
 public class
 ProhibitedModification extends RuntimeException implements Powerless, Record {

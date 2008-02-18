@@ -5,7 +5,7 @@ package org.waterken.vat;
 import org.ref_send.promise.eventual.Task;
 
 /**
- * A transient {@link Model#service}.
+ * A transient {@link Vat#service}.
  */
 public interface
 Service extends Task {}

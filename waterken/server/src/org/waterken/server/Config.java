@@ -26,7 +26,7 @@ import org.waterken.syntax.Serializer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.thread.Concurrent;
-import org.waterken.vat.Model;
+import org.waterken.vat.Vat;
 
 /**
  * Server configuration.
@@ -71,7 +71,7 @@ Config {
      * Gets the root database.
      * @throws Exception    any problem
      */
-    static protected Model
+    static protected Vat
     db() throws Exception { return JODB.connect(db); }
 
     static protected final String ext = ".json";

@@ -8,8 +8,8 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * Signals an attempt to create selfish state in an {@link Model#extend}
- * {@link Model#enter transaction}.
+ * Signals an attempt to create selfish state in an {@link Vat#extend}
+ * {@link Vat#enter transaction}.
  */
 public class
 ProhibitedCreation extends RuntimeException implements Powerless, Record {

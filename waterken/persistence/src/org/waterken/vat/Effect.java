@@ -5,7 +5,7 @@ package org.waterken.vat;
 import org.ref_send.promise.eventual.Task;
 
 /**
- * A transient side-effect of a {@link Model#enter transaction}.
+ * A transient side-effect of a {@link Vat#enter transaction}.
  */
 public interface
 Effect extends Task {}

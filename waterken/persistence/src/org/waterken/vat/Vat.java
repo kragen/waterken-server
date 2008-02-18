@@ -15,7 +15,7 @@ import org.web_send.graph.Framework;
  * </p>
  */
 public abstract class
-Model {
+Vat {
 
     /**
      * indicates a {@linkplain #enter transaction} may modify existing state
@@ -38,7 +38,7 @@ Model {
      * @param service   {@link #service}
      */
     protected
-    Model(final Loop<Service> service) {
+    Vat(final Loop<Service> service) {
         this.service = service;
     }
 
