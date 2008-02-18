@@ -7,16 +7,16 @@ import java.io.PrintStream;
 import org.joe_e.Token;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
-import org.waterken.model.Creator;
-import org.waterken.model.Model;
-import org.waterken.model.Root;
-import org.waterken.model.Transaction;
 import org.waterken.net.http.HTTPD;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
 import org.waterken.remote.http.AMP;
 import org.waterken.uri.Hostname;
 import org.waterken.uri.URI;
+import org.waterken.vat.Creator;
+import org.waterken.vat.Model;
+import org.waterken.vat.Root;
+import org.waterken.vat.Transaction;
 
 /**
  * Command line program to create a new database.

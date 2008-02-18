@@ -18,10 +18,10 @@ import org.ref_send.promise.eventual.Do;
 import org.waterken.dns.Domain;
 import org.waterken.dns.Resource;
 import org.waterken.jos.JODB;
-import org.waterken.model.Model;
-import org.waterken.model.Root;
-import org.waterken.model.Transaction;
 import org.waterken.udp.UDPDaemon;
+import org.waterken.vat.Model;
+import org.waterken.vat.Root;
+import org.waterken.vat.Transaction;
 
 /**
  * A DNS name server.

@@ -17,9 +17,9 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
-import org.waterken.model.Root;
 import org.waterken.remote.http.HTTP;
 import org.waterken.uri.URI;
+import org.waterken.vat.Root;
 
 /**
  * A remote reference.

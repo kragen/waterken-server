@@ -23,7 +23,6 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.snapshot.Snapshot;
-import org.waterken.model.Root;
 import org.waterken.remote.Exports;
 import org.waterken.syntax.Serializer;
 import org.waterken.syntax.json.JSONDeserializer;
@@ -33,6 +32,7 @@ import org.waterken.uri.Header;
 import org.waterken.uri.Path;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
+import org.waterken.vat.Root;
 import org.web_send.Entity;
 
 /**

@@ -24,7 +24,6 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.id.Importer;
 import org.waterken.io.snapshot.Snapshot;
-import org.waterken.model.Root;
 import org.waterken.remote.Exports;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remoting;
@@ -35,6 +34,7 @@ import org.waterken.syntax.json.Java;
 import org.waterken.uri.Authority;
 import org.waterken.uri.Header;
 import org.waterken.uri.URI;
+import org.waterken.vat.Root;
 import org.web_send.Entity;
 import org.web_send.Failure;
 

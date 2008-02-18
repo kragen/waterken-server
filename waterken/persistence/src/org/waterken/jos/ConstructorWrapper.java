@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.Constructor;
 
 import org.joe_e.Powerless;
-import org.waterken.model.Root;
+import org.waterken.vat.Root;
 
 /**
  * A persistent constructor. 

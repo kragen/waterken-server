@@ -4,8 +4,8 @@ package org.waterken.remote;
 
 import org.ref_send.promise.eventual.Deferred;
 import org.waterken.http.Server;
-import org.waterken.model.Model;
-import org.waterken.model.Root;
+import org.waterken.vat.Model;
+import org.waterken.vat.Root;
 
 /**
  * A remoting protocol.

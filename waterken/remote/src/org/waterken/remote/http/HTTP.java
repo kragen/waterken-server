@@ -14,7 +14,6 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.type.Typedef;
-import org.waterken.model.Root;
 import org.waterken.remote.Exports;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
@@ -22,6 +21,7 @@ import org.waterken.remote.Remoting;
 import org.waterken.uri.Authority;
 import org.waterken.uri.Location;
 import org.waterken.uri.URI;
+import org.waterken.vat.Root;
 
 /**
  * Dispatches to the corresponding peer specific messenger.

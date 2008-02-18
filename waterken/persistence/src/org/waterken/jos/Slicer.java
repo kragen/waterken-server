@@ -13,7 +13,7 @@ import java.math.BigInteger;
 
 import org.joe_e.JoeE;
 import org.ref_send.promise.Fulfilled;
-import org.waterken.model.Root;
+import org.waterken.vat.Root;
 
 /**
  * Slices an object graph at selfish object references.

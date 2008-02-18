@@ -3,7 +3,7 @@
 package org.waterken.jos;
 
 import org.ref_send.promise.Fulfilled;
-import org.waterken.model.Root;
+import org.waterken.vat.Root;
 
 /**
  * An object faulting promise.

@@ -18,11 +18,11 @@ import org.waterken.base32.Base32;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
 import org.waterken.id.base.Base;
-import org.waterken.model.Root;
 import org.waterken.syntax.json.Java;
 import org.waterken.uri.Path;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
+import org.waterken.vat.Root;
 import org.web_send.Entity;
 
 /**

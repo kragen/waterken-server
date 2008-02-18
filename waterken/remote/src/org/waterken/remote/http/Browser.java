@@ -21,11 +21,11 @@ import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Server;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
-import org.waterken.model.Model;
-import org.waterken.model.Root;
-import org.waterken.model.Transaction;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
+import org.waterken.vat.Model;
+import org.waterken.vat.Root;
+import org.waterken.vat.Transaction;
 import org.web_send.graph.Collision;
 
 /**

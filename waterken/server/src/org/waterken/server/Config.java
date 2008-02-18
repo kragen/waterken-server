@@ -20,13 +20,13 @@ import org.joe_e.file.Filesystem;
 import org.waterken.cache.Cache;
 import org.waterken.id.Importer;
 import org.waterken.jos.JODB;
-import org.waterken.model.Model;
 import org.waterken.net.Execution;
 import org.waterken.remote.http.Browser;
 import org.waterken.syntax.Serializer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.thread.Concurrent;
+import org.waterken.vat.Model;
 
 /**
  * Server configuration.

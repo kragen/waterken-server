@@ -20,12 +20,12 @@ import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.snapshot.Snapshot;
-import org.waterken.model.Effect;
-import org.waterken.model.Model;
-import org.waterken.model.Root;
-import org.waterken.model.Service;
-import org.waterken.model.Transaction;
 import org.waterken.remote.Remoting;
+import org.waterken.vat.Effect;
+import org.waterken.vat.Model;
+import org.waterken.vat.Root;
+import org.waterken.vat.Service;
+import org.waterken.vat.Transaction;
 import org.web_send.Failure;
 
 /**
