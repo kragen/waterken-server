@@ -2,11 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.dns.editor;
 
-import java.io.Serializable;
-
 import org.joe_e.Powerless;
-import org.joe_e.Struct;
-import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.var.Guard;
 import org.waterken.dns.Resource;
@@ -15,8 +11,7 @@ import org.waterken.dns.Resource;
  * Conditions on allowed DNS resources.
  */
 public final class
-ResourceGuard extends Struct
-              implements Guard<Resource>, Powerless, Record, Serializable {
+ResourceGuard extends Guard<Resource> implements Powerless {
     static private final long serialVersionUID = 1L;
     
     /**
@@ -32,7 +27,7 @@ ResourceGuard extends Struct
     
     // org.ref_send.var.Guard interface
     
-    public Resource
+    public @Override Resource
     run(final Resource value) {
         if (Resource.IN != value.clazz) { throw new UnsupportedClass(); }
         switch (value.type) {
