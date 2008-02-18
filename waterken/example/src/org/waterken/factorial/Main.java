@@ -39,7 +39,7 @@ Main extends Struct implements Test, Serializable {
     
     /**
      * Constructs an instance.
-     * @param framework model framework
+     * @param framework vat permissions
      */
     static public Test
     build(final Framework framework) {

@@ -21,7 +21,7 @@ Main extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * model framework
+     * vat permissions
      */
     private final Framework framework;
 
@@ -32,7 +32,7 @@ Main extends Struct implements Serializable {
     
     /**
      * Constructs an instance.
-     * @param framework model framework
+     * @param framework vat permissions
      */
     static public Main
     build(final Framework framework) {

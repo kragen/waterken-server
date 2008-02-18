@@ -38,7 +38,7 @@ Bounce {
 
     /**
      * Constructs an instance.
-     * @param framework model framework
+     * @param framework vat permissions
      */
     static public Wall
     build(final Framework framework) {

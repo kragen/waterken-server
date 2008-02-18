@@ -16,7 +16,7 @@ import org.web_send.graph.Spawn;
 
 /**
  * A proxy that runs each invocation in a newly {@linkplain Spawn#run spawned}
- * model.
+ * vat.
  */
 public final class
 Splitter {
@@ -27,7 +27,7 @@ Splitter {
     /**
      * Constructs an instance.
      * @param <T> referent type
-     * @param spawn sub-model factory
+     * @param spawn sub-vat factory
      * @param maker {@linkplain Spawn#run maker} of objects of type
      *              <code>T</code>
      */

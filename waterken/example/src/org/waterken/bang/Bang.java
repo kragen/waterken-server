@@ -20,7 +20,7 @@ Bang {
 
     /**
      * Constructs an instance.
-     * @param framework model framework
+     * @param framework vat permissions
      */
     static public Drum
     build(final Framework framework) {

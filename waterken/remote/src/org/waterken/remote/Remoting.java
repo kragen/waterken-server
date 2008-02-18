@@ -34,12 +34,12 @@ Remoting {
     String here = ".here";
 
     /**
-     * Wrap a network interface around a model.
+     * Wrap a network interface around a vat.
      * @param bootstrap bootstrap server
      * @param scheme    URI scheme
-     * @param model     model
+     * @param vat       vat
      * @return network interface
      */
     Server
-    remote(Server bootstrap, String scheme, Vat model);
+    remote(Server bootstrap, String scheme, Vat vat);
 }

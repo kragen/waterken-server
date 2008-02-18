@@ -3,21 +3,21 @@
 package org.web_send.graph;
 
 /**
- * A model maker.
+ * A vat maker.
  * @see org.web_send.graph.Publisher#spawn
  */
 public interface
 Spawn {
     
     /**
-     * Creates a model.
+     * Creates a vat.
      * <p>
      * The <code>maker</code> MUST have a method with signature:</p>
      * <p><code>static public T build({@link Framework} framework)</code>
      * </p>
      * @param <T> exported object type
      * @param maker object maker
-     * @return promise for an object exported from the new model
+     * @return promise for an object exported from the new vat
      */
     <T> T
     run(Class<?> maker);

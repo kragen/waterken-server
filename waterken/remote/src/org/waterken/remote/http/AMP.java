@@ -60,7 +60,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
     // org.waterken.remote.Remoting interface
 
     public Server
-    remote(final Server bootstrap, final String scheme, final Vat model) {
+    remote(final Server bootstrap, final String scheme, final Vat vat) {
         return new Server() {
             public void
             serve(final String resource,
@@ -80,11 +80,11 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                     }
                     buffered = q;
                 }
-                respond.fulfill(model.enter("GET".equals(buffered.method) ||
-                                            "HEAD".equals(buffered.method) ||
-                                            "OPTIONS".equals(buffered.method) ||
-                                            "TRACE".equals(buffered.method),
-                                            new Transaction<Response>() {
+                respond.fulfill(vat.enter("GET".equals(buffered.method) ||
+                                          "HEAD".equals(buffered.method) ||
+                                          "OPTIONS".equals(buffered.method) ||
+                                          "TRACE".equals(buffered.method),
+                                          new Transaction<Response>() {
                     public Response
                     run(final Root local) throws Exception {
                         final Response[] response = { null };
@@ -127,7 +127,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
 
     /**
      * Constructs a reference exporter.
-     * @param mother    local model root
+     * @param mother    local vat root
      */
     static public Publisher
     publish(final Root mother) {
@@ -159,7 +159,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                         public String
                         run(final Root local) throws Exception {
                             final String here = base +
-                                URLEncoding.encode(local.getModelName()) + "/";
+                                URLEncoding.encode(local.getVatName()) + "/";
                             local.link(Remoting.here, here);
                             if (null != client) {
                                 local.link(Remoting.client, client);

@@ -17,7 +17,7 @@ Component extends Struct implements Record, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
-     * permission to destruct the corresponding model
+     * permission to destruct the corresponding vat
      */
     public final Runnable destruct;
     

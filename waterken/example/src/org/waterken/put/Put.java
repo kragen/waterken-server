@@ -20,7 +20,7 @@ Put {
     
     /**
      * Constructs an instance.
-     * @param framework model framework
+     * @param framework vat permissions
      */
     static public Promise<Variable<Boolean>>
     build(final Framework framework) { return ref(make()); }

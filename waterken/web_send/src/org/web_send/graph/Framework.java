@@ -11,18 +11,17 @@ import org.ref_send.name;
 import org.ref_send.promise.eventual.Eventual;
 
 /**
- * The authority provided to the creator of a new model.
+ * The authority provided to the creator of a new vat.
  * <p>
- * A {@link Framework} provides permissions to a model, as in the
- * Model-View-Control (MVC) pattern. An application should be composed of
+ * A vat holds the persistent objects that form an application's model, as in
+ * the Model-View-Control (MVC) pattern. An application should be composed of
  * separate classes that fall into only one of these categories. Objects forming
- * the application's model should be stored in the model to make them
- * persistent. Objects in the other categories should be transient and so
- * reconstructed each time the application is revived from its persistent state.
- * Following this convention reduces the number of classes with a persistent
- * representation that must be supported across application upgrade. When
- * designing classes for your model, take care to limit their complexity and
- * plan for upgrade.
+ * the application's model should be stored in a vat to make them persistent.
+ * Objects in the other categories should be transient and so reconstructed each
+ * time the application is revived from its persistent state. Following this
+ * convention reduces the number of classes with a persistent representation
+ * that must be supported across application upgrade. When designing classes for
+ * your model, take care to limit their complexity and plan for upgrade.
  * </p>
  */
 public final class
@@ -33,20 +32,20 @@ Framework extends Struct implements Record, Serializable {
      * eventual operator
      */
     public final Eventual _;
-    
+
     /**
-     * permission to destruct this model
+     * permission to destruct this vat
      */
     public final Runnable destruct;
-    
+
     /**
-     * sub-model factory
+     * sub-vat factory
      * <p>
-     * All created models will be destructed when this model is destructed.
+     * All created vats will be destructed when this vat is destructed.
      * </p>
      */
     public final Spawn spawn;
-    
+
     /**
      * permission to publish well-known references
      * <p>
@@ -54,7 +53,7 @@ Framework extends Struct implements Record, Serializable {
      * </p>
      */
     public final Publisher publisher;
-    
+
     /**
      * Constructs an instance.
      * @param _         {@link #_}

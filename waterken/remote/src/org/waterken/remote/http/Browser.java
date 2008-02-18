@@ -81,7 +81,7 @@ Browser extends Struct implements Record, Serializable {
             private final ArrayList<Binding> bound = new ArrayList<Binding>();
             
             public String
-            getModelName() { return null; }
+            getVatName() { return null; }
 
             public Object
             fetch(final Object otherwise, final String name) {
@@ -110,7 +110,7 @@ Browser extends Struct implements Record, Serializable {
             public String
             getTransactionTag() { throw new AssertionError(); }
         };
-        final Vat model = new Vat((Loop)enqueue) {
+        final Vat vat = new Vat((Loop)enqueue) {
             
             private boolean busy = false;
             
@@ -136,7 +136,7 @@ Browser extends Struct implements Record, Serializable {
         });
         local.link(Root.effect, enqueue);
         local.link(Root.enqueue, enqueue);
-        local.link(Root.model, model);
+        local.link(Root.vat, vat);
         local.link(Root.nothing, null);
         local.link(Root.prng, prng);
         local.link(Remoting._, _);

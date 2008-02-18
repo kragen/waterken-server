@@ -15,7 +15,7 @@ Wrapper extends Serializable {
 
     /**
      * Peel off the serialization wrapper.
-     * @param root  model root
+     * @param root  vat root
      * @return unwrapped object
      */
     Object

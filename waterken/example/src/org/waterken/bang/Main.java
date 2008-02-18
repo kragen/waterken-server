@@ -65,7 +65,7 @@ Main extends Struct implements Test, Serializable {
      * {@link Test} to an instance of this class. In all cases, the return type
      * for a build() method must be either an interface, or a {@link Promise}.
      * </p>
-     * @param framework model framework
+     * @param framework vat permissions
      */
     static public Test
     build(final Framework framework) {

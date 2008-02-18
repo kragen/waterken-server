@@ -21,14 +21,14 @@ RegistrarMaker {
     
     /**
      * Constructs an instance.
-     * @param framework model framework
+     * @param framework vat permissions
      */
     static public Registrar
     build(final Framework framework) { return make(framework.publisher); }
 
     /**
      * Constructs an instance.
-     * @param publisher sub-model factory
+     * @param publisher sub-vat factory
      */
     static public Registrar
     make(final Publisher publisher) {

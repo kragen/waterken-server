@@ -91,7 +91,7 @@ JODB extends Vat {
         new Cache<File,JODB>(new ReferenceQueue<JODB>());
 
     /**
-     * Opens an existing, but not yet open, model.
+     * Opens an existing, but not yet open, vat.
      * @param id        persistence folder
      * @param service   {@link #service}
      * @throws FileNotFoundException    <code>id</code> not a persistence folder
@@ -109,9 +109,9 @@ JODB extends Vat {
     static private final ThreadGroup threads = new ThreadGroup("db");
 
     /**
-     * Connects to an existing model.
+     * Connects to an existing vat.
      * <p>
-     * If the model is not yet {@link #open open}, it will be opened with a
+     * If the vat is not yet {@link #open open}, it will be opened with a
      * {@link Concurrent#loop concurrent} {@link #service} loop.
      * </p>
      * @param id    persistence folder
@@ -157,7 +157,7 @@ JODB extends Vat {
     private boolean awake = false;
 
     /**
-     * Processes a transaction within this model.
+     * Processes a transaction within this vat.
      */
     public synchronized <R> Promise<R>
     enter(final boolean extend, final Transaction<R> body) throws Exception {
@@ -248,7 +248,7 @@ JODB extends Vat {
         final Root root = new Root() {
 
             public String
-            getModelName() { return folder.getName(); }
+            getVatName() { return folder.getName(); }
 
             public String
             pipeline(final String m) {
@@ -608,7 +608,7 @@ JODB extends Vat {
             }
 
             /**
-             * Claims a sub-model name.
+             * Claims a sub-vat name.
              * <p>
              * The persistence folder may also contain sub-folders named by the
              * client; however, the implementation forbids use of names that
@@ -617,8 +617,8 @@ JODB extends Vat {
              * containing pending modifications, or folders to be deleted, have
              * names starting with a ".".
              * </p>
-             * @param name  model name to claim
-             * @return canonicalized model name
+             * @param name  vat name to claim
+             * @return canonicalized vat name
              * @throws Collision    <code>name</code> is not available
              */
             private String
@@ -648,7 +648,7 @@ JODB extends Vat {
         k2b.put(Root.enqueue, new Bucket(false, enqueue, null));
         k2b.put(Root.effect, new Bucket(false, effect, null));
         k2b.put(Root.destruct, new Bucket(false, destruct, null));
-        k2b.put(Root.model, new Bucket(false, this, null));
+        k2b.put(Root.vat, new Bucket(false, this, null));
         k2b.put(Root.creator, new Bucket(false, creator, null));
         for (final Map.Entry<String,Bucket> x : k2b.entrySet()) {
             o2k.put(x.getValue().value, x.getKey());
@@ -663,7 +663,7 @@ JODB extends Vat {
             move(committed, folder);
         }
 
-        // check that the model has not been destructed
+        // check that the vat has not been destructed
         if (!folder.isDirectory() ||
                 Boolean.TRUE.equals(root.fetch(false, dead))) {
             return new Rejected<R>(new FileNotFoundException());

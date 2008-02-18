@@ -33,13 +33,13 @@ Exports extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * model root
+     * vat root
      */
     private final Root local;
 
     /**
      * Constructs an instance.
-     * @param local model root
+     * @param local vat root
      */
     public
     Exports(final Root local) {
@@ -53,7 +53,7 @@ Exports extends Struct implements Serializable {
     getHere() { return (String)local.fetch("x-browser:", Remoting.here); }
     
     /**
-     * Gets the project name for this model.
+     * Gets the project name for this vat.
      */
     public String
     getProject() { return (String)local.fetch(null, Root.project); }
@@ -214,9 +214,9 @@ Exports extends Struct implements Serializable {
     isPromise(final String URL) { return null != arg(URL, "src"); }
     
     /**
-     * Extracts the soure model URL from a pipeline web-key.
+     * Extracts the soure vat URL from a pipeline web-key.
      * @param URL   web-key
-     * @return source model URL, or <code>null</code> if <code>URL</code> is not
+     * @return source vat URL, or <code>null</code> if <code>URL</code> is not
      *         a pipeline web-key
      */
     static public String
@@ -238,7 +238,7 @@ Exports extends Struct implements Serializable {
     
     /**
      * Constructs a web-key.
-     * @param dst   target model URL
+     * @param dst   target vat URL
      * @param key   key
      */
     static public String

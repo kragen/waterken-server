@@ -20,9 +20,9 @@ Creator {
 
     /**
      * Creates a new {@link Vat}.
-     * @param initialize    first transaction to run on the new model
+     * @param initialize    first transaction to run on the new vat
      * @param project       corresponding project name
-     * @param name          model name, or <code>null</code> for generated name
+     * @param name          vat name, or <code>null</code> for generated name
      * @throws Collision    <code>name</code> has already been used
      */
     <R> R

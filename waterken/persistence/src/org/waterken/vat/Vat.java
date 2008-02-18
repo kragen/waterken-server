@@ -9,7 +9,7 @@ import org.ref_send.promise.eventual.Loop;
 import org.web_send.graph.Framework;
 
 /**
- * A persistent application model.
+ * A persistent object graph.
  * <p>
  * This class implements the abstraction described by a {@link Framework}.
  * </p>
@@ -29,7 +29,7 @@ Vat {
     static public final boolean extend = true;
 
     /**
-     * Schedules deferred {@linkplain #enter access} to this model.
+     * Schedules deferred {@linkplain #enter access} to this vat.
      */
     public final Loop<Service> service;
 
@@ -43,17 +43,17 @@ Vat {
     }
 
     /**
-     * Processes a transaction within this model.
+     * Processes a transaction within this vat.
      * <p>
      * The implementation MUST ensure only one transaction is active in the
-     * model at any time. An invocation from another thread MUST block until the
-     * model becomes available. A recursive invocation from the same thread MUST
+     * vat at any time. An invocation from another thread MUST block until the
+     * vat becomes available. A recursive invocation from the same thread MUST
      * throw an {@link Exception}.
      * </p>
      * <p>
      * If {@linkplain Transaction#run invocation} of the <code>body</code>
      * causes an {@link Error}, the transaction MUST be aborted. When a
-     * transaction is aborted, all modifications to objects in the model MUST be
+     * transaction is aborted, all modifications to objects in the vat MUST be
      * discarded. For subsequent transactions, it MUST be as if the aborted
      * transaction was never attempted.
      * </p>
@@ -67,28 +67,28 @@ Vat {
      * </p>
      * <p>
      * The <code>body</code> MUST NOT retain references to any of the objects
-     * in the model beyond completion of the transaction. The model
+     * in the vat beyond completion of the transaction. The vat
      * implementation can rely on the <code>body</code> being well-behaved in
-     * this respect. An identifier for an object in the model may be retained
+     * this respect. An identifier for an object in the vat may be retained
      * across transactions by either {@linkplain Root#link linking}, or
      * {@linkplain Root#export exporting} it.
      * </p>
      * <p>
      * If invocation of this method returns normally, all modifications to
-     * objects in the model MUST be committed. Only if the current transaction
+     * objects in the vat MUST be committed. Only if the current transaction
      * commits will the {@linkplain Root#effect enqueued} {@link Effect}s be
      * {@linkplain Transaction#run executed}; otherwise, the implementation
      * MUST discard them. The effects MUST be executed in the same order as
      * they were enqueued. Effects from a subsequent transaction MUST NOT be
      * executed until all effects from the current transaction have been
-     * executed. An {@link Effect} MUST NOT access objects in the model, but may
+     * executed. An {@link Effect} MUST NOT access objects in the vat, but may
      * schedule additional effects.
      * </p>
      * @param <R> <code>body</code>'s return type
      * @param extend either {@link #change} or {@link #extend}
      * @param body transaction body
      * @return promise for <code>body</code>'s return
-     * @throws FileNotFoundException model no longer exists
+     * @throws FileNotFoundException vat no longer exists
      * @throws Exception problem completing the transaction, which may or may
      *                   not be committed
      */

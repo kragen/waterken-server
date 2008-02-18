@@ -32,7 +32,7 @@ DomainMaker {
     
     /**
      * Constructs an instance.
-     * @param framework model framework
+     * @param framework vat permissions
      */
     static public Promise<DomainMaster>
     build(final Framework framework) {

@@ -46,11 +46,6 @@ Root {
      * corresponding persistent {@link Task event} {@link Loop loop}
      */
     String enqueue = ".enqueue";
-
-    /**
-     * corresponding {@link Vat}
-     */
-    String model = ".model";
     
     /**
      * always bound to <code>null</code>
@@ -68,17 +63,22 @@ Root {
     String project = ".project";
 
     /**
-     * {@link Vat#extend} transaction to run each time model is loaded
+     * corresponding {@link Vat}
+     */
+    String vat = ".vat";
+
+    /**
+     * {@link Vat#extend} transaction to run each time vat is loaded
      */
     String wake = ".wake";
 
     // org.waterken.vat.Root interface
     
     /**
-     * Gets the name of the containing model.
+     * Gets the name of the containing vat.
      */
     String
-    getModelName();
+    getVatName();
     
     /**
      * Calculates a pipeline key.

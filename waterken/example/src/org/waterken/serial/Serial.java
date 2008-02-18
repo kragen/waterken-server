@@ -25,7 +25,7 @@ Serial {
 
     /**
      * Constructs an instance.
-     * @param framework model framework
+     * @param framework vat permissions
      */
     static public <T> Series<T>
     build(final Framework framework) {

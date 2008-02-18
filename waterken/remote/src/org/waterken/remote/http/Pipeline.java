@@ -61,7 +61,7 @@ Pipeline implements Serializable {
     Pipeline(final String peer, final Root local) {
         this.peer = peer;
         effect = (Loop)local.fetch(null, Root.effect);
-        model = (Vat)local.fetch(null, Root.model);
+        model = (Vat)local.fetch(null, Root.vat);
         outbound = Fulfilled.detach((Outbound)local.fetch(null, AMP.outbound));
     }
 
@@ -121,17 +121,17 @@ Pipeline implements Serializable {
     }
     
     static private Effect
-    restart(final Vat model, final String peer,
+    restart(final Vat vat, final String peer,
             final int max, final boolean skipTo, final int mid) {
         // Create a transaction effect that will schedule a new extend
         // transaction that actually puts the messages on the wire.
         return new Effect() {
            public void
            run() throws Exception {
-               model.service.run(new Service() {
+               vat.service.run(new Service() {
                    public void
                    run() throws Exception {
-                       model.enter(Vat.extend, new Transaction<Void>() {
+                       vat.enter(Vat.extend, new Transaction<Void>() {
                            public Void
                            run(final Root local) throws Exception {
                                final Server client =
@@ -154,7 +154,7 @@ Pipeline implements Serializable {
                                    if (0 == n--) { break; }
                                    if (q && x.msg instanceof Update) { break; }
                                    if (x.msg instanceof Query) { q = true; }
-                                   effect.run(send(model, client, peer, x));
+                                   effect.run(send(vat, client, peer, x));
                                }
                                return null;
                            }
@@ -166,7 +166,7 @@ Pipeline implements Serializable {
     }
     
     static private Effect
-    send(final Vat model, final Server client,
+    send(final Vat vat, final Server client,
          final String peer, final Entry x) {
         Promise<Request> rendered;
         try {
@@ -179,7 +179,7 @@ Pipeline implements Serializable {
         return new Effect() {
            public void
            run() throws Exception {
-               client.serve(peer, request, new Receive(model, peer, mid));
+               client.serve(peer, request, new Receive(vat, peer, mid));
            }
         };
     }
@@ -187,12 +187,12 @@ Pipeline implements Serializable {
     static private final class
     Receive extends Do<Response,Void> {
         
-        private final Vat model;
+        private final Vat vat;
         private final String peer;
         private final int mid;
         
-        Receive(final Vat model, final String peer, final int mid) {
-            this.model = model;
+        Receive(final Vat vat, final String peer, final int mid) {
+            this.vat = vat;
             this.peer = peer;
             this.mid = mid;
         }
@@ -221,7 +221,7 @@ Pipeline implements Serializable {
         private Void
         resolve(final Promise<Response> response) throws Exception {
             try {
-                model.enter(Vat.change, new Transaction<Void>() {
+                vat.enter(Vat.change, new Transaction<Void>() {
                     public Void
                     run(final Root local) throws Exception {
                         final Outbound outbound =
@@ -238,7 +238,7 @@ Pipeline implements Serializable {
                         return respond.fulfill(value);
                     }
                 });
-            } catch (final FileNotFoundException e) { /* model is dead */ }
+            } catch (final FileNotFoundException e) { /* vat is dead */ }
             return null;
         }
     }

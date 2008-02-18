@@ -74,7 +74,7 @@ Spawn {
                 final Root synthetic = new Root() {
                     
                     public String
-                    getModelName() { return local.getModelName(); }
+                    getVatName() { return local.getVatName(); }
 
                     public Object
                     fetch(final Object otherwise, final String name) {

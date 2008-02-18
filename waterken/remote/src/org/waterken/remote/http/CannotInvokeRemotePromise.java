@@ -11,7 +11,7 @@ import org.web_send.Failure;
  * <p>
  * To ensure invocations are delivered in the same order as enqueued, only send
  * an invocation on a remote reference, or a pipeline promise generated from
- * this model. Client code should do a {@link Eventual#when} operation on a
+ * this vat. Client code should do a {@link Eventual#when} operation on a
  * remote promise before sending invocations.
  * </p>
  */
