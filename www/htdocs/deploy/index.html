@@ -26,19 +26,19 @@ to use the provided setup.</p>
 <p>To bootstrap its configuration, the server needs to know the locations of the
 following folders:</p>
 <dl>
-<dt><code><a name="config" href="#config">config</a></code></dt>
+<dt><code><a name="config" href="#config">config/</a></code></dt>
 <dd>holds configuration files, such as the SSL key pair</dd>
-<dt><code><a name="db" href="#db">db</a></code></dt>
+<dt><code><a name="db" href="#db">db/</a></code></dt>
 <dd>holds persistent Java objects</dd>
-<dt><code><a name="code" href="#code">code</a></code></dt>
+<dt><code><a name="code" href="#code">code/</a></code></dt>
 <dd>holds project specific Java class files
 <p>This folder is expected to contain an entry for each project. For example,
-the Waterken server includes a project named "example", so the <code>code</code>
+the Waterken server includes a project named "example", so the <code>code/</code>
 folder includes a sub-folder named <code>example/bin/</code>.</p>
 </dd>
 </dl>
 <p>By default, the server will assume the current working directory should be
-used as the <code>code</code> folder.  The other folders are then expected to be
+used as the <code>code/</code> folder.  The other folders are then expected to be
 in immediate sub-folders.  This folder layout is the one created when you unpack
 the waterken-server distribution.</p>
 <p>This default folder layout can be customized using Java system properties.  A
@@ -46,41 +46,83 @@ Java system property can be defined using a "<code>-D</code>" option to the
 <code>java</code> command used to start a JVM.</p>
 <dl>
 <dt><code><a name="waterken.home" href="#waterken.home">waterken.home</a></code></dt>
-<dd>use the specified folder as the <code>home</code> folder (defaults to the
-current working directory)</dd>
+<dd>use the specified folder as the home folder (defaults to the current working
+directory)</dd>
 <dt><code><a name="waterken.config" href="#waterken.config">waterken.config</a></code></dt>
-<dd>use the specified folder as the <code>config</code> folder (defaults to the
-"config" sub-folder of the <code>waterken.home</code> folder)</dd>
+<dd>use the specified folder as the <code><a href="#config">config/</a></code>
+folder (defaults to the "config" sub-folder of the <code>waterken.home</code>
+folder)</dd>
 <dt><code><a name="waterken.db" href="#waterken.db">waterken.db</a></code></dt>
-<dd>use the specified folder as the <code>db</code> folder (defaults to the "db"
-sub-folder of the <code>waterken.home</code> folder)</dd>
+<dd>use the specified folder as the <code><a href="#db">db/</a></code> folder
+(defaults to the "db" sub-folder of the <code>waterken.home</code> folder)</dd>
 <dt><code><a name="waterken.code" href="#waterken.code">waterken.code</a></code></dt>
-<dd>use the specified folder as the <code>code</code> folder (defaults to the
-<code>waterken.home</code> folder)</dd>
+<dd>use the specified folder as the <code><a href="#code">code/</a></code>
+folder (defaults to the <code>waterken.home</code> folder)</dd>
 <dt><code><a name="waterken.bin" href="#waterken.bin">waterken.bin</a></code></dt>
 <dd>use the specified string as the extension to be added to a project name to
 get the name of the folder, or JAR file, containing the project's class files
 (defaults to "/bin/")
 </dl>
 <h3><a name="config_files" href="#config_files"><code>config</code> files</a></h3>
-<p>All remaining configuration is expressed by files in the <code>config</code>
-folder. The various <code>*.json</code> files in this folder are used to
-initialize the HTTP request routing code. For example, settings of interest
-include:</p>
+<p>All remaining configuration is expressed by files in the
+<code><a href="#config">config/</a></code> folder. The various
+<code>*.json</code> files in this folder are used to initialize the HTTP request
+routing code. For example, settings of interest include:</p>
 <dl>
-<dt><a name="www" href="#www"><code>www</code> folder</a></dt>
+<dt><a name="www" href="#www"><code>www/</code> folder</a></dt>
 <dd>The <code>next.next.root</code> setting provides the path to a folder
 containing files to be served, such as CSS files and Javascript.  By default,
-this setting refers to the <code>www</code> folder created by the
+this setting refers to the <code>www/</code> folder created by the
 waterken-server distribution.</dd>
 <dt><a name="MIME" href="#MIME">known MIME types</a></dt>
 <dd>The <code>next.next.MIME</code> setting provides an array of known MIME
-types to be consulted when serving files from the <code>www</code> folder.</dd>
+types to be consulted when serving files from the <code>www/</code> folder.</dd>
 </dl>
 <h2><a name="using" href="#using">Using the server</a></h2>
-<p>The server can host two kinds of resources: files and Java objects. This
-section shows how to add new resources to the server.</p>
-<h3><a name="new_files" href="#new_files">Adding served files</a></h3>
+<p>The server supports SSL, use of an HTTP proxy and can host two kinds of
+resources: files and Java objects. This section shows how to configure the
+server and add new resources.</p>
+<h3><a name="proxy" href="#proxy">Configure an HTTP proxy</a></h3>
+<p>If you are behind an HTTP proxy, you must provide its location to any command
+that requires network access. Each such command checks a set of Java system
+properties for proxy configuration information.</p>
+<dl>
+<dt><code><a name="proxyHost" href="#proxyHost">proxyHost</a></code></dt>
+<dd>hostname of the proxy server</dd>
+<dt><code><a name="proxyPort" href="#proxyPort">proxyPort</a></code></dt>
+<dd>port number of the proxy server</dd>
+<dt><code><a name="proxySet" href="#proxySet">proxySet</a></code></dt>
+<dd>value is "<code>true</code>" when an HTTP proxy is configured</dd>
+</dl>
+<p>For example, to start the server using an HTTP proxy:</p>
+<p><kbd>java -DproxyHost=proxy.example.com -DproxyPort=8088 -DproxySet=true -jar serve.jar</kbd></p>
+<h3><a name="SSL" href="#SSL">Configure an SSL key pair</a></h3>
+<p>The server's SSL key pair must be stored in the <code>config/keys.jks</code>
+file.  This file is in the default format used by the JDK's keytool program. You
+can use any existing SLL key pair you have by loading it into the
+<code>config/keys.jks</code> file using the keytool program.</p>
+<p>The server must be restarted to begin using a newly configured key pair.</p>
+<h4><a name="genkey" href="#genkey">Generate a hostname and corresponding SSL key pair</a></h4>
+<p>If you don't already have an SSL key pair, you can generate one using the
+<code>genkey.jar</code> command. This command will generate a new self-signed
+certificate for a sub-domain of <code>yurl.net</code>. The command will also
+register this newly generated hostname with the DNS nameserver for
+<code>yurl.net</code>. When the server is running, it will update this DNS
+record with your computer's current IP address. Run the <code>genkey.jar</code>
+command from the root directory of your installation:</p>
+<p><kbd>java -jar genkey.jar</kbd></p>
+<p>Since this command requires network access to contact the
+<code>yurl.net</code> nameserver, you will need to <a href="#proxy">include your
+HTTP proxy location</a> if you are behind an HTTP proxy. After the command has
+completed successfully, there will be a <code>keys.jks</code> file, as well as
+some new configuration files, in your <code><a href="#config">config/</a></code>
+folder.</p>
+<p>By default, the <code>genkey.jar</code> command generates a 1024 bit RSA key,
+which is thought to be comparable in strength to an 80 bit symmetric key cipher.
+You can specify a higher bit strength with an argument to the
+<code>genkey.jar</code> command.  Specify 112 to get a 2048 bit RSA key, or 128
+to get a 3072 bit RSA key.</p>
+<h3><a name="add_file" href="#add_file">Add served files</a></h3>
 <p>The content of any file under the <code><a href="#www">www/</a></code> folder
 can be fetched using a URL whose path names the file. For example, your site's
 homepage is at <code>www/index.html</code> and can be fetched using the URL:
@@ -91,25 +133,25 @@ that are shared site-wide, such as stylesheets, images and Javascript code.
 This folder also provides the content served for HTTP error codes. For example,
 the <code>www/site/404.html</code> file provides the default content for any
 HTTP <code>404</code> error pages returned by the server.</p>
-<h3><a name="new_model" href="#new_model">Adding a new model</a></h3>
+<h3><a name="add_vat" href="#add_vat">Add a new vat</a></h3>
 <p>Persistent Java objects hosted by the Waterken server are grouped into
-collections, each of which is called a "model". The persistent state of each
-model is held in a sub-folder of the <code><a href="#db">db/</a></code> folder.
-You can create a new model from the command line using <code>spawn.jar</code>:
+collections, each of which is called a "vat". The persistent state of each vat
+is held in a sub-folder of the <code><a href="#db">db/</a></code> folder.  You
+can create a new vat from the command line using <code>spawn.jar</code>:
 </p>
 <p><kbd>java -jar spawn.jar example org.waterken.bang.Main test</kbd></p>
 <p>The above command enables execution of the
 <a href="../javadoc/org/web_send/graph/Publisher.html#spawn(java.lang.String,%20java.lang.Class)">Publisher#spawn()</a>
-method from the command line. The last argument is the model name and the second
+method from the command line. The last argument is the vat name and the second
 to last is the fully qualified name of the maker class used to construct the
-first application object in the new model. The web-key for the created object is
+first application object in the new vat. The web-key for the created object is
 returned on the <code>stdout</code> of the <code>spawn.jar</code> command. The
 first argument to the <code>spawn.jar</code> command is the name of the project
 that defines the maker class.</p>
-<h3><a name="new_project" href="#new_project">Adding a new project</a></h3>
-<p>Each model is associated with a given project in the
+<h3><a name="add_project" href="#add_project">Add a new project</a></h3>
+<p>Each vat is associated with a given project in the
 <code><a href="#code">code</a></code> folder where the application specific code
-for that model is kept. For each project, there's also a default web page.</p>
+for that vat is kept. For each project, there's also a default web page.</p>
 </div>
 <p class="footer">
 </p>
