@@ -89,7 +89,7 @@ Responder {
                     phrase = reason.toString();
                 }
                 final Do<Response,Void> output = this;
-                final String resource = URI.resolve("file:///res/", status); 
+                final String resource = URI.resolve("file:///site/", status); 
                 server.serve(resource,
                              ref(new Request(version, "GET", resource,
                                  PowerlessArray.array(new Header[] {}), null)),
