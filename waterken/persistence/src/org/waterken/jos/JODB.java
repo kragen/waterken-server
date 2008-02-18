@@ -74,17 +74,17 @@ JODB extends Vat {
      */
     static public  final String homePathProperty = "waterken.home";
     static private final File home;
-    static public  final String dbPathProperty = "waterken.db";
-    static public  final String dbPathDefault = "db";
-    static private final File dbDir;
-    static private final String dbDirPath;
+    static public  final String vatPathProperty = "waterken.vat";
+    static public  final String vatPathDefault = "vat";
+    static private final File vatDir;
+    static private final String vatDirPath;
     static {
         try {
             home = new File(System.getProperty(
                 homePathProperty, "")).getCanonicalFile();
-            dbDir = new File(home, System.getProperty(
-                dbPathProperty, dbPathDefault)).getCanonicalFile();
-            dbDirPath = dbDir.getPath() + File.separator;
+            vatDir = new File(home, System.getProperty(
+                vatPathProperty, vatPathDefault)).getCanonicalFile();
+            vatDirPath = vatDir.getPath() + File.separator;
         } catch (final IOException e) { throw new Error(e); }
     }
     static private final Cache<File,JODB> live =
@@ -106,7 +106,7 @@ JODB extends Vat {
         }
     }
 
-    static private final ThreadGroup threads = new ThreadGroup("db");
+    static private final ThreadGroup threads = new ThreadGroup("vat");
 
     /**
      * Connects to an existing vat.
@@ -125,7 +125,7 @@ JODB extends Vat {
             final JODB r = live.fetch(null, folder);
             if (null != r) { return r; }
             final Loop<Service> service = Concurrent.loop(threads,
-                folder.getPath().substring(dbDir.getPath().length()));
+                folder.getPath().substring(vatDir.getPath().length()));
             return load(folder, service);
         }
     }
@@ -133,7 +133,7 @@ JODB extends Vat {
     static private Vat
     load(final File folder,
          final Loop<Service> service) throws FileNotFoundException {
-        if (!folder.equals(dbDir) && !folder.getPath().startsWith(dbDirPath)) {
+        if (!folder.equals(vatDir) && !folder.getPath().startsWith(vatDirPath)) {
             throw new FileNotFoundException();
         }
 

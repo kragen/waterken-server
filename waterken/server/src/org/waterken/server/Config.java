@@ -38,19 +38,19 @@ Config {
     Config() {}
 
     // initialize bootstrap configuration from system properties
-    static private final File config;
-    static private final File db;
+    static private final File configFolder;
+    static private final File vatFolder;
     static {
         try {
             final File home = new File(System.getProperty(
                 JODB.homePathProperty, "")).getCanonicalFile();
-            config = new File(home, System.getProperty(
+            configFolder = new File(home, System.getProperty(
                 "waterken.config", "config")).getCanonicalFile();
-            db = new File(home, System.getProperty(
-                JODB.dbPathProperty, JODB.dbPathDefault)).getCanonicalFile();
+            vatFolder = new File(home, System.getProperty(
+                JODB.vatPathProperty, JODB.vatPathDefault)).getCanonicalFile();
         } catch (final Exception e) { throw new Error(e); }
     }
-    static protected final File keys = Filesystem.file(config, "keys.jks");
+    static protected final File keys= Filesystem.file(configFolder, "keys.jks");
     
     /**
      * Prints a summary of the configuration information.
@@ -63,8 +63,8 @@ Config {
         final String hostname =
             null != credentials ? credentials.getHostname() : "localhost";
         err.println("hostname: <" + hostname + ">");
-        err.println("config folder: <" + config + ">");
-        err.println("db folder: <" + db + ">");
+        err.println("config folder: <" + configFolder + ">");
+        err.println("vat folder: <" + vatFolder + ">");
     }
     
     /**
@@ -72,7 +72,7 @@ Config {
      * @throws Exception    any problem
      */
     static protected Vat
-    db() throws Exception { return JODB.connect(db); }
+    vat() throws Exception { return JODB.connect(vatFolder); }
 
     static protected final String ext = ".json";
     
@@ -84,7 +84,7 @@ Config {
     static protected void
     init(final String name, final Object value) {
         try {
-            final File file = Filesystem.file(config, name + ext);
+            final File file = Filesystem.file(configFolder, name + ext);
             final OutputStream out = Filesystem.writeNew(file);
             new JSONSerializer().run(Serializer.render, browser.export,
                                      array(value)).writeTo(out);
@@ -100,7 +100,7 @@ Config {
      */
     static protected Object
     read(final String name) {
-        final File file = Filesystem.file(config, name + ext);
+        final File file = Filesystem.file(configFolder, name + ext);
         if (!file.isFile()) { return null; }
         return new ImporterX().run(Object.class, file.toURI().toString());
     }
@@ -128,7 +128,7 @@ Config {
     ImporterX extends Struct implements Importer {
         public Object
         run(final Class<?> type, final String URL) {
-            if ("x-system:db".equalsIgnoreCase(URL)) { return db; }
+            if ("x-system:vat".equalsIgnoreCase(URL)) { return vatFolder; }
             if ("x-system:tag".equalsIgnoreCase(URL)) { return tag; }
             if ("x-system:exe".equalsIgnoreCase(URL)) { return exe; }
             if ("file:".regionMatches(true, 0, URL, 0, "file:".length())) {

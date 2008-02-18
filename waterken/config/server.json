@@ -2,8 +2,8 @@
   "$" : [ "org.waterken.http.trace.Trace" ],
   "next" : {
     "$" : [ "org.waterken.remote.mux.Mux" ],
-    "dbURIPathPrefix" : { "@" : "dbURIPathPrefix.json" },
-    "dbRootFolder" : { "@" : "x-system:db" },
+    "vatURIPathPrefix" : { "@" : "vatURIPathPrefix.json" },
+    "vatRootFolder" : { "@" : "x-system:vat" },
     "remoting" : {
       "$" : [ "org.waterken.remote.http.AMP" ]
     },

@@ -28,25 +28,25 @@ public final class
 Mux extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
     
-    private final String dbURIPathPrefix;
-    private final File dbRootFolder;
+    private final String vatURIPathPrefix;
+    private final File vatRootFolder;
     private final Remoting remoting;
     private final Server next;
     
     /**
      * Constructs an instance.
-     * @param dbURIPathPrefix   URI sub-hierarchy for persistent databases
-     * @param dbRootFolder      root persistence folder
+     * @param vatURIPathPrefix  URI sub-hierarchy for persistent databases
+     * @param vatRootFolder     root persistence folder
      * @param remoting          remoting protocol
      * @param next              default server
      */
     public @deserializer
-    Mux(@name("dbURIPathPrefix") final String dbURIPathPrefix,
-        @name("dbRootFolder") final File dbRootFolder,
+    Mux(@name("vatURIPathPrefix") final String vatURIPathPrefix,
+        @name("vatRootFolder") final File vatRootFolder,
         @name("remoting") final Remoting remoting,
         @name("next") final Server next) {
-        this.dbURIPathPrefix = dbURIPathPrefix;
-        this.dbRootFolder = dbRootFolder;
+        this.vatURIPathPrefix = vatURIPathPrefix;
+        this.vatRootFolder = vatRootFolder;
         this.remoting = remoting;
         this.next = next;
     }
@@ -58,10 +58,10 @@ Mux extends Struct implements Server, Serializable {
           final Do<Response,?> respond) throws Exception {
         final Server server;
         final String path = URI.path(resource);
-        if (path.startsWith(dbURIPathPrefix)) {
-            final String dbPath = path.substring(dbURIPathPrefix.length());
-            File folder = dbRootFolder;
-            for (final String name : Path.walk(dbPath)) {
+        if (path.startsWith(vatURIPathPrefix)) {
+            final String vatPath = path.substring(vatURIPathPrefix.length());
+            File folder = vatRootFolder;
+            for (final String name : Path.walk(vatPath)) {
                 if (name.startsWith(".")) {
                     respond.reject(Failure.gone());
                     return;
