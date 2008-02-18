@@ -10,7 +10,7 @@ fi
 if [ "$1" = 'ref_send' ]
 then
     NAME="ref_send"
-    VERSION="1.14"
+    VERSION="1.15"
 else
     NAME="waterken server"
     MAJOR=4
