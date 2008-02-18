@@ -1,6 +1,8 @@
 // Copyright 2007 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.uri;
+package org.waterken.test.uri;
+
+import org.waterken.uri.URI;
 
 /**
  * Package test.
@@ -13,6 +15,20 @@ Main {
 
     static public void
     main(final String[] args) throws Exception {
+        
+        // test custom URIs
+        if (args.length >= 1) {
+            final String base = args[0];
+            for (int i = 1; i != args.length; ++i) {
+                System.out.println(URI.resolve(base, args[i]));
+            }
+        }
+        
+        testStandard();
+    }
+    
+    static private void
+    testStandard() {
         final String base = "http://a/b/c/d;p?q";
 
         // normal examples

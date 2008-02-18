@@ -17,10 +17,10 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.var.Variable;
+import org.waterken.base32.Base32;
 import org.waterken.dns.Resource;
 import org.waterken.dns.editor.DomainMaster;
 import org.waterken.dns.editor.redirectory.Redirectory;
-import org.waterken.model.Base32;
 
 /**
  * A self-signed certificate generator.
