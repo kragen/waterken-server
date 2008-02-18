@@ -413,7 +413,9 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         : Object.class;
         final ArrayList<String> r = new ArrayList<String>(4);
         for (Class<?> i = bottom; top != i && limit != i; i=i.getSuperclass()) {
-            if (Modifier.isPublic(i.getModifiers())) { r.add(Java.name(i)); }
+            if (Modifier.isPublic(i.getModifiers())) {
+                try { r.add(Java.name(i)); } catch (final Exception e) {}
+            }
         }
         return PowerlessArray.array(r.toArray(new String[r.size()]));
     }
@@ -422,7 +424,9 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private void
     all(final Class<?> type, final ArrayList<String> r) {
         if (type == Serializable.class) { return; }
-        if (Modifier.isPublic(type.getModifiers())) { r.add(Java.name(type)); }
+        if (Modifier.isPublic(type.getModifiers())) {
+            try { r.add(Java.name(type)); } catch (final Exception e) {}
+        }
         for (final Class<?> i : type.getInterfaces()) { all(i, r); }
     }
 }

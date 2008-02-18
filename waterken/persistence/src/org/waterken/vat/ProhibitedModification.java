@@ -3,6 +3,7 @@
 package org.waterken.vat;
 
 import org.joe_e.Powerless;
+import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
@@ -26,7 +27,7 @@ ProhibitedModification extends RuntimeException implements Powerless, Record {
      */
     public @deserializer
     ProhibitedModification(@name("type") final Class type) {
-        super(type.getName());
+        super(Reflection.getName(type));
         this.type = type;
     }
 }

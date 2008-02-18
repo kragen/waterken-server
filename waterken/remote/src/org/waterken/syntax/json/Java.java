@@ -43,21 +43,23 @@ Java {
             public String
             run(final Object target) {
                 final Class type= null!=target ? target.getClass() : Void.class;
-                if (Class.class == type) { return name((Class)target); }
-                if (Method.class == type) {
-                    final Method m = (Method)target;
-                    String p = property(m);
-                    if (null == p) { p = m.getName(); }
-                    return name(m.getDeclaringClass()) + "--" + p;
-                }
-                if (Field.class == type) {
-                    final Field f = (Field)target;
-                    return name(f.getDeclaringClass()) + "--" + f.getName();
-                }
-                if (Constructor.class == type) {
-                    final Constructor c = (Constructor)target;
-                    return name(c.getDeclaringClass()) + "--new";
-                }
+                try {
+                    if (Class.class == type) { return name((Class)target); }
+                    if (Method.class == type) {
+                        final Method m = (Method)target;
+                        String p = property(m);
+                        if (null == p) { p = m.getName(); }
+                        return name(m.getDeclaringClass()) + "--" + p;
+                    }
+                    if (Field.class == type) {
+                        final Field f = (Field)target;
+                        return name(f.getDeclaringClass()) + "--" + f.getName();
+                    }
+                    if (Constructor.class == type) {
+                        final Constructor c = (Constructor)target;
+                        return name(c.getDeclaringClass()) + "--new";
+                    }
+                } catch (final Exception e) {}
                 return next.run(target);
             }
         }
@@ -267,11 +269,11 @@ Java {
     );
     
     static String
-    name(final Class<?> type) {
+    name(final Class<?> type) throws Exception {
         for (final Alias a : custom) {
             if (type == a.type) { return a.name; }
         }
-        return type.getName().replace('$', '-');
+        return Reflection.getName(type).replace('$', '-');
     }
     
     static Class

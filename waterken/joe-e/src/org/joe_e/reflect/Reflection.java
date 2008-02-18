@@ -212,6 +212,19 @@ public final class Reflection {
 
         return PowerlessArray.array(ms);
     }
+ 
+    /**
+     * Get the name of a class.  Wrapper to avoid exposing the number of
+     * proxy interfaces generated.
+     */
+    static public String getName(Class c) {
+        if (java.lang.reflect.Proxy.isProxyClass(c)) {
+            throw new IllegalArgumentException("Can't get the name of a " +
+                                               "proxy class.");
+        } else {
+            return c.getName();
+        }
+    }
 
     /**
      * boot class loader
