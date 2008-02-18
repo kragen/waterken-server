@@ -50,7 +50,8 @@ javadoc \
     -group 'Reflection' 'org.joe_e.reflect:org.ref_send.type' \
     -group 'I/O' 'org.joe_e.charset:org.joe_e.file' \
     -group 'Web Datatypes' 'org.web_send*' \
+    -group 'Application Widgets' 'org.waterken.menu' \
     -group 'Orthogonal Persistence' \
-           'org.waterken.model:org.waterken.jos:org.waterken.thread' \
+           'org.waterken.vat:org.waterken.jos:org.waterken.thread' \
     -group 'Networking' 'org.waterken.*' \
     -subpackages 'org'
