@@ -11,3 +11,4 @@ touch db/.persistent-object-store
 (cd remote/; ./build.sh $@)
 (cd dns/; ./build.sh $@)
 (cd server/; ./build.sh $@)
+(cd test/; ./build.sh $@)

@@ -10,3 +10,4 @@ rm -rf javadoc/
 (cd remote/; ./clean.sh $@)
 (cd dns/; ./clean.sh $@)
 (cd server/; ./clean.sh $@)
+(cd test/; ./clean.sh $@)
