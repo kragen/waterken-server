@@ -28,7 +28,7 @@ following folders:</p>
 <dl>
 <dt><code><a name="config" href="#config">config/</a></code></dt>
 <dd>holds configuration files, such as the SSL key pair</dd>
-<dt><code><a name="db" href="#db">db/</a></code></dt>
+<dt><code><a name="vat" href="#vat">vat/</a></code></dt>
 <dd>holds persistent Java objects</dd>
 <dt><code><a name="code" href="#code">code/</a></code></dt>
 <dd>holds project specific Java class files
@@ -52,9 +52,9 @@ directory)</dd>
 <dd>use the specified folder as the <code><a href="#config">config/</a></code>
 folder (defaults to the "config" sub-folder of the <code>waterken.home</code>
 folder)</dd>
-<dt><code><a name="waterken.db" href="#waterken.db">waterken.db</a></code></dt>
-<dd>use the specified folder as the <code><a href="#db">db/</a></code> folder
-(defaults to the "db" sub-folder of the <code>waterken.home</code> folder)</dd>
+<dt><code><a name="waterken.vat" href="#waterken.vat">waterken.vat</a></code></dt>
+<dd>use the specified folder as the <code><a href="#vat">vat/</a></code> folder
+(defaults to the "vat" sub-folder of the <code>waterken.home</code> folder)</dd>
 <dt><code><a name="waterken.code" href="#waterken.code">waterken.code</a></code></dt>
 <dd>use the specified folder as the <code><a href="#code">code/</a></code>
 folder (defaults to the <code>waterken.home</code> folder)</dd>
@@ -136,12 +136,12 @@ HTTP <code>404</code> error pages returned by the server.</p>
 <h3><a name="add_vat" href="#add_vat">Add a new vat</a></h3>
 <p>Persistent Java objects hosted by the Waterken server are grouped into
 collections, each of which is called a "vat". The persistent state of each vat
-is held in a sub-folder of the <code><a href="#db">db/</a></code> folder.  You
+is held in a sub-folder of the <code><a href="#vat">vat/</a></code> folder.  You
 can create a new vat from the command line using <code>spawn.jar</code>:
 </p>
 <p><kbd>java -jar spawn.jar example org.waterken.bang.Main test</kbd></p>
 <p>The above command enables execution of the
-<a href="../javadoc/org/web_send/graph/Publisher.html#spawn(java.lang.String,%20java.lang.Class)">Publisher#spawn()</a>
+<code><a href="../javadoc/org/web_send/graph/Publisher.html#spawn(java.lang.String,%20java.lang.Class)">Publisher#spawn()</a></code>
 method from the command line. The last argument is the vat name and the second
 to last is the fully qualified name of the maker class used to construct the
 first application object in the new vat. The web-key for the created object is
@@ -149,9 +149,29 @@ returned on the <code>stdout</code> of the <code>spawn.jar</code> command. The
 first argument to the <code>spawn.jar</code> command is the name of the project
 that defines the maker class.</p>
 <h3><a name="add_project" href="#add_project">Add a new project</a></h3>
-<p>Each vat is associated with a given project in the
-<code><a href="#code">code</a></code> folder where the application specific code
-for that vat is kept. For each project, there's also a default web page.</p>
+<p>Each vat is associated with a project, which determines the custom Java
+classes used in the vat, as well as the web page served for any web-key exported
+from the vat.</p>
+<h4><a name="configure_project_classes" href="#configure_project_classes">Configure project classes</a></h4>
+<p>When creating a new application, put your Java class files in a sub-folder of
+the <code><a href="#code">code/</a></code> folder, using your project name for
+the sub-folder name. For example, the waterken-server distribution includes a
+sample application with project name "example" and corresponding class file
+folder <code>example/bin/</code>. To create a new application named "myProject",
+create a new folder at the same level as the existing <code>example/</code>
+folder and put your class files in a <code>bin/</code> sub-folder, so your
+classes are at <code>myProject/bin/</code>.</p>
+<h4><a name="configure_project_web_page" href="#configure_project_web_page">Configure project web page</a></h4>
+<p>Every web-key exported from a given vat references the same web page. This
+web page is stored in a sub-folder of the <code>www/site/</code> folder, again
+named by the project. For example, the web page for the "example" project is at
+<code>www/site/example/index.html</code>. You can customize this web page for
+your own application by creating a corresponding entry for your project. For
+example, to setup the web page for the "myProject" application, copy the
+index.html file to a new folder at <code>www/site/myProject/</code>. You can
+also use other formats for your application's web page. The server will serve
+any file whose name starts with "index.", so a flash web page would be named
+<code>index.swf</code>.</p>
 </div>
 <p class="footer">
 </p>
