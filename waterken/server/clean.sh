@@ -2,6 +2,6 @@
 
 echo 'Cleaning server project...'
 rm -f ../serve.jar
-rm -f ../share.jar
+rm -f ../spawn.jar
 rm -f ../genkey.jar
 rm -rf bin/
