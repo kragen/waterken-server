@@ -41,7 +41,7 @@ a request using a URI. As elucidated in the W3C's Architecture of the World
 Wide Web, Volume One [<a href="#webarch">webarch</a>], the URI provides a
 powerful architectural base upon which to build an information space. This
 information space includes the wikis, blogs, search engines, e-commerce sites
-and web-applications that so permeate our daily lives. So long as there are no
+and web applications that so permeate our daily lives. So long as there are no
 permissions required, an interaction across this information space is
 successfully enabled through the use of URIs. The proliferation of mashups
 which integrate information from publicly accessible sites like Google Maps and
@@ -135,11 +135,11 @@ application may have access to a resource which stores the current contact
 information of a friend. Rather than maintain this state on behalf of the
 friend, the user may wish to directly delegate access to the contact resource
 to the friend, so that it may be updated directly when contact information
-changes. If the web-application is protected by a username/password, the user
+changes. If the web application is protected by a username/password, the user
 cannot share access to the contact resource simply by sending their friend the
 URI. Instead, sharing access to the contact resource may require sharing full
 control over the web-mail account by giving the user's username/password to the
-friend. Alternatively, the web-application may support some process whereby the
+friend. Alternatively, the web application may support some process whereby the
 friend may be given their own username/password, and an access control list
 updated by the user to give the friend access to the contact resource. Some may
 think this latter scenario plausible, others not, but it is certainly different
@@ -425,7 +425,7 @@ XMLHttpRequest API.</p>
 <h2><a name="open_safe" href="#open_safe">Deep linking in a free world</a></h2>
 <p>This section shows how the web-key proposal addresses the previously
 discussed problems with access control on the Web, supports safe cooperation
-between web-applications and enables a Web free from the restraints of the Same
+between web applications and enables a Web free from the restraints of the Same
 Origin Policy.</p>
 <h3><a name="cap_webarch" href="#cap_webarch">Good web architecture</a></h3>
 <p>By providing a convention for representing a permission as a URL, the
@@ -439,12 +439,12 @@ carries all the permission identification needed to make a request, such
 requests need not be augmented with user credentials taken from the ambient
 environment of the user agent. Consequently, global scope is restored.</p>
 <h3><a name="cap_usability" href="#cap_usability">Simpler interaction</a></h3>
-<p>A web-application using web-keys in effect generates passwords on behalf of
+<p>A web application using web-keys in effect generates passwords on behalf of
 the user and provides them in a form that can be managed using existing user
 agent features, such as bookmarks. Each generated password is much stronger
 than anything a user could be expected to generate and is unique to the
 corresponding permission, instead of being shared across multiple
-web-applications, each of which encompasses multiple permissions. A typical
+web applications, each of which encompasses multiple permissions. A typical
 application may have a single top-level resource, whose web-key is bookmarked
 by the user. Other resources are then accessed by traversing the hypermedia web
 rooted at the top-level resource. From the user's perspective, it's all just
@@ -505,7 +505,7 @@ Origin Policy, such as the server-side code of a mashup application.</p>
 <h3><a name="cap_grain" href="#cap_grain">Fine-grained access control</a></h3>
 <p>In a web-key application, each distinct permission is assigned a distinct
 web-key. Consequently, authority over a restricted set of resources in a
-web-application can be readily delegated to another web agent, such as a
+web application can be readily delegated to another web agent, such as a
 mashup. The web-mail mashup discussed in the introduction to this paper can be
 enabled by having the user pass the web-key for an email folder to the mashup
 application. The mashup application can then create a presentation that merges
@@ -539,7 +539,7 @@ enforce this policy by hiding some of the building entrances, nor by requesting
 legislation requiring the use of the front door and forbidding anyone to reveal
 the fact that there are other doors to the building."</p>
 </blockquote>
-<p>The analogy seems to be that a web-application is like a physical building
+<p>The analogy seems to be that a web application is like a physical building
 and that a door is like a URI. In this analogy, the deep linking issue is about
 controlling which of multiple public entrances a member of the public uses,
 since the URI in question leads to a publicly accessible resource. This
@@ -550,7 +550,7 @@ control the dissemination of publicly known information. But a URI providing
 access to a private resource need not be publicly known and restricting
 knowledge of it may be practical, whereas restricting knowledge of the doors to
 a physical building is impractical.</p>
-<p>The laws of physics for a web-application are much different than the laws
+<p>The laws of physics for a web application are much different than the laws
 of physics for a brick-and-mortar building. It's feasible for a would-be
 intruder to walk around a physical building to discover all the doors. As
 discussed in the implementation section of this paper, it's cheap to construct a
@@ -558,7 +558,7 @@ URI namespace that an intruder cannot feasibly enumerate, nor even discover a
 single member of. In the physical world, it's feasible for an intruder to
 discover a way into a building by watching as authorized users enter. On the
 Internet, invisibility cloaks are cheap and widely available. Using SSL, an
-authorized user can interact with a web-application without being observed by
+authorized user can interact with a web application without being observed by
 others on the network. While hiding may seem tricky or impractical for a
 physical object, it's down to a science for bit strings. Using encryption, the
 contents of a communication are hidden by controlling distribution of a
@@ -591,7 +591,7 @@ dereferencing such a URL, the HTTP protocol is run over an SSL connection that
 tunnels through proxies. The proxy server sees only the encrypted SSL data and
 not the HTTP requests, nor any contained web-keys.</p>
 <h3><a name="server_logs" href="#server_logs">Server logs</a></h3>
-<p>When deploying a web-application that uses web-keys, it is expected that the
+<p>When deploying a web application that uses web-keys, it is expected that the
 developer will have the ability to choose, or appropriately configure, the
 server. Configuring the server to not make logs available to unauthorized third
 parties is an important step to take. The web-key https URL convention
@@ -616,12 +616,12 @@ this precaution is unnecessary. When manipulating private web resources, the
 user is frequently in a setting where shoulder surfing is not a concern. For
 example, the user may be at home, in a private office or cube, or using a small
 handheld device whose display is not easily seen by onlookers.</p>
-<p>The web-application developer can also take measures to prevent shoulder
-surfing. The top level page for a web-application may be identified by a URL
+<p>The web application developer can also take measures to prevent shoulder
+surfing. The top level page for a web application may be identified by a URL
 containing no sensitive information. This page first puts the user through a
 traditional login ceremony using a password. A successful login yields the
 user's web-keys, which are manipulated by code running inside the top level
-page. From the web browser's perspective, the web-application consists of a
+page. From the web browser's perspective, the web application consists of a
 single page, identified by an innocuous URL, similar to many Web 2.0
 applications.</p>
 <h3><a name="browser_cache" href="#browser_cache">Browser cache</a></h3>
