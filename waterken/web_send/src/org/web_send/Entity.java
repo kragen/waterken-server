@@ -7,6 +7,7 @@ import java.io.Serializable;
 import org.joe_e.Powerless;
 import org.joe_e.Selfless;
 import org.joe_e.array.ByteArray;
+import org.joe_e.array.PowerlessArray;
 
 /**
  * A MIME entity.
@@ -19,9 +20,35 @@ Entity implements Powerless, Selfless, Serializable {
      * maximum number of bytes in {@link #content}: {@value}
      */
     static public final int maxContentSize = 256 * 1024;
+    
+    /**
+     * supported Media Types
+     * <p>
+     * Some Media Types, such as HTML, trigger execution upon receipt in a web
+     * browser. This field lists the known safe and so supported Media Types.
+     * </p>
+     */
+    static public final PowerlessArray<String> supported = PowerlessArray.array(
+        "application/octet-stream",
+        "text/plain"
+    );
+    
+    /**
+     * Is a given Media Type supported?
+     * @param type  Media Type
+     */
+    static public boolean
+    supports(final String type) {
+        final int c = type.indexOf(';');
+        final String m = (-1 == c ? type : type.substring(0, c)).toLowerCase();
+        for (final String x : supported) {
+            if (x.equals(m)) { return true; }
+        }
+        return false;
+    }
 
     /**
-     * MIME Media Type
+     * Media Type
      */
     public final String type;
 
@@ -38,7 +65,7 @@ Entity implements Powerless, Selfless, Serializable {
      */
     public
     Entity(final String type, final ByteArray content) throws Failure {
-        if (null == type) { throw new NullPointerException(); }
+        if (!supports(type)) { throw Failure.notSupported(); }
         if (maxContentSize < content.length()) { throw Failure.tooBig(); }
         
         this.type = type;

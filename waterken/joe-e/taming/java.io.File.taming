@@ -1,3 +1,5 @@
 
+delete()
 isDirectory()
 isFile()
+renameTo(java.io.File)

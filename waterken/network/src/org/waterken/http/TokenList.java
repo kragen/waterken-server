@@ -18,12 +18,15 @@ TokenList {
      */
     static public String
     encode(final String... token) {
-        final StringBuilder buffer = new StringBuilder();
-        for (int i = 0; i != token.length; ++i) {
-            if (i != 0) { buffer.append(", "); }
-            buffer.append(token[i]);
+        if (0 == token.length) { return ""; }
+        if (1 == token.length) { return token[0]; }
+        final StringBuilder r = new StringBuilder();
+        r.append(token[0]);
+        for (int i = 1; i != token.length; ++i) {
+            r.append(", ");
+            r.append(token[i]);
         }
-        return buffer.toString();
+        return r.toString();
     }
 
     /**

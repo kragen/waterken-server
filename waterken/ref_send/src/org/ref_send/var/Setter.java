@@ -7,7 +7,7 @@ package org.ref_send.var;
  * @param <T> value type
  */
 public interface
-Setter<T> {
+Setter<T> extends Receiver<T> {
     
     /**
      * Assigns a value.
@@ -17,6 +17,14 @@ Setter<T> {
      * must be the same as calling it once.
      * </p>
      * @param value value to assign
+     */
+    void
+    run(T value);
+    
+    /**
+     * Deprecated synonym for {@link #run}.
+     * @param value value to assign
+     * @deprecated  use {@link #run} instead
      */
     void
     set(T value);

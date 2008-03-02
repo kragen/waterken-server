@@ -55,7 +55,7 @@ HTTP extends Struct implements Messenger, Serializable {
             // To ensure when blocks are processed in the same order as
             // enqueued, always ask the source vat for the resolved value.
             final String target = Exports.href(src, Exports.key(URL));
-            final String here = (String)local.fetch(null, Remoting.here);
+            final String here = (String)local.fetch(null, Root.here);
             if (!src.equalsIgnoreCase(here)) {
                 return message(target).when(target, R, observer);
             }
@@ -100,7 +100,7 @@ HTTP extends Struct implements Messenger, Serializable {
         // only send an invocation on a remote reference, or a pipeline
         // promise generated from this vat.
         final String src = Exports.src(URL);
-        if (null == src || src.equals(local.fetch(null, Remoting.here))) {
+        if (null == src || src.equals(local.fetch(null, Root.here))) {
             return message(URL).invoke(URL, proxy, method, arg);
         }
         final Class<?> R = Typedef.raw(

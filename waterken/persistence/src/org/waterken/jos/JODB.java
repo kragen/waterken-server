@@ -31,17 +31,25 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.list.List;
+import org.ref_send.log.Event;
+import org.ref_send.log.Got;
+import org.ref_send.log.Sent;
+import org.ref_send.log.Turn;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
+import org.ref_send.promise.eventual.ConditionalRunner;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
+import org.ref_send.var.Factory;
+import org.ref_send.var.Receiver;
 import org.waterken.base32.Base32;
 import org.waterken.cache.Cache;
 import org.waterken.thread.Concurrent;
 import org.waterken.vat.Creator;
 import org.waterken.vat.CyclicGraph;
 import org.waterken.vat.Effect;
+import org.waterken.vat.Tracer;
 import org.waterken.vat.Vat;
 import org.waterken.vat.ProhibitedCreation;
 import org.waterken.vat.ProhibitedModification;
@@ -249,6 +257,12 @@ JODB extends Vat {
 
             public String
             getVatName() { return folder.getName(); }
+            
+            public Turn
+            getTurn() {
+                return new Turn((String)fetch(null, Root.here),
+                                ((Stats)fetch(null, stats)).getChanged());
+            }
 
             public String
             pipeline(final String m) {
@@ -511,19 +525,6 @@ JODB extends Vat {
                 return key;
             }
         };
-        final boolean[] scheduled = { false };
-        final Loop<Task> enqueue = new Loop<Task>() {
-            public void
-            run(final Task task) {
-                if (!active[0]) { throw new AssertionError(); }
-
-                try {
-                    final List<Task> q = (List)root.fetch(null, tasks);
-                    q.append(task);
-                    scheduled[0] = true;
-                } catch (final Exception e) {}
-            }
-        };
         final List<Effect> effects = List.list();
         final Loop<Effect> effect = new Loop<Effect>() {
             public void
@@ -552,6 +553,37 @@ JODB extends Vat {
                         });
                     }
                 });
+            }
+        };
+        final boolean[] scheduled = { false };
+        final Loop<Task> enqueue = new Loop<Task>() {
+            public void
+            run(final Task task) {
+                if (!active[0]) { throw new AssertionError(); }
+
+                final List<Task> q = (List)root.fetch(null, tasks);
+                q.append(task);
+                scheduled[0] = true;
+                
+                // skip logging of a self-logging task
+                if (task instanceof ConditionalRunner) { return; }
+                
+                // determine if logging is turned on
+                final Factory<Receiver<Event>> erf =
+                    (Factory)root.fetch(null, Root.events);
+                if (null == erf) { return; }
+                final Receiver<Event> er = erf.run();
+                if (null == er) { return; }
+
+                // output a log event
+                final Stats now = (Stats)root.fetch(null, stats);
+                if (null == now) { return; }
+                final long future = now.getDequeued() + q.getSize();
+                final Turn turn = root.getTurn();
+                final Tracer tracer = (Tracer)root.fetch(null, Root.tracer);
+                final Sent e = new Sent(turn,
+                    null != tracer ? tracer.get() : null, turn.loop + future); 
+                effect.run(new Effect() { public void run() { er.run(e); } });
             }
         };
         final boolean[] modified = { false };
@@ -600,6 +632,7 @@ JODB extends Vat {
                         run(final Root local) throws Exception {
                             final List<Task> q = List.list();
                             local.link(tasks, q);
+                            local.link(stats, new Stats());
                             return initialize.run(local);
                         }
                     });
@@ -641,8 +674,9 @@ JODB extends Vat {
         };
 
         // setup the pseudo-persistent objects
-        k2b.put(Root.nothing, new Bucket(false, null, null));
         k2b.put(Root.code, new Bucket(false, code, null));
+        nameShared(k2b, Runnable.class.getClassLoader(), code.getParent());
+        k2b.put(Root.nothing, new Bucket(false, null, null));
         k2b.put(Root.prng, new Bucket(false, prng, null));
         k2b.put(".root", new Bucket(false, root, null));
         k2b.put(Root.enqueue, new Bucket(false, enqueue, null));
@@ -676,6 +710,12 @@ JODB extends Vat {
                 r = Fulfilled.detach(body.run(root));
             } catch (final Exception e) {
                 r = new Rejected<R>(e);
+            }
+            
+            // update the change count if needed.
+            if (!extend) {
+                final Stats now = (Stats)root.fetch(null, stats);
+                if (null != now) { now.incrementChanged(); }
             }
 
             // persist the modifications
@@ -743,6 +783,20 @@ JODB extends Vat {
 
         return r;
     }
+    
+    static private int
+    nameShared(final HashMap<String,Bucket> k2b,
+               final ClassLoader system, final ClassLoader code) {
+        if (code == system) { return 0; }
+        final int n = nameShared(k2b, system, code.getParent()) + 1;
+        k2b.put(".shared" + n, new Bucket(false, code, null));
+        return n;
+    }
+
+    /**
+     * {@link Root} name for the {@link Stats}
+     */
+    static private final String stats = ".stats";
 
     /**
      * Gets a configuration value for a persistence folder.
@@ -794,6 +848,8 @@ JODB extends Vat {
 
     static private final Cache<String,ClassLoader> jars =
         new Cache<String,ClassLoader>(new ReferenceQueue<ClassLoader>());
+    static private       ClassLoader shared = Loop.class.getClassLoader();
+    static { try { shared = jar("shared"); } catch (final Exception e) {} }
 
     /**
      * Gets the named classloader.
@@ -801,19 +857,16 @@ JODB extends Vat {
      */
     static private ClassLoader
     jar(final String project) throws Exception {
-        if (null == project || "".equals(project)) {
-            return JODB.class.getClassLoader();
-        }
-        Filesystem.checkName(project);
+        if (null == project || "".equals(project)) { return shared; }
 
         synchronized (jars) {
             ClassLoader r = jars.fetch(null, project);
             if (null == r) {
                 final File bins = new File(home, System.getProperty(
                     "waterken.code", "")).getCanonicalFile();
-                final String jar = System.getProperty(
+                final String ext = System.getProperty(
                     "waterken.bin", File.separator + "bin" + File.separator);
-                r = new Project(new File(bins, project + jar));
+                r = new Project(Filesystem.file(bins, project + ext), shared);
                 jars.put(project, r);
             }
             return r;
@@ -898,21 +951,45 @@ JODB extends Vat {
                 run(final Root local) throws Exception {
                     runner = null;
                     final List<Task> q = (List)local.fetch(null, tasks);
+                    final Task task = q.pop();
                     try {
-                        q.pop().run();
+                        task.run();
                     } catch (final Exception e) {
                         e.printStackTrace();
                     }
+                    final Loop<Effect> effect =
+                        (Loop)local.fetch(null, Root.effect); 
                     if (!q.isEmpty()) {
-                        ((Loop<Effect>)local.fetch(null, Root.effect)).
-                            run(new Effect() {
-                                public void
-                                run() throws Exception {
-                                    service.run(Run.this);
-                                    runner = Run.this;
-                                }
-                            });
+                        effect.run(new Effect() {
+                            public void
+                            run() throws Exception {
+                                service.run(Run.this);
+                                runner = Run.this;
+                            }
+                        });
                     }
+                    
+                    // update the stats
+                    final Stats now = (Stats)local.fetch(null, stats);
+                    if (null == now) { return null; }
+                    now.incrementDequeued();
+                    
+                    // skip logging of a self-logging task
+                    if (task instanceof ConditionalRunner) { return null; }
+                    
+                    // determine if logging is turned on
+                    final Factory<Receiver<Event>> erf =
+                        (Factory)local.fetch(null, Root.events);
+                    if (null == erf) { return null; }
+                    final Receiver<Event> er = erf.run();
+                    if (null == er) { return null; }
+
+                    // output a log event
+                    final Turn turn = local.getTurn();
+                    final Tracer tracer = (Tracer)local.fetch(null,Root.tracer);
+                    final Got e = new Got(turn, null != tracer
+                        ? tracer.get() : null, turn.loop + now.getDequeued()); 
+                    effect.run(new Effect() { public void run() {er.run(e);} });
                     return null;
                 }
             });

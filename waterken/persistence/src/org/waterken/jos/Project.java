@@ -15,9 +15,8 @@ Project extends URLClassLoader {
     
     protected final long timestamp;
 
-    Project(final File bin) throws IOException {
-        super(new URL[] { bin.toURI().toURL() },
-              Project.class.getClassLoader());
+    Project(final File bin, final ClassLoader parent) throws IOException {
+        super(new URL[] { bin.toURI().toURL() }, parent);
 
         if (!bin.canRead()) { throw new IOException("no classes"); }
         timestamp = findNewest(0L, bin);

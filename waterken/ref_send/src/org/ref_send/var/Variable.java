@@ -60,7 +60,7 @@ Variable<T> extends Struct implements Record, Serializable {
      * @param value value to assign
      */
     public final void
-    set(final T value) { setter.set(value); }
+    set(final T value) { setter.run(value); }
 
     /**
      * Constructs an instance.
@@ -79,7 +79,7 @@ Variable<T> extends Struct implements Record, Serializable {
     static public <T> Variable<T>
     var(final T value, final Guard<T> guard) {
         final Variable<T> r = make(guard);
-        r.setter.set(value);
+        r.setter.run(value);
         return r;
     }
 
@@ -90,7 +90,10 @@ Variable<T> extends Struct implements Record, Serializable {
             static private final long serialVersionUID = 1L;
 
             public void
-            set(final T value) {m.set(null!=guard ? guard.run(value) : value);}
+            run(final T value) {m.set(null!=guard ? guard.run(value) : value);}
+            
+            public void
+            set(final T value) { run(value); }
         }
         return new Variable<T>(m, new SetterX(), guard);
     }

@@ -48,7 +48,7 @@ TCP implements Runnable {
         final ThreadGroup threads = new ThreadGroup(service);
         final Setter<Resource> updater_;
         if (daemon.SSL) {
-            final Variable<Resource> ip = (Variable)Config.read("ip");
+            final Variable<Resource> ip = Config.read(Variable.class, "ip");
             if (null != ip) {
                 updater_ = Config.browser._._(ip.setter);
                 try {
@@ -72,7 +72,7 @@ TCP implements Runnable {
                     if (!a.equals(address)) {
                         err.println(
                             "Updating DNS to: " + a.getHostAddress() + "...");
-                        updater_.set(new Resource(
+                        updater_.run(new Resource(
                             Resource.A, Resource.IN, ResourceGuard.minTTL,
                             ByteArray.array(a.getAddress())));
                         address = a;

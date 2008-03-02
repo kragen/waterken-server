@@ -29,11 +29,6 @@ Remoting {
     String deferred = ".deferred";
 
     /**
-     * {@link Root} name for the address of the local host
-     */
-    String here = ".here";
-
-    /**
      * Wrap a network interface around a vat.
      * @param bootstrap bootstrap server
      * @param scheme    URI scheme

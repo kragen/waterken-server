@@ -4,6 +4,7 @@ package org.waterken.vat;
 
 import java.security.SecureRandom;
 
+import org.ref_send.log.Turn;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
 import org.web_send.graph.Collision;
@@ -48,6 +49,16 @@ Root {
     String enqueue = ".enqueue";
     
     /**
+     * corresponding event receiver accessor
+     */
+    String events = ".events";
+
+    /**
+     * corresponding URL
+     */
+    String here = ".here";
+    
+    /**
      * always bound to <code>null</code>
      */
     String nothing = "";
@@ -61,6 +72,11 @@ Root {
      * corresponding project name
      */
     String project = ".project";
+    
+    /**
+     * corresponding {@link Tracer} 
+     */
+    String tracer = ".tracer";
 
     /**
      * corresponding {@link Vat}
@@ -75,10 +91,16 @@ Root {
     // org.waterken.vat.Root interface
     
     /**
-     * Gets the name of the containing vat.
+     * Gets the simple name of the containing vat.
      */
     String
     getVatName();
+    
+    /**
+     * Gets the current turn identifier.
+     */
+    Turn
+    getTurn();
     
     /**
      * Calculates a pipeline key.

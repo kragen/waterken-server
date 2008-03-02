@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.ref_send.deserializer;
 import org.ref_send.name;
@@ -15,9 +14,9 @@ import org.ref_send.promise.eventual.Do;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
-import org.waterken.http.file.Tag;
 import org.waterken.http.file.Files;
-import org.waterken.io.MediaType;
+import org.waterken.http.file.Tag;
+import org.waterken.io.MIME;
 import org.waterken.uri.Path;
 import org.waterken.uri.URI;
 import org.web_send.Failure;
@@ -32,24 +31,24 @@ Mirror extends Struct implements Server, Serializable {
     private final int maxAge;
     private final Tag tag;
     private final File root;
-    private final PowerlessArray<MediaType> MIME;
+    private final MIME formats;
     
     /**
      * Constructs an instance.
      * @param maxAge    max-age value
      * @param tag       ETag generator
      * @param root      root folder
-     * @param MIME      each known file type
+     * @param formats   each known file type
      */
     public @deserializer
     Mirror(@name("maxAge") final int maxAge,
            @name("tag") final Tag tag,
            @name("root") final File root,
-           @name("MIME") final PowerlessArray<MediaType> MIME) {
+           @name("formats") final MIME formats) {
         this.maxAge = maxAge;
         this.tag = tag;
         this.root = root;
-        this.MIME = MIME;
+        this.formats = formats;
     }
 
     // org.waterken.http.Server interface
@@ -65,6 +64,6 @@ Mirror extends Struct implements Server, Serializable {
             }
             f = Filesystem.file(f, segment);
         }
-        Files.make(maxAge,tag,f,MIME).serve(resource, request, respond);
+        new Files(maxAge, tag, f, formats).serve(resource, request, respond);
     }
 }

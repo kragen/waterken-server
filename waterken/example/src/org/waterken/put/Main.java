@@ -65,7 +65,7 @@ Main extends Struct implements Test, Serializable {
         final Eventual _ = new Eventual(new Token(), new Loop<Task>() {
             public void
             run(final Task task) { work.append(task); }
-        });
+        }, null);
         final Test test = new Main(_);
         final Promise<Boolean> result = test.start();
         while (!work.isEmpty()) { work.pop().run(); }
@@ -103,7 +103,7 @@ Main extends Struct implements Test, Serializable {
             fulfill(final Variable<Boolean> v) {
                 final Promise<Boolean> before =
                     _.when(_._(v.getter).get(), was(n));
-                _._(v.setter).set(!n);
+                _._(v.setter).run(!n);
                 final Promise<Boolean> after =
                     _.when(_._(v.getter).get(), was(!n));
                 return and(_, before, after);

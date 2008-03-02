@@ -24,6 +24,7 @@ import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.snapshot.Snapshot;
+import org.waterken.remote.EventGenerator;
 import org.waterken.remote.Exports;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
@@ -71,12 +72,12 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                     if (null != q.body) {
                         final int length = q.getContentLength();
                         if (length > maxContentSize) { throw Failure.tooBig(); }
-                        q.expectContinue(respond);
+                        if (!q.expectContinue(respond)) { return; }
                         q = new Request(q.version, q.method, q.URL, q.header,
                             Snapshot.snapshot(length < 0 ? 1024 : length,
                                 Limited.limit(maxContentSize, q.body)));
                     } else {
-                        q.expectContinue(respond);
+                        if (!q.expectContinue(respond)) { return; }
                     }
                     buffered = q;
                 }
@@ -149,8 +150,10 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 } catch (final NoSuchMethodException e) {
                     throw new ClassCastException();
                 }
-                final String base = (String)mother.fetch(null, here);
-                final Server client= (Server)mother.fetch(null,Remoting.client);
+                final String base = (String)mother.fetch(null, Root.here);
+                final Object tracer = mother.fetch(null, Root.tracer);
+                final Object events = mother.fetch(null, Root.events);
+                final Object client = mother.fetch(null, Remoting.client);
                 final Creator creator= (Creator)mother.fetch(null,Root.creator);
                 final Class<T> T = (Class)build.getReturnType();
                 final String URL;
@@ -160,16 +163,20 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                         run(final Root local) throws Exception {
                             final String here = base +
                                 URLEncoding.encode(local.getVatName()) + "/";
-                            local.link(Remoting.here, here);
+                            local.link(Root.here, here);
                             if (null != client) {
                                 local.link(Remoting.client, client);
                                 local.link(Root.wake, new Wake());
                                 local.link(outbound, new Outbound());
                             }
+                            if (null!=tracer) {local.link(Root.tracer, tracer);}
+                            if (null!=events) {local.link(Root.events, events);}
                             final Token deferred = new Token();
                             local.link(Remoting.deferred, deferred);
                             final Eventual _ = new Eventual(deferred,
-                                    (Loop)local.fetch(null, Root.enqueue));
+                                (Loop)local.fetch(null, Root.enqueue),
+                                null == tracer || null == events
+                                    ? null : EventGenerator.make(local));
                             local.link(Remoting._, _);
                             final Publisher publisher = publish(local);
                             final Framework framework = new Framework(

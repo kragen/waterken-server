@@ -57,7 +57,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
      */
     static public <T> T
     _(final Class<T> type, final Root local, final String URL) {
-        final String here = (String)local.fetch(null, Remoting.here);
+        final String here = (String)local.fetch(null, Root.here);
         final String target = null == here ? URL : URI.relate(here, URL);
         final Remote<T> rp = new Remote<T>(local, target);
         return rp._.cast(type, rp);
@@ -114,7 +114,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
      */
     public boolean
     equals(final Object x) {
-        return x instanceof Remote && _ == ((Remote)x)._ &&
+        return x instanceof Remote && _.equals(((Remote)x)._) &&
                URL.equals(((Remote)x).URL) && local.equals(((Remote)x).local);
     }
     
@@ -147,7 +147,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
             }
         }
         try {
-            final String here = (String)local.fetch(null, Remoting.here);
+            final String here = (String)local.fetch(null, Root.here);
             final String target = null == here ? URL : URI.resolve(here, URL);
             return message(target).invoke(target, proxy, method, arg);
         } catch (final Exception e) { throw new Error(e); }
@@ -157,7 +157,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
 
     protected <R> R
     when(final Class<?> R, final Do<T,R> observer) {
-        final String here = (String)local.fetch(null, Remoting.here);
+        final String here = (String)local.fetch(null, Root.here);
         final String target = null == here ? URL : URI.resolve(here, URL);
         return message(target).when(target, R, observer);
     }

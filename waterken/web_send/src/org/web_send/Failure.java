@@ -56,4 +56,10 @@ Failure extends NullPointerException implements Powerless, Record {
      */
     static public Failure
     tooBig() { return new Failure("413", "Request Entity Too Large"); }
+    
+    /**
+     * 415 Unsupported Media Type
+     */
+    static public Failure
+    notSupported() { return new Failure("415", "Unsupported Media Type"); }
 }

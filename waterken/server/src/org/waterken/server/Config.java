@@ -98,11 +98,11 @@ Config {
      * @param name  setting name
      * @return setting value, or <code>null</code> if not set
      */
-    static protected Object
-    read(final String name) {
+    static protected <T> T
+    read(final Class<T> T, final String name) {
         final File file = Filesystem.file(configFolder, name + ext);
         if (!file.isFile()) { return null; }
-        return new ImporterX().run(Object.class, file.toURI().toString());
+        return (T)new ImporterX().run(T, file.toURI().toString());
     }
 
     static private   final Cache<File,Object> settings =
@@ -119,7 +119,8 @@ Config {
     
     static protected final Browser browser = Browser.make(
         new Proxy(), new SecureRandom(), code,
-        Concurrent.loop(Thread.currentThread().getThreadGroup(), "config"));
+        Concurrent.loop(Thread.currentThread().getThreadGroup(), "config"),
+        null);
 
     /**
      * Reads configuration files.

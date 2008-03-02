@@ -64,6 +64,7 @@ Callee extends Struct implements Server, Serializable {
         final String query = URI.query("", resource);
         final String s = Query.arg(null, query, "s");
         final String p = Query.arg(null, query, "p");
+        final String m = Query.arg(null, query, "m");
 
         // check for web browser bootstrap request
         if (null == s) {
@@ -72,6 +73,9 @@ Callee extends Struct implements Server, Serializable {
                             requestor, respond);
             return;
         }
+        
+        // log reception if requested
+        if (null != m) { exports.answered(m); }
 
         // determine the request
         final Request request;
@@ -121,7 +125,12 @@ Callee extends Struct implements Server, Serializable {
                 respond.fulfill(serialize(request.method, "200", "OK", forever,
                     null==p ? Serializer.render : Serializer.describe, value));
             } else {
-                respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
+                final String[] allow = { "TRACE", "OPTIONS", "GET", "HEAD" };
+                if ("OPTIONS".equals(request.method)) {
+                    respond.fulfill(Request.options(allow));
+                } else {
+                    respond.fulfill(Request.notAllowed(allow));
+                }
             }
             return;
         }                                   // member access
@@ -171,11 +180,15 @@ Callee extends Struct implements Server, Serializable {
                 if (null != etag) { r = r.with("ETag", etag); }
                 respond.fulfill(r);
             } else {
-                respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
+                final String[] allow = { "TRACE", "OPTIONS", "GET", "HEAD" };
+                if ("OPTIONS".equals(request.method)) {
+                    respond.fulfill(Request.options(allow));
+                } else {
+                    respond.fulfill(Request.notAllowed(allow));
+                }
             }
         } else if ("POST".equals(request.method)) {
-            final Object value = exports.once(Query.arg(null, query, "m"),
-                                              new Factory<Object>() {
+            final Object value = exports.once(m, new Factory<Object>() {
                 @Override public Object
                 run() {
                     try {
@@ -194,7 +207,12 @@ Callee extends Struct implements Server, Serializable {
             respond.fulfill(serialize(request.method, "200", "OK",
                                       ephemeral, Serializer.render, value));
         } else {
-            respond.fulfill(request.respond("TRACE, OPTIONS, POST"));
+            final String[] allow = { "TRACE", "OPTIONS", "POST" };
+            if ("OPTIONS".equals(request.method)) {
+                respond.fulfill(Request.options(allow));
+            } else {
+                respond.fulfill(Request.notAllowed(allow));
+            }
         }
     }
     

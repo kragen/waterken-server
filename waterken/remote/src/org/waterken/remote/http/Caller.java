@@ -118,8 +118,8 @@ Caller extends Struct implements Messenger, Serializable {
     public Object
     invoke(final String URL, final Object proxy,
            final Method method, final Object... arg) {
-        return "set".equals(method.getName()) && proxy instanceof Setter &&
-               null != arg && 1 == arg.length 
+        return null != arg && 1 == arg.length && proxy instanceof Setter &&
+                                                 "run".equals(method.getName())
             ? put(URL, arg[0])
         : (null != Java.property(method)
             ? get(URL, proxy, method)
@@ -133,7 +133,7 @@ Caller extends Struct implements Messenger, Serializable {
 
             Request
             send() throws Exception {
-                return serialize(URI.resolve(URL, "?p=set&s="+Exports.key(URL)),
+                return serialize(URI.resolve(URL, "?p=run&s="+Exports.key(URL)),
                                  ConstArray.array(new Object[] { arg }));
             }
 
@@ -146,7 +146,7 @@ Caller extends Struct implements Messenger, Serializable {
                         public Void
                         fulfill(final Object object) throws Exception {
                             ((Setter)_.cast(Setter.class,
-                                    Eventual.promised(object))).set(arg);
+                                    Eventual.promised(object))).run(arg);
                             return null;
                         }
                     }
@@ -245,16 +245,16 @@ Caller extends Struct implements Messenger, Serializable {
         final ConstArray<?> argv= ConstArray.array(null==arg?new Object[0]:arg);
         class POST extends Message implements Update {
             static private final long serialVersionUID = 1L;
-
+            
             Request
             send() throws Exception {
-                final String target = URI.resolve(URL, "?p=" +
-                    method.getName() + "&s=" + Exports.key(URL) + "&m=" + m);
-                return serialize(target, argv);
+                return serialize(URI.resolve(URL, "?p=" + method.getName() +
+                        "&s=" + Exports.key(URL) + "&m=" + m), argv);
             }
 
             public Void
             fulfill(final Response response) {
+                exports.received(m);
                 if ("404".equals(response.status) && Exports.isPromise(URL)) {
                     class Retry extends Do<Object,Void> implements Serializable{
                         static private final long serialVersionUID = 1L;
@@ -297,6 +297,7 @@ Caller extends Struct implements Messenger, Serializable {
             reject(final Exception reason) { return resolver.reject(reason); }
         }
         msgs.enqueue(new POST());
+        exports.sent(m);
         return r_;
     }
     

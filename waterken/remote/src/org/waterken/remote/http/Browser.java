@@ -13,9 +13,11 @@ import org.joe_e.Token;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.log.Turn;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Server;
@@ -71,17 +73,20 @@ Browser extends Struct implements Record, Serializable {
      * @param prng      pseudo-random number generator
      * @param code      local class loader
      * @param enqueue   local event loop
+     * @param log       optional event log
      */
     static public Browser
-    make(final Server client, final SecureRandom prng,
-         final ClassLoader code, final Loop<Task> enqueue) {
-        final Token deferred = new Token();
-        final Eventual _ = new Eventual(deferred, enqueue);
+    make(final Server client, final SecureRandom prng, final ClassLoader code,
+         final Loop<Task> enqueue, final Log log) {
+        final long[] turns = { 0L };
         final Root local = new Root() {
             private final ArrayList<Binding> bound = new ArrayList<Binding>();
             
             public String
             getVatName() { return null; }
+
+            public Turn
+            getTurn() { return new Turn(null, turns[0]); }
 
             public Object
             fetch(final Object otherwise, final String name) {
@@ -119,16 +124,20 @@ Browser extends Struct implements Record, Serializable {
                   final Transaction<R> body) throws Exception {
                 if (busy) { throw new Exception(); }
                 busy = true;
+                Promise<R> rp;
                 try {
                     final R r = body.run(local);
-                    busy = false;
-                    return ref(r);
+                    rp = ref(r);
                 } catch (final Exception e) {
-                    busy = false;
-                    return new Rejected<R>(e);
+                    rp = new Rejected<R>(e);
                 }
+                ++turns[0];
+                busy = false;
+                return rp;
             }
         };
+        final Token deferred = new Token();
+        final Eventual _ = new Eventual(deferred, enqueue, log);
         local.link(Root.code, code);
         local.link(Root.destruct, new Runnable() {
             public void

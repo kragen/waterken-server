@@ -147,6 +147,39 @@ Request extends Struct implements Content, Record, Serializable {
         final String cached = ifNoneMatch.toString();
         return (null!=etag && -1 != cached.indexOf(etag)) || "*".equals(cached);
     }
+
+    /**
+     * Starts processing of an HTTP request.
+     * @param respond   corresponding response processor
+     * @param allow     allowed HTTP methods
+     * @return <code>true</code> if processing should continue
+     * @throws Exception    any problem
+     */
+    public boolean
+    allow(final Do<Response,?> respond,
+         final String... allow) throws Exception {
+        boolean allowed = false;
+        for (final String verb : allow) {
+            if (method.equals(verb)) {
+                allowed = true;
+                break;
+            }
+        }
+        if (!allowed) {
+            respond.fulfill(notAllowed(allow));
+            return false;
+        }
+        if (!expectContinue(respond)) { return false; }
+        if ("TRACE".equals(method)) {
+            respond.fulfill(trace());
+            return false;
+        }
+        if ("OPTIONS".equals(method)) {
+            respond.fulfill(options(allow));
+            return false;
+        }
+        return true;
+    }
     
     /**
      * Constructs a <code>TRACE</code> response.
@@ -156,23 +189,30 @@ Request extends Struct implements Content, Record, Serializable {
         return new Response("HTTP/1.1", "200", "OK",
             PowerlessArray.array(
                 new Header("Content-Type", "message/http; charset=iso-8859-1")
-            ), this);
+            ), "HEAD".equals(method) ? null : this);
+    }
+
+    /**
+     * Constructs an <code>OPTIONS</code> response.
+     * @param allow supported HTTP methods
+     */
+    static public Response
+    options(final String... allow) {
+        return new Response("HTTP/1.1", "204", "OK",
+            PowerlessArray.array(
+                new Header("Allow", TokenList.encode(allow))
+            ), null);
     }
     
     /**
-     * Constructs the default response.
-     * @param allow comma separated list of supported HTTP methods
+     * Constructs a 405 Method Not Allowed response.
+     * @param allow supported HTTP methods
      */
-    public Response
-    respond(final String allow) {
-        return "OPTIONS".equals(method)
-            ? new Response("HTTP/1.1", "204", "OK",
-                PowerlessArray.array(
-                    new Header("Allow", allow)
-                ), null)
-        : new Response("HTTP/1.1", "405", "Method Not Allowed",
+    static public Response
+    notAllowed(final String... allow) {
+        return new Response("HTTP/1.1", "405", "Method Not Allowed",
             PowerlessArray.array(
-                new Header("Allow", allow),
+                new Header("Allow", TokenList.encode(allow)),
                 new Header("Content-Length", "0")
             ), null);
     }
@@ -180,10 +220,10 @@ Request extends Struct implements Content, Record, Serializable {
     /**
      * Handles an <code>Expect</code> header.
      * @param respond   corresponding response processor
-     * @throws Failure      unexpected token
+     * @return <code>true</code> if processing should continue
      * @throws Exception    any problem
      */
-    public void
+    public boolean
     expectContinue(final Do<Response,?> respond) throws Exception {
         for (final Header h : header) {
             if ("Expect".equalsIgnoreCase(h.name)) {
@@ -194,9 +234,11 @@ Request extends Struct implements Content, Record, Serializable {
                     respond.fulfill(new Response("HTTP/1.1", "100", "Continue",
                                                  header, null));
                 } else {
-                    throw new Failure("417", "Expectation Failed");
+                    respond.reject(new Failure("417", "Expectation Failed"));
+                    return false;
                 }
             }
         }
+        return true;
     }
 }

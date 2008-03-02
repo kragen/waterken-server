@@ -38,7 +38,7 @@ Serve {
         // start the inbound network services
         for (int i = 0; i != args.length; ++i) {
             final String service = args[i];
-            final Object config = Config.read(service);
+            final Object config = Config.read(Object.class, service);
             final Runnable task;
             if (config instanceof TCPDaemon) {
                 final TCPDaemon daemon = (TCPDaemon)config;

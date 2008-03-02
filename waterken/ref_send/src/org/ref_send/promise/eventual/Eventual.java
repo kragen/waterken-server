@@ -1,4 +1,4 @@
-// Copyright 2006-2007 Waterken Inc. under the terms of the MIT X license
+// Copyright 2006-2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.promise.eventual;
 
@@ -132,7 +132,7 @@ import org.ref_send.type.Typedef;
  *      Unified Approach to Access Control and Concurrency Control"</a>
  */
 public final class
-Eventual implements Equatable, Serializable {
+Eventual extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -149,16 +149,23 @@ Eventual implements Equatable, Serializable {
      * </p>
      */
     public final Loop<Task> enqueue;
+    
+    /**
+     * optional event log
+     */
+    private final Log log;
 
     /**
      * Constructs an instance.
      * @param deferred  {@link Deferred} permission
      * @param enqueue   {@link #enqueue}
+     * @param log       optional event log
      */
     public
-    Eventual(final Token deferred, final Loop<Task> enqueue) {
+    Eventual(final Token deferred, final Loop<Task> enqueue, final Log log) {
         this.deferred = deferred;
         this.enqueue = enqueue;
+        this.log = log;
     }
 
     // org.ref_send.promise.eventual.Eventual interface
@@ -219,9 +226,15 @@ Eventual implements Equatable, Serializable {
     trust(final Volatile<T> untrusted) {
         return null == untrusted
             ? new Enqueue<T>(this, new Rejected<T>(new NullPointerException()))
-        : untrusted instanceof Deferred && this == ((Deferred<T>)untrusted)._
+        : trusted(untrusted)
             ? (Deferred<T>)untrusted
         : new Enqueue<T>(this, untrusted);
+    }
+    
+    private boolean
+    trusted(final Object untrusted) {
+        return untrusted instanceof Deferred &&
+               deferred == ((Deferred)untrusted)._.deferred;
     }
 
     static private final class
@@ -241,7 +254,7 @@ Eventual implements Equatable, Serializable {
         public boolean
         equals(final Object x) {
             return x instanceof Enqueue &&
-                _ == ((Enqueue)x)._ &&
+                _.equals(((Enqueue)x)._) &&
                 (null != untrusted
                     ? untrusted.equals(((Enqueue)x).untrusted)
                     : null == ((Enqueue)x).untrusted);
@@ -305,7 +318,7 @@ Eventual implements Equatable, Serializable {
                 } catch (final Exception e) {
                     return second.reject(e);
                 }
-                return second.resolve(promised(b));
+                return second.fulfill(b);
             }
 
             public Void
@@ -316,54 +329,10 @@ Eventual implements Equatable, Serializable {
                 } catch (final Exception e) {
                     return second.reject(e);
                 }
-                return second.resolve(promised(b));
+                return second.fulfill(b);
             }
         }
         return new Compose();
-    }
-
-    /**
-     * A registered promise observer.
-     * @param <T> referent type
-     */
-    static private final class
-    When<T> implements Serializable {
-        static private final long serialVersionUID = 1L;
-
-        Fulfilled<When<T>> next;
-        Do<T,?> observer;
-    }
-
-    /**
-     * allocated when blocks
-     * <p>When objects are reused so as to reduce waste in
-     * implementations that provide orthogonal persistence.</p>
-     */
-    private Fulfilled allocatedWhens;
-
-    private <T> Fulfilled<When<T>>
-    allocateWhen(final Do<T,?> observer) {
-        final Fulfilled<When<T>> r;
-        if (null != allocatedWhens) {
-            r = allocatedWhens;
-            final When<T> x = r.cast();
-            allocatedWhens = x.next;
-            x.next = null;
-            x.observer = observer;
-        } else {
-            final When<T> x = new When<T>();
-            x.observer = observer;
-            r = detach(x);
-        }
-        return r;
-    }
-
-    private <T> void
-    freeWhen(final Fulfilled<When<T>> p) {
-        final When<T> x = p.cast();
-        x.next = allocatedWhens;
-        x.observer = null;
-        allocatedWhens = p;
     }
 
     /**
@@ -389,7 +358,7 @@ Eventual implements Equatable, Serializable {
      */
     public <T> Channel<T>
     defer() {
-        class State implements Serializable {
+        class State implements Equatable, Serializable {
             static private final long serialVersionUID = 1L;
 
             /**
@@ -408,7 +377,7 @@ Eventual implements Equatable, Serializable {
             Fulfilled<When<T>> back;
         }
         final Fulfilled<State> state = detach(new State());
-        class Pop extends Struct implements Task, Serializable {
+        class Pop extends Struct implements ConditionalRunner, Serializable {
             static private final long serialVersionUID = 1L;
 
             /**
@@ -417,18 +386,18 @@ Eventual implements Equatable, Serializable {
             public void
             run() throws Exception {
                 final State m = state.cast();
-                final Fulfilled<When<T>> p = m.front;
-                final When<T> x = p.cast();
-                m.front = x.next;
+                final When<T> block = m.front.cast();
+                m.front = block.next;
                 if (null == m.front) {
                     m.back = null;
                 } else {
                     enqueue.run(this);
                 }
-                final Do<T,?> observer = x.observer;
-                freeWhen(p);
-                if (m.value instanceof Deferred &&
-                    Eventual.this == ((Deferred)m.value)._) {
+                if (null != log) { log.got(block); }
+                final Do<T,?> observer = block.observer;
+                block.observer = null;
+                block.next = null;
+                if (trusted(m.value)) {
                     ((Deferred<T>)m.value).when(Void.class, observer);
                 } else {
                     // AUDIT: call to untrusted application code
@@ -451,6 +420,7 @@ Eventual implements Equatable, Serializable {
             resolve(final Volatile<T> value) {
                 final State m = state.cast();
                 if (null == m.value) {
+                    if (null != log) { log.resolved(m); }
                     m.value = null != value
                         ? value
                     : new Rejected<T>(new NullPointerException());
@@ -490,21 +460,39 @@ Eventual implements Equatable, Serializable {
                     r = _.cast(R, x.promise);
                     forwarder = compose(observer, x.resolver);
                 }
+                final When<T> block = new When<T>(forwarder);
 
                 final State m = state.cast();
+                if (null != log) { log.sentIf(block, m); }
                 if (null == m.front) {
-                    m.front = allocateWhen(forwarder);
+                    m.front = detach(block);
                     m.back = m.front;
                     if (null != m.value) { enqueue.run(new Pop()); }
                 } else {
                     final When<T> previous = m.back.cast();
-                    m.back = previous.next = allocateWhen(forwarder);
+                    m.back = previous.next = detach(block);
                 }
                 
                 return r;
             }
         }
         return new Channel<T>(new Tail(), new Head());
+    }
+
+    /**
+     * A registered promise observer.
+     * @param <T> referent type
+     */
+    static private final class
+    When<T> implements Equatable, Serializable {
+        static private final long serialVersionUID = 1L;
+
+        Do<T,?> observer;
+        Fulfilled<When<T>> next;
+        
+        When(final Do<T,?> observer) {
+            this.observer = observer;
+        }
     }
 
     /**
@@ -637,9 +625,7 @@ Eventual implements Equatable, Serializable {
             try {
                 final Object handler = Proxies.getHandler((Proxy)reference);
                 if ((null != handler && Rejected.class == handler.getClass()) ||
-                    (handler instanceof Deferred&&this==((Deferred)handler)._)){
-                    return reference;   // already a trusted eventual reference
-                }
+                    trusted(handler)) { return reference; }
             } catch (final Exception e) {}
         }
         try {

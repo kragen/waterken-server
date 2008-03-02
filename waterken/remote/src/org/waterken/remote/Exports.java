@@ -9,11 +9,18 @@ import java.security.SecureRandom;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
+import org.ref_send.log.Event;
+import org.ref_send.log.Got;
+import org.ref_send.log.Sent;
+import org.ref_send.log.Trace;
+import org.ref_send.log.Turn;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Loop;
 import org.ref_send.var.Factory;
+import org.ref_send.var.Receiver;
 import org.waterken.base32.Base32;
 import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
@@ -22,7 +29,9 @@ import org.waterken.syntax.json.Java;
 import org.waterken.uri.Path;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
+import org.waterken.vat.Effect;
 import org.waterken.vat.Root;
+import org.waterken.vat.Tracer;
 import org.web_send.Entity;
 
 /**
@@ -50,7 +59,7 @@ Exports extends Struct implements Serializable {
      * Gets the base URL for this namespace.
      */
     public String
-    getHere() { return (String)local.fetch("x-browser:", Remoting.here); }
+    getHere() { return (String)local.fetch("x-browser:", Root.here); }
     
     /**
      * Gets the project name for this vat.
@@ -63,6 +72,71 @@ Exports extends Struct implements Serializable {
      */
     public String
     getTransactionTag() { return local.getTransactionTag(); }
+    
+    /**
+     * Logs a POST request send.
+     * @param mid   request message identifier
+     */
+    public void
+    sent(final String mid) {
+        
+        // determine if logging is turned on
+        final Receiver<Event> er = events();
+        if (null == er) { return; }
+
+        // output a log event
+        final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
+        log(er, new Sent(local.getTurn(), null!=tracer?tracer.get():null, mid)); 
+    }
+    
+    /**
+     * Logs an HTTP response send.
+     * @param mid   request message identifier
+     */
+    public void
+    answered(final String mid) {
+        
+        // determine if logging is turned on
+        final Receiver<Event> er = events();
+        if (null == er) { return; }
+
+        // output log events
+        final Turn turn = local.getTurn();
+        final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
+        final Trace trace = null != tracer ? tracer.get() : null;
+        log(er, new Got(turn, trace, mid)); 
+        log(er, new Sent(turn, trace, local.pipeline(mid))); 
+    }
+    
+    /**
+     * Logs receipt of an HTTP response.
+     * @param mid   request message identifier
+     */
+    public void
+    received(final String mid) {
+        
+        // determine if logging is turned on
+        final Receiver<Event> er = events();
+        if (null == er) { return; }
+
+        // output a log event
+        final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
+        log(er, new Got(local.getTurn(), null != tracer ? tracer.get() : null,
+                        local.pipeline(mid))); 
+    }
+    
+    private Receiver<Event>
+    events() {
+        final Factory<Receiver<Event>> erf =
+            (Factory)local.fetch(null, Root.events);
+        return null != erf ? erf.run() : null;
+    }
+    
+    private void
+    log(final Receiver<Event> er, final Event e) {
+        final Loop<Effect> effect = (Loop)local.fetch(null,Root.effect); 
+        effect.run(new Effect() { public void run() { er.run(e); } });
+    }
     
     /**
      * Fetches an exported reference.
@@ -175,7 +249,7 @@ Exports extends Struct implements Serializable {
     public <R> R
     far(final String base, final String mid,
         final Class<R> R, final Promise<R> response) {
-        final String here = (String)local.fetch(null, Remoting.here);
+        final String here = (String)local.fetch(null, Root.here);
         if (null == here) {
             final Eventual _ = (Eventual)local.fetch(null, Remoting._);
             return _.cast(R, response);

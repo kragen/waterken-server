@@ -9,5 +9,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/remote"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/web_send"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/dns"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/log"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

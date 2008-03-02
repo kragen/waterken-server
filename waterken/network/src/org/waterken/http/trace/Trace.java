@@ -20,15 +20,19 @@ import org.waterken.uri.URI;
 public final class
 Trace extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
-    
+
+    private final String prefix;
     private final Server next;
 
     /**
      * Constructs an instance.
-     * @param next  next server to try
+     * @param prefix    path prefix to trace
+     * @param next      next server to try
      */
     public @deserializer
-    Trace(@name("next") final Server next) {
+    Trace(@name("prefix") final String prefix,
+          @name("next") final Server next) {
+        this.prefix = prefix;
         this.next = next;
     }
     
@@ -38,12 +42,13 @@ Trace extends Struct implements Server, Serializable {
     serve(final String resource, final Volatile<Request> requestor,
           final Do<Response,?> respond) throws Exception {
     
-        if (!URI.path(resource).startsWith("trace/")) {
+        // further dispatch the request
+        if (!URI.path(resource).startsWith(prefix)) {
             next.serve(resource, requestor, respond);
             return;
         }
 
-        // Determine the request.
+        // determine the request
         final Request request;
         try {
             request = requestor.cast();
@@ -51,15 +56,10 @@ Trace extends Struct implements Server, Serializable {
             respond.reject(e);
             return;
         }
-        request.expectContinue(respond);
-    
-        // We made it to the final processor, so bounce a TRACE.
-        if ("TRACE".equals(request.method) || "GET".equals(request.method) ||
-                                              "HEAD".equals(request.method)) {
-            respond.fulfill(request.trace());
+        if (!request.allow(respond, "GET", "HEAD", "OPTIONS", "TRACE")) {
             return;
         }
     
-        respond.fulfill(request.respond("TRACE, OPTIONS, GET, HEAD"));
+        respond.fulfill(request.trace());
     }
 }
