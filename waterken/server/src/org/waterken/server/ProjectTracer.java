@@ -29,7 +29,7 @@ ProjectTracer {
                 int b = f.length;
                 while (0 != b && !include(f[b - 1])) { --b; }
                 int t = 0;
-                while (f.length != t && !include(f[t])) { ++t; }
+                if (0 != b) { while (f.length != t && !include(f[t])) { ++t; } }
                 final CallSite[] site = new CallSite[b - t];
                 for (int i = b, j = site.length; t != i--;) {
                     final int l = f[i].getLineNumber();

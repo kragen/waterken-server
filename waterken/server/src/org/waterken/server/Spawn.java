@@ -78,7 +78,7 @@ Spawn {
                 final Creator creator= (Creator)local.fetch(null, Root.creator);
                 final ClassLoader code = creator.load(projectValue);
                 final Tracer tracerValue =
-                    ProjectTracer.make(code, Eventual.class.getClassLoader());
+                    ProjectTracer.make(code, code.getParent());
                 final Root synthetic = new Root() {
                     
                     public String

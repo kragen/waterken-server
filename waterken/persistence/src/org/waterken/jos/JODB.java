@@ -675,7 +675,7 @@ JODB extends Vat {
 
         // setup the pseudo-persistent objects
         k2b.put(Root.code, new Bucket(false, code, null));
-        nameShared(k2b, Runnable.class.getClassLoader(), code.getParent());
+        k2b.put(".shared", new Bucket(false, code.getParent(), null));
         k2b.put(Root.nothing, new Bucket(false, null, null));
         k2b.put(Root.prng, new Bucket(false, prng, null));
         k2b.put(".root", new Bucket(false, root, null));
@@ -783,15 +783,6 @@ JODB extends Vat {
 
         return r;
     }
-    
-    static private int
-    nameShared(final HashMap<String,Bucket> k2b,
-               final ClassLoader system, final ClassLoader code) {
-        if (code == system) { return 0; }
-        final int n = nameShared(k2b, system, code.getParent()) + 1;
-        k2b.put(".shared" + n, new Bucket(false, code, null));
-        return n;
-    }
 
     /**
      * {@link Root} name for the {@link Stats}
@@ -849,7 +840,11 @@ JODB extends Vat {
     static private final Cache<String,ClassLoader> jars =
         new Cache<String,ClassLoader>(new ReferenceQueue<ClassLoader>());
     static private       ClassLoader shared = Loop.class.getClassLoader();
-    static { try { shared = jar("shared"); } catch (final Exception e) {} }
+    static {
+        try {
+            shared = jar("shared");
+        } catch (final Exception e) { throw new Error(e); }
+    }
 
     /**
      * Gets the named classloader.
@@ -866,11 +861,27 @@ JODB extends Vat {
                     "waterken.code", "")).getCanonicalFile();
                 final String ext = System.getProperty(
                     "waterken.bin", File.separator + "bin" + File.separator);
-                r = new Project(Filesystem.file(bins, project + ext), shared);
+                
+                // assume a safe value has been configured for waterken.bin,
+                // and so only the project name need be vetted
+                Filesystem.checkName(project);
+                r = new Project(new File(bins, project + ext), shared);
+                
                 jars.put(project, r);
             }
             return r;
         }
+    }
+    
+    /**
+     * Gets the named classloader.
+     * @param project       project name
+     * @param permission    root vat folder
+     */
+    static public ClassLoader
+    jar(final String project, final File permission) throws Exception {
+        if (!vatDir.equals(permission)) { throw new Exception(); }
+        return jar(project);
     }
 
     /**

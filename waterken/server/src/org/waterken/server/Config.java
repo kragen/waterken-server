@@ -40,6 +40,7 @@ Config {
     // initialize bootstrap configuration from system properties
     static private final File configFolder;
     static private final File vatFolder;
+    static private final ClassLoader code;
     static {
         try {
             final File home = new File(System.getProperty(
@@ -48,6 +49,7 @@ Config {
                 "waterken.config", "config")).getCanonicalFile();
             vatFolder = new File(home, System.getProperty(
                 JODB.vatPathProperty, JODB.vatPathDefault)).getCanonicalFile();
+            code = JODB.jar("dns", vatFolder);
         } catch (final Exception e) { throw new Error(e); }
     }
     static protected final File keys= Filesystem.file(configFolder, "keys.jks");
@@ -108,7 +110,6 @@ Config {
     static private   final Cache<File,Object> settings =
         new Cache<File,Object>(new ReferenceQueue<Object>());
     static private   final LastModified tag = new LastModified();
-    static protected final ClassLoader code = Config.class.getClassLoader();
     static protected final Execution exe = new Execution() {
         public void
         sleep(final long ms) throws InterruptedException { Thread.sleep(ms); }
