@@ -17,6 +17,7 @@ import org.joe_e.Token;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.file.Filesystem;
+import org.ref_send.promise.eventual.Sink;
 import org.waterken.cache.Cache;
 import org.waterken.id.Importer;
 import org.waterken.jos.JODB;
@@ -121,7 +122,7 @@ Config {
     static protected final Browser browser = Browser.make(
         new Proxy(), new SecureRandom(), code,
         Concurrent.loop(Thread.currentThread().getThreadGroup(), "config"),
-        null);
+        new Sink());
 
     /**
      * Reads configuration files.

@@ -14,6 +14,7 @@ import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
+import org.ref_send.promise.eventual.Sink;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.test.Test;
 import org.web_send.graph.Framework;
@@ -67,7 +68,7 @@ Main extends Struct implements Test, Serializable {
         final Eventual _ = new Eventual(new Token(), new Loop<Task>() {
             public void
             run(final Task task) { work.append(task); }
-        }, null);
+        }, new Sink());
         final Test test = new Main(_);
         final Promise<Boolean> result = test.start();
         while (!work.isEmpty()) { work.pop().run(); }

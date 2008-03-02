@@ -92,7 +92,7 @@ Report {
                         typename = type[0].getName();
                     }
                 } catch (final Exception e) {
-                    typename = "<broken>";
+                    typename = "<" + e.getClass().getName() + ">";
                 }
                 out.print(typename);
                 out.println();

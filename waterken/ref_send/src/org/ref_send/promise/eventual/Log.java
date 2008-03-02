@@ -9,6 +9,20 @@ import org.joe_e.Equatable;
  */
 public interface
 Log {
+    
+    /**
+     * Will log events actually be output?
+     * @return <code>true</code> if output is created, else <code>false</code>
+     */
+    boolean
+    isOn();
+    
+    /**
+     * Logs a comment.
+     * @param text  comment text
+     */
+    void
+    comment(String text);
 
     /**
      * Logs a conditional message send.

@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 import org.joe_e.Equatable;
 import org.joe_e.Struct;
+import org.ref_send.log.Comment;
 import org.ref_send.log.Event;
 import org.ref_send.log.Got;
 import org.ref_send.log.Resolved;
@@ -31,26 +32,35 @@ EventGenerator {
     
     /**
      * Constructs an instance.
-     * @param local     local address space
-     * @param tracer    stack trace factory
-     * @param erf       event receiver accessor
+     * @param local local address space
      */
     static public Log
     make(final Root local) {
-        final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
         final Factory<Receiver<Event>> erf =
             (Factory)local.fetch(null, Root.events);
+        final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
         final Loop<Effect> effect = (Loop)local.fetch(null,Root.effect); 
         class LogX extends Struct implements Log, Serializable {
             static private final long serialVersionUID = 1L;
             
+            public boolean
+            isOn() { return null != erf.run(); }
+
+            public void
+            comment(final String text) {
+                final Receiver<Event> er = erf.run();
+                if (null == er) { return; }
+                
+                log(er, new Comment(local.getTurn(), tracer.get(), text));
+            }
+
             public void
             resolved(final Equatable condition) {
                 final Receiver<Event> er = erf.run();
                 if (null == er) { return; }
                 
                 final Turn turn = local.getTurn();
-                log(er, new Resolved(local.getTurn(), tracer.get(),
+                log(er, new Resolved(turn, tracer.get(),
                     URI.resolve(turn.loop, '#' + local.export(condition))));
             }
 
@@ -60,7 +70,7 @@ EventGenerator {
                 if (null == er) { return; }
                 
                 final Turn turn = local.getTurn();
-                log(er, new Got(local.getTurn(), tracer.get(),
+                log(er, new Got(turn, tracer.get(),
                     URI.resolve(turn.loop, '#' + local.export(message))));
             }
 
@@ -70,7 +80,7 @@ EventGenerator {
                 if (null == er) { return; }
                 
                 final Turn turn = local.getTurn();
-                log(er, new SentIf(local.getTurn(), tracer.get(),
+                log(er, new SentIf(turn, tracer.get(),
                     URI.resolve(turn.loop, '#' + local.export(message)),
                     URI.resolve(turn.loop, '#' + local.export(condition))));
             }

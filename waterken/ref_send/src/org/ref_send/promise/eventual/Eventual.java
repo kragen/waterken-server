@@ -132,7 +132,7 @@ import org.ref_send.type.Typedef;
  *      Unified Approach to Access Control and Concurrency Control"</a>
  */
 public final class
-Eventual extends Struct implements Serializable {
+Eventual implements Equatable, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -151,15 +151,15 @@ Eventual extends Struct implements Serializable {
     public final Loop<Task> enqueue;
     
     /**
-     * optional event log
+     * event log
      */
-    private final Log log;
+    public final Log log;
 
     /**
      * Constructs an instance.
      * @param deferred  {@link Deferred} permission
      * @param enqueue   {@link #enqueue}
-     * @param log       optional event log
+     * @param log       {@link #log}
      */
     public
     Eventual(final Token deferred, final Loop<Task> enqueue, final Log log) {
@@ -393,7 +393,7 @@ Eventual extends Struct implements Serializable {
                 } else {
                     enqueue.run(this);
                 }
-                if (null != log) { log.got(block); }
+                log.got(block);
                 final Do<T,?> observer = block.observer;
                 block.observer = null;
                 block.next = null;
@@ -420,7 +420,7 @@ Eventual extends Struct implements Serializable {
             resolve(final Volatile<T> value) {
                 final State m = state.cast();
                 if (null == m.value) {
-                    if (null != log) { log.resolved(m); }
+                    log.resolved(m);
                     m.value = null != value
                         ? value
                     : new Rejected<T>(new NullPointerException());
