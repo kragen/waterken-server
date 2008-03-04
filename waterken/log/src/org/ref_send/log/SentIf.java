@@ -19,17 +19,17 @@ SentIf extends Sent {
 
     /**
      * Constructs an instance.
-     * @param turn      {@link #turn}
+     * @param event     {@link #event}
      * @param trace     {@link #trace}
      * @param message   {@link #message}
      * @param condition {@link #condition}
      */
     public @deserializer
-    SentIf(@name("turn") final Turn turn,
+    SentIf(@name("event") final Event event,
            @name("trace") final Trace trace,
            @name("message") final String message,
            @name("condition") final String condition) {
-        super(turn, trace, message);
+        super(event, trace, message);
         this.condition = condition;
     }
 }

@@ -5,7 +5,7 @@ package org.waterken.server;
 import java.io.PrintStream;
 
 import org.joe_e.Token;
-import org.ref_send.log.Turn;
+import org.ref_send.log.Event;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.var.Receiver;
@@ -16,10 +16,10 @@ import org.waterken.remote.http.AMP;
 import org.waterken.uri.Hostname;
 import org.waterken.uri.URI;
 import org.waterken.vat.Creator;
-import org.waterken.vat.Tracer;
-import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
+import org.waterken.vat.Tracer;
 import org.waterken.vat.Transaction;
+import org.waterken.vat.Vat;
 
 /**
  * Command line program to create a new database.
@@ -84,8 +84,8 @@ Spawn {
                     public String
                     getVatName() { return local.getVatName(); }
 
-                    public Turn
-                    getTurn() { return local.getTurn(); }
+                    public Event
+                    notice() { return local.notice(); }
 
                     public Object
                     fetch(final Object otherwise, final String name) {

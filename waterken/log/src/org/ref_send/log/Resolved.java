@@ -19,15 +19,15 @@ Resolved extends Entry {
     
     /**
      * Constructs an instance.
-     * @param turn      {@link #turn}
+     * @param event     {@link #event}
      * @param trace     {@link #trace}
      * @param condition {@link #condition}
      */
     public @deserializer
-    Resolved(@name("turn") final Turn turn,
+    Resolved(@name("event") final Event event,
              @name("trace") final Trace trace,
              @name("condition") final String condition) {
-        super(turn, trace);
+        super(event, trace);
         this.condition = condition;
     }
 }

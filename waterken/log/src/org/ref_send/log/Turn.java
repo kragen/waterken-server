@@ -14,7 +14,7 @@ import org.ref_send.name;
  * An event loop turn identifier.
  */
 public final class
-Turn implements Comparable<Turn>, Powerless, Selfless, Record, Serializable {
+Turn implements Comparable<Turn>, Selfless, Powerless, Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**

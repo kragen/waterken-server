@@ -19,15 +19,15 @@ Comment extends Entry {
     
     /**
      * Constructs an instance.
-     * @param turn  {@link #turn}
+     * @param event {@link #event}
      * @param trace {@link #trace}
      * @param text  {@link #text}
      */
     public @deserializer
-    Comment(@name("turn") final Turn turn,
+    Comment(@name("event") final Event event,
             @name("trace") final Trace trace,
             @name("text") final String text) {
-        super(turn, trace);
+        super(event, trace);
         this.text = text;
     }
 }

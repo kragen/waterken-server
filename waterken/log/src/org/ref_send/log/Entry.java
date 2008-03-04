@@ -18,9 +18,9 @@ Entry extends Struct implements Powerless, Record, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
-     * event loop turn in which the event occured
+     * event identifier
      */
-    public final Turn turn;
+    public final Event event;
     
     /**
      * trace of the call site that produced the event
@@ -29,13 +29,13 @@ Entry extends Struct implements Powerless, Record, Serializable {
     
     /**
      * Constructs an instance.
-     * @param turn  {@link #turn}
+     * @param event {@link #event}
      * @param trace {@link #trace}
      */
     public @deserializer
-    Entry(@name("turn") final Turn turn,
+    Entry(@name("event") final Event event,
           @name("trace") final Trace trace) {
-        this.turn = turn;
+        this.event = event;
         this.trace = trace;
     }
 }

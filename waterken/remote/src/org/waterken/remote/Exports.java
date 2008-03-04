@@ -13,7 +13,6 @@ import org.ref_send.log.Entry;
 import org.ref_send.log.Got;
 import org.ref_send.log.Sent;
 import org.ref_send.log.Trace;
-import org.ref_send.log.Turn;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
@@ -86,7 +85,7 @@ Exports extends Struct implements Serializable {
 
         // output a log event
         final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
-        log(er, new Sent(local.getTurn(), null!=tracer?tracer.get():null, mid)); 
+        log(er, new Sent(local.notice(), null!=tracer?tracer.get():null, mid)); 
     }
     
     /**
@@ -101,11 +100,10 @@ Exports extends Struct implements Serializable {
         if (null == er) { return; }
 
         // output log events
-        final Turn turn = local.getTurn();
         final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
         final Trace trace = null != tracer ? tracer.get() : null;
-        log(er, new Got(turn, trace, mid)); 
-        log(er, new Sent(turn, trace, local.pipeline(mid))); 
+        log(er, new Got(local.notice(), trace, mid)); 
+        log(er, new Sent(local.notice(), trace, local.pipeline(mid))); 
     }
     
     /**
@@ -121,7 +119,7 @@ Exports extends Struct implements Serializable {
 
         // output a log event
         final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
-        log(er, new Got(local.getTurn(), null != tracer ? tracer.get() : null,
+        log(er, new Got(local.notice(), null != tracer ? tracer.get() : null,
                         local.pipeline(mid))); 
     }
     

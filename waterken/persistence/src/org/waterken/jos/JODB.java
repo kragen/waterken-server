@@ -32,6 +32,7 @@ import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.list.List;
 import org.ref_send.log.Entry;
+import org.ref_send.log.Event;
 import org.ref_send.log.Got;
 import org.ref_send.log.Sent;
 import org.ref_send.log.Turn;
@@ -255,13 +256,19 @@ JODB extends Vat {
             new HashSet<String>(64);
         final Root root = new Root() {
 
+            private Turn turn = null;
+            private long event = 0L;
+            
             public String
             getVatName() { return folder.getName(); }
             
-            public Turn
-            getTurn() {
-                return new Turn((String)fetch(null, Root.here),
-                                ((Stats)fetch(null, stats)).getChanged());
+            public Event
+            notice() {
+                if (null == turn) {
+                    turn = new Turn((String)fetch(null, Root.here),
+                                    ((Stats)fetch(null, stats)).getChanged()); 
+                }
+                return new Event(turn, event++);
             }
 
             public String
@@ -580,10 +587,10 @@ JODB extends Vat {
                 final Stats now = (Stats)root.fetch(null, stats);
                 if (null == now) { return; }
                 final long future = now.getDequeued() + q.getSize();
-                final Turn turn = root.getTurn();
+                final Event event = root.notice();
                 final Tracer tracer = (Tracer)root.fetch(null, Root.tracer);
-                final Sent e = new Sent(turn,
-                    null != tracer ? tracer.get() : null, turn.loop + future); 
+                final Sent e = new Sent(event, null != tracer ?
+                    tracer.get() : null, event.turn.loop + future); 
                 effect.run(new Effect() { public void run() { er.run(e); } });
             }
         };
@@ -1000,10 +1007,10 @@ JODB extends Vat {
                     if (null == er) { return null; }
 
                     // output a log event
-                    final Turn turn = local.getTurn();
+                    final Event event = local.notice();
                     final Tracer tracer = (Tracer)local.fetch(null,Root.tracer);
-                    final Got e = new Got(turn, null != tracer
-                        ? tracer.get() : null, turn.loop + now.getDequeued()); 
+                    final Got e = new Got(event, null != tracer ? tracer.get() :
+                        null, event.turn.loop + now.getDequeued()); 
                     effect.run(new Effect() { public void run() {er.run(e);} });
                     return null;
                 }

@@ -8,15 +8,14 @@ import org.joe_e.Equatable;
 import org.joe_e.Struct;
 import org.ref_send.log.Comment;
 import org.ref_send.log.Entry;
+import org.ref_send.log.Event;
 import org.ref_send.log.Got;
 import org.ref_send.log.Resolved;
 import org.ref_send.log.SentIf;
-import org.ref_send.log.Turn;
 import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.var.Factory;
 import org.ref_send.var.Receiver;
-import org.waterken.uri.URI;
 import org.waterken.vat.Effect;
 import org.waterken.vat.Root;
 import org.waterken.vat.Tracer;
@@ -51,7 +50,7 @@ EventGenerator {
                 final Receiver<Entry> er = erf.run();
                 if (null == er) { return; }
                 
-                log(er, new Comment(local.getTurn(), tracer.get(), text));
+                log(er, new Comment(local.notice(), tracer.get(), text));
             }
 
             public void
@@ -59,9 +58,9 @@ EventGenerator {
                 final Receiver<Entry> er = erf.run();
                 if (null == er) { return; }
                 
-                final Turn turn = local.getTurn();
-                log(er, new Resolved(turn, tracer.get(),
-                    URI.resolve(turn.loop, '#' + local.export(condition))));
+                final Event event = local.notice();
+                log(er, new Resolved(event, tracer.get(),
+                    event.turn.loop + '#' + local.export(condition)));
             }
 
             public void
@@ -69,9 +68,9 @@ EventGenerator {
                 final Receiver<Entry> er = erf.run();
                 if (null == er) { return; }
                 
-                final Turn turn = local.getTurn();
-                log(er, new Got(turn, tracer.get(),
-                    URI.resolve(turn.loop, '#' + local.export(message))));
+                final Event event = local.notice();
+                log(er, new Got(event, tracer.get(),
+                    event.turn.loop + '#' + local.export(message)));
             }
 
             public void
@@ -79,10 +78,10 @@ EventGenerator {
                 final Receiver<Entry> er = erf.run();
                 if (null == er) { return; }
                 
-                final Turn turn = local.getTurn();
-                log(er, new SentIf(turn, tracer.get(),
-                    URI.resolve(turn.loop, '#' + local.export(message)),
-                    URI.resolve(turn.loop, '#' + local.export(condition))));
+                final Event event = local.notice();
+                log(er, new SentIf(event, tracer.get(),
+                    event.turn.loop + '#' + local.export(message),
+                    event.turn.loop + '#' + local.export(condition)));
             }
             
             private void
