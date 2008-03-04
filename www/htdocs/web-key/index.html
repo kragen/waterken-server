@@ -86,7 +86,7 @@ the advantages coming from the principles identified by the W3C in
 [<a href="#webarch">webarch</a>].  This compatibility also means that the
 web-key technique can be applied using existing web development tools to create
 web applications deployed to existing web browsers.</p>
-<p>The web-key technique has been implemented in the Waterken Server
+<p>The web-key technique has been implemented in the Waterken server
 [<a href="#waterken">waterken</a>], an Open Source web application server. Web
 applications developed on this server have been successfully tested in many
 mainstream web browsers, including Internet Explorer, Firefox, Safari and
@@ -103,7 +103,8 @@ approach like the web-key.</p>
 <h2><a name="walled_garden" href="#walled_garden">The walled garden</a></h2>
 <p>The most popular mechanism for implementing access control over private
 resources on the Web, and the one recommended by the W3C
-[<a href="#deep_linking">deep linking</a>], is the username/password. This
+[<a href="#deep_linking">deep linking</a>], is the username/password. These
+tokens are typically transmitted using either HTTP Auth, or HTTP Cookies. This
 section examines the impact of this technology on the Web.</p>
 <h3><a name="acl_webarch" href="#acl_webarch">Broken web architecture</a></h3>
 <p>The importance of the URI to Web architecture is most clearly expressed by
@@ -645,6 +646,47 @@ these features.</p>
 <p>Without any configuration, many users' bookmarks also acquire a level of
 protection by virtue of the fact that their computer is personal and so not
 shared with others, against whose prying eyes encryption must be used.</p>
+<h2><a name="related" href="#related">Related work</a></h2>
+<p>The first version of the Waterken server was released on September 27th of
+1999, in an announcement on the e-lang mailing list [<a href="#E">E</a>]. Using
+a precursor of the design presented in this paper, this software aimed to
+provide the security features of E's distributed object-capability protocol,
+CapTP, within the HTTPS protocol. To this end, the web-key design represents
+the permission provided by a capability as an unguessable secret, a
+technique also used by Amoeba [<a href="#Amoeba">Amoeba</a>]. Unlike Amoeba,
+the web-key design does not define an algorithm for determining the secret
+bits, instead leaving this server-side implementation choice opaque to the
+client. In addition to preserving implementation choice and simplicity, this
+design decision also reflects current best practice for design of secure
+interfaces in the object-capability paradigm. In Amoeba, a client can derive an
+attenuated capability that is good for only a subset of the operations
+permitted by another capability. Either capability can then be used to invoke
+any of the operations in the subset. In practice, this feature creates a class
+of difficult to detect security bugs where a client should delegate the
+attenuated capability but, through programmer error, delegates the more
+powerful capability. Since an honest recipient of the delegated capability only
+expects to receive access to the subset, the excess grant of permission may go
+undetected until the recipient is an attacker. To prevent such undetected
+security bugs, it is considered poor practice to define a capability that is
+polymorphic with a less powerful capability.</p>
+<p>The literature on capability systems includes many other designs for
+delegation of a capability in a distributed protocol, of which the LINCS
+protocol is an early example [<a href="#LINCS">LINCS</a>].</p>
+<p>Other applications on the Web also use capability URLs, some of which are
+known to be directly, or indirectly, inspired by the Waterken server. In Second
+Life, permission to perform an action in the virtual world is represented as a
+URL containing an unguessable secret [<a href="#Second_Life">Second Life</a>].
+Various photo sharing applications also transfer permission using such URLs.
+Many email registration applications also verify control of an email account
+through passing of a URL bearing a secret.</p>
+<p>Though the design of the web-key has much in common with prior distributed
+capability systems and current Web applications, the analysis of the
+suitability of this technique to authorizing HTTP requests, and the
+unsuitability of the status quo technique, is a significant contribution of
+this paper. Whereas common wisdom has sometimes held that a technique like the
+web-key is a hack, this paper argues the technique is actually more secure, and
+better supports good web architecture, when compared to the status quo
+technique.</p>
 <h2><a name="conclusion" href="#conclusion">Conclusion</a></h2>
 <p>The misconception that client authentication provides access control, and
 the widespread use of this technique on the Web, is the cause of many of the
@@ -711,24 +753,32 @@ E. Neuman.</li>
 </ol>
 <h2><a name="references" href="#references">References</a></h2>
 <dl>
+<dt><a name="Amoeba">[Amoeba]</a></dt>
+<dd>Andrew S. Tanenbaum, Sape J. Mullender, Robbert van Renesse. <a href="http://citeseer.ist.psu.edu/tanenbaum86using.html">Using Sparse Capabilities in a Distributed Operating System</a>. Proceedings of the 6th International Conference on Distributed Computing Systems (ICDCS). 1986.</dd>
 <dt><a name="confused_deputy">[confused deputy]</a></dt>
 <dd>Norman Hardy. <a href="http://portal.acm.org/citation.cfm?id=871709">The Confused Deputy</a>. ACM SIGOPS Operating Systems Review Volume 22, Issue 4 (October 1988).</dd>
 <dt><a name="cross-domain_XHR">[cross-domain XHR]</a></dt>
 <dd>Anne van Kesteren. <a href="http://www.w3.org/TR/access-control/">Enabling Read Access for Web Resources</a>. W3C Working Draft. (1 October 2007).</dd>
 <dt><a name="deep_linking">[deep linking]</a></dt>
 <dd>Tim Bray. <a href="http://www.w3.org/2001/tag/doc/deeplinking-20030911">"Deep Linking" in the World Wide Web</a>. W3C Tag Finding. 11 September 2003.</dd>
+<dt><a name="E">[E]</a></dt>
+<dd>Mark Miller. <a href="http://www.erights.org/">Open Source Distributed Capabilities</a>. erights.org. 1998.</dd>
 <dt><a name="HTTP">[HTTP]</a></dt>
 <dd>R. Fielding, J. Gettys, J. Mogul, H. Frystyk, L. Masinter, P. Leach, T. Berners-Lee.  <a href="http://www.ietf.org/rfc/rfc2616.txt">Hypertext Transfer Protocol -- HTTP/1.1</a>. RFC 2616. June 1999.</dd>
 <dt><a name="JSONRequest">[JSONRequest]</a></dt>
 <dd>Douglas Crockford. <a href="http://json.org/JSONRequest.html">JSONRequest</a>. Json.org publication. (17 April 2006).</dd>
+<dt><a name="LINCS">[LINCS]</a></dt>
+<dd>Donnelley, Jed. <a href="http://www.webstart.com/jed/papers/Managing-Domains/">Managing Domains in a Network Operating System</a>. Proc. Conf on Local Networks and Distributed Office Systems, Online, pp. 345-361. 1981.</dd>
 <dt><a name="password_habits">[password habits]</a></dt>
 <dd>Dinei Florencio, Cormac Herley. <a href="http://www2007.org/paper620.php">A Large-Scale Study of Web Password Habits</a>. WWW 2007 (May 2007)</dd>
 <dt><a name="phishing_filter">[phishing filter]</a></dt>
 <dd>Tariq Sharif. <a href="http://blogs.msdn.com/ie/archive/2005/09/09/463204.aspx">Phishing Filter in IE7</a>. IEBlog (9 September 2005).</dd>
+<dt><a name="Second_Life">[Second Life]</a></dt>
+<dd>Mark Lentczner. <a href="http://secondlife.com/developers/third_party_reg/#what_are_cap">Second Life Registration API</a>. Second Life. 2006.</dd>
 <dt><a name="URI">[URI]</a></dt>
 <dd>T. Berners-Lee, R. Fielding, L. Masinter. <a href="http://www.ietf.org/rfc/rfc3986.txt">Uniform Resource Identifier (URI): Generic Syntax. RFC 3986</a>. January 2005.</dd>
 <dt><a name="waterken">[waterken]</a></dt>
-<dd>Tyler Close. <a href="http://waterken.sourceforge.net/">Waterken Server</a>. Open Source project hosted on SourceForge. first released in 1999.</dd>
+<dd>Tyler Close. <a href="http://waterken.sourceforge.net/">Waterken server</a>. Open Source project hosted on SourceForge. first released in 1999.</dd>
 <dt><a name="webarch">[webarch]</a></dt>
 <dd>Ian Jacobs and Norman Walsh. <a href="http://www.w3.org/TR/2004/REC-webarch-20041215/">Architecture of the World Wide Web, Volume One</a>. W3C Recommendation (15 December 2004).</dd>
 <dt><a name="why_phishing_works">[why phishing works]</a></dt>
