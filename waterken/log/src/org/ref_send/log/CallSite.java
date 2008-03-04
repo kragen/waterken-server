@@ -25,7 +25,7 @@ CallSite extends Struct implements Powerless, Record, Serializable {
     public final String source;
     
     /**
-     * caller's location within the {@linkplain #source}
+     * caller's location within the {@linkplain #source} (optional)
      * <p>
      * The expected structure of this table defines a span from the start of
      * the relevant source code to the end. The first row in the table is the
@@ -40,7 +40,10 @@ CallSite extends Struct implements Powerless, Record, Serializable {
      * number is unknown, it may also be omitted. For example, in the case where
      * only the starting line number is known:
      * </p>
-     * <p><code>[ [ 5 ] ]</code></p> 
+     * <p><code>[ [ 5 ] ]</code></p>
+     * <p>
+     * If source span information is unknown, this member is <code>null</code>.
+     * </p>
      */
     public final PowerlessArray<IntArray> span;
     
