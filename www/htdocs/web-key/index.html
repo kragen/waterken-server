@@ -63,7 +63,10 @@ username/password. This condition holds even if the mashup application only
 needs access to a small subset of the resources in the walled garden. For
 example, the web-mail mashup may only need read permission on a particular
 email folder and not permission to send email as the user. Unfortunately, this
-user password model does not enable expression of such a restriction.</p>
+user password model does not enable expression of such a restriction. For
+mashups of non-public information to flourish, fine grained access to
+information must be as easy and scalable as it currently is for public
+information.</p>
 <p>In addition to discouraging and complicating Web interactions, augmenting
 the architectural base provided by the URI with user passwords does not provide
 the protection commonly claimed and expected. Under some circumstances, user
@@ -105,7 +108,7 @@ approach like the web-key.</p>
 resources on the Web, and the one recommended by the W3C
 [<a href="#deep_linking">deep linking</a>], is the username/password. These
 tokens are typically transmitted using either HTTP Auth, or HTTP Cookies. This
-section examines the impact of this technology on the Web.</p>
+section examines the impact of this mechanism on the Web.</p>
 <h3><a name="acl_webarch" href="#acl_webarch">Broken web architecture</a></h3>
 <p>The importance of the URI to Web architecture is most clearly expressed by
 the following quote from [<a href="#webarch">webarch</a>]:</p>
@@ -207,15 +210,15 @@ user testing, this burden has proven to be too great
 [<a href="#why_phishing_works">why phishing works</a>,
 <a href="#wsc-usecases">wsc-usecases</a>]. Part of the problem arises from the
 similarity between a legitimate interaction and an attack. Consider the
-following interaction, presented by the W3C as a textbook case for use of
-access control on the Web [<a href="#webarch">webarch</a>]:</p>
+following interaction, presented by the W3C as a textbook use of access control
+on the Web [<a href="#webarch">webarch</a>]:</p>
 <blockquote>
 <p>"Nadia sends to Dirk the URI of the current article she is reading. With his
 browser, Dirk follows the hypertext link and is asked to enter his subscriber
 username and password. Since Dirk is also a subscriber to services provided by
 'weather.example.com,' he can access the same information as Nadia."</p>
 </blockquote>
-<p>From Dirk's perspective, the above scenario is also a textbook case for
+<p>From Dirk's perspective, the above scenario is also a textbook example of
 phishing in the case where Nadia is the phisher and the URI sent to Dirk refers
 to the phishing site created by Nadia.</p>
 <h3><a name="acl_xsrf" href="#acl_xsrf">Cross Site Request Forgery (XSRF)</a></h3>
