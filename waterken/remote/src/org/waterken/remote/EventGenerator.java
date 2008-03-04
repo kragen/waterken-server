@@ -7,7 +7,7 @@ import java.io.Serializable;
 import org.joe_e.Equatable;
 import org.joe_e.Struct;
 import org.ref_send.log.Comment;
-import org.ref_send.log.Event;
+import org.ref_send.log.Entry;
 import org.ref_send.log.Got;
 import org.ref_send.log.Resolved;
 import org.ref_send.log.SentIf;
@@ -22,7 +22,7 @@ import org.waterken.vat.Root;
 import org.waterken.vat.Tracer;
 
 /**
- * A log {@link Event} generator.
+ * A log {@link Entry} generator.
  */
 public final class
 EventGenerator {
@@ -36,7 +36,7 @@ EventGenerator {
      */
     static public Log
     make(final Root local) {
-        final Factory<Receiver<Event>> erf =
+        final Factory<Receiver<Entry>> erf =
             (Factory)local.fetch(null, Root.events);
         final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
         final Loop<Effect> effect = (Loop)local.fetch(null,Root.effect); 
@@ -48,7 +48,7 @@ EventGenerator {
 
             public void
             comment(final String text) {
-                final Receiver<Event> er = erf.run();
+                final Receiver<Entry> er = erf.run();
                 if (null == er) { return; }
                 
                 log(er, new Comment(local.getTurn(), tracer.get(), text));
@@ -56,7 +56,7 @@ EventGenerator {
 
             public void
             resolved(final Equatable condition) {
-                final Receiver<Event> er = erf.run();
+                final Receiver<Entry> er = erf.run();
                 if (null == er) { return; }
                 
                 final Turn turn = local.getTurn();
@@ -66,7 +66,7 @@ EventGenerator {
 
             public void
             got(final Equatable message) {
-                final Receiver<Event> er = erf.run();
+                final Receiver<Entry> er = erf.run();
                 if (null == er) { return; }
                 
                 final Turn turn = local.getTurn();
@@ -76,7 +76,7 @@ EventGenerator {
 
             public void
             sentIf(final Equatable message, final Equatable condition) {
-                final Receiver<Event> er = erf.run();
+                final Receiver<Entry> er = erf.run();
                 if (null == er) { return; }
                 
                 final Turn turn = local.getTurn();
@@ -86,7 +86,7 @@ EventGenerator {
             }
             
             private void
-            log(final Receiver<Event> er, final Event e) {
+            log(final Receiver<Entry> er, final Entry e) {
                 effect.run(new Effect() { public void run() { er.run(e); } });
             }
         }

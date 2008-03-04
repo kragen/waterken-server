@@ -9,7 +9,7 @@ import java.security.SecureRandom;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
-import org.ref_send.log.Event;
+import org.ref_send.log.Entry;
 import org.ref_send.log.Got;
 import org.ref_send.log.Sent;
 import org.ref_send.log.Trace;
@@ -81,7 +81,7 @@ Exports extends Struct implements Serializable {
     sent(final String mid) {
         
         // determine if logging is turned on
-        final Receiver<Event> er = events();
+        final Receiver<Entry> er = events();
         if (null == er) { return; }
 
         // output a log event
@@ -97,7 +97,7 @@ Exports extends Struct implements Serializable {
     answered(final String mid) {
         
         // determine if logging is turned on
-        final Receiver<Event> er = events();
+        final Receiver<Entry> er = events();
         if (null == er) { return; }
 
         // output log events
@@ -116,7 +116,7 @@ Exports extends Struct implements Serializable {
     received(final String mid) {
         
         // determine if logging is turned on
-        final Receiver<Event> er = events();
+        final Receiver<Entry> er = events();
         if (null == er) { return; }
 
         // output a log event
@@ -125,15 +125,15 @@ Exports extends Struct implements Serializable {
                         local.pipeline(mid))); 
     }
     
-    private Receiver<Event>
+    private Receiver<Entry>
     events() {
-        final Factory<Receiver<Event>> erf =
+        final Factory<Receiver<Entry>> erf =
             (Factory)local.fetch(null, Root.events);
         return null != erf ? erf.run() : null;
     }
     
     private void
-    log(final Receiver<Event> er, final Event e) {
+    log(final Receiver<Entry> er, final Entry e) {
         final Loop<Effect> effect = (Loop)local.fetch(null,Root.effect); 
         effect.run(new Effect() { public void run() { er.run(e); } });
     }

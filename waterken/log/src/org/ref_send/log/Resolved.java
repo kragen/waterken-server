@@ -9,7 +9,7 @@ import org.ref_send.name;
  * Logs resolution of a condition.
  */
 public class
-Resolved extends Event {
+Resolved extends Entry {
     static private final long serialVersionUID = 1L;
 
     /**

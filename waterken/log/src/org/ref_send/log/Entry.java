@@ -14,7 +14,7 @@ import org.ref_send.name;
  * A log entry.
  */
 public class
-Event extends Struct implements Powerless, Record, Serializable {
+Entry extends Struct implements Powerless, Record, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
@@ -33,7 +33,7 @@ Event extends Struct implements Powerless, Record, Serializable {
      * @param trace {@link #trace}
      */
     public @deserializer
-    Event(@name("turn") final Turn turn,
+    Entry(@name("turn") final Turn turn,
           @name("trace") final Trace trace) {
         this.turn = turn;
         this.trace = trace;

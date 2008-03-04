@@ -18,6 +18,8 @@ import org.joe_e.file.Filesystem;
 final class
 Report {
 
+    static private final int minFilenameWidth = 26 + JODB.ext.length();
+
     private static final class
     Total {
         final String typename;
@@ -46,56 +48,23 @@ Report {
             return;
         }
 
-        final File folder = new File(args[0]);
         final PrintStream out = System.out;
-        final HashMap<String,Total> total = new HashMap<String,Total>();
-
-        out.println("--- Files ( filename, length, typename) ---");
-        final int minFilenameWidth = 26 + JODB.ext.length();
+        final File topic = new File(args[0]);
+        final File folder = topic.isDirectory() ? topic : topic.getParentFile();
         final ClassLoader code = JODB.application(folder);
-        folder.listFiles(new FileFilter() {
+        
+        if (topic.isFile()) {
+            if (topic.getName().endsWith(JODB.ext)) { log(out, code, topic); }
+            return;
+        }
+        
+        final HashMap<String,Total> total = new HashMap<String,Total>();
+        out.println("--- Files ( filename, length, typename) ---");
+        topic.listFiles(new FileFilter() {
             public boolean
             accept(final File file) {
                 if (!file.getName().endsWith(JODB.ext)) { return false; }
-                
-                out.print(file.getName());
-                for (int n= minFilenameWidth-file.getName().length(); 0 < n--;){
-                    out.print(' ');
-                }
-                out.print('\t');
-                out.print(file.length());
-                out.print('\t');
-
-                // Determine the type of object stored in the file.
-                String typename;
-                try {
-                    final Class[] type = { Void.class };
-                    final SubstitutionStream in = new SubstitutionStream(true,
-                            code, Filesystem.read(file)) {
-                        protected Object
-                        resolveObject(Object x) throws IOException {
-                            if (x instanceof Wrapper) {
-                                type[0] = x.getClass();
-                                x = null;
-                            }
-                            return x;
-                        }
-                    };
-                    final Object x = in.readObject();
-                    in.close();
-                    if (x instanceof SymbolicLink) {
-                        final Object sx = ((SymbolicLink)x).target;
-                        final Class sxt = null!=sx ? sx.getClass() : type[0];
-                        typename = "-> " + sxt.getName();
-                    } else {
-                        if (null != x) { type[0] = x.getClass(); }
-                        typename = type[0].getName();
-                    }
-                } catch (final Exception e) {
-                    typename = "<" + e.getClass().getName() + ">";
-                }
-                out.print(typename);
-                out.println();
+                final String typename = log(out, code, file);
 
                 // Keep track of totals.
                 Total t = total.get(typename);
@@ -138,5 +107,48 @@ Report {
         out.println("files:\t" + files);
         out.println("bytes:\t" + bytes);
         out.println("types:\t" + sum.length);
+    }
+    
+    static private String
+    log(final PrintStream out, final ClassLoader code, final File file) {
+        out.print(file.getName());
+        for (int n= minFilenameWidth-file.getName().length(); 0 < n--;){
+            out.print(' ');
+        }
+        out.print('\t');
+        out.print(file.length());
+        out.print('\t');
+
+        // Determine the type of object stored in the file.
+        String typename;
+        try {
+            final Class[] type = { Void.class };
+            final SubstitutionStream in = new SubstitutionStream(true,
+                    code, Filesystem.read(file)) {
+                protected Object
+                resolveObject(Object x) throws IOException {
+                    if (x instanceof Wrapper) {
+                        type[0] = x.getClass();
+                        x = null;
+                    }
+                    return x;
+                }
+            };
+            final Object x = in.readObject();
+            in.close();
+            if (x instanceof SymbolicLink) {
+                final Object sx = ((SymbolicLink)x).target;
+                final Class sxt = null!=sx ? sx.getClass() : type[0];
+                typename = "-> " + sxt.getName();
+            } else {
+                if (null != x) { type[0] = x.getClass(); }
+                typename = type[0].getName();
+            }
+        } catch (final Exception e) {
+            typename = "<" + e.getClass().getName() + ">";
+        }
+        out.print(typename);
+        out.println();
+        return typename;
     }
 }

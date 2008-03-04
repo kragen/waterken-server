@@ -3,6 +3,7 @@
 package org.waterken.jos;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.PrintStream;
 
@@ -11,7 +12,7 @@ import org.waterken.vat.Root;
 import org.waterken.vat.Transaction;
 
 /**
- * Touches all the mutable objects in a database.
+ * Touches all the mutable objects in a vat.
  */
 final class
 Touch {
@@ -36,9 +37,21 @@ Touch {
             return;
         }
 
-        final File folder = new File(args[0]);
-        ((JODB)JODB.connect(folder)).process(Vat.change,
-                                             new Transaction<Void>() {
+        touch(new File(args[0]));
+    }
+    
+    static private void
+    touch(final File folder) throws Exception {
+        folder.listFiles(new FileFilter() {
+            public boolean
+            accept(final File file) {
+                if (file.isDirectory()) {
+                    try { touch(file); } catch (final Exception e) {}
+                }
+                return false;
+            }
+        });
+        ((JODB)JODB.connect(folder)).process(Vat.change,new Transaction<Void>(){
             public Void
             run(final Root local) throws Exception {
                 folder.list(new FilenameFilter() {
@@ -47,7 +60,7 @@ Touch {
                         if (!name.endsWith(JODB.ext)) { return false; }
                         try {
                             local.fetch(null, name.substring(
-                                0, name.length() - JODB.ext.length()));
+                               0, name.length() - JODB.ext.length()));
                         } catch (final Exception e) {} // ignore problem object
                         return false;
                     }

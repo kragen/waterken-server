@@ -9,7 +9,7 @@ import org.ref_send.name;
  * Logs a comment.
  */
 public class
-Comment extends Event {
+Comment extends Entry {
     static private final long serialVersionUID = 1L;
 
     /**

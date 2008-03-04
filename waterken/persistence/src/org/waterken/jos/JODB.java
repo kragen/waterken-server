@@ -31,7 +31,7 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.list.List;
-import org.ref_send.log.Event;
+import org.ref_send.log.Entry;
 import org.ref_send.log.Got;
 import org.ref_send.log.Sent;
 import org.ref_send.log.Turn;
@@ -561,6 +561,7 @@ JODB extends Vat {
             run(final Task task) {
                 if (!active[0]) { throw new AssertionError(); }
 
+                // enqueue the event
                 final List<Task> q = (List)root.fetch(null, tasks);
                 q.append(task);
                 scheduled[0] = true;
@@ -569,10 +570,10 @@ JODB extends Vat {
                 if (task instanceof ConditionalRunner) { return; }
                 
                 // determine if logging is turned on
-                final Factory<Receiver<Event>> erf =
+                final Factory<Receiver<Entry>> erf =
                     (Factory)root.fetch(null, Root.events);
                 if (null == erf) { return; }
-                final Receiver<Event> er = erf.run();
+                final Receiver<Entry> er = erf.run();
                 if (null == er) { return; }
 
                 // output a log event
@@ -961,8 +962,16 @@ JODB extends Vat {
                 public Void
                 run(final Root local) throws Exception {
                     runner = null;
+                    
+                    // pop an event
                     final List<Task> q = (List)local.fetch(null, tasks);
                     final Task task = q.pop();
+                    
+                    // update the stats
+                    final Stats now = (Stats)local.fetch(null, stats);
+                    if (null != now) { now.incrementDequeued(); }
+
+                    // process the task
                     try {
                         task.run();
                     } catch (final Exception e) {
@@ -980,19 +989,14 @@ JODB extends Vat {
                         });
                     }
                     
-                    // update the stats
-                    final Stats now = (Stats)local.fetch(null, stats);
-                    if (null == now) { return null; }
-                    now.incrementDequeued();
-                    
                     // skip logging of a self-logging task
                     if (task instanceof ConditionalRunner) { return null; }
                     
                     // determine if logging is turned on
-                    final Factory<Receiver<Event>> erf =
+                    final Factory<Receiver<Entry>> erf =
                         (Factory)local.fetch(null, Root.events);
                     if (null == erf) { return null; }
-                    final Receiver<Event> er = erf.run();
+                    final Receiver<Entry> er = erf.run();
                     if (null == er) { return null; }
 
                     // output a log event
