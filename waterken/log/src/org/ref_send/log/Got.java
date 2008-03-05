@@ -19,15 +19,15 @@ Got extends Entry {
     
     /**
      * Constructs an instance.
-     * @param event     {@link #event}
+     * @param anchor    {@link #anchor}
      * @param trace     {@link #trace}
      * @param message   {@link #message}
      */
     public @deserializer
-    Got(@name("event") final Event event,
+    Got(@name("anchor") final Anchor anchor,
         @name("trace") final Trace trace,
         @name("message") final String message) {
-        super(event, trace);
+        super(anchor, trace);
         this.message = message;
     }
 }

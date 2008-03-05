@@ -4,7 +4,7 @@ package org.waterken.vat;
 
 import java.security.SecureRandom;
 
-import org.ref_send.log.Event;
+import org.ref_send.log.Anchor;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Task;
 import org.web_send.graph.Collision;
@@ -99,7 +99,7 @@ Root {
     /**
      * Creates a new log event identifier.
      */
-    Event
+    Anchor
     notice();
     
     /**

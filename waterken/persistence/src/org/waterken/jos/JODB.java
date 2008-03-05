@@ -32,7 +32,7 @@ import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.list.List;
 import org.ref_send.log.Entry;
-import org.ref_send.log.Event;
+import org.ref_send.log.Anchor;
 import org.ref_send.log.Got;
 import org.ref_send.log.Sent;
 import org.ref_send.log.Turn;
@@ -262,13 +262,13 @@ JODB extends Vat {
             public String
             getVatName() { return folder.getName(); }
             
-            public Event
+            public Anchor
             notice() {
                 if (null == turn) {
                     turn = new Turn((String)fetch(null, Root.here),
                                     ((Stats)fetch(null, stats)).getChanged()); 
                 }
-                return new Event(turn, event++);
+                return new Anchor(turn, event++);
             }
 
             public String
@@ -587,7 +587,7 @@ JODB extends Vat {
                 final Stats now = (Stats)root.fetch(null, stats);
                 if (null == now) { return; }
                 final long future = now.getDequeued() + q.getSize();
-                final Event event = root.notice();
+                final Anchor event = root.notice();
                 final Tracer tracer = (Tracer)root.fetch(null, Root.tracer);
                 final Sent e = new Sent(event, null != tracer ?
                     tracer.get() : null, event.turn.loop + future); 
@@ -1007,7 +1007,7 @@ JODB extends Vat {
                     if (null == er) { return null; }
 
                     // output a log event
-                    final Event event = local.notice();
+                    final Anchor event = local.notice();
                     final Tracer tracer = (Tracer)local.fetch(null,Root.tracer);
                     final Got e = new Got(event, null != tracer ? tracer.get() :
                         null, event.turn.loop + now.getDequeued()); 

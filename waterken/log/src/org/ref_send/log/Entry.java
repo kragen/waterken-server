@@ -20,7 +20,7 @@ Entry extends Struct implements Powerless, Record, Serializable {
     /**
      * event identifier
      */
-    public final Event event;
+    public final Anchor anchor;
     
     /**
      * trace of the call site that produced the event
@@ -29,13 +29,13 @@ Entry extends Struct implements Powerless, Record, Serializable {
     
     /**
      * Constructs an instance.
-     * @param event {@link #event}
-     * @param trace {@link #trace}
+     * @param anchor    {@link #anchor}
+     * @param trace     {@link #trace}
      */
     public @deserializer
-    Entry(@name("event") final Event event,
+    Entry(@name("ahchor") final Anchor anchor,
           @name("trace") final Trace trace) {
-        this.event = event;
+        this.anchor = anchor;
         this.trace = trace;
     }
 }

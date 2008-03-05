@@ -11,10 +11,10 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * An event identifier.
+ * A marker for a point in an event loop turn where an event occurred.
  */
 public class
-Event implements Comparable<Event>, Selfless, Powerless, Record, Serializable {
+Anchor implements Comparable<Anchor>, Selfless, Powerless, Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -33,8 +33,8 @@ Event implements Comparable<Event>, Selfless, Powerless, Record, Serializable {
      * @param number    {@link #number}
      */
     public @deserializer
-    Event(@name("turn") final Turn turn,
-          @name("number") final long number) {
+    Anchor(@name("turn") final Turn turn,
+           @name("number") final long number) {
         this.turn = turn;
         this.number = number;
     }
@@ -43,9 +43,9 @@ Event implements Comparable<Event>, Selfless, Powerless, Record, Serializable {
     
     public boolean
     equals(final Object o) {
-        return o instanceof Event &&
-            number == ((Event)o).number &&
-            (null!=turn ? turn.equals(((Event)o).turn) : null==((Event)o).turn);
+        return o instanceof Anchor &&
+            number == ((Anchor)o).number &&
+            (null!=turn?turn.equals(((Anchor)o).turn):null==((Anchor)o).turn);
     }
     
     public int
@@ -58,7 +58,7 @@ Event implements Comparable<Event>, Selfless, Powerless, Record, Serializable {
     // java.lang.Comparable interface
     
     public int
-    compareTo(final Event o) {
+    compareTo(final Anchor o) {
         final int major = turn.compareTo(o.turn);
         if (0 != major) { return major; }
         final long minor = number - o.number;

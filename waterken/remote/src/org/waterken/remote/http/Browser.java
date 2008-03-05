@@ -13,7 +13,7 @@ import org.joe_e.Token;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.log.Event;
+import org.ref_send.log.Anchor;
 import org.ref_send.log.Turn;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
@@ -88,8 +88,8 @@ Browser extends Struct implements Record, Serializable {
             public String
             getVatName() { return null; }
 
-            public Event
-            notice() { return new Event(new Turn(null, turns[0]), events++); }
+            public Anchor
+            notice() { return new Anchor(new Turn(null, turns[0]), events++); }
 
             public Object
             fetch(final Object otherwise, final String name) {

@@ -19,15 +19,15 @@ Sent extends Entry {
     
     /**
      * Constructs an instance.
-     * @param event     {@link #event}
+     * @param anchor    {@link #anchor}
      * @param trace     {@link #trace}
      * @param message   {@link #message}
      */
     public @deserializer
-    Sent(@name("event") final Event event,
+    Sent(@name("anchor") final Anchor anchor,
          @name("trace") final Trace trace,
          @name("message") final String message) {
-        super(event, trace);
+        super(anchor, trace);
         this.message = message;
     }
 }

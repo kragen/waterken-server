@@ -19,15 +19,15 @@ Comment extends Entry {
     
     /**
      * Constructs an instance.
-     * @param event {@link #event}
-     * @param trace {@link #trace}
-     * @param text  {@link #text}
+     * @param anchor    {@link #anchor}
+     * @param trace     {@link #trace}
+     * @param text      {@link #text}
      */
     public @deserializer
-    Comment(@name("event") final Event event,
+    Comment(@name("anchor") final Anchor anchor,
             @name("trace") final Trace trace,
             @name("text") final String text) {
-        super(event, trace);
+        super(anchor, trace);
         this.text = text;
     }
 }

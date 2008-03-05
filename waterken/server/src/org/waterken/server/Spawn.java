@@ -5,7 +5,7 @@ package org.waterken.server;
 import java.io.PrintStream;
 
 import org.joe_e.Token;
-import org.ref_send.log.Event;
+import org.ref_send.log.Anchor;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.var.Receiver;
@@ -84,7 +84,7 @@ Spawn {
                     public String
                     getVatName() { return local.getVatName(); }
 
-                    public Event
+                    public Anchor
                     notice() { return local.notice(); }
 
                     public Object
