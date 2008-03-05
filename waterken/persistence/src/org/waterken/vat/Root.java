@@ -100,7 +100,7 @@ Root {
      * Creates a new log event identifier.
      */
     Anchor
-    notice();
+    anchor();
     
     /**
      * Calculates a pipeline key.

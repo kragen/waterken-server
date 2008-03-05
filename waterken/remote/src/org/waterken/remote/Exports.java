@@ -85,7 +85,7 @@ Exports extends Struct implements Serializable {
 
         // output a log event
         final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
-        log(er, new Sent(local.notice(), null!=tracer?tracer.get():null, mid)); 
+        log(er, new Sent(local.anchor(), null!=tracer?tracer.get():null, mid)); 
     }
     
     /**
@@ -102,8 +102,8 @@ Exports extends Struct implements Serializable {
         // output log events
         final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
         final Trace trace = null != tracer ? tracer.get() : null;
-        log(er, new Got(local.notice(), trace, mid)); 
-        log(er, new Sent(local.notice(), trace, local.pipeline(mid))); 
+        log(er, new Got(local.anchor(), trace, mid)); 
+        log(er, new Sent(local.anchor(), trace, local.pipeline(mid))); 
     }
     
     /**
@@ -119,7 +119,7 @@ Exports extends Struct implements Serializable {
 
         // output a log event
         final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
-        log(er, new Got(local.notice(), null != tracer ? tracer.get() : null,
+        log(er, new Got(local.anchor(), null != tracer ? tracer.get() : null,
                         local.pipeline(mid))); 
     }
     

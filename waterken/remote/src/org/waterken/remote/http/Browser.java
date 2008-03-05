@@ -89,7 +89,7 @@ Browser extends Struct implements Record, Serializable {
             getVatName() { return null; }
 
             public Anchor
-            notice() { return new Anchor(new Turn(null, turns[0]), events++); }
+            anchor() { return new Anchor(new Turn(null, turns[0]), events++); }
 
             public Object
             fetch(final Object otherwise, final String name) {

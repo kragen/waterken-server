@@ -50,7 +50,7 @@ EventGenerator {
                 final Receiver<Event> er = erf.run();
                 if (null == er) { return; }
                 
-                log(er, new Comment(local.notice(), tracer.get(), text));
+                log(er, new Comment(local.anchor(), tracer.get(), text));
             }
 
             public void
@@ -58,7 +58,7 @@ EventGenerator {
                 final Receiver<Event> er = erf.run();
                 if (null == er) { return; }
                 
-                final Anchor event = local.notice();
+                final Anchor event = local.anchor();
                 log(er, new Resolved(event, tracer.get(),
                     event.turn.loop + '#' + local.export(condition)));
             }
@@ -68,9 +68,9 @@ EventGenerator {
                 final Receiver<Event> er = erf.run();
                 if (null == er) { return; }
                 
-                final Anchor event = local.notice();
-                log(er, new Got(event, tracer.get(),
-                    event.turn.loop + '#' + local.export(message)));
+                final Anchor anchor = local.anchor();
+                log(er, new Got(anchor, tracer.get(),
+                    anchor.turn.loop + '#' + local.export(message)));
             }
 
             public void
@@ -78,10 +78,10 @@ EventGenerator {
                 final Receiver<Event> er = erf.run();
                 if (null == er) { return; }
                 
-                final Anchor event = local.notice();
-                log(er, new SentIf(event, tracer.get(),
-                    event.turn.loop + '#' + local.export(message),
-                    event.turn.loop + '#' + local.export(condition)));
+                final Anchor anchor = local.anchor();
+                log(er, new SentIf(anchor, tracer.get(),
+                    anchor.turn.loop + '#' + local.export(message),
+                    anchor.turn.loop + '#' + local.export(condition)));
             }
             
             private void

@@ -85,7 +85,7 @@ Spawn {
                     getVatName() { return local.getVatName(); }
 
                     public Anchor
-                    notice() { return local.notice(); }
+                    anchor() { return local.anchor(); }
 
                     public Object
                     fetch(final Object otherwise, final String name) {
