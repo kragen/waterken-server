@@ -9,7 +9,7 @@ import org.ref_send.name;
  * Logs a message send.
  */
 public class
-Sent extends Entry {
+Sent extends Event {
     static private final long serialVersionUID = 1L;
     
     /**

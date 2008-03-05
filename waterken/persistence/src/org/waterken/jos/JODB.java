@@ -31,7 +31,7 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.list.List;
-import org.ref_send.log.Entry;
+import org.ref_send.log.Event;
 import org.ref_send.log.Anchor;
 import org.ref_send.log.Got;
 import org.ref_send.log.Sent;
@@ -577,10 +577,10 @@ JODB extends Vat {
                 if (task instanceof ConditionalRunner) { return; }
                 
                 // determine if logging is turned on
-                final Factory<Receiver<Entry>> erf =
+                final Factory<Receiver<Event>> erf =
                     (Factory)root.fetch(null, Root.events);
                 if (null == erf) { return; }
-                final Receiver<Entry> er = erf.run();
+                final Receiver<Event> er = erf.run();
                 if (null == er) { return; }
 
                 // output a log event
@@ -1000,10 +1000,10 @@ JODB extends Vat {
                     if (task instanceof ConditionalRunner) { return null; }
                     
                     // determine if logging is turned on
-                    final Factory<Receiver<Entry>> erf =
+                    final Factory<Receiver<Event>> erf =
                         (Factory)local.fetch(null, Root.events);
                     if (null == erf) { return null; }
-                    final Receiver<Entry> er = erf.run();
+                    final Receiver<Event> er = erf.run();
                     if (null == er) { return null; }
 
                     // output a log event

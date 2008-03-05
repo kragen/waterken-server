@@ -11,10 +11,10 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * A log entry.
+ * Logs an event.
  */
 public class
-Entry extends Struct implements Powerless, Record, Serializable {
+Event extends Struct implements Powerless, Record, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
@@ -33,7 +33,7 @@ Entry extends Struct implements Powerless, Record, Serializable {
      * @param trace     {@link #trace}
      */
     public @deserializer
-    Entry(@name("ahchor") final Anchor anchor,
+    Event(@name("anchor") final Anchor anchor,
           @name("trace") final Trace trace) {
         this.anchor = anchor;
         this.trace = trace;
