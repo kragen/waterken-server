@@ -257,7 +257,7 @@ JODB extends Vat {
         final Root root = new Root() {
 
             private Turn turn = null;
-            private long event = 0L;
+            private long anchor = 0L;
             
             public String
             getVatName() { return folder.getName(); }
@@ -268,7 +268,7 @@ JODB extends Vat {
                     turn = new Turn((String)fetch(null, Root.here),
                                     ((Stats)fetch(null, stats)).getChanged()); 
                 }
-                return new Anchor(turn, event++);
+                return new Anchor(turn, anchor++);
             }
 
             public String
