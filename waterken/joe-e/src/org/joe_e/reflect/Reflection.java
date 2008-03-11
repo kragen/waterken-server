@@ -1,4 +1,4 @@
-// Copyright 2006-2007 Regents of the University of California.  May be used 
+// Copyright 2006-2008 Regents of the University of California.  May be used 
 // under the terms of the revised BSD license.  See LICENSING for details.
 package org.joe_e.reflect;
 
@@ -8,11 +8,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.regex.Pattern;
 
+import org.joe_e.verified;
 import org.joe_e.array.PowerlessArray;
+import org.joe_e.taming.Policy;
 
 /**
  * The reflection interface.
@@ -27,6 +29,8 @@ import org.joe_e.array.PowerlessArray;
 public final class Reflection {
     private Reflection() {}
 
+    static final Pattern UNQUALIFY = 
+        Pattern.compile("[^\\(<> ]*\\.([^<> \\.]*)");
     /*
      * Methods for obtaining reflective objects
      */
@@ -79,6 +83,8 @@ public final class Reflection {
                 if (diff == 0) {
                     diff = a.getDeclaringClass().getName().compareTo(
                                b.getDeclaringClass().getName());
+                    // Class.getName() fine as long as fields belonging to
+                    // proxy classes are never safe().
                 }
                 return diff;
             }
@@ -136,6 +142,7 @@ public final class Reflection {
                 int diff = pa.length - pb.length;
                 for (int i = 0; diff == 0 && i < pa.length; ++i) {
                     diff = pa[i].getName().compareTo(pb[i].getName());
+                    // OK since compiled types don't change
                 }
                 return diff;
             }
@@ -189,12 +196,13 @@ public final class Reflection {
             System.arraycopy(ms, 0, ms = new Method[n], 0, n); 
         }
         Arrays.sort(ms, new Comparator<Method>() {
-            public int
-            compare(final Method a, final Method b) {
+            public int compare(final Method a, final Method b) {
                 int diff = a.getName().compareTo(b.getName());
                 if (diff == 0) {
                     diff = a.getDeclaringClass().getName().compareTo(
                             b.getDeclaringClass().getName());
+                    // Class.getName() fine as long as methods belonging to
+                    // proxy classes are never safe().
                     if (diff == 0) {
                         final Class[] pa = a.getParameterTypes();
                         final Class[] pb = b.getParameterTypes();
@@ -204,6 +212,7 @@ public final class Reflection {
                         for (int i = 0; diff == 0 && i < pa.length; ++i) {
                             diff = pa[i].getName().compareTo(pb[i].getName());
                         }
+                        // OK since compiled types don't change
                     }
                 }
                 return diff;
@@ -212,10 +221,15 @@ public final class Reflection {
 
         return PowerlessArray.array(ms);
     }
- 
+
     /**
-     * Get the name of a class.  Wrapper to avoid exposing the number of
-     * proxy interfaces generated.
+     * Get the name of the entity represented by a <code>Class</code> object,
+     * in the same format as returned by {@link Class#getName()}.  This wrapper
+     * exists to avoid exposing the number of proxy interfaces that have been
+     * generated.
+     * @param c the class to get the name of
+     * @return the name of class <code>c</code>
+     * @throws IllegalArgumentException if <code>c</code> is a proxy class
      */
     static public String getName(Class c) {
         if (java.lang.reflect.Proxy.isProxyClass(c)) {
@@ -225,44 +239,57 @@ public final class Reflection {
             return c.getName();
         }
     }
-
+    
     /**
      * boot class loader
      */
-    static private final ClassLoader boot = Runnable.class.getClassLoader();
-
+    // static private final ClassLoader boot = Runnable.class.getClassLoader();
+   
     /**
      * Is the given member allowed to be accessed by Joe-E code?
      * @param member    candidate member
      * @return <code>true</code> if the member may be used by Joe-E code,
      *         else <code>false</code>
      */
-    /* 
-     * TODO: Current implementation is a temporary hack.  It is wildly
-     * over-conservative with library functions (can't call anything except a
-     * few special cases).  It is also potentially unsafe, in cases where
-     * any non-boot-classloader code is disallowed by taming.  The correct way
-     * to implement this requires runtime access to the taming database.
-     */
     static private boolean safe(final Member member) {
         final Class declarer = member.getDeclaringClass();
+        if (declarer.getPackage().isAnnotationPresent(verified.class)) {
+            return true;
+        }
+
+        // getName() is the binary name, possibly with $'s
+        StringBuilder sb = new StringBuilder(declarer.getName());
+        if (member instanceof Field) {
+            sb.append("." + member.getName());
+            return Policy.fieldEnabled(sb.toString());
+        }
+        else if (member instanceof Constructor) {
+            String stringForm = member.toString();
+            String args = stringForm.substring(stringForm.indexOf('('),
+                                               stringForm.indexOf(')') + 1);
+            sb.append(UNQUALIFY.matcher(args).replaceAll("$1"));
+            return Policy.constructorEnabled(sb.toString());
+        } else { // member instanceof Method
+            sb.append("." + member.getName());
+            String stringForm = member.toString();
+            String args = stringForm.substring(stringForm.indexOf('('),
+                                               stringForm.indexOf(')') + 1);
+            sb.append(UNQUALIFY.matcher(args).replaceAll("$1"));
+            return Policy.methodEnabled(sb.toString());
+        }
+        /*  
         return declarer == Runnable.class 
             || (declarer == Object.class
                 && (member.getName().equals("getClass")
                     || member.getName().equals("equals")
                     || member.getName().equals("Object")))
-            || (declarer == RuntimeException.class
-                && member instanceof Constructor)
-            || (declarer == NullPointerException.class
-                && member instanceof Constructor)
-            || (declarer == ClassCastException.class
-                && member instanceof Constructor)
             || (declarer.getClassLoader() != boot
                 // prevent cheating the checks on invocation handlers
                 && !(member instanceof Constructor
                      && Proxy.class.isAssignableFrom(declarer)));
+        */
     }
-
+        
     /*
      * Methods for using reflective objects
      */

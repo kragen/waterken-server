@@ -2,18 +2,21 @@
 // under the terms of the revised BSD license.  See LICENSING for details.
 package org.joe_e.charset;
 
+import java.nio.charset.Charset;
+import java.nio.ByteBuffer;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
 /**
  * UTF-8 I/O.
  */
 public final class UTF8 {
+    private static final Charset charset = Charset.forName("UTF-8");
+    
     private UTF8() {}
     
     /**
@@ -22,12 +25,34 @@ public final class UTF8 {
      * @return The UTF-8 bytes.
      */
     static public byte[] encode(final String text) {
-        try {
-            return text.getBytes("UTF-8");
-        } catch (final UnsupportedEncodingException e) {
-            // This should never happen, as UTF-8 is a required encoding
-            throw new AssertionError("UTF-8 encoding not supported");
-        }
+        return charset.encode(text).array();
+    }
+    
+    /**
+     * Decodes a UTF-8 string. Each byte not corresponding to a UTF-8
+     * character decodes to the Unicode replacement character U+FFFD.
+     * Note that an initial byte-order mark is not stripped.  This method is
+     * equivalent to <code>decode(buffer, 0, buffer.length)</code>.
+     * @param buffer    the ASCII-encoded string to decode
+     * @return The corresponding string
+     * @throws java.lang.IndexOutOfBoundsException
+     */
+    static public String decode(byte[] buffer) {
+        return decode(buffer, 0, buffer.length);
+    }
+    
+    /**
+     * Decodes a UTF-8 string. Each byte not corresponding to a UTF-8
+     * character decodes to the Unicode replacement character U+FFFD.
+     * Note that an initial byte-order mark is not stripped.
+     * @param buffer    the ASCII-encoded string to decode
+     * @param off       where to start decoding
+     * @param len       how many bytes to decode
+     * @return The corresponding string
+     * @throws java.lang.IndexOutOfBoundsException
+     */
+    static public String decode(byte[] buffer, int off, int len) {
+        return charset.decode(ByteBuffer.wrap(buffer, off, len)).toString();
     }
     
     /**
@@ -35,12 +60,7 @@ public final class UTF8 {
      * @param in    The binary input stream.
      */
     static public Reader input(final InputStream in) {
-        try {
-            return new InputStreamReader(in, "UTF-8");
-        } catch (final UnsupportedEncodingException e) {
-            // This should never happen, as UTF-8 is a required encoding
-            throw new AssertionError("UTF-8 encoding not supported");
-        }
+        return new InputStreamReader(in, charset);
     }
     
     /**
@@ -48,11 +68,6 @@ public final class UTF8 {
      * @param out   The binary output stream.
      */
     static public Writer output(final OutputStream out) {
-        try {
-            return new OutputStreamWriter(out, "UTF-8");
-        } catch (final UnsupportedEncodingException e) {
-            // This should never happen, as UTF-8 is a required encoding
-            throw new AssertionError("UTF-8 encoding not supported");
-        }
+        return new OutputStreamWriter(out, charset);
     }
 }

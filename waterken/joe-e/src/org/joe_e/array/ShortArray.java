@@ -1,4 +1,4 @@
-// Copyright 2006 Regents of the University of California.  May be used 
+// Copyright 2006-08 Regents of the University of California.  May be used 
 // under the terms of the revised BSD license.  See LICENSING for details.
 /** 
  * @author Adrian Mettler 
@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.lang.reflect.Array;
-
 
 /**
  * An immutable array of <code>short</code>.
@@ -29,8 +28,8 @@ public final class ShortArray extends PowerlessArray<Short> {
     }
     
     /**
-     * Constructs a {@link ShortArray}.
-     * @param shorts each <code>short</code>
+     * Constructs an array of <code>short</code>s.
+     * @param shorts each element
      */
     static public ShortArray array(final short... shorts) {
         return new ShortArray(shorts.clone());
@@ -103,8 +102,8 @@ public final class ShortArray extends PowerlessArray<Short> {
 
     /**
      * Computes a digest of the array for hashing.  The hash code is the same
-     * as <code>Arrays.hashCode()</code> called on a Java array containing the
-     * same elements.
+     * as {@link java.util.Arrays#hashCode(Object[])} called on a Java array
+     * containing the same elements.
      * @return a hash code based on the contents of this array
      */
     public int hashCode() {
@@ -131,8 +130,8 @@ public final class ShortArray extends PowerlessArray<Short> {
     }
     
     /**
-     * Creates a {@link Short} for a specified <code>short</code>.
-     * @param i position of the <code>short</code> to return
+     * Creates a <code>Short</code> for a specified <code>short</code>.
+     * @param i position of the element to return
      * @throws ArrayIndexOutOfBoundsException <code>i</code> is out of bounds
      */
     public Short get(int i) { 
@@ -161,8 +160,8 @@ public final class ShortArray extends PowerlessArray<Short> {
     }
     
     /**
-     * Creates a {@link ShortArray} with an appended {@link Short}.
-     * @param newShort   the {@link Short} to append
+     * Creates a <code>ShortArray<code> with an appended <code>Short</code>.
+     * @param newShort   the element to append
      * @throws NullPointerException <code>newShort</code> is null
      */
     public ShortArray with(final Short newShort) {
@@ -175,7 +174,7 @@ public final class ShortArray extends PowerlessArray<Short> {
         
     /**
      * Gets the <code>short</code> at a specified position.
-     * @param i position of the <code>short</code> to return
+     * @param i position of the element to return
      * @throws ArrayIndexOutOfBoundsException <code>i</code> is out of bounds
      */
     public short getShort(final int i) { 
@@ -190,13 +189,202 @@ public final class ShortArray extends PowerlessArray<Short> {
     }
     
     /** 
-     * Creates a {@link ShortArray} with an appended <code>short</code>.
-     * @param newShort   the <code>short</code> to append
+     * Creates a <code>ShortArray</code> with an appended <code>short</code>.
+     * @param newShort   the element to append
      */
     public ShortArray with(final short newShort) {
         final short[] newShorts = new short[shorts.length + 1];
         System.arraycopy(shorts, 0, newShorts, 0, shorts.length);
         newShorts[shorts.length] = newShort;
         return new ShortArray(newShorts);
+    }
+
+    /**
+     * Return a new <code>ShortArray</code> that contains the same elements
+     * as this one excluding the element at a specified index
+     * @param i the index of the element to exclude
+     * @return  the new array
+     */
+    public ShortArray without(final int i) {
+        final short[] newArr = new short[shorts.length - 1];
+        System.arraycopy(shorts, 0, newArr, 0, i);
+        System.arraycopy(shorts, i + 1, newArr, i, newArr.length - i);
+        return new ShortArray(newArr);
+    }
+    
+    /**
+     * A {@link ShortArray} factory.
+     */
+    static public final class Builder extends PowerlessArray.Builder<Short> {
+        private short[] buffer;
+        private int size;
+
+        /**
+         * Construct an instance with the default internal array length.
+         */
+        public Builder() {
+            this(0);
+        }
+        
+        /**
+         * Construct an instance.
+         * @param estimate  estimated array length
+         */
+        public Builder(int estimate) {
+            buffer = new short[estimate > 0 ? estimate : 32];
+            size = 0;
+        }
+
+        // ArrayBuilder<Short> interface
+        /**
+         * Append a <code>Short</code>
+         * @param newShort the element to add
+         * @throws NegativeArraySizeException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(Short newShort) {
+            append ((short) newShort);
+        }
+
+        /**
+         * Append an array of <code>Short</code>s
+         * @param newShorts the elements to add
+         * @throws IndexOutOfBoundsException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final Short[] newShorts) {
+            append(newShorts, 0, newShorts.length);
+        }      
+
+        /**
+         * Append a range of elements from an array of <code>Short</code>s
+         * @param newShorts the array to add elements from
+         * @param off the index of the first element to add
+         * @param len the number of elements to add
+         * @throws IndexOutOfBoundsException if an out-of-bounds index would
+         *  be referenced or the resulting internal array would exceed the
+         *  maximum length of a Java array.  The builder is unmodified.
+         */
+        public void append(final Short[] newShorts, 
+                          final int off, final int len) {
+            int newSize = size + len;
+            if (newSize < 0 || off < 0 || len < 0 || off + len < 0
+                || off + len > newShorts.length) {
+                throw new IndexOutOfBoundsException();
+            }
+            if (newSize > buffer.length) {
+                int newLength = Math.max(newSize, 2 * buffer.length);
+                System.arraycopy(buffer, 0, buffer = new short[newLength], 0,
+                                 size);
+            }
+            
+            for (int i = 0; i < len; ++i) {
+                buffer[size + i] = newShorts[off + i];
+            }           
+            size = newSize;
+        }
+        
+        /**
+         * Create a snapshot of the current content.
+         * @return a <code>ShortArray</code> containing the elements so far
+         */
+        public ShortArray snapshot() {
+            final short[] arr;
+            if (size == buffer.length) {
+                arr = buffer;
+            } else {
+                arr = new short[size];
+                System.arraycopy(buffer, 0, arr, 0, size);
+            }
+            return new ShortArray(arr);
+        }
+        
+        /*
+         * Convenience (more efficient) methods with short
+         */       
+        /**
+         * Append a <code>short</code>
+         * @param newShort the element to add
+         * @throws NegativeArraySizeException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final short newShort) {
+            if (size == buffer.length) {
+                System.arraycopy(buffer, 0, buffer = new short[2 * size], 0,
+                                 size);
+            }
+            buffer[size++] = newShort;
+        }
+
+        /**
+         * Append an array of <code>short</code>s
+         * @param newShorts the elements to add
+         * @throws IndexOutOfBoundsException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final short[] newShorts) {
+            append(newShorts, 0, newShorts.length);
+        }      
+
+        /**
+         * Append a range of elements from an array of <code>short</code>s
+         * @param newShorts the array to add elements from
+         * @param off the index of the first element to add
+         * @param len the number of elements to add
+         * @throws IndexOutOfBoundsException if an out-of-bounds index would
+         *  be referenced or the resulting internal array would exceed the
+         *  maximum length of a Java array.  The builder is unmodified.
+         */
+        public void append(final short[] newShorts, final int off, final int len) {
+            int newSize = size + len;
+            if (newSize < 0 || off < 0 || len < 0 || off + len < 0
+                || off + len > newShorts.length) {
+                throw new IndexOutOfBoundsException();
+            }
+            if (newSize > buffer.length) {
+                int newLength = Math.max(newSize, 2 * buffer.length);
+                System.arraycopy(buffer, 0, buffer = new short[newLength], 0,
+                                 size);
+            }
+            System.arraycopy(newShorts, off, buffer, size, len);
+            size = newSize;
+        }
+    }
+    
+    /* If one only invokes static methods statically, this is sound, since
+     * ShortArray extends PowerlessArray<Short> and thus this method is
+     * only required to return something of a type covariant with
+     * PowerlessArray.Builder<Short>.  Unfortunately, this is not completely
+     * sound because it is possible to invoke static methods on instances, e.g.
+     * ConstArray.Builder<String> = (ConstArray (ShortArray.array())).builder(),
+     * allowing for heap pollution without an unchecked cast warning.
+     * 
+     * The only solution to this would be to completely de-genericize these
+     * methods.
+     */
+
+    /**
+     * Get a <code>ShortArray.Builder</code>.  This is equivalent to the
+     * constructor.
+     * @return a new builder instance, with the default internal array length
+     */
+    @SuppressWarnings("unchecked")
+    public static Builder builder() {
+        return new Builder(0);
+    }
+
+    /**
+     * Get a <code>ShortArray.Builder</code>.  This is equivalent to the
+     * constructor.
+     * @param estimate  estimated array length  
+     * @return a new builder instance
+     */
+    @SuppressWarnings("unchecked")
+    public static Builder builder(final int estimate) {
+        return new Builder(estimate);
     }
 }

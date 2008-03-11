@@ -96,7 +96,7 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
             final Class<?> R = Typedef.raw(Typedef.bound(
                     method.getGenericReturnType(), proxy.getClass()));
             return void.class == R || Void.class == R ? null : _(R);
-        } catch (final Exception e) { throw new Error(e); }
+        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
     }
     
     // org.ref_send.promise.Rejected interface
@@ -113,6 +113,6 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
             return type.isAssignableFrom(Promise.class)
                 ? (T)this
             : (T)Proxies.proxy(this, type, Powerless.class, Selfless.class);
-        } catch (final Exception e) { throw new Error(e); }
+        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
     }
 }

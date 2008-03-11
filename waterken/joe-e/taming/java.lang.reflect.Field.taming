@@ -1,8 +1,0 @@
-Powerless Selfless
-getAnnotation(java.lang.Class)
-getDeclaringClass()
-getGenericType()
-getModifiers()
-getName()
-getType()
-isAnnotationPresent(java.lang.Class)

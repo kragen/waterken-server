@@ -166,8 +166,7 @@ Pipeline implements Serializable {
     }
     
     static private Effect
-    send(final Vat vat, final Server client,
-         final String peer, final Entry x) {
+    send(final Vat vat, final Server client, final String peer, final Entry x) {
         Promise<Request> rendered;
         try {
             rendered = ref(x.msg.send());

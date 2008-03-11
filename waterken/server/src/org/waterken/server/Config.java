@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Type;
 import java.security.SecureRandom;
 
@@ -20,13 +19,15 @@ import org.joe_e.file.Filesystem;
 import org.ref_send.promise.eventual.Sink;
 import org.waterken.cache.Cache;
 import org.waterken.id.Importer;
-import org.waterken.jos.JODB;
+import org.waterken.jos.JODBCache;
 import org.waterken.net.Execution;
+import org.waterken.project.Project;
 import org.waterken.remote.http.Browser;
 import org.waterken.syntax.Serializer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.thread.Concurrent;
+import org.waterken.vat.Pool;
 import org.waterken.vat.Vat;
 
 /**
@@ -40,20 +41,16 @@ Config {
 
     // initialize bootstrap configuration from system properties
     static private final File configFolder;
-    static private final File vatFolder;
     static private final ClassLoader code;
     static {
         try {
-            final File home = new File(System.getProperty(
-                JODB.homePathProperty, "")).getCanonicalFile();
-            configFolder = new File(home, System.getProperty(
+            configFolder = new File(Project.home, System.getProperty(
                 "waterken.config", "config")).getCanonicalFile();
-            vatFolder = new File(home, System.getProperty(
-                JODB.vatPathProperty, JODB.vatPathDefault)).getCanonicalFile();
-            code = JODB.jar("dns", vatFolder);
-        } catch (final Exception e) { throw new Error(e); }
+            code = Project.connect("dns");
+        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
     }
     static protected final File keys= Filesystem.file(configFolder, "keys.jks");
+    static private   final Pool vats = new JODBCache();
     
     /**
      * Prints a summary of the configuration information.
@@ -67,7 +64,6 @@ Config {
             null != credentials ? credentials.getHostname() : "localhost";
         err.println("hostname: <" + hostname + ">");
         err.println("config folder: <" + configFolder + ">");
-        err.println("vat folder: <" + vatFolder + ">");
     }
     
     /**
@@ -75,7 +71,9 @@ Config {
      * @throws Exception    any problem
      */
     static protected Vat
-    vat() throws Exception { return JODB.connect(vatFolder); }
+    vat() throws Exception {
+        return vats.connect(read(File.class, "vatRootFolder"));
+    }
 
     static protected final String ext = ".json";
     
@@ -93,7 +91,7 @@ Config {
                                      array(value)).writeTo(out);
             out.flush();
             out.close();
-        } catch (final Exception e) { throw new Error(e); }
+        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
     }
 
     /**
@@ -108,8 +106,7 @@ Config {
         return (T)new ImporterX().run(T, file.toURI().toString());
     }
 
-    static private   final Cache<File,Object> settings =
-        new Cache<File,Object>(new ReferenceQueue<Object>());
+    static private   final Cache<File,Object> settings = Cache.make();
     static private   final LastModified tag = new LastModified();
     static protected final Execution exe = new Execution() {
         public void
@@ -131,7 +128,7 @@ Config {
     ImporterX extends Struct implements Importer {
         public Object
         run(final Class<?> type, final String URL) {
-            if ("x-system:vat".equalsIgnoreCase(URL)) { return vatFolder; }
+            if ("x-system:vats".equalsIgnoreCase(URL)) { return vats; }
             if ("x-system:tag".equalsIgnoreCase(URL)) { return tag; }
             if ("x-system:exe".equalsIgnoreCase(URL)) { return exe; }
             if ("file:".regionMatches(true, 0, URL, 0, "file:".length())) {
@@ -153,7 +150,7 @@ Config {
                     return r;
                 } catch (final Exception e) {
                     e.printStackTrace();
-                    throw new Error(e);
+                    throw new Error(e.getMessage(), e);
                 }
             }
             return browser.connect.run(type, URL);

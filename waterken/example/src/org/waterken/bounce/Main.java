@@ -7,13 +7,13 @@ import static org.ref_send.test.Logic.and;
 import static org.ref_send.test.Logic.was;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
@@ -96,7 +96,8 @@ Main extends Struct implements Test, Serializable {
     public Promise<Boolean>
     test(final Wall x) {
         final Wall x_ = _._(x);
-        final ArrayList<Promise<Boolean>> r = new ArrayList<Promise<Boolean>>();
+        final Volatile<Boolean>[] r = new Volatile[3];
+        int i = 0;
 
         class Re extends Do<AllTypes,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
@@ -104,14 +105,14 @@ Main extends Struct implements Test, Serializable {
             public Promise<Boolean>
             fulfill(final AllTypes a) { return _.when(x_.bounce(a), was(a)); }
         }
-        r.add(_.when(x_.getAll(), new Re()));
+        r[i++] = _.when(x_.getAll(), new Re());
         final AllTypes a = near(subject().getAll());
-        r.add(_.when(x_.bounce(a), was(a)));
+        r[i++] = _.when(x_.bounce(a), was(a));
 
         final Entity payload = new Entity("application/octet-stream",
             ByteArray.array(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
-        r.add(_.when(x_.bounce(payload), was(payload)));
+        r[i++] = _.when(x_.bounce(payload), was(payload));
 
-        return and(_, r.toArray(new Promise[r.size()]));
+        return and(_, r);
     }
 }

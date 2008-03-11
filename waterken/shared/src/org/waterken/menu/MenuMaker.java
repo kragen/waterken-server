@@ -3,10 +3,12 @@
 package org.waterken.menu;
 
 import static org.joe_e.array.ConstArray.array;
+import static org.joe_e.array.ConstArray.builder;
 import static org.ref_send.promise.Fulfilled.ref;
 
 import java.io.Serializable;
 
+import org.joe_e.array.ArrayBuilder;
 import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Promise;
 import org.ref_send.var.Factory;
@@ -36,14 +38,10 @@ MenuMaker {
 
             public Promise<ConstArray<T>>
             getSnapshot() {
-                final T[] r = alloc(editors.length());
-                int i = 0;
-                for (final Variable<T> x : editors) { r[i++] = x.get(); }
-                return ref(array(r));
+                final ArrayBuilder<T> r = builder(editors.length());
+                for (final Variable<T> x : editors) { r.append(x.get()); }
+                return ref(r.snapshot());
             }
-            
-            private T[]
-            alloc(final int length) { return (T[])new Object[length]; }
 
             public Promise<Variable<T>>
             grow() {

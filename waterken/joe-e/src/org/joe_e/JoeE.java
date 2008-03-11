@@ -1,9 +1,10 @@
-// Copyright 2005-06 Regents of the University of California.  May be used 
+// Copyright 2005-08 Regents of the University of California.  May be used 
 // under the terms of the revised BSD license.  See LICENSING for details.
 /** 
  * @author Adrian Mettler 
  */
 package org.joe_e;
+import org.joe_e.taming.Policy;
 
 /**
  * Joe-E core library functions.  These provide fundamental features, similar
@@ -55,7 +56,7 @@ public class JoeE {
         if (c2.isAssignableFrom(c1)) {
             return true;
         } else {
-            return Honoraries.honorarilyImplements(c1, c2);
+            return Policy.hasHonorary(c1.getName(), c2.getName());
         }
     }
     

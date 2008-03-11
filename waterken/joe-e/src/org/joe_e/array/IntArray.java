@@ -1,4 +1,4 @@
-// Copyright 2006 Regents of the University of California.  May be used 
+// Copyright 2006-08 Regents of the University of California.  May be used 
 // under the terms of the revised BSD license.  See LICENSING for details.
 /** 
  * @author Adrian Mettler 
@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.lang.reflect.Array;
-
 
 /**
  * An immutable array of <code>int</code>.
@@ -29,8 +28,8 @@ public final class IntArray extends PowerlessArray<Integer> {
     }
     
     /**
-     * Constructs a {@link IntArray}.
-     * @param ints each <code>int</code>
+     * Constructs an array of <code>int</code>s.
+     * @param ints each element
      */
     static public IntArray array(final int... ints) {
         return new IntArray(ints.clone());
@@ -103,8 +102,8 @@ public final class IntArray extends PowerlessArray<Integer> {
 
     /**
      * Computes a digest of the array for hashing.  The hash code is the same
-     * as <code>Arrays.hashCode()</code> called on a Java array containing the
-     * same elements.
+     * as {@link java.util.Arrays#hashCode(Object[])} called on a Java array
+     * containing the same elements.
      * @return a hash code based on the contents of this array
      */
     public int hashCode() {
@@ -131,8 +130,8 @@ public final class IntArray extends PowerlessArray<Integer> {
     }
     
     /**
-     * Creates a {@link Integer} for a specified <code>int</code>.
-     * @param i position of the <code>int</code> to return
+     * Creates a <code>Integer</code> for a specified <code>int</code>.
+     * @param i position of the element to return
      * @throws ArrayIndexOutOfBoundsException <code>i</code> is out of bounds
      */
     public Integer get(int i) { 
@@ -161,8 +160,8 @@ public final class IntArray extends PowerlessArray<Integer> {
     }
     
     /**
-     * Creates a {@link IntArray} with an appended {@link Integer}.
-     * @param newInt   the {@link Integer} to append
+     * Creates a <code>IntArray<code> with an appended <code>Integer</code>.
+     * @param newInt   the element to append
      * @throws NullPointerException <code>newInt</code> is null
      */
     public IntArray with(final Integer newInt) {
@@ -175,7 +174,7 @@ public final class IntArray extends PowerlessArray<Integer> {
         
     /**
      * Gets the <code>int</code> at a specified position.
-     * @param i position of the <code>int</code> to return
+     * @param i position of the element to return
      * @throws ArrayIndexOutOfBoundsException <code>i</code> is out of bounds
      */
     public int getInt(final int i) { 
@@ -190,13 +189,202 @@ public final class IntArray extends PowerlessArray<Integer> {
     }
     
     /** 
-     * Creates a {@link IntArray} with an appended <code>int</code>.
-     * @param newInt   the <code>int</code> to append
+     * Creates a <code>IntArray</code> with an appended <code>int</code>.
+     * @param newInt   the element to append
      */
     public IntArray with(final int newInt) {
         final int[] newInts = new int[ints.length + 1];
         System.arraycopy(ints, 0, newInts, 0, ints.length);
         newInts[ints.length] = newInt;
         return new IntArray(newInts);
+    }
+
+    /**
+     * Return a new <code>IntArray</code> that contains the same elements
+     * as this one excluding the element at a specified index
+     * @param i the index of the element to exclude
+     * @return  the new array
+     */
+    public IntArray without(final int i) {
+        final int[] newArr = new int[ints.length - 1];
+        System.arraycopy(ints, 0, newArr, 0, i);
+        System.arraycopy(ints, i + 1, newArr, i, newArr.length - i);
+        return new IntArray(newArr);
+    }
+    
+    /**
+     * A {@link IntArray} factory.
+     */
+    static public final class Builder extends PowerlessArray.Builder<Integer> {
+        private int[] buffer;
+        private int size;
+
+        /**
+         * Construct an instance with the default internal array length.
+         */
+        public Builder() {
+            this(0);
+        }
+        
+        /**
+         * Construct an instance.
+         * @param estimate  estimated array length
+         */
+        public Builder(int estimate) {
+            buffer = new int[estimate > 0 ? estimate : 32];
+            size = 0;
+        }
+
+        // ArrayBuilder<Integer> interface
+        /**
+         * Append a <code>Integer</code>
+         * @param newInt the element to add
+         * @throws NegativeArraySizeException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(Integer newInt) {
+            append ((int) newInt);
+        }
+
+        /**
+         * Append an array of <code>Integer</code>s
+         * @param newInts the elements to add
+         * @throws IndexOutOfBoundsException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final Integer[] newInts) {
+            append(newInts, 0, newInts.length);
+        }      
+
+        /**
+         * Append a range of elements from an array of <code>Integer</code>s
+         * @param newInts the array to add elements from
+         * @param off the index of the first element to add
+         * @param len the number of elements to add
+         * @throws IndexOutOfBoundsException if an out-of-bounds index would
+         *  be referenced or the resulting internal array would exceed the
+         *  maximum length of a Java array.  The builder is unmodified.
+         */
+        public void append(final Integer[] newInts, 
+                          final int off, final int len) {
+            int newSize = size + len;
+            if (newSize < 0 || off < 0 || len < 0 || off + len < 0
+                || off + len > newInts.length) {
+                throw new IndexOutOfBoundsException();
+            }
+            if (newSize > buffer.length) {
+                int newLength = Math.max(newSize, 2 * buffer.length);
+                System.arraycopy(buffer, 0, buffer = new int[newLength], 0,
+                                 size);
+            }
+            
+            for (int i = 0; i < len; ++i) {
+                buffer[size + i] = newInts[off + i];
+            }           
+            size = newSize;
+        }
+        
+        /**
+         * Create a snapshot of the current content.
+         * @return a <code>IntArray</code> containing the elements so far
+         */
+        public IntArray snapshot() {
+            final int[] arr;
+            if (size == buffer.length) {
+                arr = buffer;
+            } else {
+                arr = new int[size];
+                System.arraycopy(buffer, 0, arr, 0, size);
+            }
+            return new IntArray(arr);
+        }
+        
+        /*
+         * Convenience (more efficient) methods with int
+         */       
+        /**
+         * Append a <code>int</code>
+         * @param newInt the element to add
+         * @throws NegativeArraySizeException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final int newInt) {
+            if (size == buffer.length) {
+                System.arraycopy(buffer, 0, buffer = new int[2 * size], 0,
+                                 size);
+            }
+            buffer[size++] = newInt;
+        }
+
+        /**
+         * Append an array of <code>int</code>s
+         * @param newInts the elements to add
+         * @throws IndexOutOfBoundsException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final int[] newInts) {
+            append(newInts, 0, newInts.length);
+        }      
+
+        /**
+         * Append a range of elements from an array of <code>int</code>s
+         * @param newInts the array to add elements from
+         * @param off the index of the first element to add
+         * @param len the number of elements to add
+         * @throws IndexOutOfBoundsException if an out-of-bounds index would
+         *  be referenced or the resulting internal array would exceed the
+         *  maximum length of a Java array.  The builder is unmodified.
+         */
+        public void append(final int[] newInts, final int off, final int len) {
+            int newSize = size + len;
+            if (newSize < 0 || off < 0 || len < 0 || off + len < 0
+                || off + len > newInts.length) {
+                throw new IndexOutOfBoundsException();
+            }
+            if (newSize > buffer.length) {
+                int newLength = Math.max(newSize, 2 * buffer.length);
+                System.arraycopy(buffer, 0, buffer = new int[newLength], 0,
+                                 size);
+            }
+            System.arraycopy(newInts, off, buffer, size, len);
+            size = newSize;
+        }
+    }
+    
+    /* If one only invokes static methods statically, this is sound, since
+     * IntArray extends PowerlessArray<Integer> and thus this method is
+     * only required to return something of a type covariant with
+     * PowerlessArray.Builder<Integer>.  Unfortunately, this is not completely
+     * sound because it is possible to invoke static methods on instances, e.g.
+     * ConstArray.Builder<String> = (ConstArray (IntArray.array())).builder(),
+     * allowing for heap pollution without an unchecked cast warning.
+     * 
+     * The only solution to this would be to completely de-genericize these
+     * methods.
+     */
+
+    /**
+     * Get a <code>IntArray.Builder</code>.  This is equivalent to the
+     * constructor.
+     * @return a new builder instance, with the default internal array length
+     */
+    @SuppressWarnings("unchecked")
+    public static Builder builder() {
+        return new Builder(0);
+    }
+
+    /**
+     * Get a <code>IntArray.Builder</code>.  This is equivalent to the
+     * constructor.
+     * @param estimate  estimated array length  
+     * @return a new builder instance
+     */
+    @SuppressWarnings("unchecked")
+    public static Builder builder(final int estimate) {
+        return new Builder(estimate);
     }
 }

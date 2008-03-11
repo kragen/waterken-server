@@ -39,9 +39,8 @@ UDP extends Struct implements Runnable {
             try {
                 final DatagramPacket in = new DatagramPacket(new byte[512],512);
                 port.receive(in);
-                final ByteArray.Generator g =
-                    new ByteArray.Generator(in.getLength());
-                g.write(in.getData(), in.getOffset(), in.getLength());
+                final ByteArray.Builder g = ByteArray.builder(in.getLength());
+                g.append(in.getData(), in.getOffset(), in.getLength());
                 final ByteArray msg = g.snapshot();
                 final SocketAddress from = in.getSocketAddress(); 
                 daemon.accept(from, msg, new Do<ByteArray,Void>() {

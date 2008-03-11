@@ -10,7 +10,8 @@
     "next" : {
       "$" : [ "org.waterken.remote.mux.Mux" ],
       "vatURIPathPrefix" : { "@" : "vatURIPathPrefix.json" },
-      "vatRootFolder" : { "@" : "x-system:vat" },
+      "vatRoot" : { "@" : "vatRootFolder.json" },
+      "vats" : { "@" : "x-system:vats" },
       "remoting" : {
         "$" : [ "org.waterken.remote.http.AMP" ]
       },

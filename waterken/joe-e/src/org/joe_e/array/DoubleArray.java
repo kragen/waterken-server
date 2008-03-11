@@ -1,4 +1,4 @@
-// Copyright 2006 Regents of the University of California.  May be used 
+// Copyright 2006-08 Regents of the University of California.  May be used 
 // under the terms of the revised BSD license.  See LICENSING for details.
 /** 
  * @author Adrian Mettler 
@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.lang.reflect.Array;
-
 
 /**
  * An immutable array of <code>double</code>.
@@ -29,8 +28,8 @@ public final class DoubleArray extends PowerlessArray<Double> {
     }
     
     /**
-     * Constructs a {@link DoubleArray}.
-     * @param doubles each <code>double</code>
+     * Constructs an array of <code>double</code>s.
+     * @param doubles each element
      */
     static public DoubleArray array(final double... doubles) {
         return new DoubleArray(doubles.clone());
@@ -103,8 +102,8 @@ public final class DoubleArray extends PowerlessArray<Double> {
 
     /**
      * Computes a digest of the array for hashing.  The hash code is the same
-     * as <code>Arrays.hashCode()</code> called on a Java array containing the
-     * same elements.
+     * as {@link java.util.Arrays#hashCode(Object[])} called on a Java array
+     * containing the same elements.
      * @return a hash code based on the contents of this array
      */
     public int hashCode() {
@@ -131,8 +130,8 @@ public final class DoubleArray extends PowerlessArray<Double> {
     }
     
     /**
-     * Creates a {@link Double} for a specified <code>double</code>.
-     * @param i position of the <code>double</code> to return
+     * Creates a <code>Double</code> for a specified <code>double</code>.
+     * @param i position of the element to return
      * @throws ArrayIndexOutOfBoundsException <code>i</code> is out of bounds
      */
     public Double get(int i) { 
@@ -161,8 +160,8 @@ public final class DoubleArray extends PowerlessArray<Double> {
     }
     
     /**
-     * Creates a {@link DoubleArray} with an appended {@link Double}.
-     * @param newDouble   the {@link Double} to append
+     * Creates a <code>DoubleArray<code> with an appended <code>Double</code>.
+     * @param newDouble   the element to append
      * @throws NullPointerException <code>newDouble</code> is null
      */
     public DoubleArray with(final Double newDouble) {
@@ -175,7 +174,7 @@ public final class DoubleArray extends PowerlessArray<Double> {
         
     /**
      * Gets the <code>double</code> at a specified position.
-     * @param i position of the <code>double</code> to return
+     * @param i position of the element to return
      * @throws ArrayIndexOutOfBoundsException <code>i</code> is out of bounds
      */
     public double getDouble(final int i) { 
@@ -190,13 +189,202 @@ public final class DoubleArray extends PowerlessArray<Double> {
     }
     
     /** 
-     * Creates a {@link DoubleArray} with an appended <code>double</code>.
-     * @param newDouble   the <code>double</code> to append
+     * Creates a <code>DoubleArray</code> with an appended <code>double</code>.
+     * @param newDouble   the element to append
      */
     public DoubleArray with(final double newDouble) {
         final double[] newDoubles = new double[doubles.length + 1];
         System.arraycopy(doubles, 0, newDoubles, 0, doubles.length);
         newDoubles[doubles.length] = newDouble;
         return new DoubleArray(newDoubles);
+    }
+
+    /**
+     * Return a new <code>DoubleArray</code> that contains the same elements
+     * as this one excluding the element at a specified index
+     * @param i the index of the element to exclude
+     * @return  the new array
+     */
+    public DoubleArray without(final int i) {
+        final double[] newArr = new double[doubles.length - 1];
+        System.arraycopy(doubles, 0, newArr, 0, i);
+        System.arraycopy(doubles, i + 1, newArr, i, newArr.length - i);
+        return new DoubleArray(newArr);
+    }
+    
+    /**
+     * A {@link DoubleArray} factory.
+     */
+    static public final class Builder extends PowerlessArray.Builder<Double> {
+        private double[] buffer;
+        private int size;
+
+        /**
+         * Construct an instance with the default internal array length.
+         */
+        public Builder() {
+            this(0);
+        }
+        
+        /**
+         * Construct an instance.
+         * @param estimate  estimated array length
+         */
+        public Builder(int estimate) {
+            buffer = new double[estimate > 0 ? estimate : 32];
+            size = 0;
+        }
+
+        // ArrayBuilder<Double> interface
+        /**
+         * Append a <code>Double</code>
+         * @param newDouble the element to add
+         * @throws NegativeArraySizeException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(Double newDouble) {
+            append ((double) newDouble);
+        }
+
+        /**
+         * Append an array of <code>Double</code>s
+         * @param newDoubles the elements to add
+         * @throws IndexOutOfBoundsException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final Double[] newDoubles) {
+            append(newDoubles, 0, newDoubles.length);
+        }      
+
+        /**
+         * Append a range of elements from an array of <code>Double</code>s
+         * @param newDoubles the array to add elements from
+         * @param off the index of the first element to add
+         * @param len the number of elements to add
+         * @throws IndexOutOfBoundsException if an out-of-bounds index would
+         *  be referenced or the resulting internal array would exceed the
+         *  maximum length of a Java array.  The builder is unmodified.
+         */
+        public void append(final Double[] newDoubles, 
+                          final int off, final int len) {
+            int newSize = size + len;
+            if (newSize < 0 || off < 0 || len < 0 || off + len < 0
+                || off + len > newDoubles.length) {
+                throw new IndexOutOfBoundsException();
+            }
+            if (newSize > buffer.length) {
+                int newLength = Math.max(newSize, 2 * buffer.length);
+                System.arraycopy(buffer, 0, buffer = new double[newLength], 0,
+                                 size);
+            }
+            
+            for (int i = 0; i < len; ++i) {
+                buffer[size + i] = newDoubles[off + i];
+            }           
+            size = newSize;
+        }
+        
+        /**
+         * Create a snapshot of the current content.
+         * @return a <code>DoubleArray</code> containing the elements so far
+         */
+        public DoubleArray snapshot() {
+            final double[] arr;
+            if (size == buffer.length) {
+                arr = buffer;
+            } else {
+                arr = new double[size];
+                System.arraycopy(buffer, 0, arr, 0, size);
+            }
+            return new DoubleArray(arr);
+        }
+        
+        /*
+         * Convenience (more efficient) methods with double
+         */       
+        /**
+         * Append a <code>double</code>
+         * @param newDouble the element to add
+         * @throws NegativeArraySizeException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final double newDouble) {
+            if (size == buffer.length) {
+                System.arraycopy(buffer, 0, buffer = new double[2 * size], 0,
+                                 size);
+            }
+            buffer[size++] = newDouble;
+        }
+
+        /**
+         * Append an array of <code>double</code>s
+         * @param newDoubles the elements to add
+         * @throws IndexOutOfBoundsException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final double[] newDoubles) {
+            append(newDoubles, 0, newDoubles.length);
+        }      
+
+        /**
+         * Append a range of elements from an array of <code>double</code>s
+         * @param newDoubles the array to add elements from
+         * @param off the index of the first element to add
+         * @param len the number of elements to add
+         * @throws IndexOutOfBoundsException if an out-of-bounds index would
+         *  be referenced or the resulting internal array would exceed the
+         *  maximum length of a Java array.  The builder is unmodified.
+         */
+        public void append(final double[] newDoubles, final int off, final int len) {
+            int newSize = size + len;
+            if (newSize < 0 || off < 0 || len < 0 || off + len < 0
+                || off + len > newDoubles.length) {
+                throw new IndexOutOfBoundsException();
+            }
+            if (newSize > buffer.length) {
+                int newLength = Math.max(newSize, 2 * buffer.length);
+                System.arraycopy(buffer, 0, buffer = new double[newLength], 0,
+                                 size);
+            }
+            System.arraycopy(newDoubles, off, buffer, size, len);
+            size = newSize;
+        }
+    }
+    
+    /* If one only invokes static methods statically, this is sound, since
+     * DoubleArray extends PowerlessArray<Double> and thus this method is
+     * only required to return something of a type covariant with
+     * PowerlessArray.Builder<Double>.  Unfortunately, this is not completely
+     * sound because it is possible to invoke static methods on instances, e.g.
+     * ConstArray.Builder<String> = (ConstArray (DoubleArray.array())).builder(),
+     * allowing for heap pollution without an unchecked cast warning.
+     * 
+     * The only solution to this would be to completely de-genericize these
+     * methods.
+     */
+
+    /**
+     * Get a <code>DoubleArray.Builder</code>.  This is equivalent to the
+     * constructor.
+     * @return a new builder instance, with the default internal array length
+     */
+    @SuppressWarnings("unchecked")
+    public static Builder builder() {
+        return new Builder(0);
+    }
+
+    /**
+     * Get a <code>DoubleArray.Builder</code>.  This is equivalent to the
+     * constructor.
+     * @param estimate  estimated array length  
+     * @return a new builder instance
+     */
+    @SuppressWarnings("unchecked")
+    public static Builder builder(final int estimate) {
+        return new Builder(estimate);
     }
 }

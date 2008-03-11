@@ -40,7 +40,8 @@ Snapshot extends Struct implements Content, Powerless, Serializable {
     static public Snapshot
     snapshot(final int estimate, final Content stream) throws Exception {
         if (stream instanceof Snapshot) { return (Snapshot)stream; }
-        final ByteArray.Generator out = new ByteArray.Generator(estimate);
+        final ByteArray.BuilderOutputStream out =
+            new ByteArray.BuilderOutputStream(estimate);
         stream.writeTo(out);
         return new Snapshot(out.snapshot());
     }
@@ -49,6 +50,6 @@ Snapshot extends Struct implements Content, Powerless, Serializable {
     
     public void
     writeTo(final OutputStream out) throws Exception {
-        Stream.copy(content.open(), out);
+        Stream.copy(content.asInputStream(), out);
     }
 }

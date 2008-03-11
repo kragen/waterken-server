@@ -2,7 +2,6 @@
 // under the terms of the revised BSD license.  See LICENSING for details.
 package org.joe_e.reflect;
 
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
@@ -104,13 +103,13 @@ public final class Proxies {
                 selfless = true;
             }
             
-            // Cannot implement untamed interfaces.
             final ClassLoader interfaceLoader = i.getClassLoader();
-            
-            // TODO: Consult the taming database to enable.
-            if (interfaceLoader == boot && i != Runnable.class) { 
-                throw new ClassCastException();
-            }
+
+            // TODO: This will change if there is runtime info on banned
+            // interfaces or if a Library interface is added.
+            // if (interfaceLoader == boot && i != Runnable.class) { 
+            //    throw new ClassCastException();
+            //}
     
             // Prefer any classloader over the bootstrap classloader.
             if (proxyLoader == boot) {
@@ -131,9 +130,13 @@ public final class Proxies {
      * @return <code>true</code> if a Joe-E type, else <code>false</code>
      */
     static public boolean isImplementable(final Class type) {
-        return Runnable.class == type ||
-               (type.isInterface() && type.getClassLoader() != boot &&
-                Modifier.isPublic(type.getModifiers())); 
-        // TODO: Consult taming database
+        return type.isInterface() && Modifier.isPublic(type.getModifiers());
+        
+        // return Runnable.class == type ||
+        //       (type.isInterface() && type.getClassLoader() != boot &&
+        //        Modifier.isPublic(type.getModifiers())); 
+        // Can't consult taming database as it doesn't have proper info
+        // TODO: This will change if there are interfaces the implementation of
+        // which must be banned (e.g. Library)
     }
 }

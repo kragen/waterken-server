@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.lang.ref.ReferenceQueue;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,8 +30,8 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.list.List;
-import org.ref_send.log.Event;
 import org.ref_send.log.Anchor;
+import org.ref_send.log.Event;
 import org.ref_send.log.Got;
 import org.ref_send.log.Sent;
 import org.ref_send.log.Turn;
@@ -45,19 +44,18 @@ import org.ref_send.promise.eventual.Task;
 import org.ref_send.var.Factory;
 import org.ref_send.var.Receiver;
 import org.waterken.base32.Base32;
-import org.waterken.cache.Cache;
-import org.waterken.thread.Concurrent;
+import org.waterken.project.Project;
 import org.waterken.vat.Creator;
 import org.waterken.vat.CyclicGraph;
 import org.waterken.vat.Effect;
-import org.waterken.vat.Tracer;
-import org.waterken.vat.Vat;
 import org.waterken.vat.ProhibitedCreation;
 import org.waterken.vat.ProhibitedModification;
 import org.waterken.vat.Root;
 import org.waterken.vat.Service;
+import org.waterken.vat.Tracer;
 import org.waterken.vat.Transaction;
 import org.waterken.vat.UnknownClass;
+import org.waterken.vat.Vat;
 import org.web_send.graph.Collision;
 import org.web_send.graph.Unavailable;
 
@@ -72,85 +70,10 @@ JODB extends Vat {
      */
     private final File folder;
 
-    private
+    protected
     JODB(final File folder, final Loop<Service> service) {
         super(service);
         this.folder = folder;
-    }
-
-    /**
-     * file path to the folder containing all persistence folders
-     */
-    static public  final String homePathProperty = "waterken.home";
-    static private final File home;
-    static public  final String vatPathProperty = "waterken.vat";
-    static public  final String vatPathDefault = "vat";
-    static private final File vatDir;
-    static private final String vatDirPath;
-    static {
-        try {
-            home = new File(System.getProperty(
-                homePathProperty, "")).getCanonicalFile();
-            vatDir = new File(home, System.getProperty(
-                vatPathProperty, vatPathDefault)).getCanonicalFile();
-            vatDirPath = vatDir.getPath() + File.separator;
-        } catch (final IOException e) { throw new Error(e); }
-    }
-    static private final Cache<File,JODB> live =
-        new Cache<File,JODB>(new ReferenceQueue<JODB>());
-
-    /**
-     * Opens an existing, but not yet open, vat.
-     * @param id        persistence folder
-     * @param service   {@link #service}
-     * @throws FileNotFoundException    <code>id</code> not a persistence folder
-     */
-    static public Vat
-    open(final File id, final Loop<Service> service) throws Exception {
-        final File folder = id.getCanonicalFile();
-        if (!folder.isDirectory()) { throw new FileNotFoundException(); }
-        synchronized (live) {
-            if (null != live.fetch(null, folder)) { throw new Exception(); }
-            return load(folder, service);
-        }
-    }
-
-    static private final ThreadGroup threads = new ThreadGroup("vat");
-
-    /**
-     * Connects to an existing vat.
-     * <p>
-     * If the vat is not yet {@link #open open}, it will be opened with a
-     * {@link Concurrent#loop concurrent} {@link #service} loop.
-     * </p>
-     * @param id    persistence folder
-     * @throws FileNotFoundException    <code>id</code> not a persistence folder
-     */
-    static public Vat
-    connect(final File id) throws Exception {
-        final File folder = id.getCanonicalFile();
-        if (!folder.isDirectory()) { throw new FileNotFoundException(); }
-        synchronized (live) {
-            final JODB r = live.fetch(null, folder);
-            if (null != r) { return r; }
-            final Loop<Service> service = Concurrent.loop(threads,
-                folder.getPath().substring(vatDir.getPath().length()));
-            return load(folder, service);
-        }
-    }
-
-    static private Vat
-    load(final File folder,
-         final Loop<Service> service) throws FileNotFoundException {
-        if (!folder.equals(vatDir) && !folder.getPath().startsWith(vatDirPath)) {
-            throw new FileNotFoundException();
-        }
-
-        // The caller has read/write access to a raw persistence folder,
-        // so assume the caller is trusted infrastructure code.
-        final JODB r = new JODB(folder, service);
-        live.put(folder, r);
-        return r;
     }
 
     // org.waterken.vat.Vat interface
@@ -202,7 +125,7 @@ JODB extends Vat {
             if (e instanceof OutOfMemoryError) { System.gc(); }
             final Throwable cause = e.getCause();
             if (cause instanceof Exception) { throw (Exception)cause; }
-            throw new Exception(e);
+            throw new Exception(e.getMessage(), e);
         } finally {
             busy = false;
         }
@@ -236,7 +159,7 @@ JODB extends Vat {
      */
     private ClassLoader code;
 
-    <R> Promise<R>
+    protected <R> Promise<R>
     process(final boolean extend, final Transaction<R> body) throws Exception {
         // finish object initialization, which was delayed to avoid doing
         // anything intensive while holding the global "live" lock
@@ -257,7 +180,7 @@ JODB extends Vat {
         final Root root = new Root() {
 
             private Turn turn = null;
-            private long anchor = 0L;
+            private long anchors = 0L;
             
             public String
             getVatName() { return folder.getName(); }
@@ -268,7 +191,7 @@ JODB extends Vat {
                     turn = new Turn((String)fetch(null, Root.here),
                                     ((Stats)fetch(null, stats)).getChanged()); 
                 }
-                return new Anchor(turn, anchor++);
+                return new Anchor(turn, anchors++);
             }
 
             public String
@@ -479,7 +402,7 @@ JODB extends Vat {
 
                 String key = o2k.get(value);
                 if (null == key) {
-                    if (Slicer.inline(value)) {
+                    if (null == value || Slicer.inline(value.getClass())) {
                         // reuse an equivalent persistent identity;
                         // otherwise, determine the persistent identity
                         final byte[] id;
@@ -599,7 +522,9 @@ JODB extends Vat {
         final Creator creator = new Creator() {
 
             public ClassLoader
-            load(final String project) throws Exception { return jar(project); }
+            load(final String project) throws Exception {
+                return Project.connect(project);
+            }
 
             public <T> T
             create(final Transaction<T> initialize,
@@ -845,60 +770,13 @@ JODB extends Vat {
         }
     }
 
-    static private final Cache<String,ClassLoader> jars =
-        new Cache<String,ClassLoader>(new ReferenceQueue<ClassLoader>());
-    static private       ClassLoader shared = Loop.class.getClassLoader();
-    static {
-        try {
-            shared = jar("shared");
-        } catch (final Exception e) { throw new Error(e); }
-    }
-
-    /**
-     * Gets the named classloader.
-     * @param project   project name
-     */
-    static private ClassLoader
-    jar(final String project) throws Exception {
-        if (null == project || "".equals(project)) { return shared; }
-
-        synchronized (jars) {
-            ClassLoader r = jars.fetch(null, project);
-            if (null == r) {
-                final File bins = new File(home, System.getProperty(
-                    "waterken.code", "")).getCanonicalFile();
-                final String ext = System.getProperty(
-                    "waterken.bin", File.separator + "bin" + File.separator);
-                
-                // assume a safe value has been configured for waterken.bin,
-                // and so only the project name need be vetted
-                Filesystem.checkName(project);
-                r = new Project(new File(bins, project + ext), shared);
-                
-                jars.put(project, r);
-            }
-            return r;
-        }
-    }
-    
-    /**
-     * Gets the named classloader.
-     * @param project       project name
-     * @param permission    root vat folder
-     */
-    static public ClassLoader
-    jar(final String project, final File permission) throws Exception {
-        if (!vatDir.equals(permission)) { throw new Exception(); }
-        return jar(project);
-    }
-
     /**
      * Gets the corresponding classloader for a persistence folder.
      * @param folder    canonical persistence folder
      */
-    static ClassLoader
+    static protected ClassLoader
     application(final File folder) throws Exception {
-        return jar((String)getConfig(folder, Root.project));
+        return Project.connect((String)getConfig(folder, Root.project));
     }
 
     /**

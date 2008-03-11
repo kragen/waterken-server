@@ -27,8 +27,6 @@ Concurrent {
         if (null == group) { throw new NullPointerException(); }
         if (null == name) { throw new NullPointerException(); }
         
-        // Assume the caller is trusted infrastructure code since it possesses
-        // a thread group object.
         class LoopX implements Loop<T>, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -37,12 +35,9 @@ Concurrent {
 
             public synchronized void
             run(final T task) {
-
-                // Enqueue the task.
                 if (null == tasks) { tasks = List.list(); }
                 tasks.append(task);
 
-                // Start processing tasks.
                 if (!running) {
                     new Thread(group, name) {
                         public void
@@ -66,7 +61,6 @@ Concurrent {
                                     yield();
                                 }
                             } catch (final Throwable e) {
-                                // provide debugging support
                                 e.printStackTrace();
                             }
                             // System.err.println("Idle: " + name);

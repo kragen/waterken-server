@@ -4,7 +4,6 @@ package org.waterken.dns.udp;
 
 import static org.joe_e.file.Filesystem.file;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.SocketAddress;
@@ -17,11 +16,11 @@ import org.ref_send.name;
 import org.ref_send.promise.eventual.Do;
 import org.waterken.dns.Domain;
 import org.waterken.dns.Resource;
-import org.waterken.jos.JODB;
 import org.waterken.udp.UDPDaemon;
-import org.waterken.vat.Vat;
+import org.waterken.vat.Pool;
 import org.waterken.vat.Root;
 import org.waterken.vat.Transaction;
+import org.waterken.vat.Vat;
 
 /**
  * A DNS name server.
@@ -31,6 +30,7 @@ NameServer extends UDPDaemon {
     static private final long serialVersionUID = 1L;
 
     private final File master;
+    private final Pool vats;
     
     /**
      * Constructs an instance.
@@ -39,9 +39,11 @@ NameServer extends UDPDaemon {
      */
     public @deserializer
     NameServer(@name("port") final int port,
-               @name("master") final File master) {
+               @name("master") final File master,
+               @name("vats") final Pool vats) {
         super(port);
         this.master = master;
+        this.vats = vats;
     }
     
     // org.waterken.udp.Daemon interface
@@ -51,7 +53,7 @@ NameServer extends UDPDaemon {
            final Do<ByteArray,?> respond) throws Exception {
         final ByteArray response;
         try {
-            response = process(master, msg);
+            response = process(msg);
         } catch (final Exception e) {
             final byte[] header = respond(msg.toByteArray());
             header[3] |= 2;
@@ -68,8 +70,8 @@ NameServer extends UDPDaemon {
      */
     static private final int QP = 0xC000 | 12;
     
-    static private ByteArray
-    process(final File master, final ByteArray msg) throws Exception {
+    private ByteArray
+    process(final ByteArray msg) throws Exception {
         final byte[] in = msg.toByteArray();
         final byte[] header = respond(in);
 
@@ -111,7 +113,7 @@ NameServer extends UDPDaemon {
         // see if we've got any answers
         final ConstArray<Resource> answers;
         try {
-            answers = JODB.connect(file(master, qname.toLowerCase())).enter(
+            answers = vats.connect(file(master, qname.toLowerCase())).enter(
                     Vat.extend, new Transaction<ConstArray<Resource>>() {
                 public ConstArray<Resource>
                 run(final Root local) throws Exception {
@@ -125,40 +127,40 @@ NameServer extends UDPDaemon {
         }
 
         // encode the corresponding answers
-        final ByteArrayOutputStream response = new ByteArrayOutputStream(512);
+        final ByteArray.Builder response = ByteArray.builder(512); 
         header[2] |= 0x04;                          // set the AA bit
         header[5] = 1;                              // qdcount = 1
-        response.write(header);                     // output a header
-        response.write(in, header.length, qlen);    // echo the question
+        response.append(header);                    // output a header
+        response.append(in, header.length, qlen);   // echo the question
         int ancount = 0;
         boolean truncated = false;
         for (final Resource a : answers) {
             if ((255 == qtype || qtype == a.type) &&
                 (255 == qclass || qclass == a.clazz)) {
                 final byte[] data = a.data.toByteArray();
-                if (response.size() + 12 + data.length > 512) {
+                if (response.length() + 12 + data.length > 512) {
                     truncated = true;
                     continue;
                 }
                 
-                response.write(QP >>> 8);
-                response.write(QP      );
-                response.write(a.type >>> 8);
-                response.write(a.type      );
-                response.write(a.clazz >>> 8);
-                response.write(a.clazz      );
-                response.write(a.ttl >>> 24);
-                response.write(a.ttl >>> 16);
-                response.write(a.ttl >>>  8);
-                response.write(a.ttl       );
-                response.write(data.length >>>  8);
-                response.write(data.length       );
-                response.write(data);
+                response.append((byte)(QP >>> 8));
+                response.append((byte)(QP      ));
+                response.append((byte)(a.type >>> 8));
+                response.append((byte)(a.type      ));
+                response.append((byte)(a.clazz >>> 8));
+                response.append((byte)(a.clazz      ));
+                response.append((byte)(a.ttl >>> 24));
+                response.append((byte)(a.ttl >>> 16));
+                response.append((byte)(a.ttl >>>  8));
+                response.append((byte)(a.ttl       ));
+                response.append((byte)(data.length >>>  8));
+                response.append((byte)(data.length       ));
+                response.append(data);
                 
                 ++ancount;
             }
         }
-        final byte[] out = response.toByteArray();
+        final byte[] out = response.snapshot().toByteArray();
         if (truncated) {
             out[2] |= 0x20; // set the TC bit
         }

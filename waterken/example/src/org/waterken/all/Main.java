@@ -5,10 +5,10 @@ package org.waterken.all;
 import static org.ref_send.test.Logic.and;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import org.joe_e.Struct;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.test.Test;
 import org.ref_send.var.Variable;
@@ -50,19 +50,20 @@ Main extends Struct implements Test, Serializable {
     public Promise<Boolean>
     start() throws Exception {
         final Eventual _ = framework._;
-        final ArrayList<Promise<Boolean>> r = new ArrayList<Promise<Boolean>>();
+        final Volatile<Boolean>[] r = new Volatile[4];
+        int i = 0;
         
-        r.add(new org.waterken.eq.Main(_).start());
+        r[i++] = new org.waterken.eq.Main(_).start();
         
         final Wall wall_ = framework.publisher.spawn("wall", Bounce.class);
-        r.add(new org.waterken.bounce.Main(_).test(wall_));
+        r[i++] = new org.waterken.bounce.Main(_).test(wall_);
         
         final Drum drum_ = framework.publisher.spawn("drum", Bang.class);
-        r.add(new org.waterken.bang.Main(_).test(drum_, 0));
+        r[i++] = new org.waterken.bang.Main(_).test(drum_, 0);
         
         final Promise<Variable<Boolean>> slot = framework.spawn.run(Put.class);
-        r.add(new org.waterken.put.Main(_).test(slot, false));
+        r[i++] = new org.waterken.put.Main(_).test(slot, false);
 
-        return and(_, r.toArray(new Promise[r.size()]));
+        return and(_, r);
     }
 }

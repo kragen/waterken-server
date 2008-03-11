@@ -11,14 +11,14 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * A marker for a point in an event loop turn where an event occurred.
+ * A marker for a point in an event loop turn where an event originated.
  */
 public class
-Anchor implements Comparable<Anchor>, Selfless, Powerless, Record, Serializable {
+Anchor implements Comparable<Anchor>, Selfless, Powerless, Record, Serializable{
     static private final long serialVersionUID = 1L;
 
     /**
-     * event loop turn in which the event occured
+     * event loop turn in which the event originated
      */
     public final Turn turn;
     

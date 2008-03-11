@@ -12,7 +12,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.joe_e.JoeE;
+import org.joe_e.Selfless;
 import org.ref_send.promise.Fulfilled;
+import org.ref_send.promise.eventual.Eventual;
 import org.waterken.vat.Root;
 
 /**
@@ -34,7 +36,7 @@ Slicer extends ObjectOutputStream {
 
     protected Object
     replaceObject(Object x) throws IOException {
-        final Class type = null != x ? x.getClass() : Void.class;
+        final Class<?> type = null != x ? x.getClass() : Void.class;
         if (Field.class == type) {
             x = new FieldWrapper((Field)x);
         } else if (Method.class == type) {
@@ -48,9 +50,9 @@ Slicer extends ObjectOutputStream {
         } else if (value == x) {
         } else if (Fulfilled.class == type) {
             x = new Faulting(root, root.export(((Fulfilled)x).cast()));
-        } else if (!inline(x)) {
+        } else if (!inline(type)) {
             if (value instanceof Throwable &&
-                StackTraceElement.class == x.getClass().getComponentType()) {
+                StackTraceElement.class == type.getComponentType()) {
                 // This must be the stack trace. Just let it
                 // go by, since it acts like it's selfless.
             } else {
@@ -66,9 +68,10 @@ Slicer extends ObjectOutputStream {
      * @return true if the object's creation identity need not be preserved,
      *         false if it MUST be preserved
      */
-    static boolean
-    inline(final Object x) {
-        return null == x || x instanceof Class ||
-               JoeE.instanceOf(x, org.joe_e.Selfless.class);
+    static protected boolean
+    inline(final Class<?> type) {
+        return type == Void.class || type == Class.class || 
+               (JoeE.isSubtypeOf(type, Selfless.class) &&
+                type != Eventual.class);
     }
 }

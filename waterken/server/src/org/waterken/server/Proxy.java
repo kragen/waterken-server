@@ -3,7 +3,6 @@
 package org.waterken.server;
 
 import java.io.Serializable;
-import java.lang.ref.ReferenceQueue;
 import java.util.HashMap;
 
 import org.joe_e.Struct;
@@ -27,8 +26,7 @@ Proxy extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
 
     static private final ThreadGroup threads = new ThreadGroup("HTTP");
-    static private final Cache<String,Server> connections =
-        new Cache<String,Server>(new ReferenceQueue<Server>());
+    static private final Cache<String,Server> connections = Cache.make();
     
     static private synchronized Server
     connect(final String peer, final Locator transport) {

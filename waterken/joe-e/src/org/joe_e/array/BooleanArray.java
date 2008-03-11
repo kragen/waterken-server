@@ -1,4 +1,4 @@
-// Copyright 2006 Regents of the University of California.  May be used 
+// Copyright 2006-08 Regents of the University of California.  May be used 
 // under the terms of the revised BSD license.  See LICENSING for details.
 /** 
  * @author Adrian Mettler 
@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.lang.reflect.Array;
-
 
 /**
  * An immutable array of <code>boolean</code>.
@@ -29,8 +28,8 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
     }
     
     /**
-     * Constructs a {@link BooleanArray}.
-     * @param booleans each <code>boolean</code>
+     * Constructs an array of <code>boolean</code>s.
+     * @param booleans each element
      */
     static public BooleanArray array(final boolean... booleans) {
         return new BooleanArray(booleans.clone());
@@ -103,8 +102,8 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
 
     /**
      * Computes a digest of the array for hashing.  The hash code is the same
-     * as <code>Arrays.hashCode()</code> called on a Java array containing the
-     * same elements.
+     * as {@link java.util.Arrays#hashCode(Object[])} called on a Java array
+     * containing the same elements.
      * @return a hash code based on the contents of this array
      */
     public int hashCode() {
@@ -131,8 +130,8 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
     }
     
     /**
-     * Creates a {@link Boolean} for a specified <code>boolean</code>.
-     * @param i position of the <code>boolean</code> to return
+     * Creates a <code>Boolean</code> for a specified <code>boolean</code>.
+     * @param i position of the element to return
      * @throws ArrayIndexOutOfBoundsException <code>i</code> is out of bounds
      */
     public Boolean get(int i) { 
@@ -161,8 +160,8 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
     }
     
     /**
-     * Creates a {@link BooleanArray} with an appended {@link Boolean}.
-     * @param newBoolean   the {@link Boolean} to append
+     * Creates a <code>BooleanArray<code> with an appended <code>Boolean</code>.
+     * @param newBoolean   the element to append
      * @throws NullPointerException <code>newBoolean</code> is null
      */
     public BooleanArray with(final Boolean newBoolean) {
@@ -175,7 +174,7 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
         
     /**
      * Gets the <code>boolean</code> at a specified position.
-     * @param i position of the <code>boolean</code> to return
+     * @param i position of the element to return
      * @throws ArrayIndexOutOfBoundsException <code>i</code> is out of bounds
      */
     public boolean getBoolean(final int i) { 
@@ -190,13 +189,202 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
     }
     
     /** 
-     * Creates a {@link BooleanArray} with an appended <code>boolean</code>.
-     * @param newBoolean   the <code>boolean</code> to append
+     * Creates a <code>BooleanArray</code> with an appended <code>boolean</code>.
+     * @param newBoolean   the element to append
      */
     public BooleanArray with(final boolean newBoolean) {
         final boolean[] newBooleans = new boolean[booleans.length + 1];
         System.arraycopy(booleans, 0, newBooleans, 0, booleans.length);
         newBooleans[booleans.length] = newBoolean;
         return new BooleanArray(newBooleans);
+    }
+
+    /**
+     * Return a new <code>BooleanArray</code> that contains the same elements
+     * as this one excluding the element at a specified index
+     * @param i the index of the element to exclude
+     * @return  the new array
+     */
+    public BooleanArray without(final int i) {
+        final boolean[] newArr = new boolean[booleans.length - 1];
+        System.arraycopy(booleans, 0, newArr, 0, i);
+        System.arraycopy(booleans, i + 1, newArr, i, newArr.length - i);
+        return new BooleanArray(newArr);
+    }
+    
+    /**
+     * A {@link BooleanArray} factory.
+     */
+    static public final class Builder extends PowerlessArray.Builder<Boolean> {
+        private boolean[] buffer;
+        private int size;
+
+        /**
+         * Construct an instance with the default internal array length.
+         */
+        public Builder() {
+            this(0);
+        }
+        
+        /**
+         * Construct an instance.
+         * @param estimate  estimated array length
+         */
+        public Builder(int estimate) {
+            buffer = new boolean[estimate > 0 ? estimate : 32];
+            size = 0;
+        }
+
+        // ArrayBuilder<Boolean> interface
+        /**
+         * Append a <code>Boolean</code>
+         * @param newBoolean the element to add
+         * @throws NegativeArraySizeException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(Boolean newBoolean) {
+            append ((boolean) newBoolean);
+        }
+
+        /**
+         * Append an array of <code>Boolean</code>s
+         * @param newBooleans the elements to add
+         * @throws IndexOutOfBoundsException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final Boolean[] newBooleans) {
+            append(newBooleans, 0, newBooleans.length);
+        }      
+
+        /**
+         * Append a range of elements from an array of <code>Boolean</code>s
+         * @param newBooleans the array to add elements from
+         * @param off the index of the first element to add
+         * @param len the number of elements to add
+         * @throws IndexOutOfBoundsException if an out-of-bounds index would
+         *  be referenced or the resulting internal array would exceed the
+         *  maximum length of a Java array.  The builder is unmodified.
+         */
+        public void append(final Boolean[] newBooleans, 
+                          final int off, final int len) {
+            int newSize = size + len;
+            if (newSize < 0 || off < 0 || len < 0 || off + len < 0
+                || off + len > newBooleans.length) {
+                throw new IndexOutOfBoundsException();
+            }
+            if (newSize > buffer.length) {
+                int newLength = Math.max(newSize, 2 * buffer.length);
+                System.arraycopy(buffer, 0, buffer = new boolean[newLength], 0,
+                                 size);
+            }
+            
+            for (int i = 0; i < len; ++i) {
+                buffer[size + i] = newBooleans[off + i];
+            }           
+            size = newSize;
+        }
+        
+        /**
+         * Create a snapshot of the current content.
+         * @return a <code>BooleanArray</code> containing the elements so far
+         */
+        public BooleanArray snapshot() {
+            final boolean[] arr;
+            if (size == buffer.length) {
+                arr = buffer;
+            } else {
+                arr = new boolean[size];
+                System.arraycopy(buffer, 0, arr, 0, size);
+            }
+            return new BooleanArray(arr);
+        }
+        
+        /*
+         * Convenience (more efficient) methods with boolean
+         */       
+        /**
+         * Append a <code>boolean</code>
+         * @param newBoolean the element to add
+         * @throws NegativeArraySizeException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final boolean newBoolean) {
+            if (size == buffer.length) {
+                System.arraycopy(buffer, 0, buffer = new boolean[2 * size], 0,
+                                 size);
+            }
+            buffer[size++] = newBoolean;
+        }
+
+        /**
+         * Append an array of <code>boolean</code>s
+         * @param newBooleans the elements to add
+         * @throws IndexOutOfBoundsException if the resulting internal array
+         *   would exceed the maximum length of a Java array.  The builder is
+         *   unmodified.
+         */
+        public void append(final boolean[] newBooleans) {
+            append(newBooleans, 0, newBooleans.length);
+        }      
+
+        /**
+         * Append a range of elements from an array of <code>boolean</code>s
+         * @param newBooleans the array to add elements from
+         * @param off the index of the first element to add
+         * @param len the number of elements to add
+         * @throws IndexOutOfBoundsException if an out-of-bounds index would
+         *  be referenced or the resulting internal array would exceed the
+         *  maximum length of a Java array.  The builder is unmodified.
+         */
+        public void append(final boolean[] newBooleans, final int off, final int len) {
+            int newSize = size + len;
+            if (newSize < 0 || off < 0 || len < 0 || off + len < 0
+                || off + len > newBooleans.length) {
+                throw new IndexOutOfBoundsException();
+            }
+            if (newSize > buffer.length) {
+                int newLength = Math.max(newSize, 2 * buffer.length);
+                System.arraycopy(buffer, 0, buffer = new boolean[newLength], 0,
+                                 size);
+            }
+            System.arraycopy(newBooleans, off, buffer, size, len);
+            size = newSize;
+        }
+    }
+    
+    /* If one only invokes static methods statically, this is sound, since
+     * BooleanArray extends PowerlessArray<Boolean> and thus this method is
+     * only required to return something of a type covariant with
+     * PowerlessArray.Builder<Boolean>.  Unfortunately, this is not completely
+     * sound because it is possible to invoke static methods on instances, e.g.
+     * ConstArray.Builder<String> = (ConstArray (BooleanArray.array())).builder(),
+     * allowing for heap pollution without an unchecked cast warning.
+     * 
+     * The only solution to this would be to completely de-genericize these
+     * methods.
+     */
+
+    /**
+     * Get a <code>BooleanArray.Builder</code>.  This is equivalent to the
+     * constructor.
+     * @return a new builder instance, with the default internal array length
+     */
+    @SuppressWarnings("unchecked")
+    public static Builder builder() {
+        return new Builder(0);
+    }
+
+    /**
+     * Get a <code>BooleanArray.Builder</code>.  This is equivalent to the
+     * constructor.
+     * @param estimate  estimated array length  
+     * @return a new builder instance
+     */
+    @SuppressWarnings("unchecked")
+    public static Builder builder(final int estimate) {
+        return new Builder(estimate);
     }
 }

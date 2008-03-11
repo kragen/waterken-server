@@ -51,7 +51,7 @@ Touch {
                 return false;
             }
         });
-        ((JODB)JODB.connect(folder)).process(Vat.change,new Transaction<Void>(){
+        new JODB(folder, null).process(Vat.change, new Transaction<Void>() {
             public Void
             run(final Root local) throws Exception {
                 folder.list(new FilenameFilter() {

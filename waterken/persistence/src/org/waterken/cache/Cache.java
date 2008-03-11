@@ -26,20 +26,17 @@ Cache<K,V> implements Serializable {
      */
     private transient HashMap<K,CacheReference<K,V>> entries;
 
-    /**
-     * Constructs an instance.
-     * @param wiped permission to monitor the garbage collector
-     */
-    public
-    Cache(final ReferenceQueue<V> wiped) {
-        if (null == wiped) { throw new NullPointerException(); }
-        
-        // if the caller has a reference queue, assume it is trusted
-        // infrastructure code that is also allowed to compute a hash code for
-        // any object
-        this.wiped = wiped;
+    private
+    Cache() {
+        wiped = new ReferenceQueue<V>();
         entries = new HashMap<K,CacheReference<K,V>>();
     }
+    
+    /**
+     * Constructs an instance.
+     */
+    static public <K,V> Cache<K,V>
+    make() { return new Cache<K,V>(); }
     
     // java.io.Serializable interface
 

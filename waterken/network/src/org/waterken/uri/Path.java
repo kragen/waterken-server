@@ -2,10 +2,13 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.uri;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.joe_e.charset.URLEncoding;
+import org.joe_e.file.Filesystem;
+import org.joe_e.file.InvalidFilenameException;
 
 /**
  * URI path manipulation.
@@ -122,5 +125,22 @@ Path {
                 };
             }
         };
+    }
+    
+    /**
+     * Walks down a file path.
+     * @param root  root folder
+     * @param path  path to walk
+     * @return named file
+     * @throws InvalidFilenameException invalid name in <code>path</code> 
+     */
+    static public File
+    descend(final File root, final String path) throws InvalidFilenameException{
+        File r = root;
+        for (final String segment : walk(path)) {
+            if (segment.startsWith(".")) {throw new InvalidFilenameException();}
+            r = Filesystem.file(r, segment);
+        }
+        return r;
     }
 }

@@ -1,7 +1,0 @@
-
-OutputStream()
-close()
-flush()
-write(byte[])
-write(byte[], int, int)
-write(int)

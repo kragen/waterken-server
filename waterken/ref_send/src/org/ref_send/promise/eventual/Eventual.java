@@ -132,7 +132,7 @@ import org.ref_send.type.Typedef;
  *      Unified Approach to Access Control and Concurrency Control"</a>
  */
 public final class
-Eventual implements Equatable, Serializable {
+Eventual extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -219,7 +219,7 @@ Eventual implements Equatable, Serializable {
         try {
             final Class R= Typedef.raw(Typedef.value(Do.R,observer.getClass()));
             return trust(promise).when(R, observer);
-        } catch (final Exception reason) { throw new Error(reason); }
+        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
     }
 
     private <T> Deferred<T>
@@ -550,7 +550,7 @@ Eventual implements Equatable, Serializable {
             : type.isAssignableFrom(Promise.class)
                 ? (T)promise
             : (T)proxy(trust(promise), type, Selfless.class);
-        } catch (final Exception e) { throw new Error(e); }
+        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
     }
 
     /**
@@ -643,7 +643,7 @@ Eventual implements Equatable, Serializable {
                 types[n] = Selfless.class;
             }
             return (T)proxy(new Enqueue<T>(this, detach(reference)), types);
-        } catch (final Exception e) { throw new Error(e); }
+        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
     }
 
     /**
@@ -665,7 +665,8 @@ Eventual implements Equatable, Serializable {
         }
         while (i-- != 0) {
             final Class type = r[i];
-            if (!Proxies.isImplementable(type) ||
+            if (type == Serializable.class ||
+                    !Proxies.isImplementable(type) ||
                     JoeE.isSubtypeOf(type, Immutable.class) ||
                     JoeE.isSubtypeOf(type, Equatable.class)) {
                 final Class[] x = virtualize(r[i]);

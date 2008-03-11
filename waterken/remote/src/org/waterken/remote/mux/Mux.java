@@ -7,7 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.joe_e.file.Filesystem;
+import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.ref_send.promise.Volatile;
@@ -15,10 +15,10 @@ import org.ref_send.promise.eventual.Do;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
-import org.waterken.jos.JODB;
 import org.waterken.remote.Remoting;
 import org.waterken.uri.Path;
 import org.waterken.uri.URI;
+import org.waterken.vat.Pool;
 import org.web_send.Failure;
 
 /**
@@ -29,24 +29,28 @@ Mux extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
     
     private final String vatURIPathPrefix;
-    private final File vatRootFolder;
+    private final File vatRoot;
+    private final Pool vats;
     private final Remoting remoting;
     private final Server next;
     
     /**
      * Constructs an instance.
      * @param vatURIPathPrefix  URI sub-hierarchy for persistent databases
-     * @param vatRootFolder     root persistence folder
+     * @param vatRoot           root persistence folder
+     * @param vats              open vat pool
      * @param remoting          remoting protocol
      * @param next              default server
      */
     public @deserializer
     Mux(@name("vatURIPathPrefix") final String vatURIPathPrefix,
-        @name("vatRootFolder") final File vatRootFolder,
+        @name("vatRoot") final File vatRoot,
+        @name("vats") final Pool vats,
         @name("remoting") final Remoting remoting,
         @name("next") final Server next) {
         this.vatURIPathPrefix = vatURIPathPrefix;
-        this.vatRootFolder = vatRootFolder;
+        this.vatRoot = vatRoot;
+        this.vats = vats;
         this.remoting = remoting;
         this.next = next;
     }
@@ -60,17 +64,13 @@ Mux extends Struct implements Server, Serializable {
         final String path = URI.path(resource);
         if (path.startsWith(vatURIPathPrefix)) {
             final String vatPath = path.substring(vatURIPathPrefix.length());
-            File folder = vatRootFolder;
-            for (final String name : Path.walk(vatPath)) {
-                if (name.startsWith(".")) {
-                    respond.reject(Failure.gone());
-                    return;
-                }
-                folder = Filesystem.file(folder, name);
-            }
             try {
-                server = remoting.remote(next,
-                    URI.scheme(null, resource), JODB.connect(folder));
+                final File folder = Path.descend(vatRoot, vatPath);
+                server = remoting.remote(next, URI.scheme(null, resource),
+                                         vats.connect(folder));
+            } catch (final InvalidFilenameException e) {
+                respond.reject(Failure.gone());
+                return;
             } catch (final FileNotFoundException e) {
                 respond.reject(Failure.gone());
                 return;

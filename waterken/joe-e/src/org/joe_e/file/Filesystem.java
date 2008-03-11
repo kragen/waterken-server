@@ -1,4 +1,4 @@
-// Copyright 2006-2007 Regents of the University of California.  May be used 
+// Copyright 2006-2008 Regents of the University of California.  May be used 
 // under the terms of the revised BSD license.  See LICENSING for details.
 package org.joe_e.file;
 
@@ -93,13 +93,13 @@ public final class Filesystem {
     }
     
     /**
-     * Gets the number of bytes in an existing file.
-     * @param file  file to measure
-     * @return number of bytes in <code>file</code>
-     * @throws FileNotFoundException  <code>file</code> not found
+     * Gets the length of a file
+     * @param file  file to stat
+     * @return the length of the file in bytes
+     * @throws FileNotFoundException   <code>file</code> not found
      */
-    static public long
-    length(final File file) throws FileNotFoundException {
+    static public long length(final File file) 
+                                        throws FileNotFoundException {
         if (!file.isFile()) { 
             throw new FileNotFoundException();
         }

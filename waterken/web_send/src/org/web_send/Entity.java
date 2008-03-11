@@ -22,14 +22,22 @@ Entity implements Powerless, Selfless, Serializable {
     static public final int maxContentSize = 256 * 1024;
     
     /**
+     * binary Media Type: {@value}
+     */
+    static public final String binary = "application/octet-stream"; 
+    
+    /**
      * supported Media Types
      * <p>
-     * Some Media Types, such as HTML, trigger execution upon receipt in a web
-     * browser. This field lists the known safe and so supported Media Types.
+     * Some Media Types, such as HTML, are automatically provided with
+     * additional permissions by the web browser, such as the permission to
+     * script other browser frames from the same origin. Consequently, it is not
+     * always safe to serve such content. This field lists the known safe and
+     * so supported Media Types.
      * </p>
      */
     static public final PowerlessArray<String> supported = PowerlessArray.array(
-        "application/octet-stream",
+        binary,
         "text/plain"
     );
     
@@ -40,7 +48,7 @@ Entity implements Powerless, Selfless, Serializable {
     static public boolean
     supports(final String type) {
         final int c = type.indexOf(';');
-        final String m = (-1 == c ? type : type.substring(0, c)).toLowerCase();
+        final String m = -1 == c ? type : type.substring(0, c);
         for (final String x : supported) {
             if (x.equals(m)) { return true; }
         }

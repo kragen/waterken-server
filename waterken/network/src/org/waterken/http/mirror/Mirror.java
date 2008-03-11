@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.joe_e.file.Filesystem;
+import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.ref_send.promise.Volatile;
@@ -56,13 +56,12 @@ Mirror extends Struct implements Server, Serializable {
     public void
     serve(final String resource, final Volatile<Request> request,
           final Do<Response,?> respond) throws Exception {
-        File f = root;
-        for (final String segment : Path.walk(URI.path(resource))) {
-            if (segment.startsWith(".")) {
-                respond.reject(Failure.gone());
-                return;
-            }
-            f = Filesystem.file(f, segment);
+        final File f;
+        try {
+            f = Path.descend(root, URI.path(resource));
+        } catch (final InvalidFilenameException e) {
+            respond.reject(Failure.gone());
+            return;
         }
         new Files(maxAge, tag, f, formats).serve(resource, request, respond);
     }

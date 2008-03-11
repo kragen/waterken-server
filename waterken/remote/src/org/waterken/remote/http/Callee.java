@@ -260,6 +260,6 @@ Callee extends Struct implements Server, Serializable {
         }
         final String base = request.base(exports.getHere());
         return new JSONDeserializer().run(base, exports.connect(base), code,
-                                          content.open(), parameters);
+                                          content.asInputStream(), parameters);
     }
 }

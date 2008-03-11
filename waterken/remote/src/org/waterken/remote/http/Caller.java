@@ -100,15 +100,13 @@ Caller extends Struct implements Messenger, Serializable {
                     value = new Rejected<P>(e);
                 }
                 final R r = _.when(value, observer);
-                if (null != resolver) { resolver.fulfill(r); }
-                return null;
+                return null != resolver ? resolver.fulfill(r) : null;
             }
             
             public Void
             reject(final Exception reason) {
                 final R r = _.when(new Rejected<P>(reason), observer);
-                if (null != resolver) { resolver.fulfill(r); }
-                return null;
+                return null != resolver ? resolver.fulfill(r) : null;
             }
         }
         msgs.enqueue(new When());
@@ -118,43 +116,30 @@ Caller extends Struct implements Messenger, Serializable {
     public Object
     invoke(final String URL, final Object proxy,
            final Method method, final Object... arg) {
-        return null != arg && 1 == arg.length && proxy instanceof Setter &&
-                                                 "run".equals(method.getName())
-            ? put(URL, arg[0])
-        : (null != Java.property(method)
-            ? get(URL, proxy, method)
-        : post(URL, proxy, method, arg));
+        final ConstArray<?> argv= ConstArray.array(null==arg?new Object[0]:arg);
+        return 1 == argv.length() && proxy instanceof Setter &&
+                                     "run".equals(method.getName())
+            ? put(URL, proxy, method, argv)
+        : null != Java.property(method)
+            ? get(URL, proxy, method, argv)
+        : post(URL, proxy, method, argv);
     }
     
     private Void
-    put(final String URL, final Object arg) {
+    put(final String URL, final Object proxy,
+        final Method method, final ConstArray<?> argv) {
         class PUT extends Message implements Update, Query {
             static private final long serialVersionUID = 1L;
 
             Request
             send() throws Exception {
                 return serialize(URI.resolve(URL, "?p=run&s="+Exports.key(URL)),
-                                 ConstArray.array(new Object[] { arg }));
+                                 argv);
             }
 
             public Void
             fulfill(final Response response) {
-                if ("404".equals(response.status) && Exports.isPromise(URL)) {
-                    class Retry extends Do<Object,Void> implements Serializable{
-                        static private final long serialVersionUID = 1L;
-
-                        public Void
-                        fulfill(final Object object) throws Exception {
-                            ((Setter)_.cast(Setter.class,
-                                    Eventual.promised(object))).run(arg);
-                            return null;
-                        }
-                    }
-                    _.when(exports.connect(exports.getHere()).
-                            run(Object.class, URL), new Retry());
-                    return null;
-                }
-                return null;
+                return receive(response, URL, proxy, method, argv, null);
             }
         }
         msgs.enqueue(new PUT());
@@ -162,7 +147,8 @@ Caller extends Struct implements Messenger, Serializable {
     }
     
     private Object
-    get(final String URL, final Object proxy, final Method method) {
+    get(final String URL, final Object proxy,
+        final Method method, final ConstArray<?> argv) {
         final Channel<Object> r = _.defer();
         final Resolver<Object> resolver = r.resolver;
         class GET extends Message implements Query {
@@ -182,35 +168,7 @@ Caller extends Struct implements Messenger, Serializable {
 
             public Void
             fulfill(final Response response) {
-                if ("404".equals(response.status) && Exports.isPromise(URL)) {
-                    class Retry extends Do<Object,Void> implements Serializable{
-                        static private final long serialVersionUID = 1L;
-
-                        public Void
-                        fulfill(final Object object) throws Exception {
-                            return resolver.fulfill(Reflection.invoke(method,
-                                _.cast(method.getDeclaringClass(),
-                                       Eventual.promised(object))));
-                        }
-                        
-                        public Void
-                        reject(final Exception reason) {
-                            return resolver.reject(reason);
-                        }
-                    }
-                    _.when(exports.connect(exports.getHere()).
-                            run(Object.class, URL), new Retry());
-                    return null;
-                }
-                Volatile<Object> value;
-                try {
-                    final Type R = Typedef.bound(method.getGenericReturnType(),
-                                                 proxy.getClass());
-                    value = Eventual.promised(deserialize(R, URL, response));
-                } catch (final Exception e) {
-                    value = new Rejected<Object>(e);
-                }
-                return resolver.resolve(value);
+                return receive(response, URL, proxy, method, argv, resolver);
             }
             
             public Void
@@ -224,7 +182,7 @@ Caller extends Struct implements Messenger, Serializable {
     
     private Object
     post(final String URL, final Object proxy,
-         final Method method, final Object... arg) {
+         final Method method, final ConstArray<?> argv) {
         
         // calculate the return pipeline web-key
         final String m = exports.mid();
@@ -242,7 +200,7 @@ Caller extends Struct implements Messenger, Serializable {
         }
         
         // schedule the message
-        final ConstArray<?> argv= ConstArray.array(null==arg?new Object[0]:arg);
+        exports.sent(m);
         class POST extends Message implements Update {
             static private final long serialVersionUID = 1L;
             
@@ -255,50 +213,54 @@ Caller extends Struct implements Messenger, Serializable {
             public Void
             fulfill(final Response response) {
                 exports.received(m);
-                if ("404".equals(response.status) && Exports.isPromise(URL)) {
-                    class Retry extends Do<Object,Void> implements Serializable{
-                        static private final long serialVersionUID = 1L;
-
-                        public Void
-                        fulfill(final Object object) throws Exception {
-                            final Object r = Reflection.invoke(method,
-                                _.cast(method.getDeclaringClass(),
-                                       Eventual.promised(object)),
-                                argv.toArray(new Object[argv.length()]));
-                            if (null != resolver) { resolver.fulfill(r); }
-                            return null;
-                        }
-                        
-                        public Void
-                        reject(final Exception reason) {
-                            if (null != resolver) { resolver.reject(reason); }
-                            return null;
-                        }
-                    }
-                    _.when(exports.connect(exports.getHere()).
-                            run(Object.class, URL), new Retry());
-                    return null;
-                }
-                if (null != resolver) {
-                    Volatile<Object> value;
-                    try {
-                        final Type R = Typedef.bound(
-                            method.getGenericReturnType(), proxy.getClass());
-                        value = Eventual.promised(deserialize(R,URL,response));
-                    } catch (final Exception e) {
-                        value = new Rejected<Object>(e);
-                    }
-                    resolver.resolve(value);
-                }
-                return null;
+                return receive(response, URL, proxy, method, argv, resolver);
             }
             
             public Void
-            reject(final Exception reason) { return resolver.reject(reason); }
+            reject(final Exception reason) {
+                return null != resolver ? resolver.reject(reason) : null;
+            }
         }
         msgs.enqueue(new POST());
-        exports.sent(m);
         return r_;
+    }
+    
+    private Void
+    receive(final Response response, final String URL,
+            final Object proxy, final Method method,
+            final ConstArray<?> argv, final Resolver<Object> resolver) {
+        if ("404".equals(response.status) && Exports.isPromise(URL)) {
+            class Retry extends Do<Object,Void> implements Serializable {
+                static private final long serialVersionUID = 1L;
+
+                public Void
+                fulfill(final Object object) throws Exception {
+                    final Object r = Reflection.invoke(method,
+                        _.cast(method.getDeclaringClass(),
+                               Eventual.promised(object)),
+                        argv.toArray(new Object[argv.length()]));
+                    return null != resolver ? resolver.fulfill(r) : null;
+                }
+                
+                public Void
+                reject(final Exception reason) {
+                    return null != resolver ? resolver.reject(reason) : null;
+                }
+            }
+            _.when(exports.connect(exports.getHere()).run(Object.class, URL),
+                   new Retry());
+        } else if (null != resolver) {
+            Volatile<Object> value;
+            try {
+                final Type R = Typedef.bound(
+                    method.getGenericReturnType(), proxy.getClass());
+                value = Eventual.promised(deserialize(R, URL, response));
+            } catch (final Exception e) {
+                value = new Rejected<Object>(e);
+            }
+            resolver.resolve(value);
+        }
+        return null;
     }
     
     private Request
@@ -338,7 +300,7 @@ Caller extends Struct implements Messenger, Serializable {
                 return new Entity(contentType, content);
             }
             return new JSONDeserializer().run(base, connect, code,
-                content.open(), PowerlessArray.array(R)).get(0);
+                content.asInputStream(), PowerlessArray.array(R)).get(0);
         } 
         if ("204".equals(response.status) ||
             "205".equals(response.status)) { return null; }

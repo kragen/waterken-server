@@ -327,9 +327,7 @@ SSL {
             public void
             checkClientTrusted(final X509Certificate[] chain,
                     final String authType) throws CertificateException {
-                try {
-                    checkY(chain, authType);
-                } catch (final Exception e) {
+                if (!checkY(chain, authType)) {
                     pki.checkClientTrusted(chain, authType);
                 }
             }
@@ -337,30 +335,29 @@ SSL {
             public void
             checkServerTrusted(final X509Certificate[] chain,
                     final String authType) throws CertificateException {
-                try {
-                    checkY(chain, authType);
-                } catch (final Exception e) {
+                if (!checkY(chain, authType)) {
                     pki.checkServerTrusted(chain, authType);
                 }
             }
 
-            private void
+            private boolean
             checkY(final X509Certificate[] chain,
-                   final String authType) throws Exception {
-                // TODO: figure out how this API works with longer cert chains
-                if (1 != chain.length) { throw notY; }
-                
+                   final String authType) throws CertificateException {
                 // determine whether or not the cert uses the y-property
                 // a cert using the y-property MUST ONLY specify a CN property
                 final X509Certificate cert = chain[0];
                 final String dn = cert.getSubjectX500Principal().getName();
-                if (!dn.startsWith("CN=")) { throw notY; }
+                if (!dn.startsWith("CN=")) { return false; }
                 final String cn = dn.substring("CN=".length());
                 final String hostname = cn.toLowerCase();
-                if (!hostname.startsWith("y-")) { throw notY; }
-                if (!hostname.endsWith(".yurl.net")) { throw notY; }
-                final String fingerprint = hostname.substring(2,
+                if (!hostname.startsWith("y-")) { return false; }
+                if (!hostname.endsWith(".yurl.net")) { return false; }
+                final String fingerprint = hostname.substring("y-".length(),
                         hostname.length() - ".yurl.net".length());
+
+                // TODO: figure out how this API works with longer cert chains
+                if (1 != chain.length) { throw notY; }
+                
                 final byte[] guid;
                 switch (fingerprint.length()) {
                 case 16:    // 80 bit hash
@@ -378,7 +375,9 @@ SSL {
                 final MessageDigest alg;
                 final String algname = cert.getSigAlgName();
                 if ("SHA1withRSA".equals(algname)) {
-                    alg = MessageDigest.getInstance("SHA-1");
+                    try {
+                        alg = MessageDigest.getInstance("SHA-1");
+                    } catch (final Exception e) { throw notY; }
                 } else {
                     throw notY;
                 }
@@ -391,8 +390,11 @@ SSL {
                 
                 // the caller's role is unspecified, so check the basic
                 // certificate validity properties just in case
-                cert.verify(cert.getPublicKey());
+                try {
+                    cert.verify(cert.getPublicKey());
+                } catch (final Exception e) { throw notY; }
                 cert.checkValidity();
+                return true;
             }
         };
     }    
