@@ -11,14 +11,14 @@
       "$" : [ "org.waterken.remote.mux.Mux" ],
       "vatURIPathPrefix" : { "@" : "vatURIPathPrefix.json" },
       "vatRoot" : { "@" : "vatRootFolder.json" },
-      "vats" : { "@" : "x-system:vats" },
+      "vats" : { "@" : "vats.json" },
       "remoting" : {
         "$" : [ "org.waterken.remote.http.AMP" ]
       },
       "next" : {
         "$" : [ "org.waterken.http.mirror.Mirror" ],
         "maxAge" : 0,
-        "tag" : { "@" : "x-system:tag" },
+        "tag" : { "@" : "tag.json" },
         "root" : { "@" : "../www/" },
         "formats" : { "@" : "mime.json" }
       }

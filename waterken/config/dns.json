@@ -2,5 +2,5 @@
   "$" : [ "org.waterken.dns.udp.NameServer" ],
   "port" : 53,
   "master" : { "@" : "../vat/dns/" },
-  "vats" : { "@" : "x-system:vats" }
+  "vats" : { "@" : "vats.json" }
 } ]
