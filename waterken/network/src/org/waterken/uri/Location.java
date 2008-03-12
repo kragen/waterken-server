@@ -35,18 +35,4 @@ Location {
             ? standard
             : Integer.parseInt(location.substring(end_host + 1));
     }
-
-    /**
-     * Checks a <code>location</code> for invalid characters.
-     * @param location  candidate location
-     * @throws InvalidLocation  rejected <code>location</code>
-     */
-    static public void
-    vet(final String location) throws InvalidLocation {
-        for (int i = location.length(); 0 != i--;) {
-            final char c = location.charAt(i);
-            if (!(URI.unreserved(c) || URI.subdelim(c) ||
-                  ":[]%".indexOf(c) != -1)) { throw new InvalidLocation(); }
-        }
-    }
 }
