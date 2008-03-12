@@ -28,15 +28,17 @@ TCP implements Runnable {
     private final String service;
     private final PrintStream err;
     private final TCPDaemon daemon;
+    private final String hostname;
     private final ServerSocket port;
     
     private       long count = 0;
     
     TCP(final String service, final PrintStream err,  
-        final TCPDaemon daemon, final ServerSocket port) {
+        final TCPDaemon daemon, final String hostname, final ServerSocket port){
         this.service = service;
         this.err = err;
         this.daemon = daemon;
+        this.hostname = hostname;
         this.port = port;
     }
 
@@ -95,7 +97,7 @@ TCP implements Runnable {
                 run() {
                     try {
                         err.println(name + ": processing...");
-                        daemon.accept(socket).run();
+                        daemon.accept(hostname, socket).run();
                     } catch (final Throwable e) {
                         err.println(name + ": " + e);
                     } finally {

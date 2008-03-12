@@ -30,10 +30,12 @@ Serve {
         }
         
         final Credentials credentials = Proxy.init();
+        final String hostname =
+            null != credentials ? credentials.getHostname() : "localhost";
 
         // summarize the configuration information
         final PrintStream err = System.err;
-        Config.summarize(credentials, err);
+        Config.summarize(hostname, err);
 
         // start the inbound network services
         for (int i = 0; i != args.length; ++i) {
@@ -46,7 +48,8 @@ Serve {
                     ? credentials.getContext().getServerSocketFactory().
                         createServerSocket(daemon.port, daemon.backlog)
                 : new ServerSocket(daemon.port, daemon.backlog, Loopback.addr);
-                task = new TCP(service, err, daemon, listen);
+                task = new TCP(service, err, daemon,
+                               daemon.SSL ? hostname : "localhost", listen);
             } else if (config instanceof UDPDaemon) {
                 final UDPDaemon daemon = (UDPDaemon)config;
                 task = new UDP(service, err, daemon,

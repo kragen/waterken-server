@@ -54,14 +54,11 @@ Config {
     
     /**
      * Prints a summary of the configuration information.
-     * @param credentials   SSL credentials
-     * @param err           output stream
+     * @param hostname  configured SSL hostname
+     * @param err       output stream
      */
     static protected void
-    summarize(final Credentials credentials,
-              final PrintStream err) throws Exception {
-        final String hostname =
-            null != credentials ? credentials.getHostname() : "localhost";
+    summarize(final String hostname, final PrintStream err) throws Exception {
         err.println("hostname: <" + hostname + ">");
         err.println("config folder: <" + configFolder + ">");
     }

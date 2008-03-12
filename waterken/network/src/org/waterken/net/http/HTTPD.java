@@ -58,5 +58,10 @@ HTTPD extends TCPDaemon {
     // org.waterken.net.Daemon interface
 
     public Task
-    accept(final Socket socket) { return new Session(this, socket); }
+    accept(final String hostname, final Socket socket) {
+        final String origin = SSL
+            ? (port == 443 ? hostname : hostname + ":" + port)
+        : (port == 80 ? hostname : hostname + ":" + port);
+        return new Session(this, origin, socket);
+    }
 }

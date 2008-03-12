@@ -42,8 +42,9 @@ TCPDaemon extends Struct implements Serializable {
      * <p>
      * The caller is responsible for closing the socket.
      * </p>
+     * @param hostname  server's hostname
      * @param socket    incoming TCP connection
      */
     public abstract Task
-    accept(Socket socket);
+    accept(String hostname, Socket socket);
 }

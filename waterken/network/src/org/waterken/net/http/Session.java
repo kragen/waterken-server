@@ -27,6 +27,7 @@ final class
 Session implements Task {
 
     private final HTTPD config;
+    private final String origin;
     private final Socket socket;
 
     /**
@@ -38,11 +39,13 @@ Session implements Task {
      * multiplier.
      * </p>
      * @param config    configuration
+     * @param origin    expected value of the Host header
      * @param socket    connection socket, trusted to behave like a socket, but
      *                  not trusted to be connected to a trusted HTTP client
      */
-    Session(final HTTPD config, final Socket socket) {
+    Session(final HTTPD config, final String origin, final Socket socket) {
         this.config = config;
+        this.origin = origin;
         this.socket = socket;
     }
 
@@ -132,6 +135,11 @@ Session implements Task {
                     host = "localhost";
                 } else {
                     Location.vet(host);
+                }
+                if (!origin.equalsIgnoreCase(host)) {
+                    // client is hosting this server under the wrong origin
+                    // this could lead to a client side attack in the browser
+                    throw new Error("wrong origin");
                 }
                 final String resource = "*".equals(requestURI)
                     ? "*"
