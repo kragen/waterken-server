@@ -97,7 +97,7 @@ TCP implements Runnable {
                 run() {
                     try {
                         err.println(name + ": processing...");
-                        daemon.accept(hostname, socket).run();
+                        daemon.accept(Config.exe, hostname, socket).run();
                     } catch (final Throwable e) {
                         err.println(name + ": " + e);
                     } finally {

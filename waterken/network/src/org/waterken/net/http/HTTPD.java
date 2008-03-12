@@ -28,7 +28,6 @@ HTTPD extends TCPDaemon {
      */
     public    final String scheme;
     protected final Server server;
-    protected final Execution exe;
     
     /**
      * Constructs an instance.
@@ -46,22 +45,20 @@ HTTPD extends TCPDaemon {
           @name("SSL") final boolean SSL,
           @name("soTimeout") final int soTimeout,
           @name("scheme") final String scheme,
-          @name("server") final Server server,
-          @name("exe") final Execution exe) {
+          @name("server") final Server server) {
         super(port, backlog, SSL);
         this.soTimeout = soTimeout;
         this.scheme = scheme;
         this.server = server;
-        this.exe = exe;
     }
     
     // org.waterken.net.Daemon interface
 
     public Task
-    accept(final String hostname, final Socket socket) {
+    accept(final Execution exe, final String hostname, final Socket socket) {
         final String origin = SSL
             ? (port == 443 ? hostname : hostname + ":" + port)
         : (port == 80 ? hostname : hostname + ":" + port);
-        return new Session(this, origin, socket);
+        return new Session(this, exe, origin, socket);
     }
 }

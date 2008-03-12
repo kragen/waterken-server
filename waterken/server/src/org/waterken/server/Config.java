@@ -127,7 +127,6 @@ Config {
         run(final Class<?> type, final String URL) {
             if ("x-system:vats".equalsIgnoreCase(URL)) { return vats; }
             if ("x-system:tag".equalsIgnoreCase(URL)) { return tag; }
-            if ("x-system:exe".equalsIgnoreCase(URL)) { return exe; }
             if ("file:".regionMatches(true, 0, URL, 0, "file:".length())) {
                 try {
                     String filename = URL.substring("file:".length());

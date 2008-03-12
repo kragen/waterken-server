@@ -15,6 +15,7 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.stream.Stream;
+import org.waterken.net.Execution;
 import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 import org.web_send.Failure;
@@ -26,6 +27,7 @@ final class
 Session implements Task {
 
     private final HTTPD config;
+    private final Execution exe;
     private final String origin;
     private final Socket socket;
 
@@ -42,8 +44,10 @@ Session implements Task {
      * @param socket    connection socket, trusted to behave like a socket, but
      *                  not trusted to be connected to a trusted HTTP client
      */
-    Session(final HTTPD config, final String origin, final Socket socket) {
+    Session(final HTTPD config, final Execution exe, 
+            final String origin, final Socket socket) {
         this.config = config;
+        this.exe = exe;
         this.origin = origin;
         this.socket = socket;
     }
@@ -163,7 +167,7 @@ Session implements Task {
 
             // Now is a good time for a context switch since we're not holding
             // any locks, or much memory.
-            config.exe.yield();
+            exe.yield();
         }
     }
 }

@@ -5,6 +5,5 @@
   "SSL" : true,
   "soTimeout" : 60000,
   "scheme" : "https",
-  "server" : { "@" : "server.json" },
-  "exe" : { "@" : "x-system:exe" }
+  "server" : { "@" : "server.json" }
 } ]

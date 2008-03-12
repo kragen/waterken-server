@@ -46,5 +46,5 @@ TCPDaemon extends Struct implements Serializable {
      * @param socket    incoming TCP connection
      */
     public abstract Task
-    accept(String hostname, Socket socket);
+    accept(Execution exe, String hostname, Socket socket);
 }
