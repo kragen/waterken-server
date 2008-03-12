@@ -3,6 +3,5 @@
   "port" : 8080,
   "backlog" : 100,
   "soTimeout" : 60000,
-  "scheme" : "http",
   "server" : { "@" : "server.json" }
 } ]

@@ -28,6 +28,7 @@ Session implements Task {
 
     private final HTTPD config;
     private final Execution exe;
+    private final String scheme;
     private final String origin;
     private final Socket socket;
 
@@ -40,14 +41,17 @@ Session implements Task {
      * multiplier.
      * </p>
      * @param config    configuration
+     * @param exe       thread control
+     * @param scheme    expected URI scheme
      * @param origin    expected value of the Host header
      * @param socket    connection socket, trusted to behave like a socket, but
      *                  not trusted to be connected to a trusted HTTP client
      */
     Session(final HTTPD config, final Execution exe, 
-            final String origin, final Socket socket) {
+            final String scheme, final String origin, final Socket socket) {
         this.config = config;
         this.exe = exe;
+        this.scheme = scheme;
         this.origin = origin;
         this.socket = socket;
     }
@@ -144,7 +148,7 @@ Session implements Task {
                 }
                 final String resource = "*".equals(requestURI)
                     ? "*"
-                : URI.resolve(config.scheme + "://" + origin + "/", requestURI);
+                : URI.resolve(scheme + "://" + origin + "/", requestURI);
 
                 // process the request
                 config.server.serve(resource, ref(request), respond);

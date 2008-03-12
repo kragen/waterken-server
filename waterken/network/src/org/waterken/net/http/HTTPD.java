@@ -22,11 +22,6 @@ HTTPD extends TCPDaemon {
      * connection socket timeout
      */
     public final int soTimeout;
-
-    /**
-     * URI scheme
-     */
-    public    final String scheme;
     protected final Server server;
     
     /**
@@ -35,20 +30,16 @@ HTTPD extends TCPDaemon {
      * @param backlog   {@link #backlog}
      * @param SSL       {@link #SSL}
      * @param soTimeout {@link #soTimeout}
-     * @param scheme    {@link #scheme}
      * @param server    request server
-     * @param exe       thread control
      */
     public @deserializer
     HTTPD(@name("port") final int port,
           @name("backlog") final int backlog,
           @name("SSL") final boolean SSL,
           @name("soTimeout") final int soTimeout,
-          @name("scheme") final String scheme,
           @name("server") final Server server) {
         super(port, backlog, SSL);
         this.soTimeout = soTimeout;
-        this.scheme = scheme;
         this.server = server;
     }
     
@@ -56,9 +47,10 @@ HTTPD extends TCPDaemon {
 
     public Task
     accept(final Execution exe, final String hostname, final Socket socket) {
+        final String scheme = SSL ? "https" : "http";
         final String origin = SSL
             ? (port == 443 ? hostname : hostname + ":" + port)
         : (port == 80 ? hostname : hostname + ":" + port);
-        return new Session(this, exe, origin, socket);
+        return new Session(this, exe, scheme, origin, socket);
     }
 }
