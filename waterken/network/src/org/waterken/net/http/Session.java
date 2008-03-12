@@ -16,7 +16,6 @@ import org.waterken.http.Response;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.stream.Stream;
 import org.waterken.uri.Header;
-import org.waterken.uri.Location;
 import org.waterken.uri.URI;
 import org.web_send.Failure;
 
@@ -133,17 +132,15 @@ Session implements Task {
                         throw new Failure("400", "Missing Host header");
                     }
                     host = "localhost";
-                } else {
-                    Location.vet(host);
                 }
                 if (!origin.equalsIgnoreCase(host)) {
                     // client is hosting this server under the wrong origin
-                    // this could lead to a client side attack in the browser
+                    // this could lead to a browser side scripting attack
                     throw new Error("wrong origin");
                 }
                 final String resource = "*".equals(requestURI)
                     ? "*"
-                : URI.resolve(config.scheme + "://" + host + "/", requestURI);
+                : URI.resolve(config.scheme + "://" + origin + "/", requestURI);
 
                 // process the request
                 config.server.serve(resource, ref(request), respond);
