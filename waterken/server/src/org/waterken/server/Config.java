@@ -112,6 +112,10 @@ Config {
         public void
         yield() { Thread.yield(); }
     };
+    static {
+        settings.put(Filesystem.file(configFolder, "vats" + ext), vats);
+        settings.put(Filesystem.file(configFolder, "tag" + ext), tag);
+    }
     
     static protected final Browser browser = Browser.make(
         new Proxy(), new SecureRandom(), code,
@@ -125,8 +129,6 @@ Config {
     ImporterX extends Struct implements Importer {
         public Object
         run(final Class<?> type, final String URL) {
-            if ("x-system:vats".equalsIgnoreCase(URL)) { return vats; }
-            if ("x-system:tag".equalsIgnoreCase(URL)) { return tag; }
             if ("file:".regionMatches(true, 0, URL, 0, "file:".length())) {
                 try {
                     String filename = URL.substring("file:".length());
