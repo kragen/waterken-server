@@ -358,6 +358,17 @@ SSL {
                 // TODO: figure out how this API works with longer cert chains
                 if (1 != chain.length) { throw notY; }
                 
+                // certificate is not valid for any other name
+                if (null != cert.getSubjectAlternativeNames()) { throw notY; }
+                
+                // the caller's role is unspecified, so check the basic
+                // certificate validity properties just in case
+                try {
+                    cert.verify(cert.getPublicKey());
+                } catch (final Exception e) { throw notY; }
+                cert.checkValidity();
+
+                // check that the fingerprint matches the given public key
                 final byte[] guid;
                 switch (fingerprint.length()) {
                 case 16:    // 80 bit hash
@@ -384,16 +395,6 @@ SSL {
                 System.arraycopy(alg.digest(cert.getPublicKey().getEncoded()),
                                  0, guid, 0, guid.length);
                 if (!fingerprint.equals(Base32.encode(guid))) { throw notY; }
-                
-                // certificate is not valid for any other name
-                if (null != cert.getSubjectAlternativeNames()) { throw notY; }
-                
-                // the caller's role is unspecified, so check the basic
-                // certificate validity properties just in case
-                try {
-                    cert.verify(cert.getPublicKey());
-                } catch (final Exception e) { throw notY; }
-                cert.checkValidity();
                 return true;
             }
         };
