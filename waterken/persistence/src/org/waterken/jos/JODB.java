@@ -632,10 +632,14 @@ JODB extends Vat {
         // recover from a previous run
         final File committed = file(folder, ".committed");
         if (pending.isDirectory()) {
-            if (committed.isDirectory()) { delete(committed); }
-            delete(pending);
-        } else if (committed.isDirectory()) {
-            move(committed, folder);
+            if (committed.isFile()) {
+                move(pending, folder);
+                if (!committed.delete()) { throw new IOException(); }
+            } else {
+                delete(pending);
+            }
+        } else if (committed.isFile()) {
+            if (!committed.delete()) { throw new IOException(); }
         }
 
         // check that the vat has not been destructed
@@ -704,8 +708,9 @@ JODB extends Vat {
 
         if (modified[0]) {
             // commit modifications
-            if (!pending.renameTo(committed)) { throw new IOException(); }
-            move(committed, folder);
+            if (!committed.createNewFile()) { throw new IOException(); }
+            move(pending, folder);
+            if (!committed.delete()) { throw new IOException(); }
         } else {
             // no modifications were made, so just make sure all the reads
             // had valid state available
