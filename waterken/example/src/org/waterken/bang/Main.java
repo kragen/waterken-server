@@ -185,6 +185,12 @@ Main extends Struct implements Test, Serializable {
         final Promise<Boolean> three = _.when(drum_.getHits(), was(n + 3));
         
         /*
+         * The Waterken server can log the causal chaining of all these events.
+         * Comments can be inserted into this log via the eventual operator.
+         */
+        _.log.comment("all bang requests queued");
+        
+        /*
          * We now have 3 promises for checks on the expected value of the drum's
          * hit count. We'll combine these 3 promises into 1 by doing an eventual
          * AND operation on them. The promise returned to our caller will

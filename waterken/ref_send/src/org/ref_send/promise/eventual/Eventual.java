@@ -151,7 +151,7 @@ Eventual extends Struct implements Serializable {
     public final Loop<Task> enqueue;
     
     /**
-     * event log
+     * debugging output
      */
     public final Log log;
 

@@ -1,20 +1,20 @@
 [ {
-  "$" : [ "org.waterken.http.trace.Trace" ],
-  "prefix" : "trace/",
+  "$" : [ "org.waterken.remote.mux.Mux" ],
+  "vatURIPathPrefix" : { "@" : "vatURIPathPrefix.json" },
+  "vatRoot" : { "@" : "vatRootFolder.json" },
+  "vats" : { "@" : "vats.json" },
+  "remoting" : {
+    "$" : [ "org.waterken.remote.http.AMP" ]
+  },
   "next" : {
-    "$" : [ "org.waterken.http.dump.Dump" ],
-    "path" : "log/",
-    "key" : null,
-    "folder" : { "@" : "../www/log/" },
-    "formats" : { "@" : "mime.json" },
+    "$" : [ "org.waterken.http.trace.Trace" ],
+    "prefix" : "trace/",
     "next" : {
-      "$" : [ "org.waterken.remote.mux.Mux" ],
-      "vatURIPathPrefix" : { "@" : "vatURIPathPrefix.json" },
-      "vatRoot" : { "@" : "vatRootFolder.json" },
-      "vats" : { "@" : "vats.json" },
-      "remoting" : {
-        "$" : [ "org.waterken.remote.http.AMP" ]
-      },
+      "$" : [ "org.waterken.http.dump.Dump" ],
+      "path" : "log/",
+      "key" : null,
+      "folder" : { "@" : "../www/log/" },
+      "formats" : { "@" : "mime.json" },
       "next" : {
         "$" : [ "org.waterken.http.mirror.Mirror" ],
         "maxAge" : 0,
