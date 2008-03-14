@@ -48,14 +48,12 @@ folder. This file specifies the web-key used in sending log events. For example,
 the local machine. Each received event is stored in a file in the
 <code>www/log/</code> folder.</p>
 <h3><a name="log_format" href="#log_format">Log format</a></h3>
-<p>The format of each log event is defined by one of the classes in the
-<a href="../javadoc/org/ref_send/log/package-summary.html">org.ref_send.log</a>
-package. For example, each eventual invocation generates a
-<a href="../javadoc/org/ref_send/log/Sent.html">org.ref_send.log.Sent</a> event
-such as:</p>
+<p>The format of each log event is defined by a class in the
+<code><a href="../javadoc/org/ref_send/log/package-summary.html">org.ref_send.log</a></code>
+package. For example, each eventual invocation generates an event like:</p>
 <pre>
 [ {
-    "$" : [ "org.ref_send.log.Sent", "org.ref_send.log.Event" ],
+    "$" : [ "<a href="../javadoc/org/ref_send/log/Sent.html">org.ref_send.log.Sent</a>", "<a href="../javadoc/org/ref_send/log/Event.html">org.ref_send.log.Event</a>" ],
     "anchor" : {
       "number" : 2,
       "turn" : {
@@ -83,7 +81,7 @@ on the <code><a href="../javadoc/org/ref_send/promise/eventual/Eventual.html#log
 member of the eventual operator. For example:</p>
 <pre>
 [ {
-    "$" : [ "org.ref_send.log.Comment", "org.ref_send.log.Event" ],
+    "$" : [ "<a href="../javadoc/org/ref_send/log/Comment.html">org.ref_send.log.Comment</a>", "<a href="../javadoc/org/ref_send/log/Event.html">org.ref_send.log.Event</a>" ],
     "anchor" : {
       "number" : 8,
       "turn" : {
