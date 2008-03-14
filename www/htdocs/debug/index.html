@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Debugging Tips: Debugging a Waterken application</title>
+<link rel="StyleSheet" type="text/css" href="../site/style.css">
+<link rel="icon" type="image/gif" href="../site/icon.gif">
+</head>
+<body>
+<div class="navigation">
+<a href="../"><img alt="home" src="../site/icon.gif" width="16" height="16" border="0"></a>
+<span class="heading">&rarr; Debugging Tips</span>
+</div>
+<div class="main">
+<h1><a name="title" href="#title">Debugging a Waterken<sup>TM</sup> application</a></h1>
+<h2><a name="trace" href="#trace">Trace</a></h2>
+<p>When programming in the event loop paradigm, application logic is often
+spread across multiple event loop turns, as processing of one event triggers
+other events, which each may trigger further events. In a distributed
+application, this causal chaining of events also crosses the network, as an
+event is triggered on one machine and processed on another. To enable tracing of
+these execution paths, the Waterken server can be configured to emit a log of
+every event triggered or processed. To facilitate debugging of applications that
+run on multiple machines, these log events can be transmitted, as they occur, to
+a centralized viewing application.</p>
+<h3><a name="log" href="#log">Configure event logging</a></h3>
+<p>The Waterken server can both emit log events, and collect log events emitted
+locally or remotely.</p>
+<h4><a name="store_log" href="#store_log">Configure event storage</a></h4>
+<p>The default <a href="../deploy/#config">configuration files</a> that come with the
+<a href="http://sourceforge.net/project/platformdownload.php?group_id=93988">waterken-server</a>
+distribution setup the server as a log event store, so the feature just needs to
+be turned on. To do so, you will first need to generate the web-key used to
+transmit log events. The key part of this web-key can come from a web-key
+created by a discarded test application. Configure your server with this key by
+using it as the value of the <code>next.next.key</code> setting in the
+<code>config/server.json</code> file. For example, the line:</p>
+<p><code>"key" : null,</code></p>
+<p>becomes:</p>
+<p><code>"key" : "o2lo77y4cgrqkn",</code></p>
+<h4><a name="send_log" href="#send_log">Configure event transmission</a></h4>
+<p>For each server transmitting log events, add a file named
+<code>events.json</code> to its <code><a href="../deploy/#config">config/</a></code>
+folder. This file specifies the web-key used in sending log events. For example,</p>
+<p><code>[ { "@" : "http://localhost:8080/log/#o2lo77y4cgrqkn" } ]</code></p>
+<p>The above example sends log events to the previously configured log store on
+the local machine. Each received event is stored in a file in the
+<code>www/log/</code> folder.</p>
+<h3><a name="log_format" href="#log_format">Log format</a></h3>
+<p>The format of each log event is defined by one of the classes in the
+<a href="../javadoc/org/ref_send/log/package-summary.html">org.ref_send.log</a>
+package. For example, each eventual invocation generates a
+<a href="../javadoc/org/ref_send/log/Sent.html">org.ref_send.log.Sent</a> event
+such as:</p>
+<pre>
+[ {
+    "$" : [ "org.ref_send.log.Sent", "org.ref_send.log.Event" ],
+    "anchor" : {
+      "number" : 2,
+      "turn" : {
+        "loop" : "http://localhost:8080/-/t7/",
+        "number" : 1
+      }
+    },
+    "message" : "http://localhost:8080/-/t7/2",
+    "trace" : {
+      "calls" : [ {
+          "source" : "$Proxy4#bang"
+        }, {
+          "source" : "org.waterken.bang.Main#test",
+          "span" : [ [ 172 ] ]
+        }, {
+          "source" : "org.waterken.bang.Main#start",
+          "span" : [ [ 118 ] ]
+        } ]
+    }
+  } ]
+</pre>
+<p>You can insert your own comments into the log using the
+<code><a href="../javadoc/org/ref_send/promise/eventual/Log.html#comment(java.lang.String)">comment()</a></code>
+method of the <code><a href="../javadoc/org/ref_send/promise/eventual/Eventual.html#log">log</a></code>
+member of the eventual operator. For example:</p>
+<pre>
+[ {
+    "$" : [ "org.ref_send.log.Comment", "org.ref_send.log.Event" ],
+    "anchor" : {
+      "number" : 8,
+      "turn" : {
+        "loop" : "http://localhost:8080/-/t7/",
+        "number" : 1
+      }
+    },
+    "text" : "all bang requests queued",
+    "trace" : {
+      "calls" : [ {
+          "source" : "org.waterken.bang.Main#test",
+          "span" : [ [ 191 ] ]
+        }, {
+          "source" : "org.waterken.bang.Main#start",
+          "span" : [ [ 118 ] ]
+        } ]
+    }
+  } ]
+</pre>
+<h3><a name="log_analysis" href="#log_analysis">Log analysis</a></h3>
+<p>Unfortunately, for now, log analysis is limited to using grep on the command
+line. Hopefully this situation will soon be much improved by log viewer programs like
+<a href="http://www.erights.org/elang/tools/causeway/index.html">Causeway</a>.</p>
+</div>
+<p class="footer">
+</p>
+</body>
+</html>
