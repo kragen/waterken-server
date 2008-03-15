@@ -59,8 +59,7 @@ EventGenerator {
                 if (null == er) { return; }
                 
                 final Anchor event = local.anchor();
-                log(er, new Resolved(event, tracer.get(),
-                                     local.pipeline(local.export(condition))));
+                log(er, new Resolved(event, tracer.get(), id(condition)));
             }
 
             public void
@@ -69,8 +68,7 @@ EventGenerator {
                 if (null == er) { return; }
                 
                 final Anchor anchor = local.anchor();
-                log(er, new Got(anchor, tracer.get(),
-                                local.pipeline(local.export(message))));
+                log(er, new Got(anchor, tracer.get(), id(message)));
             }
 
             public void
@@ -80,8 +78,16 @@ EventGenerator {
                 
                 final Anchor anchor = local.anchor();
                 log(er, new SentIf(anchor, tracer.get(),
-                    local.pipeline(local.export(message)),
-                    local.pipeline(local.export(condition))));
+                                   id(message), id(condition)));
+            }
+            
+            private String
+            id(final Equatable object) {
+                final int mlen = 128 / 5 + 1;
+                final StringBuilder m = new StringBuilder(mlen);
+                m.append(local.export(object));
+                for (int i = mlen - m.length(); 0 != i--;) { m.append('a'); }
+                return local.pipeline(m.toString());
             }
             
             private void
