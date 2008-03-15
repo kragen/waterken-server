@@ -7,6 +7,12 @@ import org.ref_send.name;
 
 /**
  * Logs a conditional message send.
+ * <p>
+ * This kind of event is produced for a
+ * {@linkplain org.ref_send.promise.eventual.Eventual#when when block}. The
+ * {@link #message} identifies the when block itself, and the {@link #condition}
+ * identifies the promise the when block is queued on.
+ * </p>
  */
 public class
 SentIf extends Sent {
