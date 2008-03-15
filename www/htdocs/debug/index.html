@@ -36,9 +36,19 @@ transmit log events. The key part of this web-key can come from a web-key
 created by a discarded test application. Configure your server with this key by
 using it as the value of the <code>next.next.key</code> setting in the
 <code>config/server.json</code> file. For example, the line:</p>
-<p><code>"key" : null,</code></p>
+<pre>
+      "$" : [ "org.waterken.http.dump.Dump" ],
+      "path" : "log/",
+      <span class="highlight">"key" : null,</span>
+      "folder" : { "@" : "../www/log/" },
+</pre>
 <p>becomes:</p>
-<p><code>"key" : "o2lo77y4cgrqkn",</code></p>
+<pre>
+      "$" : [ "org.waterken.http.dump.Dump" ],
+      "path" : "log/",
+      <span class="highlight">"key" : "o2lo77y4cgrqkn",</span>
+      "folder" : { "@" : "../www/log/" },
+</pre>
 <h4><a name="send_log" href="#send_log">Configure event transmission</a></h4>
 <p>For each server transmitting log events, add a file named
 <code>events.json</code> to its <code><a href="../deploy/#config">config/</a></code>
