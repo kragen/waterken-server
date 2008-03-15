@@ -53,14 +53,18 @@ Main extends Struct implements Test, Serializable {
         final Volatile<Boolean>[] r = new Volatile[4];
         int i = 0;
         
+        _.log.comment("testing EQ operations on promises");
         r[i++] = new org.waterken.eq.Main(_).start();
         
+        _.log.comment("testing argument passing");
         final Wall wall_ = framework.publisher.spawn("wall", Bounce.class);
         r[i++] = new org.waterken.bounce.Main(_).test(wall_);
         
+        _.log.comment("testing message pipelining");
         final Drum drum_ = framework.publisher.spawn("drum", Bang.class);
         r[i++] = new org.waterken.bang.Main(_).test(drum_, 0);
         
+        _.log.comment("testing idempotent update");
         final Promise<Variable<Boolean>> slot = framework.spawn.run(Put.class);
         r[i++] = new org.waterken.put.Main(_).test(slot, false);
 
