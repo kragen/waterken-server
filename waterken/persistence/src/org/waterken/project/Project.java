@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.project;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -19,19 +18,27 @@ public final class
 Project extends URLClassLoader {
     
     /**
+     * project name
+     */
+    public final String name;
+    
+    /**
      * timestamp of the newest class file
      */
     public final long timestamp;
 
     /**
      * Constructs an instance.
+     * @param name      project name
      * @param jar       class file folder
      * @param parent    parent class loader
      * @throws IOException  problem accessing classes
      */
     private
-    Project(final File jar, final ClassLoader parent) throws IOException {
+    Project(final String name,
+            final File jar, final ClassLoader parent) throws IOException {
         super(new URL[] { jar.toURI().toURL() }, parent);
+        this.name = name;
         timestamp = findNewest(0L, jar);
     }
     
@@ -88,7 +95,8 @@ Project extends URLClassLoader {
                 Filesystem.checkName(project);
 
                 final File jar = new File(bins, project + ".jar");
-                r = new Project(jar.isFile() ? jar : new File(bins,project+bin),
+                r = new Project(project,
+                                jar.isFile() ? jar : new File(bins,project+bin),
                                 shared);
                 jars.put(project, r);
             }

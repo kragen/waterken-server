@@ -1,9 +1,10 @@
 // Copyright 2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.server;
+package org.waterken.project;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 import org.joe_e.Struct;
 import org.joe_e.array.IntArray;
@@ -16,10 +17,15 @@ import org.waterken.vat.Tracer;
 /**
  * Produces a stack trace composed of only calls initiated by project code.
  */
-final class
+public final class
 ProjectTracer {
 
-    static protected Tracer
+    /**
+     * Constructs an instance.
+     * @param from  base class loader
+     * @param to    last class loader in the chain to consider
+     */
+    static public Tracer
     make(final ClassLoader from, final ClassLoader to) {
         class TracerX extends Struct implements Tracer, Serializable {
             static private final long serialVersionUID = 1L;
@@ -39,7 +45,7 @@ ProjectTracer {
                     String source = null;
                     try {
                         final Class type = from.loadClass(f[i].getClassName());
-                        if (java.lang.reflect.Proxy.isProxyClass(type)) {
+                        if (Proxy.isProxyClass(type)) {
                             top: for (final Class c : type.getInterfaces()) {
                                 for (final Method m : Reflection.methods(c)) {
                                     if (m.getName().equals(name)) {
@@ -61,19 +67,28 @@ ProjectTracer {
             
             private String
             path(final Class type, final String filename) {
-                String r = type.getPackage().getName().replace('.', '/');
-                if (!"".equals(r)) { r += '/'; }
+                final StringBuilder r = new StringBuilder();
+                final ClassLoader project = type.getClassLoader();
+                if (project instanceof Project) {
+                    r.append(((Project)project).name);
+                    r.append("/src/");
+                } else {
+                    r.append("global/src/");
+                }
+                final String packageName = type.getPackage().getName(); 
+                r.append(packageName.replace('.', '/'));
+                if (!"".equals(packageName)) { r.append('/'); }
                 if (null != filename) {
-                    r += filename;
+                    r.append(filename);
                 } else {
                     Class top = type;
                     for (Class i = top; null != i; i = top.getEnclosingClass()){
                         top = i;
                     }
-                    r += top.getSimpleName();
-                    r += ".java";
+                    r.append(top.getSimpleName());
+                    r.append(".java");
                 }
-                return r;
+                return r.toString();
             }
             
             private boolean
