@@ -38,7 +38,7 @@ EventGenerator {
         final Factory<Receiver<Event>> erf =
             (Factory)local.fetch(null, Root.events);
         final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
-        final Loop<Effect> effect = (Loop)local.fetch(null,Root.effect); 
+        final Loop<Effect> effect = (Loop)local.fetch(null, Root.effect); 
         class LogX extends Struct implements Log, Serializable {
             static private final long serialVersionUID = 1L;
             
@@ -60,7 +60,7 @@ EventGenerator {
                 
                 final Anchor event = local.anchor();
                 log(er, new Resolved(event, tracer.get(),
-                    event.turn.loop + '#' + local.export(condition)));
+                                     local.pipeline(local.export(condition))));
             }
 
             public void
@@ -70,7 +70,7 @@ EventGenerator {
                 
                 final Anchor anchor = local.anchor();
                 log(er, new Got(anchor, tracer.get(),
-                    anchor.turn.loop + '#' + local.export(message)));
+                                local.pipeline(local.export(message))));
             }
 
             public void
@@ -80,8 +80,8 @@ EventGenerator {
                 
                 final Anchor anchor = local.anchor();
                 log(er, new SentIf(anchor, tracer.get(),
-                    anchor.turn.loop + '#' + local.export(message),
-                    anchor.turn.loop + '#' + local.export(condition)));
+                    local.pipeline(local.export(message)),
+                    local.pipeline(local.export(condition))));
             }
             
             private void
