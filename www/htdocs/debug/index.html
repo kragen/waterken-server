@@ -64,12 +64,15 @@ package. For example, each eventual invocation generates an event like:</p>
     "message" : "http://localhost:8080/-/t7/2",
     "trace" : {
       "calls" : [ {
-          "source" : "$Proxy4#bang"
+          "name" : "getHits",
+          "source" : "org/waterken/bang/Drum.java"
         }, {
-          "source" : "org.waterken.bang.Main#test",
+          "name" : "test",
+          "source" : "org/waterken/bang/Main.java",
           "span" : [ [ <a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/example/src/org/waterken/bang/Main.java?revision=508&view=markup#l_172">172</a> ] ]
         }, {
-          "source" : "org.waterken.bang.Main#start",
+          "name" : "start",
+          "source" : "org/waterken/bang/Main.java",
           "span" : [ [ <a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/example/src/org/waterken/bang/Main.java?revision=508&view=markup#l_118">118</a> ] ]
         } ]
     }
@@ -92,10 +95,12 @@ member of the eventual operator. For example:</p>
     "text" : "all bang requests queued",
     "trace" : {
       "calls" : [ {
-          "source" : "org.waterken.bang.Main#test",
+          "name" : "test",
+          "source" : "org/waterken/bang/Main.java",
           "span" : [ [ <a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/example/src/org/waterken/bang/Main.java?revision=508&view=markup#l_191">191</a> ] ]
         }, {
-          "source" : "org.waterken.bang.Main#start",
+          "name" : "start",
+          "source" : "org/waterken/bang/Main.java",
           "span" : [ [ <a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/example/src/org/waterken/bang/Main.java?revision=508&view=markup#l_118">118</a> ] ]
         } ]
     }
