@@ -8,7 +8,6 @@ import org.joe_e.Equatable;
 import org.joe_e.Struct;
 import org.ref_send.log.Comment;
 import org.ref_send.log.Event;
-import org.ref_send.log.Anchor;
 import org.ref_send.log.Got;
 import org.ref_send.log.Resolved;
 import org.ref_send.log.SentIf;
@@ -58,8 +57,7 @@ EventGenerator {
                 final Receiver<Event> er = erf.run();
                 if (null == er) { return; }
                 
-                final Anchor event = local.anchor();
-                log(er, new Resolved(event, tracer.get(), id(condition)));
+                log(er,new Resolved(local.anchor(),tracer.get(),id(condition)));
             }
 
             public void
@@ -67,8 +65,7 @@ EventGenerator {
                 final Receiver<Event> er = erf.run();
                 if (null == er) { return; }
                 
-                final Anchor anchor = local.anchor();
-                log(er, new Got(anchor, tracer.get(), id(message)));
+                log(er, new Got(local.anchor(), tracer.get(), id(message)));
             }
 
             public void
@@ -76,8 +73,7 @@ EventGenerator {
                 final Receiver<Event> er = erf.run();
                 if (null == er) { return; }
                 
-                final Anchor anchor = local.anchor();
-                log(er, new SentIf(anchor, tracer.get(),
+                log(er, new SentIf(local.anchor(), tracer.get(),
                                    id(message), id(condition)));
             }
             
