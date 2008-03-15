@@ -18,7 +18,7 @@ Turn implements Comparable<Turn>, Selfless, Powerless, Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * globally unique identifier for the event loop
+     * URI for the event loop
      */
     public final String loop;
     

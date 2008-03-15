@@ -20,12 +20,17 @@ CallSite extends Struct implements Powerless, Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * caller's source identifier
+     * path to the source code containing the call site
      */
     public final String source;
     
     /**
-     * caller's location within the {@linkplain #source} (optional)
+     * call site's human meaningful name within the {@linkplain #source}
+     */
+    public final String name;
+    
+    /**
+     * call site's position within the {@linkplain #source} (optional)
      * <p>
      * The expected structure of this table defines a span from the start of
      * the relevant source code to the end. The first row in the table is the
@@ -50,12 +55,15 @@ CallSite extends Struct implements Powerless, Record, Serializable {
     /**
      * Constructs an instance.
      * @param source    {@link #source}
+     * @param name      {@link #name}
      * @param span      {@link #span}
      */
     public @deserializer
     CallSite(@name("source") final String source,
+             @name("name") final String name,
              @name("span") final PowerlessArray<IntArray> span) {
         this.source = source;
+        this.name = name;
         this.span = span;
     }
 }

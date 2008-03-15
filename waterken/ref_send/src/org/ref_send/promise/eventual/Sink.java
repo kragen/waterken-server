@@ -23,18 +23,33 @@ Sink extends Struct implements Log, Powerless, Serializable {
     
     // org.ref_send.promise.eventual.Log interface
     
+    /**
+     * @return <code>false</code>
+     */
     public boolean
     isOn() { return false; }
     
+    /**
+     * NOP
+     */
     public void
     comment(final String text) {}
 
+    /**
+     * NOP
+     */
     public void
     got(final Equatable message) {}
 
+    /**
+     * NOP
+     */
     public void
     resolved(final Equatable condition) {}
 
+    /**
+     * NOP
+     */
     public void
     sentIf(final Equatable message, final Equatable condition) {}
 }
