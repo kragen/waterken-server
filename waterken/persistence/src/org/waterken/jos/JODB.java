@@ -712,14 +712,17 @@ JODB extends Vat {
             if (!folder.isDirectory()) { throw new IOException(); }
         }
 
-        // run all the pending effects
-        while (!effects.isEmpty()) { effects.pop().run(); }
-
-        // start up a runner if necessary
-        if (null == runner && scheduled[0] && null != service) {
-            final Run x = new Run();
-            service.run(x);
-            runner = x;
+        // only run effects if this db is live and not in the middle of creation
+        if (null != service) {
+            // run all the pending effects
+            while (!effects.isEmpty()) { effects.pop().run(); }
+    
+            // start up a runner if necessary
+            if (null == runner && scheduled[0]) {
+                final Run x = new Run();
+                service.run(x);
+                runner = x;
+            }
         }
 
         return r;
