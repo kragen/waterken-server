@@ -2,12 +2,17 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.PrintStream;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 
 import org.waterken.net.TCPDaemon;
 import org.waterken.udp.UDPDaemon;
+import org.waterken.vat.Root;
+import org.waterken.vat.Transaction;
+import org.waterken.vat.Vat;
 
 /**
  * Starts the server.
@@ -62,5 +67,25 @@ Serve {
             // run the corresponding daemon
             new Thread(task, service).start();
         }
+        
+        // ping all the persistent vats to restart any pending tasks
+        ping(Config.read(File.class, "vatRootFolder"));
+    }
+    
+    static private void
+    ping(final File dir) {
+        dir.listFiles(new FileFilter() {
+            public boolean
+            accept(final File child) {
+                if (child.isDirectory()) { ping(child); }
+                return false;
+            }
+        });
+        try {
+            Config.vats.connect(dir).enter(Vat.extend, new Transaction<Void>() {
+                public Void
+                run(final Root local) { return null; }
+            });
+        } catch (final Exception e) {}
     }
 }

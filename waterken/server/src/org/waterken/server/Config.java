@@ -50,7 +50,7 @@ Config {
         } catch (final Exception e) { throw new Error(e.getMessage(), e); }
     }
     static protected final File keys= Filesystem.file(configFolder, "keys.jks");
-    static private   final Pool vats = new JODBCache();
+    static protected final Pool vats = new JODBCache();
     
     /**
      * Prints a summary of the configuration information.
