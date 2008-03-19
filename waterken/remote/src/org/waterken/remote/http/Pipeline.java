@@ -5,7 +5,6 @@ package org.waterken.remote.http;
 import static org.ref_send.promise.Fulfilled.ref;
 import static org.web_send.Entity.maxContentSize;
 
-import java.io.FileNotFoundException;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
@@ -22,10 +21,10 @@ import org.waterken.io.limited.Limited;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.remote.Remoting;
 import org.waterken.vat.Effect;
-import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
 import org.waterken.vat.Service;
 import org.waterken.vat.Transaction;
+import org.waterken.vat.Vat;
 import org.web_send.Failure;
 
 /**
@@ -92,10 +91,7 @@ Pipeline implements Serializable {
     
     private Message
     dequeue(final int mid) {
-        if (pending.getFront().id != mid) {
-            if (pending.getFront().id - mid > 0) { return null; }
-            throw new Error();
-        }
+        if (pending.getFront().id != mid) { throw new RuntimeException(); }
         
         final Entry front = pending.pop();
         if (pending.isEmpty()) {
@@ -205,39 +201,39 @@ Pipeline implements Serializable {
                     r = new Response(r.version, r.status, r.phrase, r.header,
                         Snapshot.snapshot(length < 0 ? 1024 : length,
                             Limited.limit(maxContentSize, r.body)));
-                } catch (final Failure e) {
-                    return reject(e);
-                }
+                } catch (final Failure e) { return reject(e); }
             }
             return resolve(ref(r));
         }
         
         public Void
-        reject(final Exception reason) throws Exception {
+        reject(final Exception reason) {
             return resolve(new Rejected<Response>(reason));
         }
         
         private Void
-        resolve(final Promise<Response> response) throws Exception {
-            try {
-                vat.enter(Vat.change, new Transaction<Void>() {
-                    public Void
-                    run(final Root local) throws Exception {
-                        final Outbound outbound =
-                            (Outbound)local.fetch(null, AMP.outbound);
-                        final Pipeline msgs = outbound.find(peer);
-                        final Message respond = msgs.dequeue(mid);
-                        if (null == respond) { return null; }
-                        Response value;
-                        try {
-                            value = response.cast();
-                        } catch (final Exception reason) {
-                            return respond.reject(reason);
+        resolve(final Promise<Response> response) {
+            vat.service.run(new Service() {
+                public void
+                run() throws Exception {
+                    vat.enter(Vat.change, new Transaction<Void>() {
+                        public Void
+                        run(final Root local) throws Exception {
+                            final Outbound outbound =
+                                (Outbound)local.fetch(null, AMP.outbound);
+                            final Pipeline msgs = outbound.find(peer);
+                            final Message respond = msgs.dequeue(mid);
+                            Response value;
+                            try {
+                                value = response.cast();
+                            } catch (final Exception reason) {
+                                return respond.reject(reason);
+                            }
+                            return respond.fulfill(value);
                         }
-                        return respond.fulfill(value);
-                    }
-                });
-            } catch (final FileNotFoundException e) { /* vat is dead */ }
+                    });
+                }
+            });
             return null;
         }
     }
