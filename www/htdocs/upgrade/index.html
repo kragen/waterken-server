@@ -1,0 +1,252 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>upgrade: Upgrading a Waterken application</title>
+<link rel="StyleSheet" type="text/css" href="../site/style.css">
+<link rel="icon" type="image/gif" href="../site/icon.gif">
+</head>
+<body>
+<div class="navigation">
+<a href="../"><img alt="home" src="../site/icon.gif" width="16" height="16" border="0"></a>
+<span class="heading">&rarr; upgrade</span>
+</div>
+<div class="main">
+<h1><a name="title" href="#title">Upgrading a Waterken<sup>TM</sup> application</a></h1>
+<p>Any application that keeps state needs a plan for maintaining it as the
+application evolves. Successfully managing these upgrades is one of the more
+challenging aspects of application development. This document explains several
+patterns and techniques for managing upgrade in a Waterken application.</p>
+<h2><a name="engine" href="#engine">Persistence engine</a></h2>
+<p>Application objects hosted by the Waterken server can exploit the provided
+orthogonal persistence. At the end of every event loop turn, before any
+externally visible I/O is done, the Waterken server persists all application
+objects that are reachable from previously persisted objects.  This graph of
+persistent objects is rooted in objects bound to an exported web-key. The
+programmer expresses different strategies for persistent state through patterns
+of extending, modifying and using this persistent object graph. This paper
+presents these patterns and shows how they can be expressed using the
+<a href="javadoc/overview-summary.html">ref_send API</a>.</p>
+<h2><a name="ephemeral" href="#ephemeral">Ephemeral pleasures</a></h2>
+<p>An effective strategy for dealing with the challenges of persistent state is
+avoiding it. When using the Waterken server, there are several ways in which
+persistence can be usefully avoided.</p>
+<p>Any created Java object that is not referenced by a previously persisted Java
+object at the end of an event loop turn is not persisted. Since the object is
+never stored, the programmer is freed from the burden of planning for its
+upgrade.</p>
+<p>The GUI for a Waterken application is often a web-application.  The state of
+this GUI is rebuilt anew on each visit to the application, using state pulled
+into the browser via web-keys. It's a good strategy to express as much of the
+application logic as possible in the ephemeral web-application, rather than in
+persistent Java objects. Think of the state maintained by the Waterken server as
+the application's model, as in the Model-View-Controller (MVC) pattern. Your
+application's view and controller are then implemented in the ephemeral
+web-application. This design reduces the upgrade challenge to the design of the
+application's model. Constraining the scope of the upgrade challenge in this way
+is the most important step to take in the design of an application's persistence
+strategy.</p>
+<h2><a name="minor" href="#minor">Minor surgery</a></h2>
+<p>As an application evolves, its model may need to be extended. Objects are
+persisted by the Waterken server using Java Object Serialization, which supports
+a useful set of
+<a href="http://java.sun.com/javase/6/docs/platform/serialization/spec/version.html#6754">compatible upgrades</a>,
+such as:
+</p>
+<ul>
+<li>adding and removing methods</li>
+<li>adding and removing interfaces</li>
+<li>adding and removing classes in the inheritance chain</li>
+<li>adding and removing fields</li>
+<li>changing the declared type of a non-primitive field</li>
+</ul>
+<p>When upgrading an object requires an algorithmic step, a class can declare a
+<code>readObject</code> method of the form:
+</p>
+<pre>
+private void
+readObject(final ObjectInputStream in) throws IOException,
+                                              ClassNotFoundException {
+    // read in the old state
+    in.defaultReadObject();
+
+    // using the old state, upgrade the object to the new format
+    &hellip;
+}
+</pre>
+<p>Java Object Serialization only allows these upgrades if the serialized class
+declares them as allowed. This is done by declaring a
+<code>serialVersionUID</code> field, such as:
+</p>
+<pre>
+    static private final long serialVersionUID = 1L;
+</pre>
+<p>This field should be declared as part of the first steps in creating a
+persistent class.</p>
+<h3><a name="touch" href="#touch">Pushing all state through a minor upgrade</a></h3>
+<p>Once the desired changes have been made to a set of upgraded classes, the
+upgrade can be applied using the <kbd>touch.jar</kbd> command provided by the
+Waterken server. For example, to upgrade a vat named <code>test</code>, as well
+as all of its child vats:</p>
+<ol>
+<li>stop the Waterken server</li>
+<li>replace the old class files with the upgraded ones</li>
+<li>from the home folder of the Waterken installation, run the command:
+    <p><kbd>java -jar touch.jar vat/test</kbd></p></li>
+<li>restart the Waterken server</li>
+</ol>
+<h2><a name="amputation" href="#amputation">Amputation</a></h2>
+<p>Sometimes, it's not feasible to express an algorithm for upgrading old state
+using the techniques described in the previous section. In this case, it's also
+sometimes the case that the old state is no longer needed in the upgraded
+application. In this situation, a viable upgrade strategy is to simply plan to
+abandon some objects. When the Waterken server is deserializing part of an
+object graph, it doesn't immediately follow an eventual reference, but instead
+delays loading of this part of the graph until the target object is accessed by
+the application. To plan for amputation of part of an application's persistent
+object graph, only refer to objects in that part of the graph using eventual
+references. Once bit rot takes hold in that part of the object graph, change the
+application code to no longer access it. If the stale objects are no longer
+accessed, they will never be loaded and so will never produce any incompatible
+serialization errors.</p>
+<h3><a name="commuter" href="#commuter">Commuter pattern</a></h3>
+<p>To support delayed loading of part of an object graph, and so enable
+amputation of it, a class must use an eventual reference to refer to an object
+that instances may need immediate access to. To facilitate this pattern, the
+ref_send API provides some syntactic sugar:</p>
+<pre>
+import static org.ref_send.promise.eventual.Eventual.<a href="../javadoc/org/ref_send/promise/eventual/Eventual.html#near(T)">near</a>;
+&hellip;
+
+public final class
+Stable implements Serializable {
+    static private final long serialVersionUID = 1L;
+
+    private final Eventual _;
+    private       Unstable dependency_;
+
+    &hellip;
+
+    public void
+    setDependency(final Unstable dependency) {
+        dependency_ = _._(dependency);
+    }
+
+    public void
+    doSomething() {
+        final Unstable dependency = <span class="highlight">near</span>(dependency_);
+        final String foo = dependency.getFoo();
+        &hellip;
+    }
+}
+</pre>
+<p>If the type <code>Unstable</code> in the example above is a class, rather
+than an interface, implementation of the pattern is slightly different:</p>
+<pre>
+import static org.ref_send.promise.Fulfilled.<a href="../javadoc/org/ref_send/promise/Fulfilled.html#detach(T)">detach</a>;
+import static org.ref_send.promise.eventual.Eventual.<a href="../javadoc/org/ref_send/promise/eventual/Eventual.html#near(T)">near</a>;
+&hellip;
+
+public final class
+Stable implements Serializable {
+    static private final long serialVersionUID = 1L;
+
+    private final Eventual _;
+    <span class="highlight">private       Promise&lt;Unstable&gt; dependency_;</span>
+
+    &hellip;
+
+    public void
+    setDependency(final Unstable dependency) {
+        <span class="highlight">dependency_ = detach(dependency);</span>
+    }
+
+    public void
+    doSomething() {
+        final Unstable dependency = near(dependency_);
+        final String foo = dependency.getFoo();
+        &hellip;
+    }
+}
+</pre>
+<h2><a name="implant" href="#implant">Implants</a></h2>
+<p>There are two major roles for an application's model: storing information and
+enforcing the rules that govern changes and access to this information. Evolving
+an application sometimes means supporting new ways of manipulating the same
+underlying information. To support this kind of upgrade, an application's model
+should segregate objects that hold the application's state from objects that
+define the application's behaviour.  The goal of this segregation is to enable
+creation of a new layer of behaviour objects for the same set of state
+objects.</p>
+<p>For example, the
+<code><a href="https://y-hzpaiycw7dur5zcyena5qzq.yurl.net/">yurl.net</a></code>
+DNS nameserver is a Waterken server application for managing DNS records. When
+the <kbd><a href="../deploy/#genkey">genkey.jar</a></kbd> command is run, a new
+vat is created to manage the DNS resources for a newly created hostname. The
+application model stored in this vat segregates application state, the held DNS
+resources, from application behaviour, editing of those resources, and provides
+a hook for the introduction of new behaviour.</p>
+<p>The nameserver's application state is held in an array of
+<a href="javadoc/org/ref_send/var/Variable.html">variables</a>, each of which
+holds an arbitrary
+<code><a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/dns/src/org/waterken/dns/Resource.java?view=markup#l_14">Resource</a></code>.
+</p>
+<p>The nameserver's behaviour is defined by the
+<code><a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/dns/src/org/waterken/dns/editor/ResourceGuard.java?view=markup#l_10">ResourceGuard</a></code>,
+which constrains the supported DNS resource types, and the
+<code><a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/shared/src/org/waterken/menu/MenuMaker.java?view=markup#l_26">Menu</a></code>,
+which supports editing of the variable array.</p>
+<p>On creation, a
+<code><a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/dns/src/org/waterken/dns/editor/DomainMaster.java?view=markup#l_15">DomainMaster</a></code>
+object provides the client access to objects that define the application's
+current behaviour, as well as an object that may define future application
+behaviour. The <code>extension</code> member of <code>DomainMaster</code> refers
+to an object that holds references to all of the objects embodying the
+application's state. This extension object provides a hook for introducing new
+behaviour for the existing application state. The hook is used by adding a new
+method to the extension object that creates a new layer of behaviour
+objects.</p>
+<h2><a name="offload" href="#offload">Offload</a></h2>
+<p>If plans for upgrade don't work out, or the cumulative complexity from
+multiple upgrades becomes too much, it may be best to start over with a new
+design, bootstrapping new vats with application data pulled in from the old
+model. To enable this offloading of application state, the application model
+should support a query interface that can generate
+<a href="../javadoc/org/ref_send/package-summary.html#package_description">documents</a>
+describing the current application state.</p>
+<p>For example, the previously discussed DNS nameserver application supports
+creation of such application state documents via the Menu's
+<code><a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/dns/src/org/waterken/dns/Resource.java?view=markup#l_39">getSnapshot</a>()</code>
+method. This method returns a document describing all of the current DNS
+resources for a hostname.</p>
+<h2><a name="philosophy" href="#philosophy">Live fast, die young and leave a good-looking corpse</a></h2>
+<p>In addition to its role in persistence, the vat is also the unit of
+concurrency. Each vat is serviced by its own thread, so
+<a href="../javadoc/org/web_send/graph/Spawn.html#run(java.lang.Class)">spawning</a>
+a new vat creates a new thread, enabling concurrent execution within an
+application. To exploit multiple processor cores, an application should be
+designed to use many vats.</p>
+<p>Once an object is persisted, its state remains on disk until the hosting vat
+is <a href="../javadoc/org/web_send/graph/Framework.html#destruct">destructed</a>.
+If the object is not in use, it will never be loaded and so won't consume the
+computer's processing power or memory, but will consume filesystem space. To
+reclaim this space, an application should be designed around short-lived vats
+that are periodically destructed, giving way to new vats. Whenever an
+application is about to engage in an activity that will generate a bunch of new
+persistent objects, a new vat should be spawned for that activity. When the
+activity completes, the spawned vat should be destructed, after producing a
+<a href="../javadoc/org/ref_send/package-summary.html#package_description">document</a>
+describing the outcome of the activity.</p>
+<p>To best leverage the platform provided by the Waterken server, applications
+should be designed around a vat usage philosophy of: "Live fast, die young and
+leave a good-looking corpse". Spawn vats frequently to make an application
+faster by exploiting concurrency. Destruct vats soon to avoid the upgrade
+problems that come with long-lived state and to reclaim filesystem space.
+Produce state description documents to facilitate upgrade and interoperation
+with other applications.</p>
+</div>
+<p class="footer">
+</p>
+</body>
+</html>
