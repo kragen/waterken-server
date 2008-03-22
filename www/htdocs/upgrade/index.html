@@ -27,7 +27,7 @@ persistent objects is rooted in objects bound to an exported web-key. The
 programmer expresses different strategies for persistent state through patterns
 of extending, modifying and using this persistent object graph. This paper
 presents these patterns and shows how they can be expressed using the
-<a href="javadoc/overview-summary.html">ref_send API</a>.</p>
+<a href="../javadoc/overview-summary.html">ref_send API</a>.</p>
 <h2><a name="ephemeral" href="#ephemeral">Ephemeral pleasures</a></h2>
 <p>An effective strategy for dealing with the challenges of persistent state is
 avoiding it. When using the Waterken server, there are several ways in which
@@ -145,7 +145,7 @@ Stable implements Serializable {
 than an interface, implementation of the pattern is slightly different:</p>
 <pre>
 import static org.ref_send.promise.Fulfilled.<a href="../javadoc/org/ref_send/promise/Fulfilled.html#detach(T)">detach</a>;
-import static org.ref_send.promise.eventual.Eventual.<a href="../javadoc/org/ref_send/promise/eventual/Eventual.html#near(T)">near</a>;
+import static org.ref_send.promise.eventual.Eventual.<a href="../javadoc/org/ref_send/promise/eventual/Eventual.html#near(org.ref_send.promise.Volatile)">near</a>;
 &hellip;
 
 public final class
@@ -188,7 +188,7 @@ application model stored in this vat segregates application state, the held DNS
 resources, from application behaviour, editing of those resources, and provides
 a hook for the introduction of new behaviour.</p>
 <p>The nameserver's application state is held in an array of
-<a href="javadoc/org/ref_send/var/Variable.html">variables</a>, each of which
+<a href="../javadoc/org/ref_send/var/Variable.html">variables</a>, each of which
 holds an arbitrary
 <code><a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/dns/src/org/waterken/dns/Resource.java?view=markup#l_14">Resource</a></code>.
 </p>
