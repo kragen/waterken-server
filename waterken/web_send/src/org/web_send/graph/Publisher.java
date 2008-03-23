@@ -9,7 +9,7 @@ public interface
 Publisher {
     
     /**
-     * set of disallowed name characters
+     * set of disallowed name characters: {@value}
      */
     String disallowed = ";\\/:*?<>|\"=#";
 
