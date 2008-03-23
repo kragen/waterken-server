@@ -76,7 +76,7 @@ readObject(final ObjectInputStream in) throws IOException,
 }
 </pre>
 <p>Java Object Serialization only allows these upgrades if the serialized class
-declares them as allowed. This is done by declaring a
+declares them to be allowed. This is done by declaring a
 <code>serialVersionUID</code> field, such as:
 </p>
 <pre>
@@ -215,8 +215,8 @@ model. To enable this offloading of application state, the application model
 should support a query interface that can generate
 <a href="../javadoc/org/ref_send/package-summary.html#package_description">documents</a>
 describing the current application state.</p>
-<p>For example, the previously discussed DNS nameserver application supports
-creation of such application state documents via the Menu's
+<p>For example, the previously discussed DNS nameserver supports creation of
+such application state documents via the Menu's
 <code><a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/shared/src/org/waterken/menu/MenuMaker.java?view=markup#l_39">getSnapshot</a>()</code>
 method. This method returns a document describing all of the current DNS
 resources for a hostname.</p>
