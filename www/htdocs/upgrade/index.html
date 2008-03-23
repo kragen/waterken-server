@@ -96,6 +96,11 @@ as all of its child vats:</p>
     <p><kbd>java -jar touch.jar vat/test</kbd></p></li>
 <li>restart the Waterken server</li>
 </ol>
+<p>The <kbd>touch.jar</kbd> command sweeps through all of the persistent state
+for the named vat, pushing each object through the Java Object Serialization
+upgrade process and saving its new state to disk. The command runs as a normal
+vat transaction and so will either commit with all objects upgraded, or abort,
+leaving the vat in its original state.</p>
 <h2><a name="amputation" href="#amputation">Amputation</a></h2>
 <p>Sometimes, it's not feasible to express an algorithm for upgrading old state
 using the techniques described in the previous section. In this case, it's also
