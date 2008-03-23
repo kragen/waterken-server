@@ -17,7 +17,7 @@ Spawn {
      * </p>
      * @param <T> exported object type
      * @param maker object maker
-     * @return promise for an object exported from the new vat
+     * @return promise for the object returned by the <code>maker</code>
      */
     <T> T
     run(Class<?> maker);

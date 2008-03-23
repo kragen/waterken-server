@@ -25,7 +25,7 @@ DomainMaster extends Struct implements Record, Serializable {
     public final Runnable destruct;
     
     /**
-     * {@link Domain#getAnswers() answers} editor
+     * {@linkplain Domain#getAnswers() answers} editor
      */
     public final Menu<Resource> answers;
     

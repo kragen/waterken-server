@@ -27,7 +27,7 @@ Publisher {
      * @param <T> exported object type
      * @param name  vat name
      * @param maker object maker, same requirements as in {@link Spawn#run}
-     * @return promise for an object exported from the new vat
+     * @return promise for the object returned by the <code>maker</code>
      * @throws Collision    <code>name</code> is unavailable
      */
     <T> T
