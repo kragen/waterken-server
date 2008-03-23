@@ -6,7 +6,7 @@ import org.ref_send.promise.Volatile;
 
 /**
  * An element in a series.
- * <T> {@link #getValue} type
+ * @param <T> {@link #getValue} type
  */
 public interface
 Element<T> {
