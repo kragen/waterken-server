@@ -113,7 +113,7 @@ the application. To plan for amputation of part of an application's persistent
 object graph, only refer to objects in that part of the graph using eventual
 references. Once bit rot takes hold in that part of the object graph, change the
 application code to no longer access it. If the stale objects are no longer
-accessed, they will never be loaded and so will never produce any incompatible
+accessed, they will never be loaded and so will never produce incompatible
 serialization errors.</p>
 <h3><a name="commuter" href="#commuter">Commuter pattern</a></h3>
 <p>To support delayed loading of part of an object graph, and so enable
