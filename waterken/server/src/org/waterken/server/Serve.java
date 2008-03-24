@@ -77,7 +77,9 @@ Serve {
         dir.listFiles(new FileFilter() {
             public boolean
             accept(final File child) {
-                if (child.isDirectory()) { ping(child); }
+                if (child.isDirectory() && !child.getName().startsWith(".")) {
+                    ping(child);
+                }
                 return false;
             }
         });
