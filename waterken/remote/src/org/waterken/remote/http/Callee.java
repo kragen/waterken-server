@@ -149,49 +149,41 @@ Callee extends Struct implements Server, Serializable {
             return;
         }
         
-        // determine the requested member
-        final Member member = Java.dispatch(target.getClass(), p);
-        if (!(member instanceof Method)) {
-            respond.fulfill(never(request.method));
-            return;
-        }
-
         // process the request
-        final Method lambda = (Method)member;
-        if (null != Java.property(lambda)) {
-            if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
-                Object value;
-                try {
-                    // AUDIT: call to untrusted application code
-                    value = Reflection.invoke(lambda, target);
-                } catch (final Exception e) {
-                    value = new Rejected(e);
+        final Member member = Java.dispatch(target.getClass(), p);
+        if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
+            Object value;
+            try {
+                final Method lambda = (Method)member;
+                if (null == Java.property(lambda)) {
+                    throw new ClassCastException();
                 }
-                final boolean constant = "getClass".equals(lambda.getName());
-                final int maxAge = constant ? forever : ephemeral; 
-                final String etag=constant ? null : exports.getTransactionTag();
-                Response r = request.hasVersion(etag)
-                    ? new Response("HTTP/1.1", "304", "Not Modified",
-                        PowerlessArray.array(
-                            new Header("Cache-Control", "max-age=" + maxAge)
-                        ), null)
-                : serialize(request.method, "200", "OK",
-                            maxAge, Serializer.render, value);
-                if (null != etag) { r = r.with("ETag", etag); }
-                respond.fulfill(r);
-            } else {
-                final String[] allow = { "TRACE", "OPTIONS", "GET", "HEAD" };
-                if ("OPTIONS".equals(request.method)) {
-                    respond.fulfill(Request.options(allow));
-                } else {
-                    respond.fulfill(Request.notAllowed(allow));
-                }
+                // AUDIT: call to untrusted application code
+                value = Reflection.invoke(lambda, target);
+            } catch (final Exception e) {
+                value = new Rejected(e);
             }
+            final boolean constant = "getClass".equals(member.getName());
+            final int maxAge = constant ? forever : ephemeral; 
+            final String etag=constant ? null : exports.getTransactionTag();
+            Response r = request.hasVersion(etag)
+                ? new Response("HTTP/1.1", "304", "Not Modified",
+                    PowerlessArray.array(
+                        new Header("Cache-Control", "max-age=" + maxAge)
+                    ), null)
+            : serialize(request.method, "200", "OK",
+                        maxAge, Serializer.render, value);
+            if (null != etag) { r = r.with("ETag", etag); }
+            respond.fulfill(r);
         } else if ("POST".equals(request.method)) {
             final Object value = exports.once(m, new Factory<Object>() {
                 @Override public Object
                 run() {
                     try {
+                        final Method lambda = (Method)member;
+                        if (null != Java.property(lambda)) {
+                            throw new ClassCastException();
+                        }
                         final ConstArray<?> argv =
                             deserialize(request, PowerlessArray.array(
                                 lambda.getGenericParameterTypes()));
@@ -207,7 +199,11 @@ Callee extends Struct implements Server, Serializable {
             respond.fulfill(serialize(request.method, "200", "OK",
                                       ephemeral, Serializer.render, value));
         } else {
-            final String[] allow = { "TRACE", "OPTIONS", "POST" };
+            final String[] allow = member instanceof Method
+                ? (null == Java.property((Method)member)
+                    ? new String[] { "TRACE", "OPTIONS", "POST" }
+                : new String[] { "TRACE", "OPTIONS", "GET", "HEAD" })
+            : new String[] { "TRACE", "OPTIONS" };
             if ("OPTIONS".equals(request.method)) {
                 respond.fulfill(Request.options(allow));
             } else {
