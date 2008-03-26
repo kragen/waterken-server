@@ -229,7 +229,7 @@ Caller extends Struct implements Messenger, Serializable {
     receive(final Response response, final String URL,
             final Object proxy, final Method method,
             final ConstArray<?> argv, final Resolver<Object> resolver) {
-        if ("404".equals(response.status) && Exports.isPromise(URL)) {
+        if ("404".equals(response.status)) {
             class Retry extends Do<Object,Void> implements Serializable {
                 static private final long serialVersionUID = 1L;
 
@@ -247,7 +247,10 @@ Caller extends Struct implements Messenger, Serializable {
                     return null != resolver ? resolver.reject(reason) : null;
                 }
             }
-            _.when(exports.connect(exports.getHere()).run(Object.class, URL),
+            final String target = Exports.isPromise(URL)
+                ? URL
+            : URI.resolve(URL, "?src=#" + URI.fragment("", URL));
+            _.when(exports.connect(exports.getHere()).run(Object.class, target),
                    new Retry());
         } else if (null != resolver) {
             Volatile<Object> value;
