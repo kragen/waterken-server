@@ -41,14 +41,14 @@ Fulfilled<T> implements Promise<T>, Selfless, Serializable {
             final Double d = (Double)value;
             if (d.isNaN()) { return new Rejected<T>(new NaN()); }
             if (d.isInfinite()) {
-                return new Rejected<T>(d == Double.NEGATIVE_INFINITY
+                return new Rejected<T>(d.doubleValue()==Double.NEGATIVE_INFINITY
                         ? new NegativeInfinity() : new PositiveInfinity());
             }
         } else if (value instanceof Float) {
             final Float f = (Float)value;
             if (f.isNaN()) { return new Rejected<T>(new NaN()); }
             if (f.isInfinite()) {
-                return new Rejected<T>(f == Float.NEGATIVE_INFINITY
+                return new Rejected<T>(f.floatValue() == Float.NEGATIVE_INFINITY
                         ? new NegativeInfinity() : new PositiveInfinity());
             }
         }
