@@ -1,9 +1,9 @@
 #!/bin/sh
 if [ "$OS" = 'Windows_NT' ]
 then
-    CLASSPATH='..\joe-e\bin;..\ref_send\bin;..\network\bin;..\web_send\bin;..\persistence\bin;..\remote\bin;..\dns\bin;..\server\bin'
+    CLASSPATH='..\joe-e\bin;..\ref_send\bin;..\network\bin;..\web_send\bin;..\shared\bin;..\persistence\bin;..\remote\bin;..\dns\bin;..\server\bin'
 else
-    CLASSPATH='../joe-e/bin:../ref_send/bin:../network/bin:../web_send/bin:../persistence/bin:../remote/bin:../dns/bin:../server/bin'
+    CLASSPATH='../joe-e/bin:../ref_send/bin:../network/bin:../web_send/bin:../shared/bin:../persistence/bin:../remote/bin:../dns/bin:../server/bin'
 fi
 
 echo 'Building test project...'
