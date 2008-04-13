@@ -33,7 +33,7 @@ import org.waterken.vat.Vat;
 /**
  * Server configuration.
  */
-final class
+public final class
 Config {
 
     private
@@ -49,7 +49,7 @@ Config {
             code = Project.connect("dns");
         } catch (final Exception e) { throw new Error(e.getMessage(), e); }
     }
-    static protected final File keys= Filesystem.file(configFolder, "keys.jks");
+    static public    final File keys= Filesystem.file(configFolder, "keys.jks");
     static protected final Pool vats = new JODBCache();
     
     /**
@@ -79,7 +79,7 @@ Config {
      * @param name      setting name
      * @param value     setting value
      */
-    static protected void
+    static public void
     init(final String name, final Object value) {
         try {
             final File file = Filesystem.file(configFolder, name + ext);
@@ -117,7 +117,7 @@ Config {
         settings.put(Filesystem.file(configFolder, "tag" + ext), tag);
     }
     
-    static protected final Browser browser = Browser.make(
+    static public final Browser browser = Browser.make(
         new Proxy(), new SecureRandom(), code,
         Concurrent.loop(Thread.currentThread().getThreadGroup(), "config"),
         new Sink());

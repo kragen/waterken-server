@@ -16,7 +16,6 @@ import org.joe_e.array.ByteArray;
 import org.ref_send.var.Setter;
 import org.ref_send.var.Variable;
 import org.waterken.dns.Resource;
-import org.waterken.dns.editor.ResourceGuard;
 import org.waterken.net.TCPDaemon;
 
 /**
@@ -75,7 +74,7 @@ TCP implements Runnable {
                         err.println(
                             "Updating DNS to: " + a.getHostAddress() + "...");
                         updater_.run(new Resource(
-                            Resource.A, Resource.IN, ResourceGuard.minTTL,
+                            Resource.A, Resource.IN, 60,
                             ByteArray.array(a.getAddress())));
                         address = a;
                     }

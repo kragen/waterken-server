@@ -1,3 +1,0 @@
-Class-Path: joe-e/bin/ ref_send/bin/ web_send/bin/ shared/bin/ log/bin/ network/bin/ persistence/bin/ remote/bin/ dns/bin/ server/bin/
-Main-Class: org.waterken.server.GenKey
-

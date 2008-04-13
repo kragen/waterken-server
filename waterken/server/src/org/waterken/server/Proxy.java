@@ -21,7 +21,7 @@ import org.waterken.uri.URI;
 /**
  * The HTTP gateway for this JVM.
  */
-final class
+public final class
 Proxy extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
 
@@ -46,7 +46,7 @@ Proxy extends Struct implements Server, Serializable {
         new HashMap<String,Locator>();
     static private       Credentials credentials = null;
     
-    static protected Credentials
+    static public Credentials
     init() {
         if (!protocols.isEmpty()) { throw new Error(); }
         Proxy.protocols.put("http", Loopback.client(80));
