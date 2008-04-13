@@ -1,9 +1,9 @@
 #!/bin/sh
 if [ "$OS" = 'Windows_NT' ]
 then
-    CLASSPATH='..\joe-e\bin;..\ref_send\bin;..\web_send\bin;..\shared\bin'
+    CLASSPATH='..\joe-e\bin;..\ref_send\bin;..\web_send\bin'
 else
-    CLASSPATH='../joe-e/bin:../ref_send/bin:../web_send/bin:../shared/bin'
+    CLASSPATH='../joe-e/bin:../ref_send/bin:../web_send/bin'
 fi
 
 echo 'Building log project...'
