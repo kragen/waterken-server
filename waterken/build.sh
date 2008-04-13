@@ -6,6 +6,7 @@ touch vat/.persistent-object-store
 (cd ref_send/; ./build.sh $@)
 (cd web_send/; ./build.sh $@)
 (cd shared/; ./build.sh $@)
+(cd log/; ./build.sh $@)
 (cd example/; ./build.sh $@)
 (cd network/; ./build.sh $@)
 (cd persistence/; ./build.sh $@)

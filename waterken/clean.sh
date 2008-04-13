@@ -5,6 +5,7 @@ rm -rf javadoc/
 (cd ref_send/; ./clean.sh $@)
 (cd web_send/; ./clean.sh $@)
 (cd shared/; ./clean.sh $@)
+(cd log/; ./clean.sh $@)
 (cd example/; ./clean.sh $@)
 (cd network/; ./clean.sh $@)
 (cd persistence/; ./clean.sh $@)
