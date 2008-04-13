@@ -12,7 +12,7 @@
     "next" : {
       "$" : [ "org.waterken.http.dump.Dump" ],
       "path" : "log/",
-      "key" : null,
+      "key" : "asdf",
       "folder" : { "@" : "../www/log/" },
       "formats" : { "@" : "mime.json" },
       "next" : {
