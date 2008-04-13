@@ -4,4 +4,4 @@
 /**
  * A simple test interface.
  */
-@org.joe_e.verified package org.ref_send.test;
+@org.joe_e.IsJoeE package org.ref_send.test;

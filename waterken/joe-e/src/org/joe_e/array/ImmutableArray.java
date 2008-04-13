@@ -82,23 +82,19 @@ public class ImmutableArray<E> extends ConstArray<E> implements Immutable {
      * An {@link ImmutableArray} factory.
      */
     public static class Builder<E> extends ConstArray.Builder<E> {
-        private Object[] buffer;
-        private int size;
-
         /**
          * Construct an instance with the default internal array length.
          */
-        public Builder() {
-            this(0);
+        Builder() {
+            super();
         }
         
         /**
          * Construct an instance.
          * @param estimate  estimated array length
          */
-        public Builder(int estimate) {
-            buffer = new Object[estimate > 0 ? estimate : 32];
-            size = 0;
+        Builder(int estimate) {
+            super(estimate);
         }        
 
         /** 
@@ -115,11 +111,7 @@ public class ImmutableArray<E> extends ConstArray<E> implements Immutable {
                                              + "is not Immutable");
             }
             
-            if (size == buffer.length) {
-                System.arraycopy(buffer, 0, buffer = new Object[2 * size], 0,
-                                 size);
-            }
-            buffer[size++] = newE;
+            appendInternal(newE);
         }
 
         /** 
@@ -151,18 +143,7 @@ public class ImmutableArray<E> extends ConstArray<E> implements Immutable {
                                              " is not Immutable");
             }
             
-            int newSize = size + len;
-            if (newSize < 0 || off < 0 || len < 0 || off + len < 0
-                || off + len > newEs.length) {
-                throw new IndexOutOfBoundsException();
-            }
-            if (newSize > buffer.length) {
-                int newLength = Math.max(newSize, 2 * buffer.length);
-                System.arraycopy(buffer, 0, buffer = new Object[newLength], 0,
-                                 size);
-            }
-            System.arraycopy(newEs, off, buffer, size, len);
-            size = newSize;
+            appendInternal(newEs, off, len);
         }
         
         /**

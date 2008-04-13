@@ -73,9 +73,6 @@ Callee extends Struct implements Server, Serializable {
                             requestor, respond);
             return;
         }
-        
-        // log reception if requested
-        if (null != m) { exports.answered(m); }
 
         // determine the request
         final Request request;
@@ -159,7 +156,7 @@ Callee extends Struct implements Server, Serializable {
                     throw new ClassCastException();
                 }
                 // AUDIT: call to untrusted application code
-                value = Reflection.invoke(lambda, target);
+                value = Reflection.invoke(Java.bubble(lambda), target);
             } catch (final Exception e) {
                 value = new Rejected(e);
             }
@@ -176,7 +173,7 @@ Callee extends Struct implements Server, Serializable {
             if (null != etag) { r = r.with("ETag", etag); }
             respond.fulfill(r);
         } else if ("POST".equals(request.method)) {
-            final Object value = exports.once(m, new Factory<Object>() {
+            final Object value = exports.once(m, member, new Factory<Object>() {
                 @Override public Object
                 run() {
                     try {
@@ -189,7 +186,7 @@ Callee extends Struct implements Server, Serializable {
                                 lambda.getGenericParameterTypes()));
 
                         // AUDIT: call to untrusted application code
-                        return Reflection.invoke(lambda, target,
+                        return Reflection.invoke(Java.bubble(lambda), target,
                                 argv.toArray(new Object[argv.length()]));
                     } catch (final Exception e) {
                         return new Rejected(e);

@@ -4,4 +4,4 @@
 /**
  * The remote reference interface.
  */
-@org.joe_e.verified package org.waterken.remote;
+@org.joe_e.IsJoeE package org.waterken.remote;

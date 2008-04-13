@@ -4,4 +4,4 @@
 /**
  * Resource identification.
  */
-@org.joe_e.verified package org.waterken.id;
+@org.joe_e.IsJoeE package org.waterken.id;

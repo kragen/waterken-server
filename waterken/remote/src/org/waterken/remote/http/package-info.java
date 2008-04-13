@@ -4,4 +4,4 @@
 /**
  * The <a href="http://www.waterken.com/dev/Web/HTTP/">HTTP web-amp binding</a>.
  */
-@org.joe_e.verified package org.waterken.remote.http;
+@org.joe_e.IsJoeE package org.waterken.remote.http;

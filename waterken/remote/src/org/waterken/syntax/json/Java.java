@@ -170,11 +170,8 @@ Java {
                     mn = m.getName();
                 }
                 if (name.equals(mn)) {
-                    final Method c = bubble(m);
-                    if (null != c) {
-                        if (null != r) { return null; }
-                        r = c;
-                    }
+                    if (null != r) { return null; }
+                    r = m;
                 }
             }
         }
@@ -190,7 +187,7 @@ Java {
     /**
      * Finds the first invocable declaration of a public method.
      */
-    static Method
+    static public Method
     bubble(final Method method) {
         final Class<?> declarer = method.getDeclaringClass();
         if (isPublic(declarer.getModifiers())) { return method; }

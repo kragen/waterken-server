@@ -4,4 +4,4 @@
 /**
  * <i>U</i>niform <i>R</i>esource <i>I</i>dentifier interface.
  */
-@org.joe_e.verified package org.waterken.uri;
+@org.joe_e.IsJoeE package org.waterken.uri;

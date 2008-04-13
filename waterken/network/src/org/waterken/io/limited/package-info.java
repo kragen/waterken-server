@@ -4,4 +4,4 @@
 /**
  * A stream that is not allowed to be longer than a preset limit.
  */
-@org.joe_e.verified package org.waterken.io.limited;
+@org.joe_e.IsJoeE package org.waterken.io.limited;

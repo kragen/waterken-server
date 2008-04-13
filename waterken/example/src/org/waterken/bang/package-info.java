@@ -4,4 +4,4 @@
 /**
  * A simple demonstration and test of eventual operations.
  */
-@org.joe_e.verified package org.waterken.bang;
+@org.joe_e.IsJoeE package org.waterken.bang;

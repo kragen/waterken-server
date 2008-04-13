@@ -866,6 +866,26 @@ JODB extends Vat {
                     // update the stats
                     final Stats now = (Stats)local.fetch(null, stats);
                     if (null != now) { now.incrementDequeued(); }
+                    
+                    // update the log
+                    final Loop<Effect> effect =
+                        (Loop)local.fetch(null, Root.effect); 
+                    if (!(task instanceof ConditionalRunner)) {
+                        final Factory<Receiver<Event>> erf =
+                            (Factory)local.fetch(null, Root.events);
+                        final Receiver<Event> er = null!=erf ? erf.run() : null;
+                        if (null != er) {
+                            final Anchor anchor = local.anchor();
+                            final Tracer tracer =
+                                (Tracer)local.fetch(null, Root.tracer);
+                            final Got e = new Got(anchor,
+                                null != tracer ? tracer.get() : null,
+                                anchor.turn.loop + now.getDequeued()); 
+                            effect.run(new Effect() {
+                                public void run() { er.run(e); }
+                            });
+                        }
+                    }
 
                     // process the task
                     try {
@@ -873,8 +893,8 @@ JODB extends Vat {
                     } catch (final Exception e) {
                         e.printStackTrace();
                     }
-                    final Loop<Effect> effect =
-                        (Loop)local.fetch(null, Root.effect); 
+                    
+                    // schedule another go-around, if needed
                     if (!q.isEmpty()) {
                         effect.run(new Effect() {
                             public void
@@ -884,23 +904,6 @@ JODB extends Vat {
                             }
                         });
                     }
-                    
-                    // skip logging of a self-logging task
-                    if (task instanceof ConditionalRunner) { return null; }
-                    
-                    // determine if logging is turned on
-                    final Factory<Receiver<Event>> erf =
-                        (Factory)local.fetch(null, Root.events);
-                    if (null == erf) { return null; }
-                    final Receiver<Event> er = erf.run();
-                    if (null == er) { return null; }
-
-                    // output a log event
-                    final Anchor anchor = local.anchor();
-                    final Tracer tracer = (Tracer)local.fetch(null,Root.tracer);
-                    final Got e = new Got(anchor, null!=tracer ? tracer.get() :
-                        null, anchor.turn.loop + now.getDequeued()); 
-                    effect.run(new Effect() { public void run() {er.run(e);} });
                     return null;
                 }
             });

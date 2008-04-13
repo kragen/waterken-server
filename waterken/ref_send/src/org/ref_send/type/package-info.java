@@ -4,4 +4,4 @@
 /**
  * Type definition manipulation.
  */
-@org.joe_e.verified package org.ref_send.type;
+@org.joe_e.IsJoeE package org.ref_send.type;

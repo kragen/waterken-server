@@ -4,4 +4,4 @@
 /**
  * A {@link org.ref_send.var.Variable} test.
  */
-@org.joe_e.verified package org.waterken.put;
+@org.joe_e.IsJoeE package org.waterken.put;

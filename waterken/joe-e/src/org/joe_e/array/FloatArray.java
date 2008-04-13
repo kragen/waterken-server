@@ -52,8 +52,8 @@ public final class FloatArray extends PowerlessArray<Float> {
         }
     }
 
-    private void readObject(final ObjectInputStream in) throws IOException, 
-    						                      ClassNotFoundException {
+    private void readObject(final ObjectInputStream in) throws 
+                                        IOException, ClassNotFoundException {
         in.defaultReadObject();
 
         final int length = in.readInt();
@@ -215,14 +215,14 @@ public final class FloatArray extends PowerlessArray<Float> {
     /**
      * A {@link FloatArray} factory.
      */
-    static public final class Builder extends PowerlessArray.Builder<Float> {
-        private float[] buffer;
-        private int size;
+    public static final class Builder extends 
+                                        PowerlessArray.Builder<Float> {
+        private float[] floatBuffer;
 
         /**
          * Construct an instance with the default internal array length.
          */
-        public Builder() {
+        Builder() {
             this(0);
         }
         
@@ -230,8 +230,8 @@ public final class FloatArray extends PowerlessArray<Float> {
          * Construct an instance.
          * @param estimate  estimated array length
          */
-        public Builder(int estimate) {
-            buffer = new float[estimate > 0 ? estimate : 32];
+        Builder(int estimate) {
+            floatBuffer = new float[estimate > 0 ? estimate : 32];
             size = 0;
         }
 
@@ -274,14 +274,14 @@ public final class FloatArray extends PowerlessArray<Float> {
                 || off + len > newFloats.length) {
                 throw new IndexOutOfBoundsException();
             }
-            if (newSize > buffer.length) {
-                int newLength = Math.max(newSize, 2 * buffer.length);
-                System.arraycopy(buffer, 0, buffer = new float[newLength], 0,
-                                 size);
+            if (newSize > floatBuffer.length) {
+                int newLength = Math.max(newSize, 2 * floatBuffer.length);
+                System.arraycopy(floatBuffer, 0, 
+                                 floatBuffer = new float[newLength], 0, size);
             }
             
             for (int i = 0; i < len; ++i) {
-                buffer[size + i] = newFloats[off + i];
+                floatBuffer[size + i] = newFloats[off + i];
             }           
             size = newSize;
         }
@@ -292,11 +292,11 @@ public final class FloatArray extends PowerlessArray<Float> {
          */
         public FloatArray snapshot() {
             final float[] arr;
-            if (size == buffer.length) {
-                arr = buffer;
+            if (size == floatBuffer.length) {
+                arr = floatBuffer;
             } else {
                 arr = new float[size];
-                System.arraycopy(buffer, 0, arr, 0, size);
+                System.arraycopy(floatBuffer, 0, arr, 0, size);
             }
             return new FloatArray(arr);
         }
@@ -312,11 +312,11 @@ public final class FloatArray extends PowerlessArray<Float> {
          *   unmodified.
          */
         public void append(final float newFloat) {
-            if (size == buffer.length) {
-                System.arraycopy(buffer, 0, buffer = new float[2 * size], 0,
-                                 size);
+            if (size == floatBuffer.length) {
+                System.arraycopy(floatBuffer, 0,
+                                 floatBuffer = new float[2 * size], 0, size);
             }
-            buffer[size++] = newFloat;
+            floatBuffer[size++] = newFloat;
         }
 
         /**
@@ -339,32 +339,32 @@ public final class FloatArray extends PowerlessArray<Float> {
          *  be referenced or the resulting internal array would exceed the
          *  maximum length of a Java array.  The builder is unmodified.
          */
-        public void append(final float[] newFloats, final int off, final int len) {
+        public void append(final float[] newFloats, final int off, 
+                           final int len) {
             int newSize = size + len;
             if (newSize < 0 || off < 0 || len < 0 || off + len < 0
                 || off + len > newFloats.length) {
                 throw new IndexOutOfBoundsException();
             }
-            if (newSize > buffer.length) {
-                int newLength = Math.max(newSize, 2 * buffer.length);
-                System.arraycopy(buffer, 0, buffer = new float[newLength], 0,
-                                 size);
+            if (newSize > floatBuffer.length) {
+                int newLength = Math.max(newSize, 2 * floatBuffer.length);
+                System.arraycopy(floatBuffer, 0, 
+                                 floatBuffer = new float[newLength], 0, size);
             }
-            System.arraycopy(newFloats, off, buffer, size, len);
+            System.arraycopy(newFloats, off, floatBuffer, size, len);
             size = newSize;
         }
     }
     
     /* If one only invokes static methods statically, this is sound, since
-     * FloatArray extends PowerlessArray<Float> and thus this method is
+     * ByteArray extends PowerlessArray<Byte> and thus this method is
      * only required to return something of a type covariant with
-     * PowerlessArray.Builder<Float>.  Unfortunately, this is not completely
+     * PowerlessArray.Builder<Byte>.  Unfortunately, this is not completely
      * sound because it is possible to invoke static methods on instances, e.g.
-     * ConstArray.Builder<String> = (ConstArray (FloatArray.array())).builder(),
-     * allowing for heap pollution without an unchecked cast warning.
+     * ConstArray.Builder<String> = (ConstArray (FloatArray.array())).builder()
+     * Invocations of append() can then throw ClassCastExceptions.
      * 
-     * The only solution to this would be to completely de-genericize these
-     * methods.
+     * I can't see a way to avoid this other than to de-genericize everything.
      */
 
     /**

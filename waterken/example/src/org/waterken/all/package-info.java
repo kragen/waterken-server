@@ -4,4 +4,4 @@
 /**
  * Runs all tests.
  */
-@org.joe_e.verified package org.waterken.all;
+@org.joe_e.IsJoeE package org.waterken.all;

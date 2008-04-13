@@ -4,4 +4,4 @@
 /**
  * Orthogonal persistence interface.
  */
-@org.joe_e.verified package org.waterken.vat;
+@org.joe_e.IsJoeE package org.waterken.vat;

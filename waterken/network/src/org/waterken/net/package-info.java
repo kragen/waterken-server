@@ -4,4 +4,4 @@
 /**
  * Defines a TCP network transfer interface.
  */
-@org.joe_e.verified package org.waterken.net;
+@org.joe_e.IsJoeE package org.waterken.net;

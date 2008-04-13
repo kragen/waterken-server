@@ -4,4 +4,4 @@
 /**
  * Event loop operations.
  */
-@org.joe_e.verified package org.ref_send.promise.eventual;
+@org.joe_e.IsJoeE package org.ref_send.promise.eventual;

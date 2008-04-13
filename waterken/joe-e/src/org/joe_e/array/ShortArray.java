@@ -52,8 +52,8 @@ public final class ShortArray extends PowerlessArray<Short> {
         }
     }
 
-    private void readObject(final ObjectInputStream in) throws IOException, 
-    						                      ClassNotFoundException {
+    private void readObject(final ObjectInputStream in) throws 
+                                        IOException, ClassNotFoundException {
         in.defaultReadObject();
 
         final int length = in.readInt();
@@ -215,14 +215,14 @@ public final class ShortArray extends PowerlessArray<Short> {
     /**
      * A {@link ShortArray} factory.
      */
-    static public final class Builder extends PowerlessArray.Builder<Short> {
-        private short[] buffer;
-        private int size;
+    public static final class Builder extends 
+                                        PowerlessArray.Builder<Short> {
+        private short[] shortBuffer;
 
         /**
          * Construct an instance with the default internal array length.
          */
-        public Builder() {
+        Builder() {
             this(0);
         }
         
@@ -230,8 +230,8 @@ public final class ShortArray extends PowerlessArray<Short> {
          * Construct an instance.
          * @param estimate  estimated array length
          */
-        public Builder(int estimate) {
-            buffer = new short[estimate > 0 ? estimate : 32];
+        Builder(int estimate) {
+            shortBuffer = new short[estimate > 0 ? estimate : 32];
             size = 0;
         }
 
@@ -274,14 +274,14 @@ public final class ShortArray extends PowerlessArray<Short> {
                 || off + len > newShorts.length) {
                 throw new IndexOutOfBoundsException();
             }
-            if (newSize > buffer.length) {
-                int newLength = Math.max(newSize, 2 * buffer.length);
-                System.arraycopy(buffer, 0, buffer = new short[newLength], 0,
-                                 size);
+            if (newSize > shortBuffer.length) {
+                int newLength = Math.max(newSize, 2 * shortBuffer.length);
+                System.arraycopy(shortBuffer, 0, 
+                                 shortBuffer = new short[newLength], 0, size);
             }
             
             for (int i = 0; i < len; ++i) {
-                buffer[size + i] = newShorts[off + i];
+                shortBuffer[size + i] = newShorts[off + i];
             }           
             size = newSize;
         }
@@ -292,11 +292,11 @@ public final class ShortArray extends PowerlessArray<Short> {
          */
         public ShortArray snapshot() {
             final short[] arr;
-            if (size == buffer.length) {
-                arr = buffer;
+            if (size == shortBuffer.length) {
+                arr = shortBuffer;
             } else {
                 arr = new short[size];
-                System.arraycopy(buffer, 0, arr, 0, size);
+                System.arraycopy(shortBuffer, 0, arr, 0, size);
             }
             return new ShortArray(arr);
         }
@@ -312,11 +312,11 @@ public final class ShortArray extends PowerlessArray<Short> {
          *   unmodified.
          */
         public void append(final short newShort) {
-            if (size == buffer.length) {
-                System.arraycopy(buffer, 0, buffer = new short[2 * size], 0,
-                                 size);
+            if (size == shortBuffer.length) {
+                System.arraycopy(shortBuffer, 0,
+                                 shortBuffer = new short[2 * size], 0, size);
             }
-            buffer[size++] = newShort;
+            shortBuffer[size++] = newShort;
         }
 
         /**
@@ -339,32 +339,32 @@ public final class ShortArray extends PowerlessArray<Short> {
          *  be referenced or the resulting internal array would exceed the
          *  maximum length of a Java array.  The builder is unmodified.
          */
-        public void append(final short[] newShorts, final int off, final int len) {
+        public void append(final short[] newShorts, final int off, 
+                           final int len) {
             int newSize = size + len;
             if (newSize < 0 || off < 0 || len < 0 || off + len < 0
                 || off + len > newShorts.length) {
                 throw new IndexOutOfBoundsException();
             }
-            if (newSize > buffer.length) {
-                int newLength = Math.max(newSize, 2 * buffer.length);
-                System.arraycopy(buffer, 0, buffer = new short[newLength], 0,
-                                 size);
+            if (newSize > shortBuffer.length) {
+                int newLength = Math.max(newSize, 2 * shortBuffer.length);
+                System.arraycopy(shortBuffer, 0, 
+                                 shortBuffer = new short[newLength], 0, size);
             }
-            System.arraycopy(newShorts, off, buffer, size, len);
+            System.arraycopy(newShorts, off, shortBuffer, size, len);
             size = newSize;
         }
     }
     
     /* If one only invokes static methods statically, this is sound, since
-     * ShortArray extends PowerlessArray<Short> and thus this method is
+     * ByteArray extends PowerlessArray<Byte> and thus this method is
      * only required to return something of a type covariant with
-     * PowerlessArray.Builder<Short>.  Unfortunately, this is not completely
+     * PowerlessArray.Builder<Byte>.  Unfortunately, this is not completely
      * sound because it is possible to invoke static methods on instances, e.g.
-     * ConstArray.Builder<String> = (ConstArray (ShortArray.array())).builder(),
-     * allowing for heap pollution without an unchecked cast warning.
+     * ConstArray.Builder<String> = (ConstArray (ShortArray.array())).builder()
+     * Invocations of append() can then throw ClassCastExceptions.
      * 
-     * The only solution to this would be to completely de-genericize these
-     * methods.
+     * I can't see a way to avoid this other than to de-genericize everything.
      */
 
     /**

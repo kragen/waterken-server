@@ -4,4 +4,4 @@
 /**
  * DNS datatypes.
  */
-@org.joe_e.verified package org.waterken.dns;
+@org.joe_e.IsJoeE package org.waterken.dns;

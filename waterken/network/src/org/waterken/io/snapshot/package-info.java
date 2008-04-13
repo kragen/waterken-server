@@ -4,4 +4,4 @@
 /**
  * Fixed binary content.
  */
-@org.joe_e.verified package org.waterken.io.snapshot;
+@org.joe_e.IsJoeE package org.waterken.io.snapshot;

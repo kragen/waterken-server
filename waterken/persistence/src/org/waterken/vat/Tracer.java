@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.vat;
 
+import java.lang.reflect.Member;
+
 import org.ref_send.log.Trace;
 
 /**
@@ -15,4 +17,11 @@ Tracer {
      */
     Trace
     get();
+    
+    /**
+     * Produces a dummy stack trace for a method.
+     * @param lambda    sole member of the dummy stack trace
+     */
+    Trace
+    dummy(Member lambda);
 }

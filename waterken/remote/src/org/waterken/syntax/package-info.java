@@ -4,4 +4,4 @@
 /**
  * A marshalling interface.
  */
-@org.joe_e.verified package org.waterken.syntax;
+@org.joe_e.IsJoeE package org.waterken.syntax;

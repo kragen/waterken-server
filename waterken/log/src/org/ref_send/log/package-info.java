@@ -4,4 +4,4 @@
 /**
  * A log file format.
  */
-@org.joe_e.verified package org.ref_send.log;
+@org.joe_e.IsJoeE package org.ref_send.log;

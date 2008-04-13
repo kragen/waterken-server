@@ -4,4 +4,4 @@
 /**
  * Stream content.
  */
-@org.joe_e.verified package org.waterken.io.stream;
+@org.joe_e.IsJoeE package org.waterken.io.stream;

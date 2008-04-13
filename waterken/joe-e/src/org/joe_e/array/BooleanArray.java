@@ -52,8 +52,8 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
         }
     }
 
-    private void readObject(final ObjectInputStream in) throws IOException, 
-    						                      ClassNotFoundException {
+    private void readObject(final ObjectInputStream in) throws 
+                                        IOException, ClassNotFoundException {
         in.defaultReadObject();
 
         final int length = in.readInt();
@@ -215,14 +215,14 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
     /**
      * A {@link BooleanArray} factory.
      */
-    static public final class Builder extends PowerlessArray.Builder<Boolean> {
-        private boolean[] buffer;
-        private int size;
+    public static final class Builder extends 
+                                        PowerlessArray.Builder<Boolean> {
+        private boolean[] booleanBuffer;
 
         /**
          * Construct an instance with the default internal array length.
          */
-        public Builder() {
+        Builder() {
             this(0);
         }
         
@@ -230,8 +230,8 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
          * Construct an instance.
          * @param estimate  estimated array length
          */
-        public Builder(int estimate) {
-            buffer = new boolean[estimate > 0 ? estimate : 32];
+        Builder(int estimate) {
+            booleanBuffer = new boolean[estimate > 0 ? estimate : 32];
             size = 0;
         }
 
@@ -274,14 +274,14 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
                 || off + len > newBooleans.length) {
                 throw new IndexOutOfBoundsException();
             }
-            if (newSize > buffer.length) {
-                int newLength = Math.max(newSize, 2 * buffer.length);
-                System.arraycopy(buffer, 0, buffer = new boolean[newLength], 0,
-                                 size);
+            if (newSize > booleanBuffer.length) {
+                int newLength = Math.max(newSize, 2 * booleanBuffer.length);
+                System.arraycopy(booleanBuffer, 0, 
+                                 booleanBuffer = new boolean[newLength], 0, size);
             }
             
             for (int i = 0; i < len; ++i) {
-                buffer[size + i] = newBooleans[off + i];
+                booleanBuffer[size + i] = newBooleans[off + i];
             }           
             size = newSize;
         }
@@ -292,11 +292,11 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
          */
         public BooleanArray snapshot() {
             final boolean[] arr;
-            if (size == buffer.length) {
-                arr = buffer;
+            if (size == booleanBuffer.length) {
+                arr = booleanBuffer;
             } else {
                 arr = new boolean[size];
-                System.arraycopy(buffer, 0, arr, 0, size);
+                System.arraycopy(booleanBuffer, 0, arr, 0, size);
             }
             return new BooleanArray(arr);
         }
@@ -312,11 +312,11 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
          *   unmodified.
          */
         public void append(final boolean newBoolean) {
-            if (size == buffer.length) {
-                System.arraycopy(buffer, 0, buffer = new boolean[2 * size], 0,
-                                 size);
+            if (size == booleanBuffer.length) {
+                System.arraycopy(booleanBuffer, 0,
+                                 booleanBuffer = new boolean[2 * size], 0, size);
             }
-            buffer[size++] = newBoolean;
+            booleanBuffer[size++] = newBoolean;
         }
 
         /**
@@ -339,32 +339,32 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
          *  be referenced or the resulting internal array would exceed the
          *  maximum length of a Java array.  The builder is unmodified.
          */
-        public void append(final boolean[] newBooleans, final int off, final int len) {
+        public void append(final boolean[] newBooleans, final int off, 
+                           final int len) {
             int newSize = size + len;
             if (newSize < 0 || off < 0 || len < 0 || off + len < 0
                 || off + len > newBooleans.length) {
                 throw new IndexOutOfBoundsException();
             }
-            if (newSize > buffer.length) {
-                int newLength = Math.max(newSize, 2 * buffer.length);
-                System.arraycopy(buffer, 0, buffer = new boolean[newLength], 0,
-                                 size);
+            if (newSize > booleanBuffer.length) {
+                int newLength = Math.max(newSize, 2 * booleanBuffer.length);
+                System.arraycopy(booleanBuffer, 0, 
+                                 booleanBuffer = new boolean[newLength], 0, size);
             }
-            System.arraycopy(newBooleans, off, buffer, size, len);
+            System.arraycopy(newBooleans, off, booleanBuffer, size, len);
             size = newSize;
         }
     }
     
     /* If one only invokes static methods statically, this is sound, since
-     * BooleanArray extends PowerlessArray<Boolean> and thus this method is
+     * ByteArray extends PowerlessArray<Byte> and thus this method is
      * only required to return something of a type covariant with
-     * PowerlessArray.Builder<Boolean>.  Unfortunately, this is not completely
+     * PowerlessArray.Builder<Byte>.  Unfortunately, this is not completely
      * sound because it is possible to invoke static methods on instances, e.g.
-     * ConstArray.Builder<String> = (ConstArray (BooleanArray.array())).builder(),
-     * allowing for heap pollution without an unchecked cast warning.
+     * ConstArray.Builder<String> = (ConstArray (BooleanArray.array())).builder()
+     * Invocations of append() can then throw ClassCastExceptions.
      * 
-     * The only solution to this would be to completely de-genericize these
-     * methods.
+     * I can't see a way to avoid this other than to de-genericize everything.
      */
 
     /**

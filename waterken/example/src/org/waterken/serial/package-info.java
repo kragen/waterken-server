@@ -4,4 +4,4 @@
 /**
  * An infinite series of elements.
  */
-@org.joe_e.verified package org.waterken.serial;
+@org.joe_e.IsJoeE package org.waterken.serial;

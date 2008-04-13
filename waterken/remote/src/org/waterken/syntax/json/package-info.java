@@ -4,4 +4,4 @@
 /**
  * <a href="http://www.json.org/">JSON</a>.
  */
-@org.joe_e.verified package org.waterken.syntax.json;
+@org.joe_e.IsJoeE package org.waterken.syntax.json;

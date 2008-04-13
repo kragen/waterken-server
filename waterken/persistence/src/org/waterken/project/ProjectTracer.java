@@ -3,6 +3,7 @@
 package org.waterken.project;
 
 import java.io.Serializable;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -63,6 +64,13 @@ ProjectTracer {
                         PowerlessArray.array(IntArray.array(line)));
                 }
                 return new Trace(PowerlessArray.array(site));
+            }
+            
+            public Trace
+            dummy(final Member lambda) {
+                return new Trace(PowerlessArray.array(new CallSite(
+                    path(lambda.getDeclaringClass(), null),
+                    lambda.getName(), null)));
             }
             
             private String

@@ -4,4 +4,4 @@
 /**
  * An HTTP mirror site.
  */
-@org.joe_e.verified package org.waterken.http.mirror;
+@org.joe_e.IsJoeE package org.waterken.http.mirror;

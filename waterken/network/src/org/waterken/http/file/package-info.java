@@ -4,4 +4,4 @@
 /**
  * An HTTP file server.
  */
-@org.joe_e.verified package org.waterken.http.file;
+@org.joe_e.IsJoeE package org.waterken.http.file;

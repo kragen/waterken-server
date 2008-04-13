@@ -4,4 +4,4 @@
 /**
  * An editable list of {@link org.ref_send.var.Variable}s.
  */
-@org.joe_e.verified package org.waterken.menu;
+@org.joe_e.IsJoeE package org.waterken.menu;

@@ -4,4 +4,4 @@
 /**
  * Puts the persistent databases into the URI hierarchy.
  */
-@org.joe_e.verified package org.waterken.remote.mux;
+@org.joe_e.IsJoeE package org.waterken.remote.mux;

@@ -4,4 +4,4 @@
 /**
  * Checks invariants of the ref_send API.
  */
-@org.joe_e.verified package org.waterken.eq;
+@org.joe_e.IsJoeE package org.waterken.eq;

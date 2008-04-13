@@ -4,4 +4,4 @@
 /**
  * A fixed length segment of a longer stream.
  */
-@org.joe_e.verified package org.waterken.io.bounded;
+@org.joe_e.IsJoeE package org.waterken.io.bounded;

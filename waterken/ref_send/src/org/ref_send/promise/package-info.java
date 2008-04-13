@@ -116,4 +116,4 @@
  * {@linkplain org.ref_send.promise.eventual.Eventual#when conditional}
  * operations on promises.</p>
  */
-@org.joe_e.verified package org.ref_send.promise;
+@org.joe_e.IsJoeE package org.ref_send.promise;

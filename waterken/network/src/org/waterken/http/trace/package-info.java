@@ -4,4 +4,4 @@
 /**
  * A server that does a <code>TRACE</code> on a <code>GET</code> request.
  */
-@org.joe_e.verified package org.waterken.http.trace;
+@org.joe_e.IsJoeE package org.waterken.http.trace;

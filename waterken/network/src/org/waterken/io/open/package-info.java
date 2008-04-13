@@ -4,4 +4,4 @@
 /**
  * A stream that cannot be closed or flushed.
  */
-@org.joe_e.verified package org.waterken.io.open;
+@org.joe_e.IsJoeE package org.waterken.io.open;

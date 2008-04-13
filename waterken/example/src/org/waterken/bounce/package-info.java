@@ -4,4 +4,4 @@
 /**
  * An argument passing test.
  */
-@org.joe_e.verified package org.waterken.bounce;
+@org.joe_e.IsJoeE package org.waterken.bounce;

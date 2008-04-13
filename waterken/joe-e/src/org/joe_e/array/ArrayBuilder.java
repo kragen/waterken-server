@@ -31,6 +31,12 @@ public interface ArrayBuilder<E> {
      */
     void append(E[] elements, int off, int len);
     
+    /** 
+     * Gets the current number of elements in the Array
+     * @return the number of elements that have been appended
+     */
+    int length();
+    
     /**
      * Create a snapshot of the current content.
      * @return a <code>ConstArray<E></code> containing the elements written

@@ -4,4 +4,4 @@
 /**
  * A redirectory interface.
  */
-@org.joe_e.verified package org.waterken.dns.editor.redirectory;
+@org.joe_e.IsJoeE package org.waterken.dns.editor.redirectory;

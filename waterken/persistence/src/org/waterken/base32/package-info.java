@@ -4,4 +4,4 @@
 /**
  * Base32 encoding.
  */
-@org.joe_e.verified package org.waterken.base32;
+@org.joe_e.IsJoeE package org.waterken.base32;

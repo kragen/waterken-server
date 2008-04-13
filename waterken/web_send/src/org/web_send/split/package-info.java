@@ -4,4 +4,4 @@
 /**
  * A helper API for {@linkplain org.web_send.graph.Spawn spawning} models.
  */
-@org.joe_e.verified package org.web_send.split;
+@org.joe_e.IsJoeE package org.web_send.split;

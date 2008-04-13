@@ -3,6 +3,7 @@
 package org.waterken.remote;
 
 import java.io.Serializable;
+import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 import java.security.SecureRandom;
 
@@ -90,25 +91,6 @@ Exports extends Struct implements Serializable {
     }
     
     /**
-     * Logs an HTTP response send.
-     * @param mid   request message identifier
-     */
-    public void
-    answered(final String mid) {
-        
-        // determine if logging is turned on
-        final Receiver<Event> er = events();
-        if (null == er) { return; }
-
-        // output log events
-        final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
-        final Trace trace = null != tracer ? tracer.get() : null;
-        final String message = local.pipeline(local.pipeline(mid));
-        log(er, new Got(local.anchor(), trace, message)); 
-        log(er, new Sent(local.anchor(), trace, local.pipeline(message))); 
-    }
-    
-    /**
      * Logs receipt of an HTTP response.
      * @param mid   request message identifier
      */
@@ -123,6 +105,38 @@ Exports extends Struct implements Serializable {
         final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
         log(er, new Got(local.anchor(), null != tracer ? tracer.get() : null,
                         local.pipeline(local.pipeline(local.pipeline(mid))))); 
+    }
+    
+    /**
+     * Does an operation at most once.
+     * @param mid       message identifier,
+     *                  or <code>null</code> for idempotent operation
+     * @param member    member to invoke
+     * @param invoke    member invoker
+     * @return <code>invoke</code> return value
+     */
+    public Object
+    once(final String mid, final Member member, final Factory<Object> invoke) {
+        if (null == mid) { return invoke.run(); }
+        
+        final String pipe = local.pipeline(mid);
+        final Token pumpkin = new Token();
+        Object r = local.fetch(pumpkin, pipe);
+        if (pumpkin == r) {
+            final Receiver<Event> er = events();
+            if (null != er) {
+                final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
+                final Trace trace= null != tracer ? tracer.dummy(member) : null;
+                final String msg = local.pipeline(pipe);
+                log(er, new Got(local.anchor(), trace, msg)); 
+                r = invoke.run();
+                log(er, new Sent(local.anchor(), trace, local.pipeline(msg)));
+            } else {
+                r = invoke.run();
+            }
+            local.link(pipe, r);
+        }
+        return r;
     }
     
     private Receiver<Event>
@@ -216,25 +230,6 @@ Exports extends Struct implements Serializable {
             }
         }
         return Remote.bind(local, new ExporterX());
-    }
-    
-    /**
-     * Does an operation at most once.
-     * @param mid   message identifier,
-     *              or <code>null</code> for idempotent operation
-     * @param make  return value factory
-     * @return <code>make</code> return
-     */
-    public Object
-    once(final String mid, final Factory<Object> make) {
-        final String pipe = null == mid ? null : local.pipeline(mid);
-        final Token pumpkin = new Token();
-        Object r = null == pipe ? pumpkin : local.fetch(pumpkin, pipe);
-        if (pumpkin == r) {
-            r = make.run();
-            if (null != pipe) { local.link(pipe, r); }
-        }
-        return r;
     }
     
     /**

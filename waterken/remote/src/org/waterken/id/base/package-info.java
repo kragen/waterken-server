@@ -4,4 +4,4 @@
 /**
  * Base URI manipulation.
  */
-@org.joe_e.verified package org.waterken.id.base;
+@org.joe_e.IsJoeE package org.waterken.id.base;

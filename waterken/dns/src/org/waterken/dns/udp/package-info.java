@@ -4,4 +4,4 @@
 /**
  * A DNS name server.
  */
-@org.joe_e.verified package org.waterken.dns.udp;
+@org.joe_e.IsJoeE package org.waterken.dns.udp;

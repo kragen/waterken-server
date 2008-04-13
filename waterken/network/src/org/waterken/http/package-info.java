@@ -4,4 +4,4 @@
 /**
  * HTTP.
  */
-@org.joe_e.verified package org.waterken.http;
+@org.joe_e.IsJoeE package org.waterken.http;

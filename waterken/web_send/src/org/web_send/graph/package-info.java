@@ -4,4 +4,4 @@
 /**
  * A reference graph interface.
  */
-@org.joe_e.verified package org.web_send.graph;
+@org.joe_e.IsJoeE package org.web_send.graph;

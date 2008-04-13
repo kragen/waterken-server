@@ -269,13 +269,13 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
      * A {@link ConstArray} factory.
      */
     public static class Builder<E> implements ArrayBuilder<E> {
-        private Object[] buffer;
-        private int size;
+        Object[] buffer;
+        int size;
 
         /**
          * Construct an instance with the default internal array length.
          */
-        public Builder() {
+        Builder() {
             this(0);
         }
         
@@ -283,7 +283,7 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
          * Construct an instance.
          * @param estimate  estimated array length
          */
-        public Builder(final int estimate) {
+        Builder(final int estimate) {
             buffer = new Object[estimate > 0 ? estimate : 32];
             size = 0;
         }        
@@ -296,6 +296,10 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
          *  unmodified.
          */
         public void append(E newE) {
+            appendInternal(newE);
+        }
+        
+        final void appendInternal(E newE) {
             if (size == buffer.length) {
                 System.arraycopy(buffer, 0, buffer = new Object[2 * size], 0,
                                  size);
@@ -311,7 +315,7 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
          *  unmodified.
          */
         public void append(E[] newEs) {
-            append(newEs, 0, newEs.length);
+            appendInternal(newEs, 0, newEs.length);
         }
 
         /** 
@@ -324,6 +328,10 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
          *  maximum length of a Java array.  The builder is unmodified.
          */
         public void append(E[] newEs, int off, int len) {
+            appendInternal(newEs, off, len);
+        }
+        
+        final void appendInternal(E[] newEs, int off, int len) {
             int newSize = size + len;
             if (newSize < 0 || off < 0 || len < 0 || off + len < 0
                 || off + len > newEs.length) {
@@ -336,6 +344,14 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
             }
             System.arraycopy(newEs, off, buffer, size, len);
             size = newSize;
+        }
+        
+        /** 
+         * Gets the current number of elements in the Array
+         * @return the number of elements that have been appended
+         */
+        public int length() {
+            return size;
         }
         
         /**

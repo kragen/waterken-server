@@ -4,4 +4,4 @@
 /**
  * A variable implementation.
  */
-@org.joe_e.verified package org.ref_send.var;
+@org.joe_e.IsJoeE package org.ref_send.var;

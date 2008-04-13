@@ -1,6 +1,6 @@
 // Copyright 2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.remote;
+package org.waterken.vat;
 
 import java.io.Serializable;
 
@@ -15,9 +15,6 @@ import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.var.Factory;
 import org.ref_send.var.Receiver;
-import org.waterken.vat.Effect;
-import org.waterken.vat.Root;
-import org.waterken.vat.Tracer;
 
 /**
  * A log {@link Event} generator.

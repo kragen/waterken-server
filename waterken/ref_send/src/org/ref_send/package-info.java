@@ -188,4 +188,4 @@
  * Each exchanged document is then created by composing an object tree from
  * these {@link org.ref_send.Record} types.</p>
  */
-@org.joe_e.verified package org.ref_send;
+@org.joe_e.IsJoeE package org.ref_send;

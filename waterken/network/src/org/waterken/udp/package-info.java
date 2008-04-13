@@ -4,4 +4,4 @@
 /**
  * Defines a UDP network transfer interface.
  */
-@org.joe_e.verified package org.waterken.udp;
+@org.joe_e.IsJoeE package org.waterken.udp;

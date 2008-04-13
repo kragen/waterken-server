@@ -169,8 +169,8 @@ Session implements Task {
                 entity.close();
             }
 
-            // Now is a good time for a context switch since we're not holding
-            // any locks, or much memory.
+            // now is a good time for a context switch since we're not holding
+            // any locks, or much memory
             exe.yield();
         }
     }

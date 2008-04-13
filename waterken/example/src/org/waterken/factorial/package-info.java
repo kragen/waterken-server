@@ -4,4 +4,4 @@
 /**
  * A tail recursive factorial implementation.
  */
-@org.joe_e.verified package org.waterken.factorial;
+@org.joe_e.IsJoeE package org.waterken.factorial;

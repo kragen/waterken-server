@@ -4,4 +4,4 @@
 /**
  * A linked list.
  */
-@org.joe_e.verified package org.ref_send.list;
+@org.joe_e.IsJoeE package org.ref_send.list;
