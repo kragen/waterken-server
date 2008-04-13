@@ -2,6 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 
 /**
- * A {@link ClassLoader} interface.
+ * A {@link java.lang.ClassLoader} interface.
  */
 package org.waterken.project;
