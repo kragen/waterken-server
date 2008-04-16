@@ -9,7 +9,7 @@ import org.joe_e.Struct;
 /**
  * An exportable reference to the destruct operation.
  */
-final class
+public final class
 Destruct extends Struct implements Runnable, Serializable {
     static private final long serialVersionUID = 1L;
 
