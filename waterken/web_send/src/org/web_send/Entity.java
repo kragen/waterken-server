@@ -21,7 +21,7 @@ Entity implements Powerless, Selfless, Serializable {
     static public final int maxContentSize = 256 * 1024;
     
     /**
-	 * required Media Type: {@value}
+	 * raw data Media Type: {@value}
 	 * <p>
 	 * Web user agents, like
 	 * <a href="http://msdn.microsoft.com/en-us/library/ms775147.aspx">IE6</a>,
