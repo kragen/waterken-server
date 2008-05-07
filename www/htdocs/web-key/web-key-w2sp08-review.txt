@@ -1,0 +1,119 @@
+From: Dan Wallach [dwallach@cs.rice.edu]
+Sent: Friday, March 28, 2008 7:50 AM
+To: Close, Tyler J.
+Subject: W2SP: your submission was accepted
+
+Thank you for submitting to W2SP.  Your paper was accepted and you should make plans for you (or one of your coauthors) to appear at W2SP to give a presentation.  Your paper will also appear in our online proceedings (you can see last year's proceedings to get an idea how this looks at the URL below).  There will be no printed proceedings.
+
+Last year:
+http://seclab.cs.rice.edu/w2sp/2007/
+
+This year's online proceedings should appear at the same location.
+
+
+Your reviews are attached below.  Please revise your paper in accordance with the reviews.  Since we're doing entirely online proceedings, we have more slack on final submission deadlines.
+The workshop itself will be Friday, May 22.  YOU SHOULD HAVE YOUR FINAL PAPER, IN PDF FORM, EMAILED TO ME BY FRIDAY, MAY 2.
+
+Registration for W2SP and the Oakland conference is now open.  The early registration deadline is April 28.  Please go ahead and register.
+
+http://www.ieee-security.org/TC/SP2008/oakland08.html
+
+
+Thanks,
+
+Dan & Larry
+-------
+Review 1:
+
+This paper introduces web-keys, which essentially turn URLs into capabilities, allowing browsers to access non-public contents via means of un-guessable URLs. Such URLs can be shared, potentially allowing me to do things like giving my friend access to one email message in my inbox, but not others, etc., which is nice.
+
+The paper also goes into considerable detail of how to minimize the risk of capability leakage, arriving at a scheme in which the capability is part of the URL fragment. When the browser wants to fetch a document from the server, the fragment is not included in the request. As a result, the server does not, in fact, send the document back to the browser, but instead sends a page with a bit of Javascript in it that will read the fragment out of the document's location property and include the capability in a HTTPS XHR request to the server. This prevents leakage of the capability in referrer headers.
+
+The paper is well-written, points out problems with the current state of affairs, and I think we should publish this paper and debate the pros and cons of this proposal.
+
+Having said that, here are some observations:
+
+- The authors position web-keys as an alternative to
+  username/password-based systems. I don't buy that. I still need to
+  be able to access my gmail account from any browser, and I won't be
+  able to remember the web-key for my inbox. So, I will have to go to
+  www.gmail.com and enter my username/password, because those I _can_
+  remember. Therefore, web-keys don't really help against  phishing.
+- Instead, I think web-keys should be positioned as an alternative to
+  cookies. And that makes sense - cookies provide ambient authority,
+  while web-keys are specific for one particular resource. That,
+  however, is a rather subtle distinction in the grand scheme of
+  things. Consider this list of problems that both cookies and
+  web-keys share:
+  * can be stolen or leaked via myriad methods
+  * XSS compromises application
+  * stateless systems provide crappy revocation and logout, because
+    invalidating the cookie/web-key token is hard.
+  * stateful systems are difficult to scale
+  (and while cookies do have the problem of ambient authority,
+  browsers are better at keeping them from prying eyes, like in
+  browser histories, etc)
+- Speaking of revocation - how do you propose to handle that? Do
+  web-keys expire? In that case "deep linking in a free world" doesn't
+  quite work as advertised - some of the URLs that I bookmarked won't
+  work anymore after a certain period of time. And if you don't expire
+  them, then presumably each server needs to keep track of which
+  web-keys are valid and which aren't? That seems like a scalability
+  nightmare.
+
+
+Review 2:
+
+This paper proposes that access control to web resources be implemented via capabilities represented as secret strings in the fragment portion of URIs ("web-keys").  For example, a user might view a message stored in their webmail account by visiting
+https://www.webmail/Inbox/1#324172347120934
+
+The claims this would have several benefits
+- Delegation.  Access to a resource could be freely delegated, enabling
+        mashups and other usage scenarios.
+- Single-login.  After bookmarking the main page of a web application,
+        the user does not need to login using a username and password
+- Phishing resistance.  The secret webkey is only sent to an SSL
+        web server after the client browser verifies the server's SSL key.
+        In today's systems, the user must manually inspect security indicators
+        to determine whether it is safe to enter her password.
+- XSRF-proof.  An attacker cannot guess the URL needed to perform such an
+        attack.
+- Same-origin-free.  Same-origin policy has stifled some innovation, but
+        would no longer be necessary.
+
+Here are some problems that could arise with this scheme:
+
+- Transitive delegation.  Most web applications include links to other
+        parts of the application on all pages, e.g. a link back to the inbox
+        from the view of an individual message, so web applications will
+        have to provide two or more keys for each url, e.g. the full-access
+        mesage viewing page and the linkless view.  Many user's will
+        probably accidentally give away full access to their webmail when
+        they intend to only give access to one message.
+
+- Shared terminals.  A user may end up "sharing" a terminal with
+  another user for several reasons: it's the only PC in the home, it's
+  at an internet cafe, or an attacker breaks into the computer.  In
+  these cases, other users may be able to inspect the cache, browser
+  history, or bookmarks to obtain the privileges necessary to access a
+  private resource.  The cache can be configured to ignore SSL pages,
+  but the other state information can be a problem.  Browser cookies
+  already support session-only lifetimes, and web applications provide
+  an easy interface for the user to indicate whether they are using a
+  shared computer to login.  This functionality would have to be
+  adapted for web-keys, requiring browser modifications in both
+  history management and bookmark management.
+
+
+
+Review 3:
+
+The paper advocates the use of hard-to-guess 64-bit strings as capabilities for providing fine-grain access control in web mashup applications. The proposed approach appears to be implemented in the open source system Waterken.
+
+The paper is in between a position and research paper formats/content. It's somewhat too detailed for a position paper but is not rigorous enough for a research paper either. To make the paper more a position one, the author might want to curtail some of the details in sections 3 and 5, and provide only summaries of his arguments.
+
+Overall, the advocated idea should be a good topic for the workshop. Since it's a (popular) reincarnation of capability-based design for access control, I would like to see more discussion of the classical issues with capability systems, such as control of copying and revocation. Also, the advocated approach cannot replace authentication in Web systems as it offers "something you have" and takes away "something you know". I for one, would not want my bank to send me a Web-key and let my username and password forgo. How do I know my online banking web-key was not leaked accidentally?
+
+Another point to be discussed is phishing. The advocated approach won't solve the phishing problem. It would only replace one target (user name and password) with another one (web-key). So, the phishers will phish for web-keys instead.
+
+======
