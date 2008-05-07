@@ -21,6 +21,7 @@ import org.waterken.base32.Base32;
 import org.waterken.dns.Resource;
 import org.waterken.dns.editor.DomainMaster;
 import org.waterken.dns.editor.redirectory.Redirectory;
+import org.waterken.net.http.HTTPD;
 import org.waterken.server.Config;
 import org.waterken.server.Proxy;
 
@@ -222,11 +223,14 @@ GenKey {
                            public Void
                            fulfill(final Variable<Resource> a) throws Exception{
                                Config.init("ip", a);
-
+                               
+                               final int portN =
+                            	   Config.read(HTTPD.class, "https").port;
+                               final String port= 443 == portN ? "" : ":"+portN;
                                System.err.println(
                                    "Start your server and visit:");
                                System.out.println(
-                                   "https://" + fingerprint + suffix + "/");
+                                   "https://" + fingerprint+suffix+port +"/");
                                return null;
                            }
                        });
