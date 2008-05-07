@@ -23,14 +23,15 @@ Entity implements Powerless, Selfless, Serializable {
     /**
 	 * required Media Type: {@value}
 	 * <p>
-	 * Web user agents, like IE6, will Content-Type sniff a received entity to
-	 * find HTML to execute. Javascript code inside this sniffed HTML content
-	 * can then script other frames from the same origin. Consequently, an
-	 * application that thought it was just providing some bytes for download,
-	 * may actually be making itself vulnerable to a Cross-Site-Scripting
-	 * attack. Currently, the only known way to avoid triggering this web user
-	 * agent "feature" is to use a Content-Type that the web user agent does not
-	 * recognize.
+	 * Web user agents, like
+	 * <a href="http://msdn.microsoft.com/en-us/library/ms775147.aspx">IE6</a>,
+	 * will Content-Type sniff a received entity to find HTML to execute.
+	 * Javascript code inside this sniffed HTML content can then script other
+	 * frames from the same origin. Consequently, an application that thought it
+	 * was just providing some bytes for download, may actually be making itself
+	 * vulnerable to a Cross-Site-Scripting attack. Currently, the only known
+	 * way to avoid triggering this web user agent "feature" is to use a
+	 * Content-Type that the web user agent does not recognize.
 	 * </p>
 	 * <p>
 	 * At some future time, this class may be extended to support Media-Types
