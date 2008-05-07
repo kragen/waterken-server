@@ -7,7 +7,6 @@ import java.io.Serializable;
 import org.joe_e.Powerless;
 import org.joe_e.Selfless;
 import org.joe_e.array.ByteArray;
-import org.joe_e.array.PowerlessArray;
 
 /**
  * A MIME entity.
@@ -24,36 +23,7 @@ Entity implements Powerless, Selfless, Serializable {
     /**
      * binary Media Type: {@value}
      */
-    static public final String binary = "application/octet-stream"; 
-    
-    /**
-     * supported Media Types
-     * <p>
-     * Some Media Types, such as HTML, are automatically provided with
-     * additional permissions by the web browser, such as the permission to
-     * script other browser frames from the same origin. Consequently, it is not
-     * always safe to serve such content. This field lists the known safe and
-     * so supported Media Types.
-     * </p>
-     */
-    static public final PowerlessArray<String> supported = PowerlessArray.array(
-        binary,
-        "text/plain"
-    );
-    
-    /**
-     * Is a given Media Type supported?
-     * @param type  Media Type
-     */
-    static public boolean
-    supports(final String type) {
-        final int c = type.indexOf(';');
-        final String m = -1 == c ? type : type.substring(0, c);
-        for (final String x : supported) {
-            if (x.equals(m)) { return true; }
-        }
-        return false;
-    }
+    static public final String binary = "application/do-not-execute"; 
 
     /**
      * Media Type
@@ -67,13 +37,13 @@ Entity implements Powerless, Selfless, Serializable {
 
     /**
      * Constructs an instance.
-     * @param type      {@link #type}
+     * @param type      {@link #type}, MUST be {@link #binary}
      * @param content   {@link #content}
      * @throws Failure  <code>content</code> bigger than {@link #maxContentSize}
      */
     public
     Entity(final String type, final ByteArray content) throws Failure {
-        if (!supports(type)) { throw Failure.notSupported(); }
+        if (!binary.equals(type)) { throw Failure.notSupported(); }
         if (maxContentSize < content.length()) { throw Failure.tooBig(); }
         
         this.type = type;
