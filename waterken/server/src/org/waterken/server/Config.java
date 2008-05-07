@@ -96,7 +96,7 @@ Config {
      * @param name  setting name
      * @return setting value, or <code>null</code> if not set
      */
-    static protected <T> T
+    static public <T> T
     read(final Class<T> T, final String name) {
         final File file = Filesystem.file(configFolder, name + ext);
         if (!file.isFile()) { return null; }
