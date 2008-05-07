@@ -70,13 +70,14 @@ Serve {
 	            new Thread(task, service).start();
 	            continue;
 	        } catch (final BindException e) {
-	        	err.println("!!! Unable to use configured port for: "+ service);
+	        	err.println("Unable to use configured port for: " + service);
 	        	err.println("Try configuring a different port number using " +
-	        				"the corresponding file in the config/ folder !!!");
+	        				"the corresponding file in the config/ folder.");
 	        } catch (final Exception e) {
 	        	e.printStackTrace();
 	        }
-	        err.println("Aborting server");
+	        err.println();
+	        err.println("!!! server exiting due to configuration error !!!");
         	System.exit(-1);
         }
         
