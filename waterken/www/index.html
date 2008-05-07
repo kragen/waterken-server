@@ -20,8 +20,21 @@ Server <a href="http://waterken.sourceforge.net/">documentation</a> is available
 online.</p>
 <h2><a name="todo" href="#todo">Things to do&hellip;</a></h2>
 <ul>
-<li><a href="http://waterken.sourceforge.net/deploy/#genkey">Configure an SSL key pair</a></li>
-<li><a href="http://waterken.sourceforge.net/deploy/#new_files">Edit your homepage</a></li>
+<li>Follow the instructions to <a href="http://waterken.sourceforge.net/deploy/#genkey">configure an SSL key pair</a></li>
+<li>Follow the instructions to <a href="http://waterken.sourceforge.net/deploy/#add_file">edit your homepage</a></li>
+<li>Setup the <a href="http://waterken.sourceforge.net/bang/">Bang Tutorial</a> on your new installation
+<ol>
+<li><a href="http://waterken.sourceforge.net/deploy/#add_vat">create the server-side vat</a> with the command:
+<p><kbd>java -jar spawn.jar example org.waterken.bang.Main test</kbd></p>
+</li>
+<li>copy the URL emitted by the previous command</li>
+<li><a href="http://waterken.sourceforge.net/deploy/#start">start the server</a> with the command:
+<p><kbd>java -jar serve.jar</kbd></p>
+</li>
+<li>follow the directions in the <a href="http://waterken.sourceforge.net/bang/">Bang Tutorial</a>,
+using the copied URL in place of the online test page</li>
+</ol>
+</li>
 </ul>
 </div>
 <p class="footer">
