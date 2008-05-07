@@ -139,22 +139,22 @@ additional identifiers. Consequently, a user cannot share access with another
 just by passing a URI. For example, a user of the described web-mail
 application may have access to a resource which stores the current contact
 information of a friend. Rather than maintain this state on behalf of the
-friend, the user may wish to directly delegate access to the contact resource
-to the friend, so that it may be updated directly when contact information
-changes. If the web application is protected by a username/password, the user
-cannot share access to the contact resource simply by sending their friend the
-URI. Instead, sharing access to the contact resource may require sharing full
-control over the web-mail account by giving the user's username/password to the
-friend. Alternatively, the web application may support some process whereby the
-friend may be given their own username/password, and an access control list
-updated by the user to give the friend access to the contact resource. Some may
-think this latter scenario plausible, others not, but it is certainly different
-from the interaction for sharing access to a publicly accessible resource and
-so cannot be assumed to have the same architectural properties. If the single
-global identification system provided by the URI is as crucial as the W3C
-states, then the publicly accessible Web would never have been built under the
-regime currently in place for private resources. The dearth of mashups
-involving private resources may be seen as evidence for this position.</p>
+friend, the user may wish to delegate access to the contact resource to the
+friend, so that it may be updated directly when contact information changes. If
+the web application is protected by a username/password, the user cannot share
+access to the contact resource simply by sending their friend the URI. Instead,
+sharing access to the contact resource may require sharing full control over the
+web-mail account by giving the user's username/password to the friend.
+Alternatively, the web application may support some process whereby the friend
+may be given their own username/password, and an access control list updated by
+the user to give the friend access to the contact resource. Some may think this
+latter scenario plausible, others not, but it is certainly different from the
+interaction for sharing access to a publicly accessible resource and so cannot
+be assumed to have the same architectural properties. If the single global
+identification system provided by the URI is as crucial as the W3C states, then
+the publicly accessible Web would never have been built under the regime
+currently in place for private resources. The dearth of mashups involving
+private resources may be seen as evidence for this position.</p>
 <h4><a name="lost_orthogonality" href="#lost_orthogonality">Loss of orthogonality</a></h4>
 <p>Since the URI alone is insufficient to direct a web agent to a private
 resource protected by a username/password, the additional identifiers must be
