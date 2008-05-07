@@ -102,7 +102,7 @@ Callee extends Struct implements Server, Serializable {
         } catch (final NullPointerException e) {
             subject = Eventual.promised(Java.reflect(code, s));
         } catch (final Exception e) {
-            subject = new Rejected(e);
+            subject = new Rejected<Object>(e);
         }
         
         // determine the request type
@@ -113,10 +113,10 @@ Callee extends Struct implements Server, Serializable {
                 value = subject.cast();
             } catch (final NullPointerException e) {
                 respond.fulfill(serialize(request.method, "404", "not yet",
-                    ephemeral, Serializer.render, new Rejected(e)));
+                    ephemeral, Serializer.render, new Rejected<Object>(e)));
                 return;
             } catch (final Exception e) {
-                value = new Rejected(e);
+                value = new Rejected<Object>(e);
             }
             if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
                 respond.fulfill(serialize(request.method, "200", "OK", forever,
@@ -158,7 +158,7 @@ Callee extends Struct implements Server, Serializable {
                 // AUDIT: call to untrusted application code
                 value = Reflection.invoke(Java.bubble(lambda), target);
             } catch (final Exception e) {
-                value = new Rejected(e);
+                value = new Rejected<Object>(e);
             }
             final boolean constant = "getClass".equals(member.getName());
             final int maxAge = constant ? forever : ephemeral; 
@@ -189,7 +189,7 @@ Callee extends Struct implements Server, Serializable {
                         return Reflection.invoke(Java.bubble(lambda), target,
                                 argv.toArray(new Object[argv.length()]));
                     } catch (final Exception e) {
-                        return new Rejected(e);
+                        return new Rejected<Object>(e);
                     }
                 }
             });
@@ -215,7 +215,7 @@ Callee extends Struct implements Server, Serializable {
     private Response
     never(final String method) throws Exception {
         return serialize(method, "404", "never", forever, Serializer.render,
-                         new Rejected(new NullPointerException()));
+                         new Rejected<Object>(new NullPointerException()));
     }
     
     private Response
