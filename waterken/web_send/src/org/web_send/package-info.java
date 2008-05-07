@@ -30,7 +30,8 @@
  * drum which no longer exists, the <code>hits</code> promise will eventually
  * transition to the rejected state with a
  * {@linkplain org.ref_send.promise.Rejected#reason reason}
- * {@link java.lang.Exception} providing details about the problem. For example:</p>
+ * {@link java.lang.Exception} providing details about the problem. For example:
+ * </p>
  * <pre>
  * final int expected = &hellip;   // the expected number of hits
  * class Was extends Do&lt;Integer,Boolean&gt; implements Serializable {
