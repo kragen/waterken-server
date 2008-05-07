@@ -57,28 +57,5 @@
  * }
  * &hellip; = _.when(hits, new Was());
  * </pre>
- * <h3><a name="entity" href="#entity">Using a custom Content-Type</a></h3>
- * <p>By default, all invocation arguments and return values are represented as
- * <a href="http://json.org/">JSON</a> in HTTP requests and responses.
- * Sometimes, an application may need to use another Content-Type to interact
- * with a specific client, or to transfer raw bytes. This can be accomplished
- * using an {@link org.web_send.Entity}. For example, the following code:</p>
- * <pre>
- * public {@link org.web_send.Entity}
- * getGreeting() {
- *     return new Entity(
- *         "text/plain; charset=US-ASCII",
- *         {@link org.joe_e.array.ByteArray}.array({@link org.joe_e.charset.ASCII}.encode("Hello World!\n"))
- *     );
- * }
- * </pre>
- * <p>returns the following HTTP response to a <code>GET</code> request:</p>
- * <pre>
- * HTTP/1.1 200 OK
- * Content-Type: text/plain; charset=US-ASCII
- * Content-Length: 13
- * 
- * Hello World!
- * </pre>
  */
 @org.joe_e.IsJoeE package org.web_send;
