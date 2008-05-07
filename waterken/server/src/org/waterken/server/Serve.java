@@ -68,15 +68,16 @@ Serve {
 	
 	            // run the corresponding daemon
 	            new Thread(task, service).start();
+	            continue;
 	        } catch (final BindException e) {
 	        	err.println("!!! Unable to use configured port for: "+ service);
 	        	err.println("Try configuring a different port number using " +
 	        				"the corresponding file in the config/ folder !!!");
-	        	System.exit(-2);
 	        } catch (final Exception e) {
 	        	e.printStackTrace();
-	        	System.exit(-1);
 	        }
+	        err.println("Aborting server");
+        	System.exit(-1);
         }
         
         // ping all the persistent vats to restart any pending tasks
