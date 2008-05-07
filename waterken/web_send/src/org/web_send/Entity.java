@@ -21,9 +21,23 @@ Entity implements Powerless, Selfless, Serializable {
     static public final int maxContentSize = 256 * 1024;
     
     /**
-     * binary Media Type: {@value}
-     */
-    static public final String binary = "application/do-not-execute"; 
+	 * required Media Type: {@value}
+	 * <p>
+	 * Web user agents, like IE6, will Content-Type sniff a received entity to
+	 * find HTML to execute. Javascript code inside this sniffed HTML content
+	 * can then script other frames from the same origin. Consequently, an
+	 * application that thought it was just providing some bytes for download,
+	 * may actually be making itself vulnerable to a Cross-Site-Scripting
+	 * attack. Currently, the only known way to avoid triggering this web user
+	 * agent "feature" is to use a Content-Type that the web user agent does not
+	 * recognize.
+	 * </p>
+	 * <p>
+	 * At some future time, this class may be extended to support Media-Types
+	 * that do get sniffed, by checking that this sniffing is safe.
+	 * </p>
+	 */
+    static public final String doNotExecute = "application/do-not-execute"; 
 
     /**
      * Media Type
@@ -37,13 +51,13 @@ Entity implements Powerless, Selfless, Serializable {
 
     /**
      * Constructs an instance.
-     * @param type      {@link #type}, MUST be {@link #binary}
+     * @param type      {@link #type}, MUST be {@link #doNotExecute}
      * @param content   {@link #content}
      * @throws Failure  <code>content</code> bigger than {@link #maxContentSize}
      */
     public
     Entity(final String type, final ByteArray content) throws Failure {
-        if (!binary.equals(type)) { throw Failure.notSupported(); }
+        if (!doNotExecute.equals(type)) { throw Failure.notSupported(); }
         if (maxContentSize < content.length()) { throw Failure.tooBig(); }
         
         this.type = type;
