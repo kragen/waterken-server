@@ -75,6 +75,12 @@ when serving files from the <code>www/</code> folder.</dd>
 <dt><a name="vat" href="#vat"><code>vat/</code></a></dt>
 <dd><code>vatRootFolder.json</code> specifies the root folder of all persistent
 vats</dd>
+<dt><a name="ports" href="#ports">server ports</a></dt>
+<dd>Service specific configuration options, such as the server port number, are
+specified in a corresponding configuration file. For example, the HTTP server
+port number is specified by the <code>port</code> member in the
+<code>http.json</code> file. See also <code>https.json</code> and
+<code>dns.json</code>.</dd>
 </dl>
 <h2><a name="using" href="#using">Using the server</a></h2>
 <p>The server supports SSL, use of an HTTP proxy and can host two kinds of
@@ -90,11 +96,15 @@ and also includes a shell script for compilation from the command line. The
 <h3><a name="start" href="#start">Start the server</a></h3>
 <p>Once compilation is complete, the server can be run using the <code>serve.jar</code> command. For example,</p>
 <p><kbd>java -jar serve.jar</kbd></p>
+<p>If you are running on Unix, or another operating system that restricts use
+of well-known ports, the above command may fail under the default Waterken server
+configuration which uses the standard port number for the HTTPS service. You
+can <a href="#ports">configure this port number</a> in the
+<code>config/https.json</code> file.</p>
 <p>The Waterken server is designed as <q>crash-only software</q>, so there is
 no special user interface for stopping the server. Just kill the process, such
 as by hitting <kbd>Ctrl-C</kbd> from the command line.</p>
-<h3><a name="proxy"
-href="#proxy">Configure an HTTP proxy</a></h3>
+<h3><a name="proxy" href="#proxy">Configure an HTTP proxy</a></h3>
 <p>If you are behind an HTTP proxy, you must provide its location to any command
 that requires network access. Each such command checks a set of Java system
 properties for proxy configuration information.</p>
