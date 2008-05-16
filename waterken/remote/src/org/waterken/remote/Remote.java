@@ -93,7 +93,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
                 final Object handler = object instanceof Proxy
                     ? Proxies.getHandler((Proxy)object) : object;
                 if (handler instanceof Remote) {
-                    final Remote x = (Remote)handler;
+                    final Remote<?> x = (Remote<?>)handler;
                     if ((Token)local.fetch(null, Remoting.deferred) ==
                         (Token)x.local.fetch(null, Remoting.deferred)) {
                         return x.URL;
@@ -114,8 +114,9 @@ Remote<T> extends Deferred<T> implements Promise<T> {
      */
     public boolean
     equals(final Object x) {
-        return x instanceof Remote && _.equals(((Remote)x)._) &&
-               URL.equals(((Remote)x).URL) && local.equals(((Remote)x).local);
+        return x instanceof Remote && _.equals(((Remote<?>)x)._) &&
+               URL.equals(((Remote<?>)x).URL) &&
+               local.equals(((Remote<?>)x).local);
     }
     
     /**
@@ -180,7 +181,8 @@ Remote<T> extends Deferred<T> implements Promise<T> {
             invoke(final String URL, final Object proxy, 
                    final Method method, final Object... arg) {
                 try {
-                    return new Rejected(reason).invoke(proxy, method, arg);
+                    return new Rejected<Object>(reason).
+                    				invoke(proxy, method, arg);
                 } catch (final Exception e) { throw new Error(e); }
             }
         };
