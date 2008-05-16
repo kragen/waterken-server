@@ -67,17 +67,17 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     /**
      * {@link Volatile} expected type
      */
-    static private final TypeVariable R = Typedef.name(Volatile.class, "T");
+    static private final TypeVariable<?> R = Typedef.name(Volatile.class, "T");
     
     static private void
     serialize(final boolean mode, final Type implicit,
               final Object object, final Exporter export,
               final String indent, final Writer out) throws Exception {
-        final Class actual = null != object ? object.getClass() : Void.class;
+        final Class<?> actual = null != object ? object.getClass() : Void.class;
         if (Inline.class == actual) {
             final Type r = Typedef.value(R, implicit);
             serialize(mode, null != r ? r : Object.class,
-                      ((Inline)object).cast(), export, indent, out);
+                      ((Inline<?>)object).cast(), export, indent, out);
         } else if (String.class == actual) {
             out.write("\"");
             final String text = (String)object;
@@ -181,14 +181,14 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         } else if (BigDecimal.class == actual) {
             out.write(((BigDecimal)object).toPlainString());
         } else if (object instanceof ConstArray) {
-            serializeArray(render, implicit, (ConstArray)object,
+            serializeArray(render, implicit, (ConstArray<?>)object,
                            export, indent, out);
         } else if (object instanceof Record || object instanceof Throwable) {
             out.write("{");
             String separator = newLine;
             final String comma = "," + newLine;
             final String inset = indent + "  ";
-            final Class top = Typedef.raw(implicit);
+            final Class<?> top = Typedef.raw(implicit);
             if (actual != top) {
                 out.write(separator);
                 out.write(inset);
@@ -264,7 +264,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             }
 
             // output the return type
-            final Class outClass = jsonType(m.getGenericReturnType());
+            final Class<?> outClass = jsonType(m.getGenericReturnType());
             if (void.class != outClass && Void.class != outClass) {
                 out.write(separator);
                 out.write(inset);
@@ -305,7 +305,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.write(indent);
             out.write("}");
         } else if (Class.class == actual) {
-            final Class c = (Class)object;
+            final Class<?> c = (Class<?>)object;
             String separator = newLine;
             final String comma = "," + newLine;
             final String inset = indent + "  ";
@@ -358,7 +358,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             String separator = newLine;
             final String comma = "," + newLine;
             final String inset = indent + "  ";
-            final Class top = Typedef.raw(implicit);
+            final Class<?> top = Typedef.raw(implicit);
             if (actual != top) {
                 out.write(separator);
                 out.write(inset);
@@ -379,10 +379,10 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         }
     }
     
-    static private Class
+    static private Class<?>
     jsonType(final Type p) {
         final Type pR = Typedef.value(R, p);
-        final Class pC = Typedef.raw(null != pR ? pR : p);
+        final Class<?> pC = Typedef.raw(null != pR ? pR : p);
         return Boolean.class == pC
             ? boolean.class
         : (byte.class == pC || Byte.class == pC ||
@@ -405,7 +405,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         : pC)))));
     }
     
-    static private final TypeVariable T = Typedef.name(Iterable.class, "T");
+    static private final TypeVariable<?> T = Typedef.name(Iterable.class, "T");
     
     static private void
     serializeArray(final boolean describe, final Type implicit,
@@ -416,7 +416,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         final String comma = ", ";
         final String inset = indent + "  ";
         final Type valueType = Typedef.bound(T, implicit);
-        for (final Object value : (ConstArray)object) {
+        for (final Object value : (ConstArray<?>)object) {
             out.write(separator);
             serialize(describe, valueType, value, export, inset, out);
             separator = comma;
