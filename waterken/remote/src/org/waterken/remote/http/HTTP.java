@@ -46,7 +46,7 @@ HTTP extends Struct implements Messenger, Serializable {
     /**
      * {@link Do} block parameter type
      */
-    static private final TypeVariable DoP = Typedef.name(Do.class, "P");
+    static private final TypeVariable<?> DoP = Typedef.name(Do.class, "P");
 
     public <P,R> R
     when(final String URL, final Class<?> R, final Do<P,R> observer) {
@@ -63,7 +63,7 @@ HTTP extends Struct implements Messenger, Serializable {
             try {
                 p = new Exports(local).connect(here).run(Object.class, target);
             } catch (final Exception e) {
-                p = new Rejected(e);
+                p = new Rejected<Object>(e);
             }
             final Eventual _ = (Eventual)local.fetch(null, Remoting._);
             return _.when((P)p, observer);
