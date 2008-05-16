@@ -42,9 +42,9 @@ Java {
 
             public String
             run(final Object target) {
-                final Class type= null!=target ? target.getClass() : Void.class;
+                final Class<?> type= null!=target?target.getClass():Void.class;
                 try {
-                    if (Class.class == type) { return name((Class)target); }
+                    if (Class.class == type) { return name((Class<?>)target); }
                     if (Method.class == type) {
                         final Method m = (Method)target;
                         String p = property(m);
@@ -56,7 +56,7 @@ Java {
                         return name(f.getDeclaringClass()) + "--" + f.getName();
                     }
                     if (Constructor.class == type) {
-                        final Constructor c = (Constructor)target;
+                        final Constructor<?> c = (Constructor<?>)target;
                         return name(c.getDeclaringClass()) + "--new";
                     }
                 } catch (final Exception e) {}
@@ -102,7 +102,7 @@ Java {
         final int dash = name.indexOf("--");
         final String typename = -1 == dash ? name : name.substring(0, dash);                        
         try {
-            final Class declarer = load(code, typename);
+            final Class<?> declarer = load(code, typename);
             if (-1 == dash) { return declarer; }
             final String p = name.substring(dash + "--".length());
             return (AnnotatedElement)dispatch(declarer, p);
@@ -192,14 +192,14 @@ Java {
         final Class<?> declarer = method.getDeclaringClass();
         if (isPublic(declarer.getModifiers())) { return method; }
         final String name = method.getName();
-        final Class[] param = method.getParameterTypes();
-        for (final Class i : declarer.getInterfaces()) {
+        final Class<?>[] param = method.getParameterTypes();
+        for (final Class<?> i : declarer.getInterfaces()) {
             try {
                 final Method r = bubble(Reflection.method(i, name, param));
                 if (null != r) { return r; }
             } catch (final NoSuchMethodException e) {}
         }
-        final Class parent = declarer.getSuperclass();
+        final Class<?> parent = declarer.getSuperclass();
         if (null != parent) {
             try {
                 final Method r = bubble(Reflection.method(parent, name, param));
@@ -238,10 +238,10 @@ Java {
     
     static private final class
     Alias extends Struct implements Powerless {
-        final Class type;
+        final Class<?> type;
         final String name;
         
-        Alias(final Class type, final String name) {
+        Alias(final Class<?> type, final String name) {
             this.type = type;
             this.name = name;
         }
@@ -273,7 +273,7 @@ Java {
         return Reflection.getName(type).replace('$', '-');
     }
     
-    static Class
+    static Class<?>
     load(final ClassLoader code,
          final String name) throws ClassNotFoundException {
         for (final Alias a : custom) {
