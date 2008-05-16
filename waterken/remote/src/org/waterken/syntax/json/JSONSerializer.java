@@ -107,17 +107,39 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                     out.write("\\t");
                     break;
                 default:
-                    if (Character.isISOControl(c)) {
+                	switch (Character.getType(c)) {
+                	case Character.UPPERCASE_LETTER:
+                	case Character.LOWERCASE_LETTER:
+                	case Character.TITLECASE_LETTER:
+                	case Character.MODIFIER_LETTER:
+                	case Character.OTHER_LETTER:
+                	case Character.NON_SPACING_MARK:
+                	case Character.ENCLOSING_MARK:
+                	case Character.COMBINING_SPACING_MARK:
+                	case Character.DECIMAL_DIGIT_NUMBER:
+                	case Character.LETTER_NUMBER:
+                	case Character.OTHER_NUMBER:
+                	case Character.DASH_PUNCTUATION:
+                	case Character.START_PUNCTUATION:
+                	case Character.END_PUNCTUATION:
+                	case Character.CONNECTOR_PUNCTUATION:
+                	case Character.OTHER_PUNCTUATION:
+                	case Character.MATH_SYMBOL:
+                	case Character.CURRENCY_SYMBOL:
+                	case Character.MODIFIER_SYMBOL:
+                	case Character.INITIAL_QUOTE_PUNCTUATION:
+                	case Character.FINAL_QUOTE_PUNCTUATION:
+                		out.write(c);
+                		break;
+                	default:
                         out.write("\\u");
-                        final int u = c;
-                        for (int shift = 16; 0 != shift;) {
-                            shift -= 4;
-                            final int h = (u >> shift) & 0x0F;
-                            out.write(h < 10 ? '0' + h : 'A' + (h - 10));
-                        }
-                    } else {
-                        out.write(c);
-                    }
+                    	final int u = c;
+                    	for (int shift = 16; 0 != shift;) {
+                    		shift -= 4;
+                    		final int h = (u >> shift) & 0x0F;
+                    		out.write(h < 10 ? '0' + h : 'A' + (h - 10));
+                    	}
+                	}
                 }
             }
             out.write("\"");
