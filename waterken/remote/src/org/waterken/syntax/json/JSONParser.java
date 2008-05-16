@@ -88,7 +88,7 @@ JSONParser {
             run(final char c) throws Exception { eatWhitespace(c); }
         };
         push(done);
-        final ConstArray[] root = { null };
+        final ConstArray<?>[] root = { null };
         push(parseStart(parameters, new Do<ConstArray<?>,Void>() {
             public Void
             fulfill(final ConstArray<?> referent) {
@@ -236,16 +236,16 @@ JSONParser {
     /**
      * {@link Volatile} expected type
      */
-    static private final TypeVariable T = Typedef.name(Volatile.class, "T");
+    static private final TypeVariable<?> T = Typedef.name(Volatile.class, "T");
     
     private State
     parseObject(final Type implicit, final Do<Object,?> out) {
         return new State() {
-            private Class explicit;     // type declared in JSON data
+            private Class<?> explicit;  // type declared in JSON data
             private Type promised;      // T if implicit is Volatile, else null
             
             // deserializer information for the determined type
-            private Constructor make;
+            private Constructor<?> make;
             private Type[] paramv;
             private String[] namev;
             private Object[] argv;
@@ -258,9 +258,9 @@ JSONParser {
             determine() throws NoSuchMethodException {
                 promised = Typedef.value(T, implicit);
                 final Type expected = null != promised ? promised : implicit;
-                final Class actual =
+                final Class<?> actual =
                     null != explicit ? explicit : Typedef.raw(expected);
-                for (final Constructor c : Reflection.constructors(actual)) {
+                for (final Constructor<?> c : Reflection.constructors(actual)) {
                     if (c.isAnnotationPresent(deserializer.class)) {
                         make = c;
                         break;
@@ -302,7 +302,7 @@ JSONParser {
                     }
                     final Object r = Reflection.construct(make, argv);
                     if (r instanceof Rejected) {
-                        final Rejected p = (Rejected)r;
+                        final Rejected<?> p = (Rejected<?>)r;
                         if (Double.class==implicit || double.class==implicit) {
                             if (p.reason instanceof NegativeInfinity) {
                                 out.fulfill(Double.NEGATIVE_INFINITY);
@@ -336,7 +336,7 @@ JSONParser {
                                                     new Do<Object,Void>() {
                                     public Void
                                     fulfill(final Object x) throws Exception {
-                                        for (final Object i : (ConstArray)x) {
+                                        for (final Object i : (ConstArray<?>)x){
                                             try {
                                                 explicit =
                                                     Java.load(code, (String)i);
@@ -433,7 +433,7 @@ JSONParser {
         };
     }
 
-    static private final TypeVariable E = Typedef.name(ConstArray.class, "E");
+    static private final TypeVariable<?> E = Typedef.name(ConstArray.class,"E");
     
     private State
     parseArray(final Type implicit, final Do<Object,?> out) {
@@ -450,7 +450,7 @@ JSONParser {
                     // determine the array element type
                     final Class<?> t;
                     final Class<?> vt;
-                    final Class actual = Typedef.raw(expected);
+                    final Class<?> actual = Typedef.raw(expected);
                     if (ByteArray.class == actual) {
                         t = byte.class;
                         vt = byte[].class;
