@@ -54,10 +54,12 @@ Integrations subcomponent).</li>
 <p>Subversion has its own place to look for proxy settings. Now that you have
 installed the plugin, the subversion software itself has been automagically
 installed. It needs its proxy settings configured as well. Find the "servers"
-file, in Windows it can be found in your Application Data folder under
-Subversion. In Linux, it can be found in <code>~/.subversion</code>.</p>
-<p>In the servers file, go to the <code>[global]</code> section. Find the two
-lines (they show up in other sections as well, do not set the wrong ones!),</p>
+file, in Windows XP it can be found in your <code>Application
+Data\Subversion</code> folder.  In Windows Vista, it's at
+<code>C:\users\<i>username</i>\AppData\Roaming\Subversion</code>. In Linux, it
+can be found in <code>~/.subversion</code>.</p> <p>In the servers file, go to
+the <code>[global]</code> section. Find the two lines (they show up in other
+sections as well, do not set the wrong ones!),</p>
 <pre>
 # http-proxy-host = proxy2.some-domain-name.com
 # http-proxy-port = 9000
