@@ -228,7 +228,7 @@ GenKey {
                             	   Config.read(HTTPD.class, "https").port;
                                final String port= 443 == portN ? "" : ":"+portN;
                                System.err.println(
-                                   "Start your server and visit:");
+                                   "Restart your server and visit:");
                                System.out.println(
                                    "https://" + fingerprint+suffix+port +"/");
                                return null;
