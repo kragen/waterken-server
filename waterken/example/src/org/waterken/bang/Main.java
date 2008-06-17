@@ -55,19 +55,19 @@ Main extends Struct implements Test, Serializable {
     }
     
     /**
-     * Constructs an instance.
-     * <p>
-     * This method is called by the infrastructure code that manages the
-     * lifecycle of databases. The method must have the exact declaration shown
-     * below. The sole parameter is the set of permissions provided to the first
-     * application object created in a new database. The return from this method
-     * is an object that will be returned to the creator of the new database. In
-     * this case, the database creator will get an eventual reference of type
-     * {@link Test} to an instance of this class. In all cases, the return type
-     * for a build() method must be either an interface, or a {@link Promise}.
-     * </p>
-     * @param framework vat permissions
-     */
+	 * Constructs an instance.
+	 * <p>
+	 * This method is called by the infrastructure code that manages the
+	 * lifecycle of vats. The method must have the exact declaration shown
+	 * below. The sole parameter is the set of permissions provided to the first
+	 * application object created in a new vat. The return from this method is
+	 * an object that will be returned to the creator of the new vat. In this
+	 * case, the vat creator will get an eventual reference of type {@link Test}
+	 * to an instance of this class. In all cases, the return type for a build()
+	 * method must be either an interface, or a {@link Promise}.
+	 * </p>
+	 * @param framework	vat permissions
+	 */
     static public Test
     build(final Framework framework) {
         /*
@@ -147,28 +147,28 @@ Main extends Struct implements Test, Serializable {
          */
         
         /*
-         * Start the test sequence by checking that the caller provided the
-         * correct value for the current hit count on the provided drum. We get
-         * the initial hit count by doing an eventual invocation of the
-         * getHits() method. If the provided drum is in another database, this
-         * invocation will result in an HTTP GET request being sent to the
-         * hosting server. The return from the getHits() invocation is a promise
-         * for the number of hits. Using the when() operation, we register an
-         * observer on this promise, to receive a notification after the HTTP
-         * GET response has come back. The observer, constructed by the was()
-         * method, produces a promise for a boolean, indicating whether or not
-         * the number of hits specified in the HTTP GET response was the number
-         * expected. We'll hold onto this promise and use it to produce the
-         * promise returned to our caller.
-         */
+		 * Start the test sequence by checking that the caller provided the
+		 * correct value for the current hit count on the provided drum. We get
+		 * the initial hit count by doing an eventual invocation of the
+		 * getHits() method. If the provided drum is in another vat, this
+		 * invocation will result in an HTTP GET request being sent to the
+		 * hosting server. The return from the getHits() invocation is a promise
+		 * for the number of hits. Using the when() operation, we register an
+		 * observer on this promise, to receive a notification after the HTTP
+		 * GET response has come back. The observer, constructed by the was()
+		 * method, produces a promise for a boolean, indicating whether or not
+		 * the number of hits specified in the HTTP GET response was the number
+		 * expected. We'll hold onto this promise and use it to produce the
+		 * promise returned to our caller.
+		 */
         final Promise<Boolean> zero = _.when(drum_.getHits(), was(n));
         
         /*
-         * Increment the hit counter by doing an eventual invocation of the
-         * bang() method. If the provided drum is in another database, this
-         * invocation will result in an HTTP POST request being sent to the
-         * hosting server.
-         */
+		 * Increment the hit counter by doing an eventual invocation of the
+		 * bang() method. If the provided drum is in another vat, this
+		 * invocation will result in an HTTP POST request being sent to the
+		 * hosting server.
+		 */
         drum_.bang(1);
         
         /*
