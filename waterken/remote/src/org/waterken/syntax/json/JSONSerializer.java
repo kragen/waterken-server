@@ -106,6 +106,9 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 case '\t':
                     out.write("\\t");
                     break;
+                case ' ':
+                	out.write(c);
+                	break;
                 default:
                 	switch (Character.getType(c)) {
                 	case Character.UPPERCASE_LETTER:
