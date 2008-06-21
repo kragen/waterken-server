@@ -18,10 +18,12 @@ import org.joe_e.charset.URLEncoding;
 import org.joe_e.file.Filesystem;
 import org.ref_send.promise.eventual.Sink;
 import org.waterken.cache.Cache;
+import org.waterken.http.MediaType;
 import org.waterken.id.Importer;
 import org.waterken.jos.JODBCache;
 import org.waterken.net.Execution;
 import org.waterken.project.Project;
+import org.waterken.remote.http.AMP;
 import org.waterken.remote.http.Browser;
 import org.waterken.syntax.Serializer;
 import org.waterken.syntax.json.JSONDeserializer;
@@ -73,6 +75,7 @@ Config {
     }
 
     static protected final String ext = ".json";
+    static protected final MediaType mime= new MediaType("application", "json");
     
     /**
      * Initializes a configuration setting.
@@ -141,7 +144,7 @@ Config {
                     if (pumpkin != found) { return found; }
                     final InputStream in = Filesystem.read(file);
                     final Object r = new JSONDeserializer().run(
-                        file.toURI().toString(), this, code, in,
+                        file.toURI().toString(), this, code, mime, in,
                         PowerlessArray.array((Type)type)).get(0);
                     in.close();
                     settings.put(file, r);
