@@ -11,10 +11,10 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * MIME type information.
+ * File type information.
  */
 public class
-MediaType implements Powerless, Selfless, Record, Serializable {
+FileType implements Powerless, Selfless, Record, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
@@ -25,14 +25,14 @@ MediaType implements Powerless, Selfless, Record, Serializable {
     /**
      * <code>application/octet-stream</code> MIME type
      */
-    static public final MediaType binary =
-        new MediaType("",           "application/octet-stream",         null);
+    static public final FileType binary =
+        new FileType("",           "application/octet-stream",         null);
     
     /**
      * <code>text/uri-list</code> MIME type
      */
-    static public final MediaType uri =
-        new MediaType(".uri",       "text/uri-list; charset=US-ASCII",  null);
+    static public final FileType uri =
+        new FileType(".uri",       "text/uri-list; charset=US-ASCII",  null);
 
     /**
      * filename extension
@@ -56,9 +56,9 @@ MediaType implements Powerless, Selfless, Record, Serializable {
      * @param encoding  {@link #encoding}
      */
     public @deserializer
-    MediaType(@name("ext") final String ext,
-              @name("name") final String name,
-              @name("encoding") final String encoding) {
+    FileType(@name("ext") final String ext,
+             @name("name") final String name,
+             @name("encoding") final String encoding) {
         if (null == ext) { throw new NullPointerException(); }
         if (null == name) { throw new NullPointerException(); }
         
@@ -78,7 +78,7 @@ MediaType implements Powerless, Selfless, Record, Serializable {
     equals(final Object o) {
         boolean r = null != o && getClass() == o.getClass();
         if (r) {
-            final MediaType x = (MediaType)o;
+            final FileType x = (FileType)o;
             r = ext.equals(x.ext) && name.equals(x.name) &&
                 (null!=encoding ?encoding.equals(x.encoding) :null==x.encoding);
         }

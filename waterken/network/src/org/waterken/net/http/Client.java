@@ -27,6 +27,7 @@ import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
+import org.waterken.http.TokenList;
 import org.waterken.io.bounded.Bounded;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.open.Open;
@@ -348,7 +349,7 @@ Client implements Server {
             new BufferedOutputStream(output, chunkSize - "0\r\n\r\n".length());
 
         // Output the Request-Line.
-        HTTP.vetToken(request.method);
+        TokenList.vet(TokenList.token, request.method);
         HTTP.vet(" ", request.URL);
         
         final Writer hout = ASCII.output(Open.output(out));
@@ -430,22 +431,24 @@ Client implements Server {
 
         // parse the Status-Line
         final int beginVersion = 0;
-        final int endVersion =
-            HTTP.findSP(statusLine, "HTTP/1.".length(), endStatusLine);
+        final int endVersion = TokenList.skip(TokenList.digit, statusLine,
+        		"HTTP/1.".length(), endStatusLine);
         final String version = statusLine.substring(beginVersion, endVersion);
-        final int beginStatus =
-            HTTP.skipSP(statusLine, endVersion + 1, endStatusLine);
-        final int endStatus =
-            HTTP.findSP(statusLine, beginStatus + 1, endStatusLine);
+        final int beginStatus = endVersion + 1;
+        final int endStatus = beginStatus + 3;
+        final int beginPhrase = endStatus + 1;
+        if (beginPhrase > endStatusLine) { throw new Nap("status line"); }
+        if (' ' != statusLine.charAt(endVersion)){throw new Nap("status line");}
+        if (' ' != statusLine.charAt(endStatus)) {throw new Nap("status line");}
         final String status = statusLine.substring(beginStatus, endStatus);
-        final String phrase = statusLine.substring(endStatus + 1);
+        final String phrase = statusLine.substring(beginPhrase);
 
         // sleep on a 5xx response
         if (status.startsWith("5")) { throw new Nap(phrase); }
 
         // parse the response headers
         final ArrayList<Header> header = new ArrayList<Header>(16);
-        HTTP.readHeaders(header, hin);
+        HTTPD.readHeaders(header, hin);
 
         // check for informational response
         // RFC 2616, section 10.1:
@@ -453,7 +456,7 @@ Client implements Server {
         if (status.startsWith("1")) { return receive(method, cin, respond); }
 
         // build the response
-        final boolean persist = HTTP.persist(version, header);
+        final boolean persist = HTTPD.persist(version, header);
         final InputStream entity;
         if ("204".equals(status)) {
             entity = null;
@@ -467,7 +470,7 @@ Client implements Server {
             // with the exception of the cases handled above, all responses have
             // a message body, which is either explicitly delimited, or
             // terminated by connection close
-            final InputStream explicit = HTTP.body(header, cin);
+            final InputStream explicit = HTTPD.body(header, cin);
             entity = null != explicit ? explicit : cin;
         }
         respond.fulfill(new Response(version, status, phrase,

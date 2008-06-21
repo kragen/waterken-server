@@ -105,17 +105,22 @@ Request extends Struct implements Content, Record, Serializable {
 
     /**
      * Gets the <code>Content-Type</code>.
+     * @return specified Media-Type, or <code>null</code> if unspecified
      */
     public String
     getContentType() { return Header.find(null, header, "Content-Type"); }
 
     /**
      * Gets the <code>Content-Length</code>.
-     * @return number of bytes expected in {@link #body}, or -1 if unknown
+     * @return number of bytes expected in {@link #body}, or null if unspecified
      */
-    public int
+    public Integer
     getContentLength() {
-        return Integer.parseInt(Header.find("-1", header, "Content-Length"));
+    	final String sSize = Header.find(null, header, "Content-Length");
+    	if (null == sSize) { return null; }
+    	final int nSize = Integer.parseInt(sSize);
+    	if (nSize < 0) { throw new NumberFormatException(); }
+        return nSize;
     }
     
     /**

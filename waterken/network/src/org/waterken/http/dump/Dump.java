@@ -20,7 +20,7 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.MIME;
-import org.waterken.io.MediaType;
+import org.waterken.io.FileType;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.uri.Header;
 import org.waterken.uri.Query;
@@ -97,8 +97,8 @@ Dump extends Struct implements Server, Serializable {
         
         // determine the request Media Type
         final String contentType = request.getContentType();
-        MediaType type = MediaType.binary;
-        for (final MediaType i : formats.known) {
+        FileType type = FileType.binary;
+        for (final FileType i : formats.known) {
             if (i.name.equalsIgnoreCase(contentType)) {
                 type = i;
                 break;

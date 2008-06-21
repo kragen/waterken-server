@@ -20,7 +20,7 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.MIME;
-import org.waterken.io.MediaType;
+import org.waterken.io.FileType;
 import org.waterken.io.stream.Stream;
 import org.waterken.uri.Filename;
 import org.waterken.uri.Header;
@@ -91,11 +91,11 @@ Files extends Struct implements Server, Serializable {
             return;
         }
         String ext = Filename.ext(name);
-        MediaType contentType = MediaType.binary;
+        FileType contentType = FileType.binary;
         File file = null;
         try {
             if ("".equals(ext)) {
-                for (final MediaType x : formats.known) {
+                for (final FileType x : formats.known) {
                     final File f = Filesystem.file(folder, name+x.ext);
                     if (f.isFile()) {
                         ext = x.ext;
@@ -108,7 +108,7 @@ Files extends Struct implements Server, Serializable {
             } else {
                 final File f = Filesystem.file(folder, name);
                 if (f.isFile()) {
-                    for (final MediaType x : formats.known) {
+                    for (final FileType x : formats.known) {
                         if (x.ext.equals(ext)) {
                             contentType = x;
                             break;
@@ -132,12 +132,12 @@ Files extends Struct implements Server, Serializable {
                 }
 
                 // check for a redirect
-                final String x = Filename.key(name) + MediaType.uri.ext;
+                final String x = Filename.key(name) + FileType.uri.ext;
                 final File redirect = Filesystem.file(folder, x);
                 if (redirect.isFile()) {
-                    ext = MediaType.uri.ext;
+                    ext = FileType.uri.ext;
                     name = x;
-                    contentType = MediaType.uri;
+                    contentType = FileType.uri;
                     file = redirect;
                 } else {
                     respond.reject(Failure.notFound());
@@ -150,7 +150,7 @@ Files extends Struct implements Server, Serializable {
         }
         
         // check for a redirect of any method
-        if (MediaType.uri.equals(contentType)) {
+        if (FileType.uri.equals(contentType)) {
 
             // load the redirect URI
             String location = null;

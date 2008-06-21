@@ -21,14 +21,14 @@ MIME extends Struct implements Powerless, Record, Serializable {
     /**
      * known MIME types
      */
-    public final PowerlessArray<MediaType> known;
+    public final PowerlessArray<FileType> known;
     
     /**
      * Constructs an instance.
      * @param known {@link #known}
      */
     public @deserializer
-    MIME(@name("known") final PowerlessArray<MediaType> known) {
+    MIME(@name("known") final PowerlessArray<FileType> known) {
         this.known = known;
     }
 }

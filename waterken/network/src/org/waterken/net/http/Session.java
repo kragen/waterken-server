@@ -13,6 +13,7 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
+import org.waterken.http.TokenList;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.stream.Stream;
 import org.waterken.net.Execution;
@@ -76,24 +77,23 @@ Session implements Task {
 
             // parse the Method
             final int beginMethod = 0;
-            final int endMethod =
-                HTTP.findSP(requestLine, beginMethod, endRequestLine);
+            final int endMethod = TokenList.skip(TokenList.token, requestLine,
+            									 beginMethod, endRequestLine);
+            if (' ' != requestLine.charAt(endMethod)) { throw new Exception(); }
             final String method = requestLine.substring(beginMethod, endMethod);
 
             // parse the Request-URI
-            final int beginRequestURI =
-                HTTP.skipSP(requestLine, endMethod, endRequestLine);
-            final int endRequestURI =
-                HTTP.findSP(requestLine, beginRequestURI, endRequestLine);
+            final int beginRequestURI = endMethod + 1;
+            final int endRequestURI = requestLine.indexOf(' ');
+            if (-1 == endRequestURI) { throw new Exception(); }
             final String requestURI =
                 requestLine.substring(beginRequestURI, endRequestURI);
 
             // parse the HTTP-Version
-            final int beginHTTPVersion =
-                HTTP.skipSP(requestLine, endRequestURI, endRequestLine);
+            final int beginHTTPVersion = endRequestURI + 1;
             final String version = beginHTTPVersion == endRequestLine
                 ? "HTTP/0.9"
-                : requestLine.substring(beginHTTPVersion);
+            : requestLine.substring(beginHTTPVersion);
 
             // parse the request based on the protocol version
             boolean done = false;
@@ -104,8 +104,8 @@ Session implements Task {
                 // parse the request
                 final ArrayList<Header> header = new ArrayList<Header>(16);
                 if (version.startsWith("HTTP/1.")) {
-                    HTTP.readHeaders(header, hin);
-                    entity = HTTP.body(header, cin);
+                    HTTPD.readHeaders(header, hin);
+                    entity = HTTPD.body(header, cin);
                 } else if (version.startsWith("HTTP/0.")) {
                     // old HTTP client; no headers, no content
                     done = true;
@@ -114,7 +114,7 @@ Session implements Task {
                 } else {
                     throw new Failure("505", "HTTP Version Not Supported");
                 }
-                if (!HTTP.persist(version, header)) {
+                if (!HTTPD.persist(version, header)) {
                     done = true;
                     current.setClosing();
                 }
