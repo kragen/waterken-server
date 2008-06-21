@@ -1,0 +1,37 @@
+form {
+    margin: 0;
+    padding: 0;
+}
+#inputPane {
+    overflow: auto;
+    font-family: monospace;
+    font-size: medium;
+    padding: 0;
+    margin-top: .5em;
+    width: 100%;
+    border: none;
+    background: white;
+}
+.echo {
+    font-family: monospace;
+    padding: 0;
+    margin-top: .5em;
+    white-space: pre;
+    color: blue;
+}
+.stdout {
+    padding: 0;
+    color: green;
+}
+.rejected {
+    font-family: monospace;
+    padding: 0;
+    white-space: pre;
+    color: red;
+}
+.fulfilled {
+    font-family: monospace;
+    padding: 0;
+    white-space: pre;
+    color: gray;
+}
