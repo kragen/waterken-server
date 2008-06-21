@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import org.joe_e.Powerless;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
+import org.waterken.http.MediaType;
 import org.waterken.id.Importer;
 
 /**
@@ -21,13 +22,14 @@ Deserializer extends Powerless {
      * @param base          base URL
      * @param connect       reference importer
      * @param code          class loader
+     * @param type			MIME type of <code>content</code>
      * @param content       serialized content
      * @param parameters    each expected type
      * @return each deserialized argument
      * @throws Exception    any exception
      */
     ConstArray<?>
-    run(String base, Importer connect,
-        ClassLoader code, InputStream content,
+    run(String base, Importer connect, ClassLoader code,
+        MediaType type, InputStream content,
         PowerlessArray<Type> parameters) throws Exception;
 }

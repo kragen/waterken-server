@@ -12,6 +12,8 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.UTF8;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
+import org.waterken.http.MediaType;
+import org.waterken.http.TokenList;
 import org.waterken.id.Importer;
 import org.waterken.syntax.Deserializer;
 
@@ -31,9 +33,12 @@ JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
     // org.waterken.syntax.Deserializer interface
 
     public ConstArray<?>
-    run(final String base, final Importer connect,
-        final ClassLoader code, final InputStream content,
+    run(final String base, final Importer connect, final ClassLoader code,
+        final MediaType type, final InputStream content,
         final PowerlessArray<Type> parameters) throws Exception {
+    	if (!TokenList.equivalent("UTF-8", type.get("charset", "UTF-8"))) {
+    		throw new Exception("charset MUST be UTF-8");
+    	}
         return new JSONParser(base, connect, code).
             parse(UTF8.input(content), parameters);
     }

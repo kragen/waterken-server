@@ -19,6 +19,7 @@ import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.var.Factory;
+import org.waterken.http.MediaType;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -138,7 +139,7 @@ Callee extends Struct implements Server, Serializable {
             return;
         }
         // AUDIT: call to untrusted application code
-        final Object target = ((Fulfilled)subject).cast();
+        final Object target = ((Fulfilled<?>)subject).cast();
         
         // prevent access to local implementation details
         if (null == target || Java.isPBC(target.getClass())) {
@@ -237,7 +238,7 @@ Callee extends Struct implements Server, Serializable {
         return new Response("HTTP/1.1", status, phrase,
             PowerlessArray.array(
                 new Header("Cache-Control", "max-age=" + maxAge),
-                new Header("Content-Type", AMP.contentType),
+                new Header("Content-Type", AMP.mime.toString()),
                 new Header("Content-Length", "" + body.content.length())
             ),
             "HEAD".equals(method) ? null : body);
@@ -246,13 +247,15 @@ Callee extends Struct implements Server, Serializable {
     private ConstArray<?>
     deserialize(final Request request,
                 final PowerlessArray<Type> parameters) throws Exception {
-        final String contentType = request.getContentType();
         final ByteArray content = ((Snapshot)request.body).content;
-        if (!AMP.contentType.equalsIgnoreCase(contentType)) {
+        final String contentType = request.getContentType();
+        final MediaType mediaType = 
+        	null != contentType ? MediaType.decode(contentType) : AMP.mime;
+        if (!AMP.mime.contains(mediaType)) {
             return ConstArray.array(new Entity(contentType, content));
         }
         final String base = request.base(exports.getHere());
         return new JSONDeserializer().run(base, exports.connect(base), code,
-                                          content.asInputStream(), parameters);
+        		mediaType, content.asInputStream(), parameters);
     }
 }

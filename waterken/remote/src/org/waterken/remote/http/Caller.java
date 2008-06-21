@@ -20,6 +20,7 @@ import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Resolver;
 import org.ref_send.type.Typedef;
 import org.ref_send.var.Setter;
+import org.waterken.http.MediaType;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.id.Importer;
@@ -62,7 +63,7 @@ Caller extends Struct implements Messenger, Serializable {
     /**
      * {@link Do} block parameter type
      */
-    static private final TypeVariable DoP = Typedef.name(Do.class, "P");
+    static private final TypeVariable<?> DoP = Typedef.name(Do.class, "P");
 
     public <P,R> R
     when(final String URL, final Class<?> R, final Do<P,R> observer) {
@@ -285,7 +286,7 @@ Caller extends Struct implements Messenger, Serializable {
         return new Request("HTTP/1.1", "POST", URI.request(target),
             PowerlessArray.array(
                 new Header("Host", location),
-                new Header("Content-Type", AMP.contentType),
+                new Header("Content-Type", AMP.mime.toString()),
                 new Header("Content-Length", "" + body.content.length())
             ), body);        
     }
@@ -297,12 +298,14 @@ Caller extends Struct implements Messenger, Serializable {
         final Importer connect = exports.connect(base);
         if ("200".equals(response.status) || "201".equals(response.status) ||
             "202".equals(response.status) || "203".equals(response.status)) {
-            final String contentType = response.getContentType();
             final ByteArray content = ((Snapshot)response.body).content;
-            if (!AMP.contentType.equalsIgnoreCase(contentType)) {
+            final String contentType = response.getContentType();
+            final MediaType mediaType = 
+            	null != contentType ? MediaType.decode(contentType) : AMP.mime;
+            if (!AMP.mime.contains(mediaType)) {
                 return new Entity(contentType, content);
             }
-            return new JSONDeserializer().run(base, connect, code,
+            return new JSONDeserializer().run(base, connect, code, mediaType,
                 content.asInputStream(), PowerlessArray.array(R)).get(0);
         } 
         if ("204".equals(response.status) ||

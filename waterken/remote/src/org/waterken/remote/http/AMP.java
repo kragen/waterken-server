@@ -20,6 +20,8 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Sink;
+import org.ref_send.promise.eventual.Task;
+import org.waterken.http.MediaType;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -31,9 +33,9 @@ import org.waterken.remote.Remoting;
 import org.waterken.uri.URI;
 import org.waterken.vat.Creator;
 import org.waterken.vat.EventGenerator;
-import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
 import org.waterken.vat.Transaction;
+import org.waterken.vat.Vat;
 import org.web_send.Failure;
 import org.web_send.graph.Collision;
 import org.web_send.graph.Framework;
@@ -51,7 +53,8 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
     /**
      * MIME Media-Type for marshalled arguments
      */
-    static protected final String contentType = "application/jsonrequest";
+    static protected final MediaType mime =
+    	new MediaType("application", "jsonrequest");
     
     /**
      * Constructs an instance.
@@ -71,11 +74,13 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 final Request buffered; {
                     Request q = requestor.cast();
                     if (null != q.body) {
-                        final int length = q.getContentLength();
-                        if (length > maxContentSize) { throw Failure.tooBig(); }
+                        final Integer length = q.getContentLength();
+                        if (null != length && length > maxContentSize) {
+                        	throw Failure.tooBig();
+                        }
                         if (!q.expectContinue(respond)) { return; }
                         q = new Request(q.version, q.method, q.URL, q.header,
-                            Snapshot.snapshot(length < 0 ? 1024 : length,
+                            Snapshot.snapshot(null != length ? length : 1024,
                                 Limited.limit(maxContentSize, q.body)));
                     } else {
                         if (!q.expectContinue(respond)) { return; }
@@ -156,7 +161,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 final Object events = mother.fetch(null, Root.events);
                 final Object client = mother.fetch(null, Remoting.client);
                 final Creator creator= (Creator)mother.fetch(null,Root.creator);
-                final Class<T> T = (Class)build.getReturnType();
+                final Class<?> T = build.getReturnType();
                 final String URL;
                 try {
                     URL = creator.create(new Transaction<String>() {
@@ -175,7 +180,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                             final Token deferred = new Token();
                             local.link(Remoting.deferred, deferred);
                             final Eventual _ = new Eventual(deferred,
-                                (Loop)local.fetch(null, Root.enqueue),
+                                (Loop<Task>)local.fetch(null, Root.enqueue),
                                 null == tracer || null == events
                                     ? new Sink() : EventGenerator.make(local));
                             local.link(Remoting._, _);
@@ -194,7 +199,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 } catch (final Exception e) {
                     return new Rejected<T>(e)._(T);
                 }
-                return Remote._(T, mother, URL);
+                return (T)Remote._(T, mother, URL);
             }
             
             private void

@@ -80,8 +80,8 @@ HTTP extends Struct implements Messenger, Serializable {
             r = _.cast(R, x.promise);
             forwarder = Eventual.compose(observer, x.resolver);
         }
-        final Class<P> P = Typedef.raw(Typedef.value(DoP, observer.getClass()));
-        final P a = Remote._(P, local, URL);
+        final Class<?> P = Typedef.raw(Typedef.value(DoP, observer.getClass()));
+        final P a = (P)Remote._(P, local, URL);
         class Fulfill extends Struct implements Task, Serializable {
             static private final long serialVersionUID = 1L;
 
