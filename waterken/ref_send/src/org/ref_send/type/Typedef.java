@@ -24,9 +24,9 @@ Typedef {
      * @return corresponding type variable
      * @throws NullPointerException no matching variable found
      */
-    static public TypeVariable
-    name(final Class declaration, final String name) {
-        for (final TypeVariable i : declaration.getTypeParameters()) {
+    static public <T> TypeVariable<Class<T>>
+    name(final Class<T> declaration, final String name) {
+        for (final TypeVariable<Class<T>> i : declaration.getTypeParameters()) {
             if (i.getName().equals(name)) { return i; }
         }
         throw new NullPointerException();
@@ -40,9 +40,9 @@ Typedef {
      *         <code>a</code> or one of its super types
      */
     static public Type
-    value(final TypeVariable p, final Type a) {
+    value(final TypeVariable<?> p, final Type a) {
         Type r;
-        final Class template = raw(a);
+        final Class<?> template = raw(a);
         final GenericDeclaration declaration = p.getGenericDeclaration();
         if (declaration.equals(template)) {
             r = p;
@@ -62,7 +62,7 @@ Typedef {
         if (r instanceof TypeVariable) {
             if (a instanceof ParameterizedType) {
                 int i = 0;
-                for (final TypeVariable v : declaration.getTypeParameters()) {
+                for (final TypeVariable<?> v : declaration.getTypeParameters()){
                     if (p.equals(v)) { break; }
                     ++i;
                 }
@@ -79,10 +79,10 @@ Typedef {
      * @param type  generic type
      * @return corresponding raw type
      */
-    static public Class
+    static public Class<?>
     raw(final Type type) {
         return type instanceof Class
-            ? (Class)type
+            ? (Class<?>)type
         : (type instanceof ParameterizedType
             ? raw(((ParameterizedType)type).getRawType())
         : (type instanceof WildcardType
@@ -99,7 +99,7 @@ Typedef {
     static public Type
     bound(final Type parameter, final Type declared) {
         final Type argument = parameter instanceof TypeVariable
-            ? value((TypeVariable)parameter, declared)
+            ? value((TypeVariable<?>)parameter, declared)
         : parameter;
         return argument instanceof WildcardType
             ? ((WildcardType)argument).getUpperBounds()[0]
