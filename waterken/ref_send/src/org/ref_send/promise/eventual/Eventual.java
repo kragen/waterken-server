@@ -217,7 +217,8 @@ Eventual extends Struct implements Serializable {
     public <T,R> R
     when(final Volatile<T> promise, final Do<T,R> observer) {
         try {
-            final Class<?> R= Typedef.raw(Typedef.value(Do.R,observer.getClass()));
+            final Class<?> R =
+            	Typedef.raw(Typedef.value(Do.R,observer.getClass()));
             return trust(promise).when(R, observer);
         } catch (final Exception e) { throw new Error(e); }
     }
