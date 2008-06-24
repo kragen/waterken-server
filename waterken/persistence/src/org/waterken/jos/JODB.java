@@ -125,7 +125,7 @@ JODB extends Vat {
             if (e instanceof OutOfMemoryError) { System.gc(); }
             final Throwable cause = e.getCause();
             if (cause instanceof Exception) { throw (Exception)cause; }
-            throw new Exception(e.getMessage(), e);
+            throw new Exception(e);
         } finally {
             busy = false;
         }
@@ -205,7 +205,7 @@ JODB extends Vat {
                     aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key,"AES"));
                     aes.doFinal(plaintext, 0, plaintext.length, cyphertext);
                     return Base32.encode(cyphertext);
-                } catch (final Exception e) {throw new Error(e.getMessage(),e);}
+                } catch (final Exception e) { throw new Error(e); }
             }
 
             /**
@@ -359,9 +359,7 @@ JODB extends Vat {
                     return new Bucket(false, value, ByteArray.array(version));
                 } catch (final Exception e) {
                     if (null != fin) {try {fin.close();} catch (Exception x){}}
-                    if (e instanceof IOException) {
-                        throw new Error(e.getMessage(), e);
-                    }
+                    if (e instanceof IOException) { throw new Error(e); }
                     if (e instanceof RuntimeException) {
                         throw (RuntimeException)e;
                     }
@@ -381,7 +379,7 @@ JODB extends Vat {
                 final Mac mac;
                 try {
                     mac = allocMac(this);
-                } catch (final Exception e) {throw new Error(e.getMessage(),e);}
+                } catch (final Exception e) { throw new Error(e); }
                 for (final Bucket b : k2b.values()) {
                     if (!b.created && null != b.version) {
                         mac.update(b.version.toByteArray());
@@ -419,9 +417,7 @@ JODB extends Vat {
                             out.close();
                             id = mac.doFinal();
                             freeMac(mac);
-                        } catch (final Exception e) {
-                            throw new Error(e.getMessage(), e);
-                        }
+                        } catch (final Exception e) { throw new Error(e); }
                         final ByteArray version = ByteArray.array(id);
                         final byte[] d = new byte[keyBytes];
                         System.arraycopy(id, 0, d, 0, d.length);
@@ -539,9 +535,7 @@ JODB extends Vat {
                 if (extend) { throw new ProhibitedModification(Creator.class); }
 
                 if (!modified[0]) {
-                    if (!pending.mkdir()) {
-                        throw new Error("mkdir", new IOException());
-                    }
+                    if (!pending.mkdir()) {throw new Error(new IOException());}
                     modified[0] = true;
                 }
 
@@ -561,7 +555,7 @@ JODB extends Vat {
                     key = x;
                 }
                 final File sub = file(pending, key);
-                if (!sub.mkdir()) {throw new Error("mkdir", new IOException());}
+                if (!sub.mkdir()) {throw new Error(new IOException());}
                 if (null != project) { setConfig(sub, Root.project, project); }
                 final byte[] bits = new byte[128 / Byte.SIZE];
                 prng.nextBytes(bits);
@@ -577,7 +571,7 @@ JODB extends Vat {
                             return initialize.run(local);
                         }
                     });
-                } catch (final Exception e) {throw new Error(e.getMessage(),e);}
+                } catch (final Exception e) { throw new Error(e); }
                 return r.cast();
             }
 
@@ -609,7 +603,7 @@ JODB extends Vat {
                     if (!file(pending, was).createNewFile()) {
                         throw new Collision();
                     }
-                } catch (IOException e) { throw new Error(e.getMessage(), e); }
+                } catch (IOException e) { throw new Error(e); }
                 return key;
             }
         };
@@ -752,7 +746,7 @@ JODB extends Vat {
             return r;
         } catch (final Exception e) {
             if (null != in) { try { in.close(); } catch (final Exception x) {} }
-            if (e instanceof IOException) { throw new Error(e.getMessage(),e); }
+            if (e instanceof IOException) { throw new Error(e); }
             throw e;
         }
     }
@@ -776,7 +770,7 @@ JODB extends Vat {
             out.close();
         } catch (final Exception e) {
             if (null!=out) { try { out.close(); } catch (final Exception x) {} }
-            if (e instanceof IOException) { throw new Error(e.getMessage(),e); }
+            if (e instanceof IOException) { throw new Error(e); }
             throw e;
         }
     }

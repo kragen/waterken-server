@@ -68,7 +68,7 @@ Project extends URLClassLoader {
                 "waterken.code", "")).getCanonicalFile();
             bin = System.getProperty(
                 "waterken.bin", File.separator + "bin" + File.separator);
-        } catch (final IOException e) { throw new Error(e.getMessage(), e); }
+        } catch (final IOException e) { throw new Error(e); }
     }
 
     static private final Cache<String,ClassLoader> jars = Cache.make();
@@ -76,7 +76,7 @@ Project extends URLClassLoader {
     static {
         try {
             shared = connect("shared");
-        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
+        } catch (final Exception e) { throw new Error(e); }
     }
 
     /**
