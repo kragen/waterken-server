@@ -48,7 +48,7 @@ Config {
             configFolder = new File(Project.home, System.getProperty(
                 "waterken.config", "config")).getCanonicalFile();
             code = Project.connect("dns");
-        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
+        } catch (final Exception e) { throw new Error(e); }
     }
     static public    final File keys= Filesystem.file(configFolder, "keys.jks");
     static protected final Pool vats = new JODBCache();
@@ -90,7 +90,7 @@ Config {
                                      array(value)).writeTo(out);
             out.flush();
             out.close();
-        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
+        } catch (final Exception e) { throw new Error(e); }
     }
 
     /**
@@ -150,7 +150,7 @@ Config {
                     return r;
                 } catch (final Exception e) {
                     e.printStackTrace();
-                    throw new Error(e.getMessage(), e);
+                    throw new Error(e);
                 }
             }
             return browser.connect.run(type, URL);
