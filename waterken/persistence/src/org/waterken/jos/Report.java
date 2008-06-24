@@ -122,7 +122,7 @@ Report {
         // Determine the type of object stored in the file.
         String typename;
         try {
-            final Class[] type = { Void.class };
+            final Class<?>[] type = { Void.class };
             final SubstitutionStream in = new SubstitutionStream(true,
                     code, Filesystem.read(file)) {
                 protected Object
@@ -138,7 +138,7 @@ Report {
             in.close();
             if (x instanceof SymbolicLink) {
                 final Object sx = ((SymbolicLink)x).target;
-                final Class sxt = null!=sx ? sx.getClass() : type[0];
+                final Class<?> sxt = null!=sx ? sx.getClass() : type[0];
                 typename = "-> " + sxt.getName();
             } else {
                 if (null != x) { type[0] = x.getClass(); }

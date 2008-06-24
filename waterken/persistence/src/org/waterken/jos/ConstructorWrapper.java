@@ -17,9 +17,9 @@ final class
 ConstructorWrapper implements Wrapper, Powerless {
     static private final long serialVersionUID = 1;
 
-    private transient Constructor code;
+    private transient Constructor<?> code;
     
-    ConstructorWrapper(final Constructor code) {
+    ConstructorWrapper(final Constructor<?> code) {
         this.code = code;
     }
     
@@ -30,9 +30,9 @@ ConstructorWrapper implements Wrapper, Powerless {
         out.defaultWriteObject();
 
         out.writeObject(code.getDeclaringClass());
-        final Class[] params = code.getParameterTypes();
+        final Class<?>[] params = code.getParameterTypes();
         out.writeInt(params.length);
-        for (final Class param : params) { out.writeObject(param); } 
+        for (final Class<?> param : params) { out.writeObject(param); } 
     }
 
     private void
@@ -40,10 +40,10 @@ ConstructorWrapper implements Wrapper, Powerless {
                                                   ClassNotFoundException {
         in.defaultReadObject();
 
-        final Class<?> declarer = (Class)in.readObject();
-        final Class[] params = new Class[in.readInt()];
+        final Class<?> declarer = (Class<?>)in.readObject();
+        final Class<?>[] params = new Class[in.readInt()];
         for (int i = 0; i != params.length; ++i) {
-            params[i] = (Class)in.readObject();
+            params[i] = (Class<?>)in.readObject();
         }
         try {
             code = declarer.getConstructor(params);
@@ -62,6 +62,6 @@ ConstructorWrapper implements Wrapper, Powerless {
 
     // org.waterken.jos.Wrapper interface
     
-    public Constructor
+    public Constructor<?>
     peel(final Root root) { return code; }
 }

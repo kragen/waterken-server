@@ -42,14 +42,14 @@ Slicer extends ObjectOutputStream {
         } else if (Method.class == type) {
             x = new MethodWrapper((Method)x);
         } else if (Constructor.class == type){
-            x = new ConstructorWrapper((Constructor)x);
+            x = new ConstructorWrapper((Constructor<?>)x);
         } else if (BigInteger.class == type) {
             x = new BigIntegerWrapper((BigInteger)x);
         } else if (BigDecimal.class == type) {
             x = new BigDecimalWrapper((BigDecimal)x);
         } else if (value == x) {
         } else if (Fulfilled.class == type) {
-            x = new Faulting(root, root.export(((Fulfilled)x).cast()));
+            x = new Faulting(root, root.export(((Fulfilled<?>)x).cast()));
         } else if (!inline(type)) {
             if (value instanceof Throwable &&
                 StackTraceElement.class == type.getComponentType()) {

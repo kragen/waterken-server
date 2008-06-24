@@ -51,7 +51,7 @@ SubstitutionStream extends ObjectInputStream {
     protected Class<?>
     resolveProxyClass(final String[] typenames) throws IOException,
                                                        ClassNotFoundException {
-        final Class[] interfaces = new Class[typenames.length];
+        final Class<?>[] interfaces = new Class[typenames.length];
         for (int i = typenames.length; 0 != i--;) {
             interfaces[i] = Class.forName(typenames[i], false, code);
         }

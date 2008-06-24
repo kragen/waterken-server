@@ -19,14 +19,14 @@ ProhibitedCreation extends RuntimeException implements Powerless, Record {
     /**
      * created object type
      */
-    public final Class type;
+    public final Class<?> type;
     
     /**
      * Constructs an instance.
      * @param type  {@link #type}
      */
     public @deserializer
-    ProhibitedCreation(@name("type") final Class type) {
+    ProhibitedCreation(@name("type") final Class<?> type) {
         super(Reflection.getName(type));
         this.type = type;
     }

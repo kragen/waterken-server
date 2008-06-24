@@ -45,9 +45,9 @@ ProjectTracer {
                     int line = -1;
                     String source = null;
                     try {
-                        final Class type = from.loadClass(f[i].getClassName());
+                        final Class<?> type=from.loadClass(f[i].getClassName());
                         if (Proxy.isProxyClass(type)) {
-                            top: for (final Class c : type.getInterfaces()) {
+                            top: for (final Class<?> c : type.getInterfaces()) {
                                 for (final Method m : Reflection.methods(c)) {
                                     if (m.getName().equals(name)) {
                                         source=path(m.getDeclaringClass(),null);
@@ -74,7 +74,7 @@ ProjectTracer {
             }
             
             private String
-            path(final Class type, final String filename) {
+            path(final Class<?> type, final String filename) {
                 final StringBuilder r = new StringBuilder();
                 final ClassLoader project = type.getClassLoader();
                 if (project instanceof Project) {
@@ -89,8 +89,8 @@ ProjectTracer {
                 if (null != filename) {
                     r.append(filename);
                 } else {
-                    Class top = type;
-                    for (Class i = top; null != i; i = top.getEnclosingClass()){
+                    Class<?> top = type;
+                    for (Class<?> i=top; null != i; i=top.getEnclosingClass()) {
                         top = i;
                     }
                     r.append(top.getSimpleName());
@@ -102,7 +102,7 @@ ProjectTracer {
             private boolean
             include(final StackTraceElement f) {
                 try {
-                    final Class c = from.loadClass(f.getClassName());
+                    final Class<?> c = from.loadClass(f.getClassName());
                     final ClassLoader cl = c.getClassLoader();
                     for (ClassLoader i = from; null != i; i = i.getParent()) {
                         if (cl == i) { return true; }

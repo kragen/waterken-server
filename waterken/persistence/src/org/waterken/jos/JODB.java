@@ -102,7 +102,7 @@ JODB extends Vat {
                     run(final Root local) throws Exception {
                         // start up a runner if necessary
                         if (null == runner && null != service) {
-                            final List q = (List)local.fetch(null, tasks);
+                            final List<?> q = (List<?>)local.fetch(null, tasks);
                             if (null != q && !q.isEmpty()) {
                                 final Run x = new Run();
                                 service.run(x);
@@ -112,7 +112,7 @@ JODB extends Vat {
 
                         // start up any other configured services
                         final Transaction<?> wake =
-                            (Transaction)local.fetch(null, Root.wake);
+                            (Transaction<?>)local.fetch(null, Root.wake);
                         if (null != wake) { wake.run(local); }
 
                         return true;
@@ -294,7 +294,7 @@ JODB extends Vat {
                          i-- != 0 && !key.equals(stack.get(i));) { ++n; }
 
                     // determine the type of object in each file
-                    final Class[] type = new Class[n];
+                    final Class<?>[] type = new Class<?>[n];
                     for (int i = stack.size(); n-- != 0;) {
                         final String at = stack.get(--i);
                         type[n] = Object.class;
@@ -498,7 +498,7 @@ JODB extends Vat {
                 if (!active[0]) { throw new AssertionError(); }
 
                 // enqueue the event
-                final List<Task> q = (List)root.fetch(null, tasks);
+                final List<Task> q = (List<Task>)root.fetch(null, tasks);
                 q.append(task);
                 scheduled[0] = true;
                 
@@ -507,7 +507,7 @@ JODB extends Vat {
                 
                 // determine if logging is turned on
                 final Factory<Receiver<Event>> erf =
-                    (Factory)root.fetch(null, Root.events);
+                    (Factory<Receiver<Event>>)root.fetch(null, Root.events);
                 if (null == erf) { return; }
                 final Receiver<Event> er = erf.run();
                 if (null == er) { return; }
@@ -860,7 +860,7 @@ JODB extends Vat {
                     runner = null;
                     
                     // pop an event
-                    final List<Task> q = (List)local.fetch(null, tasks);
+                    final List<Task> q = (List<Task>)local.fetch(null, tasks);
                     final Task task = q.pop();
                     
                     // update the stats
@@ -869,10 +869,11 @@ JODB extends Vat {
                     
                     // update the log
                     final Loop<Effect> effect =
-                        (Loop)local.fetch(null, Root.effect); 
+                        (Loop<Effect>)local.fetch(null, Root.effect); 
                     if (!(task instanceof ConditionalRunner)) {
                         final Factory<Receiver<Event>> erf =
-                            (Factory)local.fetch(null, Root.events);
+                        	(Factory<Receiver<Event>>)
+                        		local.fetch(null, Root.events);
                         final Receiver<Event> er = null!=erf ? erf.run() : null;
                         if (null != er) {
                             final Anchor anchor = local.anchor();

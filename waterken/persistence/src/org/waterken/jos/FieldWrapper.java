@@ -38,7 +38,7 @@ FieldWrapper implements Wrapper, Powerless {
                                                   ClassNotFoundException {
         in.defaultReadObject();
 
-        final Class declarer = (Class)in.readObject();
+        final Class<?> declarer = (Class<?>)in.readObject();
         final String name = in.readUTF();
         try {
             code = declarer.getField(name);

@@ -19,14 +19,14 @@ ProhibitedModification extends RuntimeException implements Powerless, Record {
     /**
      * modified object type
      */
-    public final Class type;
+    public final Class<?> type;
     
     /**
      * Constructs an instance.
      * @param type  {@link #type}
      */
     public @deserializer
-    ProhibitedModification(@name("type") final Class type) {
+    ProhibitedModification(@name("type") final Class<?> type) {
         super(Reflection.getName(type));
         this.type = type;
     }

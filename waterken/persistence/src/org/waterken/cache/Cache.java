@@ -79,9 +79,9 @@ Cache<K,V> implements Serializable {
 
         // Wipe old entries.
         while (true) {
-            final Reference old = wiped.poll();
+            final Reference<?> old = wiped.poll();
             if (null == old) { break; }
-            entries.remove(((CacheReference)old).key);
+            entries.remove(((CacheReference<?,?>)old).key);
         }
 
         entries.put(id, new CacheReference<K,V>(nonNull(value), wiped, id));

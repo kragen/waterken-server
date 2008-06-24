@@ -31,9 +31,9 @@ MethodWrapper implements Wrapper, Powerless {
 
         out.writeObject(code.getDeclaringClass());
         out.writeUTF(code.getName());
-        final Class[] params = code.getParameterTypes();
+        final Class<?>[] params = code.getParameterTypes();
         out.writeInt(params.length);
-        for (final Class param : params) { out.writeObject(param); }
+        for (final Class<?> param : params) { out.writeObject(param); }
     }
 
     private void
@@ -41,11 +41,11 @@ MethodWrapper implements Wrapper, Powerless {
                                                   ClassNotFoundException {
         in.defaultReadObject();
 
-        final Class<?> declarer = (Class)in.readObject();
+        final Class<?> declarer = (Class<?>)in.readObject();
         final String name = in.readUTF();
-        final Class[] params = new Class[in.readInt()];
+        final Class<?>[] params = new Class<?>[in.readInt()];
         for (int i = 0; i != params.length; ++i) {
-            params[i] = (Class)in.readObject();
+            params[i] = (Class<?>)in.readObject();
         }
         try {
             code = declarer.getMethod(name, params);

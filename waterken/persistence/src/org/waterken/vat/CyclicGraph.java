@@ -18,14 +18,14 @@ CyclicGraph extends RuntimeException implements Powerless, Record {
     /**
      * each class in the cycle
      */
-    public final PowerlessArray<Class> cycle;
+    public final PowerlessArray<Class<?>> cycle;
     
     /**
      * Constructs an instance.
      * @param cycle {@link #cycle}
      */
     public @deserializer
-    CyclicGraph(@name("cycle") final PowerlessArray<Class> cycle) {
+    CyclicGraph(@name("cycle") final PowerlessArray<Class<?>> cycle) {
         this.cycle = cycle;
     }
 }
