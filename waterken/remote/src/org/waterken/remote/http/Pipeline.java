@@ -59,7 +59,7 @@ Pipeline implements Serializable {
     
     Pipeline(final String peer, final Root local) {
         this.peer = peer;
-        effect = (Loop)local.fetch(null, Root.effect);
+        effect = (Loop<Effect>)local.fetch(null, Root.effect);
         model = (Vat)local.fetch(null, Root.vat);
         outbound = Fulfilled.detach((Outbound)local.fetch(null, AMP.outbound));
     }

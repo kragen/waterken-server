@@ -187,7 +187,7 @@ Caller extends Struct implements Messenger, Serializable {
         
         // calculate the return pipeline web-key
         final String m = exports.mid();
-        final Class R = Typedef.raw(
+        final Class<?> R = Typedef.raw(
             Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
         final Object r_;
         final Resolver<Object> resolver;

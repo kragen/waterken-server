@@ -142,13 +142,13 @@ Exports extends Struct implements Serializable {
     private Receiver<Event>
     events() {
         final Factory<Receiver<Event>> erf =
-            (Factory)local.fetch(null, Root.events);
+            (Factory<Receiver<Event>>)local.fetch(null, Root.events);
         return null != erf ? erf.run() : null;
     }
     
     private void
     log(final Receiver<Event> er, final Event e) {
-        final Loop<Effect> effect = (Loop)local.fetch(null,Root.effect); 
+        final Loop<Effect> effect = (Loop<Effect>)local.fetch(null,Root.effect); 
         effect.run(new Effect() { public void run() { er.run(e); } });
     }
     
@@ -243,7 +243,7 @@ Exports extends Struct implements Serializable {
      */
     public <R> R
     far(final String base, final String mid,
-        final Class<R> R, final Promise<R> response) {
+        final Class<?> R, final Promise<R> response) {
         final String here = (String)local.fetch(null, Root.here);
         if (null == here) {
             final Eventual _ = (Eventual)local.fetch(null, Remoting._);
@@ -251,7 +251,7 @@ Exports extends Struct implements Serializable {
         }
         final String pipe = local.pipeline(mid);
         local.link(pipe, response);
-        return Remote._(R, local, URI.resolve(base,
+        return (R)Remote._(R, local, URI.resolve(base,
             "./?src=" + URLEncoding.encode(URI.relate(base, here)) + "#"+pipe));
     }
 
