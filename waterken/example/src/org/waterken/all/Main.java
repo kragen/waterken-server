@@ -7,6 +7,7 @@ import static org.ref_send.test.Logic.and;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
+import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
@@ -50,24 +51,23 @@ Main extends Struct implements Test, Serializable {
     public Promise<Boolean>
     start() throws Exception {
         final Eventual _ = framework._;
-        final Volatile<Boolean>[] r = new Volatile[4];
-        int i = 0;
+        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(4);
         
         _.log.comment("testing EQ operations on promises");
-        r[i++] = new org.waterken.eq.Main(_).start();
+        r.append(new org.waterken.eq.Main(_).start());
         
         _.log.comment("testing argument passing");
         final Wall wall_ = framework.publisher.spawn("wall", Bounce.class);
-        r[i++] = new org.waterken.bounce.Main(_).test(wall_);
+        r.append(new org.waterken.bounce.Main(_).test(wall_));
         
         _.log.comment("testing message pipelining");
         final Drum drum_ = framework.publisher.spawn("drum", Bang.class);
-        r[i++] = new org.waterken.bang.Main(_).test(drum_, 0);
+        r.append(new org.waterken.bang.Main(_).test(drum_, 0));
         
         _.log.comment("testing idempotent update");
         final Promise<Variable<Boolean>> slot = framework.spawn.run(Put.class);
-        r[i++] = new org.waterken.put.Main(_).test(slot, false);
+        r.append(new org.waterken.put.Main(_).test(slot, false));
 
-        return and(_, r);
+        return and(_, r.snapshot());
     }
 }

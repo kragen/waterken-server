@@ -10,8 +10,10 @@ import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Sink;
@@ -102,9 +104,9 @@ Main extends Struct implements Test, Serializable {
          * Check that the first n integers in the series will be the numbers
          * from 0 through n.
          */
-        Promise<Boolean> r = ref(true);
+    	final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(3);
         for (int i = 0; i != n; ++i) {
-            r = and(_, r, _.when(x.consume(), was(i)));
+        	r.append(_.when(x.consume(), was(i)));
         }
         
         /*
@@ -114,6 +116,6 @@ Main extends Struct implements Test, Serializable {
             x.produce(ref(i));
         }
         
-        return r;
+        return and(_, r.snapshot());
     }
 }

@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.put;
 
+import static org.joe_e.array.ConstArray.builder;
 import static org.ref_send.promise.Fulfilled.ref;
 import static org.ref_send.test.Logic.and;
 import static org.ref_send.test.Logic.was;
@@ -10,6 +11,7 @@ import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.array.ArrayBuilder;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
@@ -102,12 +104,11 @@ Main extends Struct implements Test, Serializable {
 
             public Promise<Boolean>
             fulfill(final Variable<Boolean> v) {
-                final Promise<Boolean> before =
-                    _.when(_._(v.getter).get(), was(n));
+            	final ArrayBuilder<Volatile<Boolean>> r = builder(3);
+            	r.append(_.when(_._(v.getter).get(), was(n)));
                 _._(v.setter).run(!n);
-                final Promise<Boolean> after =
-                    _.when(_._(v.getter).get(), was(!n));
-                return and(_, before, after);
+                r.append(_.when(_._(v.getter).get(), was(!n)));
+                return and(_, r.snapshot());
             }
         }
         return _.when(x, new Test());

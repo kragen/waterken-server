@@ -79,7 +79,7 @@ AllTypes extends Struct implements Record, Serializable {
     /**
      * promise
      */
-    public final ConstArray<Volatile> p;
+    public final ConstArray<? extends Volatile<?>> p;
     
     /**
      * unknown type
@@ -111,7 +111,7 @@ AllTypes extends Struct implements Record, Serializable {
              @name("l") final LongArray l,
              @name("t") final String t,
              @name("r") final ConstArray<Runnable> r,
-             @name("p") final ConstArray<Volatile> p,
+             @name("p") final ConstArray<? extends Volatile<?>> p,
              @name("a") final Object a) {
         this.b = b;
         this.c = c;

@@ -5,6 +5,8 @@ package org.waterken.bounce;
 import static org.ref_send.promise.Fulfilled.ref;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.joe_e.Struct;
 import org.joe_e.array.BooleanArray;
@@ -20,12 +22,9 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.array.ShortArray;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
-import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Eventual;
 import org.web_send.graph.Framework;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 
 /**
  * A {@link Wall} implementation.
@@ -79,7 +78,7 @@ Bounce {
                     LongArray.array(0L, Long.MAX_VALUE, Long.MIN_VALUE),
                     "a \" \\ / \b \f \n \r \t \0",
                     ConstArray.array(normal, null, rejected._(Runnable.class)),
-                    ConstArray.array((Volatile)ref(false),
+                    ConstArray.array(ref(false),
                                      ref(Integer.MAX_VALUE),
                                      ref("a"),
                                      d.promise),

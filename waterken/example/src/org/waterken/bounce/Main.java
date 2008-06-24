@@ -11,6 +11,7 @@ import java.io.Serializable;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
+import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
@@ -96,8 +97,7 @@ Main extends Struct implements Test, Serializable {
     public Promise<Boolean>
     test(final Wall x) {
         final Wall x_ = _._(x);
-        final Volatile<Boolean>[] r = new Volatile[3];
-        int i = 0;
+        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(3);
 
         class Re extends Do<AllTypes,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
@@ -105,14 +105,14 @@ Main extends Struct implements Test, Serializable {
             public Promise<Boolean>
             fulfill(final AllTypes a) { return _.when(x_.bounce(a), was(a)); }
         }
-        r[i++] = _.when(x_.getAll(), new Re());
+        r.append(_.when(x_.getAll(), new Re()));
         final AllTypes a = near(subject().getAll());
-        r[i++] = _.when(x_.bounce(a), was(a));
+        r.append(_.when(x_.bounce(a), was(a)));
 
-        final Entity payload = new Entity("application/octet-stream",
+        final Entity payload = new Entity(Entity.doNotExecute,
             ByteArray.array(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
-        r[i++] = _.when(x_.bounce(payload), was(payload));
+        r.append(_.when(x_.bounce(payload), was(payload)));
 
-        return and(_, r);
+        return and(_, r.snapshot());
     }
 }

@@ -11,6 +11,7 @@ import java.io.Serializable;
 import org.joe_e.Equatable;
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.NaN;
@@ -83,12 +84,12 @@ Main extends Struct implements Test, Serializable {
      */
     public Promise<Boolean>
     start() throws Exception {
-        return and(_,
-            testNormal(),
-            testNull(),
-            testDouble(),
-            testFloat()
-        );
+        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(4);
+        r.append(testNormal());
+        r.append(testNull());
+        r.append(testDouble());
+        r.append(testFloat());
+        return and(_, r.snapshot());
     }
     
     // org.waterken.eq.Main interface
@@ -98,8 +99,7 @@ Main extends Struct implements Test, Serializable {
      */
     public Promise<Boolean>
     testNormal() throws Exception {
-        final Volatile<Boolean>[] r = new Volatile[3];
-        int i = 0;
+        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(3);
         
         class Normal implements Runnable, Equatable, Serializable {
             static private final long serialVersionUID = 1L;
@@ -121,8 +121,8 @@ Main extends Struct implements Test, Serializable {
                 return ref(true);
             }
         }
-        r[i++] = _.when(p, new EQ());
-        r[i++] = _.when(ix, new EQ());
+        r.append(_.when(p, new EQ()));
+        r.append(_.when(ix, new EQ()));
         final Runnable x_ = _._(ix);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
@@ -130,9 +130,9 @@ Main extends Struct implements Test, Serializable {
         check(_.cast(Runnable.class, p).equals(x_));
         check(Eventual.promised(x_).equals(p));
         check(x == near(x_));
-        r[i++] = _.when(x_, new EQ());
+        r.append(_.when(x_, new EQ()));
         
-        return and(_, r);
+        return and(_, r.snapshot());
     }
 
     /**
@@ -140,8 +140,7 @@ Main extends Struct implements Test, Serializable {
      */
     public Promise<Boolean>
     testNull() throws Exception {
-        final Volatile<Boolean>[] r = new Volatile[4];
-        int i = 0;
+        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(4);
         
         final Promise<Runnable> p = ref(null);
         check(p.equals(p));
@@ -163,19 +162,19 @@ Main extends Struct implements Test, Serializable {
                 throw reason;
             }
         }
-        r[i++] = _.when(p, new NE());
+        r.append(_.when(p, new NE()));
         final Runnable x = null;
-        r[i++] = _.when(x, new NE());
+        r.append(_.when(x, new NE()));
         final Promise<Runnable> sneaky = Fulfilled.detach(null); 
-        r[i++] = _.when(sneaky, new NE());
+        r.append(_.when(sneaky, new NE()));
         final Runnable x_ = _.cast(Runnable.class, p);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
         check(_.cast(Runnable.class, p).equals(x_));
         check(Eventual.promised(x_).equals(p));
-        r[i++] = _.when(x_, new NE());
+        r.append(_.when(x_, new NE()));
         
-        return and(_, r);
+        return and(_, r.snapshot());
     }
 
     /**
@@ -183,8 +182,7 @@ Main extends Struct implements Test, Serializable {
      */
     public Promise<Boolean>
     testDouble() throws Exception {
-        final Volatile<Boolean>[] r = new Volatile[11];
-        int i = 0;
+        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(11);
         
         // check normal handling
         final Promise<Double> pMin = ref(Double.MIN_VALUE);
@@ -200,8 +198,8 @@ Main extends Struct implements Test, Serializable {
                 return ref(true);
             }
         }
-        r[i++] = _.when(pMin, new EQ());
-        r[i++] = _.when(Double.MIN_VALUE, new EQ());
+        r.append(_.when(pMin, new EQ()));
+        r.append(_.when(Double.MIN_VALUE, new EQ()));
         
         // check NaN handling
         final Promise<Double> pNaN = ref(Double.NaN);
@@ -224,9 +222,9 @@ Main extends Struct implements Test, Serializable {
                 throw reason;
             }
         }
-        r[i++] = _.when(pNaN, new ENaN());
-        r[i++] = _.when(Double.NaN, new ENaN());
-        r[i++] = _.when(Fulfilled.detach(Double.NaN), new ENaN());
+        r.append(_.when(pNaN, new ENaN()));
+        r.append(_.when(Double.NaN, new ENaN()));
+        r.append(_.when(Fulfilled.detach(Double.NaN), new ENaN()));
         
         // check -infinity handling
         final Promise<Double> pMinusInfinity = ref(Double.NEGATIVE_INFINITY);
@@ -249,9 +247,9 @@ Main extends Struct implements Test, Serializable {
                 throw reason;
             }
         }
-        r[i++] = _.when(pMinusInfinity, new ENI());
-        r[i++] = _.when(Double.NEGATIVE_INFINITY, new ENI());
-        r[i++] = _.when(Fulfilled.detach(Double.NEGATIVE_INFINITY), new ENI());
+        r.append(_.when(pMinusInfinity, new ENI()));
+        r.append(_.when(Double.NEGATIVE_INFINITY, new ENI()));
+        r.append(_.when(Fulfilled.detach(Double.NEGATIVE_INFINITY), new ENI()));
         
         // check +infinity handling
         final Promise<Double> pPlusInfinity = ref(Double.POSITIVE_INFINITY);
@@ -274,11 +272,11 @@ Main extends Struct implements Test, Serializable {
                 throw reason;
             }
         }
-        r[i++] = _.when(pPlusInfinity, new EPI());
-        r[i++] = _.when(Double.POSITIVE_INFINITY, new EPI());
-        r[i++] = _.when(Fulfilled.detach(Double.POSITIVE_INFINITY), new EPI());
+        r.append(_.when(pPlusInfinity, new EPI()));
+        r.append(_.when(Double.POSITIVE_INFINITY, new EPI()));
+        r.append(_.when(Fulfilled.detach(Double.POSITIVE_INFINITY), new EPI()));
 
-        return and(_, r);
+        return and(_, r.snapshot());
     }
 
     /**
@@ -286,8 +284,7 @@ Main extends Struct implements Test, Serializable {
      */
     public Promise<Boolean>
     testFloat() throws Exception {
-        final Volatile<Boolean>[] r = new Volatile[11];
-        int i = 0;
+        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(11);
         
         // check normal handling
         final Promise<Float> pMin = ref(Float.MIN_VALUE);
@@ -303,8 +300,8 @@ Main extends Struct implements Test, Serializable {
                 return ref(true);
             }
         }
-        r[i++] = _.when(pMin, new EQ());
-        r[i++] = _.when(Float.MIN_VALUE, new EQ());
+        r.append(_.when(pMin, new EQ()));
+        r.append(_.when(Float.MIN_VALUE, new EQ()));
         
         // check NaN handling
         final Promise<Float> pNaN = ref(Float.NaN);
@@ -327,9 +324,9 @@ Main extends Struct implements Test, Serializable {
                 throw reason;
             }
         }
-        r[i++] = _.when(pNaN, new ENaN());
-        r[i++] = _.when(Float.NaN, new ENaN());
-        r[i++] = _.when(Fulfilled.detach(Float.NaN), new ENaN());
+        r.append(_.when(pNaN, new ENaN()));
+        r.append(_.when(Float.NaN, new ENaN()));
+        r.append(_.when(Fulfilled.detach(Float.NaN), new ENaN()));
         
         // check -infinity handling
         final Promise<Float> pMinusInfinity = ref(Float.NEGATIVE_INFINITY);
@@ -352,9 +349,9 @@ Main extends Struct implements Test, Serializable {
                 throw reason;
             }
         }
-        r[i++] = _.when(pMinusInfinity, new ENI());
-        r[i++] = _.when(Float.NEGATIVE_INFINITY, new ENI());
-        r[i++] = _.when(Fulfilled.detach(Float.NEGATIVE_INFINITY), new ENI());
+        r.append(_.when(pMinusInfinity, new ENI()));
+        r.append(_.when(Float.NEGATIVE_INFINITY, new ENI()));
+        r.append(_.when(Fulfilled.detach(Float.NEGATIVE_INFINITY), new ENI()));
         
         // check +infinity handling
         final Promise<Float> pPlusInfinity = ref(Float.POSITIVE_INFINITY);
@@ -377,11 +374,11 @@ Main extends Struct implements Test, Serializable {
                 throw reason;
             }
         }
-        r[i++] = _.when(pPlusInfinity, new EPI());
-        r[i++] = _.when(Float.POSITIVE_INFINITY, new EPI());
-        r[i++] = _.when(Fulfilled.detach(Float.POSITIVE_INFINITY), new EPI());
+        r.append(_.when(pPlusInfinity, new EPI()));
+        r.append(_.when(Float.POSITIVE_INFINITY, new EPI()));
+        r.append(_.when(Fulfilled.detach(Float.POSITIVE_INFINITY), new EPI()));
 
-        return and(_, r);
+        return and(_, r.snapshot());
     }
     
     static private void
