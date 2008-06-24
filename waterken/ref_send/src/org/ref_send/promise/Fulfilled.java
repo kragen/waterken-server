@@ -78,7 +78,7 @@ Fulfilled<T> implements Promise<T>, Selfless, Serializable {
      */
     public boolean
     equals(final Object x) {
-        return x instanceof Fulfilled && same(cast(), ((Fulfilled)x).cast());
+        return x instanceof Fulfilled && same(cast(), ((Fulfilled<?>)x).cast());
     }
 
     static private boolean

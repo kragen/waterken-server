@@ -50,8 +50,8 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
     equals(final Object x) {
         return x instanceof Rejected &&
                (null != reason
-                   ? reason.equals(((Rejected)x).reason)
-                   : null == ((Rejected)x).reason);
+                   ? reason.equals(((Rejected<?>)x).reason)
+                   : null == ((Rejected<?>)x).reason);
     }
     
     /**
@@ -96,7 +96,7 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
             final Class<?> R = Typedef.raw(Typedef.bound(
                     method.getGenericReturnType(), proxy.getClass()));
             return void.class == R || Void.class == R ? null : _(R);
-        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
+        } catch (final Exception e) { throw new Error(e); }
     }
     
     // org.ref_send.promise.Rejected interface
@@ -108,11 +108,11 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
      * @throws Error    invalid <code>type</code> argument
      */
     public T
-    _(final Class type) {
+    _(final Class<?> type) {
         try {
             return type.isAssignableFrom(Promise.class)
                 ? (T)this
             : (T)Proxies.proxy(this, type, Powerless.class, Selfless.class);
-        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
+        } catch (final Exception e) { throw new Error(e); }
     }
 }

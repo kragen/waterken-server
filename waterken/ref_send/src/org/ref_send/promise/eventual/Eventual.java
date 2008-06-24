@@ -217,9 +217,9 @@ Eventual extends Struct implements Serializable {
     public <T,R> R
     when(final Volatile<T> promise, final Do<T,R> observer) {
         try {
-            final Class R= Typedef.raw(Typedef.value(Do.R,observer.getClass()));
+            final Class<?> R= Typedef.raw(Typedef.value(Do.R,observer.getClass()));
             return trust(promise).when(R, observer);
-        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
+        } catch (final Exception e) { throw new Error(e); }
     }
 
     private <T> Deferred<T>
@@ -234,7 +234,7 @@ Eventual extends Struct implements Serializable {
     private boolean
     trusted(final Object untrusted) {
         return untrusted instanceof Deferred &&
-               deferred == ((Deferred)untrusted)._.deferred;
+               deferred == ((Deferred<?>)untrusted)._.deferred;
     }
 
     static private final class
@@ -254,10 +254,10 @@ Eventual extends Struct implements Serializable {
         public boolean
         equals(final Object x) {
             return x instanceof Enqueue &&
-                _.equals(((Enqueue)x)._) &&
+                _.equals(((Enqueue<?>)x)._) &&
                 (null != untrusted
-                    ? untrusted.equals(((Enqueue)x).untrusted)
-                    : null == ((Enqueue)x).untrusted);
+                    ? untrusted.equals(((Enqueue<?>)x).untrusted)
+                    : null == ((Enqueue<?>)x).untrusted);
         }
 
         public T
@@ -541,7 +541,7 @@ Eventual extends Struct implements Serializable {
      * @return corresponding eventual reference
      */
     public <T> T
-    cast(final Class type, final Volatile<T> promise) {
+    cast(final Class<?> type, final Volatile<T> promise) {
         try {
             return null == promise
                 ? new Rejected<T>(new NullPointerException())._(type)
@@ -550,7 +550,7 @@ Eventual extends Struct implements Serializable {
             : type.isAssignableFrom(Promise.class)
                 ? (T)promise
             : (T)proxy(trust(promise), type, Selfless.class);
-        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
+        } catch (final Exception e) { throw new Error(e); }
     }
 
     /**
@@ -630,10 +630,10 @@ Eventual extends Struct implements Serializable {
         }
         try {
             // Build the list of types to implement.
-            Class[] types = virtualize(reference.getClass());
+            Class<?>[] types = virtualize(reference.getClass());
             if (0 == types.length) { throw new ClassCastException(); }
             boolean selfless = false;
-            for (final Class i : types) {
+            for (final Class<?> i : types) {
                 selfless = Selfless.class.isAssignableFrom(i);
                 if (selfless) { break; }
             }
@@ -643,7 +643,7 @@ Eventual extends Struct implements Serializable {
                 types[n] = Selfless.class;
             }
             return (T)proxy(new Enqueue<T>(this, detach(reference)), types);
-        } catch (final Exception e) { throw new Error(e.getMessage(), e); }
+        } catch (final Exception e) { throw new Error(e); }
     }
 
     /**
@@ -651,27 +651,27 @@ Eventual extends Struct implements Serializable {
      * @param base  base type
      * @return allowed interfaces implemented by <code>base</code>
      */
-    static private Class[]
-    virtualize(final Class base) {
-        Class[] r = base.getInterfaces();
+    static private Class<?>[]
+    virtualize(final Class<?> base) {
+        Class<?>[] r = base.getInterfaces();
         int i = r.length;
-        final Class parent = base.getSuperclass();
+        final Class<?> parent = base.getSuperclass();
         if (null != parent && Object.class != parent) {
-            final Class[] p = virtualize(parent);
+            final Class<?>[] p = virtualize(parent);
             if (0 != p.length) {
-                System.arraycopy(r, 0, r = new Class[i + p.length], 0, i);
+                System.arraycopy(r, 0, r = new Class<?>[i + p.length], 0, i);
                 System.arraycopy(p, 0, r, i, p.length);
             }
         }
         while (i-- != 0) {
-            final Class type = r[i];
+            final Class<?> type = r[i];
             if (type == Serializable.class ||
                     !Proxies.isImplementable(type) ||
                     JoeE.isSubtypeOf(type, Immutable.class) ||
                     JoeE.isSubtypeOf(type, Equatable.class)) {
-                final Class[] x = virtualize(r[i]);
-                final Class[] c = r;
-                r = new Class[c.length - 1 + x.length];
+                final Class<?>[] x = virtualize(r[i]);
+                final Class<?>[] c = r;
+                r = new Class<?>[c.length - 1 + x.length];
                 System.arraycopy(c, 0, r, 0, i);
                 System.arraycopy(x, 0, r, i, x.length);
                 System.arraycopy(c, i + 1, r, i + x.length, c.length - (i+1));
@@ -732,23 +732,23 @@ Eventual extends Struct implements Serializable {
     }
 
     /**
-     * Gets the corresponding {@linkplain Volatile promise}.
-     * <p>
-     * This method is the inverse of {@link #cast cast}; it gets the
-     * corresponding {@linkplain Volatile promise} for a given reference.
-     * </p>
-     * <p>
-     * This method will not throw an {@link Exception}. The
-     * <code>reference</code> argument will not be given the opportunity to
-     * execute.
-     * </p>
-     * @param <T> referent type
-     * @param reference immediate or eventual reference
-     * @return corresponding {@linkplain Volatile promise}
-     */
+	 * Gets the corresponding {@linkplain Volatile promise}.
+	 * <p>
+	 * This method is the inverse of {@link #cast cast}; it gets the
+	 * corresponding {@linkplain Volatile promise} for a given reference.
+	 * </p>
+	 * <p>
+	 * This method will not throw an {@link Exception}. The
+	 * <code>reference</code> argument will not be given the opportunity to
+	 * execute.
+	 * </p>
+	 * @param <T> referent type
+	 * @param reference	immediate or eventual reference
+	 * @return corresponding {@linkplain Volatile promise}
+	 */
     static public <T> Volatile<T>
     promised(final T reference) {
-        if (reference instanceof Volatile) { return (Volatile)reference; }
+        if (reference instanceof Volatile) { return (Volatile<T>)reference; }
         if (reference instanceof Proxy) {
             try {
                 final Object handler = Proxies.getHandler((Proxy)reference);
