@@ -7,6 +7,7 @@ import static org.ref_send.var.Variable.var;
 
 import java.io.Serializable;
 
+import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Channel;
@@ -41,16 +42,16 @@ Logic {
 
     /**
      * Create a promise for the logical AND of multiple boolean promises.
-     * @param _         eventual operator
-     * @param condition each boolean promise
+     * @param _     eventual operator
+     * @param tests	each boolean promise
      * @return promise for the logical AND of each <code>condition</code>
      */
     static public Promise<Boolean>
-    and(final Eventual _, final Volatile<Boolean>... condition) {
-        if (0 == condition.length) { return ref(true); }
+    and(final Eventual _, final ConstArray<? extends Volatile<Boolean>> tests) {
+        if (0 == tests.length()) { return ref(true); }
         final Channel<Boolean> answer = _.defer();
-        final Variable<Integer> todo = var(condition.length);
-        for (final Volatile<Boolean> test : condition) {
+        final Variable<Integer> todo = var(tests.length());
+        for (final Volatile<Boolean> test : tests) {
             class AND extends Do<Boolean,Void> implements Serializable {
                 static private final long serialVersionUID = 1L;
 
