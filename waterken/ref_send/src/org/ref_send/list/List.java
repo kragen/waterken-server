@@ -59,14 +59,9 @@ List<T> implements Iterable<T>, Serializable {
     /**
      * Constructs a list.
      * @param <T> element type
-     * @param values    each initial value
      */
     static public <T> List<T>
-    list(final T... values) {
-        final List<T> r = new List<T>();
-        for (final T value : values) { r.append(value); }
-        return r;
-    }
+    list() { return new List<T>(); }
 
     // java.lang.Iterable interface
 
