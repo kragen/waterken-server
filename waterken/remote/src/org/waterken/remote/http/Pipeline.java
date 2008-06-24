@@ -133,7 +133,7 @@ Pipeline implements Serializable {
                                final Server client =
                                    (Server)local.fetch(null, Remoting.client);
                                final Loop<Effect> effect =
-                                   (Loop)local.fetch(null, Root.effect);
+                                   (Loop<Effect>)local.fetch(null, Root.effect);
                                final Outbound outbound =
                                    (Outbound)local.fetch(null, AMP.outbound);
                                boolean found = !skipTo;
