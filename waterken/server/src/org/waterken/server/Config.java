@@ -23,7 +23,6 @@ import org.waterken.id.Importer;
 import org.waterken.jos.JODBCache;
 import org.waterken.net.Execution;
 import org.waterken.project.Project;
-import org.waterken.remote.http.AMP;
 import org.waterken.remote.http.Browser;
 import org.waterken.syntax.Serializer;
 import org.waterken.syntax.json.JSONDeserializer;
