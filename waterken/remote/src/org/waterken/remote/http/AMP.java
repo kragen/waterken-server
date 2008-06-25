@@ -123,7 +123,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
         class SpawnX extends Struct implements Spawn, Serializable {
             static private final long serialVersionUID = 1L;
             
-            public <T> T
+			public @SuppressWarnings("unchecked") <T> T
             run(final Class<?> maker) {
                 final Object r = publisher.spawn(null, maker);
                 return (T)r;
@@ -147,7 +147,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 mother.link(name, value);
             }
 
-            public <T> T
+			public @SuppressWarnings("unchecked")<T> T
             spawn(final String name, final Class<?> maker) throws Collision {
                 if (null != name) { vet(name); }
                 final Method build;
@@ -156,51 +156,56 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 } catch (final NoSuchMethodException e) {
                     throw new ClassCastException();
                 }
+                final Object r;
+                try {
+                	r = spawnNow(name, build);
+                } catch (final Exception e) {
+                    return new Rejected<T>(e)._(build.getReturnType());
+                }
+                return (T)r;
+            }
+            
+            private Object
+            spawnNow(final String name, final Method build) throws Exception {
                 final String base = mother.fetch(null, Root.here);
                 final Object tracer = mother.fetch(null, Root.tracer);
                 final Object events = mother.fetch(null, Root.events);
                 final Object client = mother.fetch(null, Remoting.client);
                 final Creator creator = mother.fetch(null, Root.creator);
-                final Class<?> T = build.getReturnType();
-                final String URL;
-                try {
-                    URL = creator.create(new Transaction<String>() {
-                        public String
-                        run(final Root local) throws Exception {
-                            final String here = base +
-                                URLEncoding.encode(local.getVatName()) + "/";
-                            local.link(Root.here, here);
-                            if (null != client) {
-                                local.link(Remoting.client, client);
-                                local.link(Root.wake, new Wake());
-                                local.link(outbound, new Outbound());
-                            }
-                            if (null!=tracer) {local.link(Root.tracer, tracer);}
-                            if (null!=events) {local.link(Root.events, events);}
-                            final Token deferred = new Token();
-                            local.link(Remoting.deferred, deferred);
-                            final Loop<Task> enqueue =
-                            	local.fetch(null, Root.enqueue);
-                            final Eventual _ = new Eventual(deferred, enqueue,
-                                null == tracer || null == events
-                                    ? new Sink() : EventGenerator.make(local));
-                            local.link(Remoting._, _);
-                            final Publisher publisher = publish(local);
-                            final Framework framework = new Framework(
-                                _,
-                                new Destruct(
-                                    (Runnable)local.fetch(null, Root.destruct)),
-                                AMP.spawn(publisher),
-                                null != name ? publisher : null
-                            );
-                            return URI.resolve(here, new Exports(local).reply().
-                                run(Reflection.invoke(build, null, framework)));
+                final String URL = creator.create(new Transaction<String>() {
+                    public String
+                    run(final Root local) throws Exception {
+                        final String here = base +
+                            URLEncoding.encode(local.getVatName()) + "/";
+                        local.link(Root.here, here);
+                        if (null != client) {
+                            local.link(Remoting.client, client);
+                            local.link(Root.wake, new Wake());
+                            local.link(outbound, new Outbound());
                         }
-                    }, (String)mother.fetch(null, Root.project), name);
-                } catch (final Exception e) {
-                    return new Rejected<T>(e)._(T);
-                }
-                return (T)Remote._(T, mother, URL);
+                        if (null!=tracer) {local.link(Root.tracer, tracer);}
+                        if (null!=events) {local.link(Root.events, events);}
+                        final Token deferred = new Token();
+                        local.link(Remoting.deferred, deferred);
+                        final Loop<Task> enqueue =
+                        	local.fetch(null, Root.enqueue);
+                        final Eventual _ = new Eventual(deferred, enqueue,
+                            null == tracer || null == events
+                                ? new Sink() : EventGenerator.make(local));
+                        local.link(Remoting._, _);
+                        final Publisher publisher = publish(local);
+                        final Framework framework = new Framework(
+                            _,
+                            new Destruct(
+                                (Runnable)local.fetch(null, Root.destruct)),
+                            AMP.spawn(publisher),
+                            null != name ? publisher : null
+                        );
+                        return URI.resolve(here, new Exports(local).reply().
+                            run(Reflection.invoke(build, null, framework)));
+                    }
+                }, (String)mother.fetch(null, Root.project), name);
+                return Remote._(build.getReturnType(), mother, URL);
             }
             
             private void

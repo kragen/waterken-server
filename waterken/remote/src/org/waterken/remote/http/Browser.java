@@ -26,6 +26,7 @@ import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
+import org.waterken.vat.Service;
 import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
 import org.waterken.vat.Transaction;
@@ -91,7 +92,7 @@ Browser extends Struct implements Record, Serializable {
             public Anchor
             anchor() { return new Anchor(new Turn(null, turns[0]), events++); }
 
-            public Object
+			public @SuppressWarnings("unchecked") Object
             fetch(final Object otherwise, final String name) {
                 final String key = name.toLowerCase();
                 for (final Binding x : bound) {
@@ -118,7 +119,7 @@ Browser extends Struct implements Record, Serializable {
             public String
             getTransactionTag() { throw new AssertionError(); }
         };
-        final Vat vat = new Vat((Loop)enqueue) {
+        final Vat vat = new Vat(reuse(enqueue)) {
             
             private boolean busy = false;
             
@@ -157,6 +158,9 @@ Browser extends Struct implements Record, Serializable {
         local.link(AMP.outbound, new Outbound());
         return new Browser(_, Remote.use(local), Remote.bind(local, null));
     }
+    
+	static private @SuppressWarnings("unchecked") Loop<Service>
+    reuse(final Loop<Task> loop) { return (Loop)loop; }
 
     static private final class
     Binding {
