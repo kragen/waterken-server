@@ -117,7 +117,7 @@ NameServer extends UDPDaemon {
                     Vat.extend, new Transaction<ConstArray<Resource>>() {
                 public ConstArray<Resource>
                 run(final Root local) throws Exception {
-                    final Domain face = (Domain)local.fetch(null, Domain.name);
+                    final Domain face = local.fetch(null, Domain.name);
                     return face.getAnswers();
                 }
             }).cast();
