@@ -31,7 +31,7 @@ Splitter {
      * @param maker {@linkplain Spawn#run maker} of objects of type
      *              <code>T</code>
      */
-    static public <T> T
+	static public @SuppressWarnings("unchecked") <T> T
     make(final Spawn spawn, final Class<?> maker) {
         class X extends Struct implements InvocationHandler, Serializable {
             static private final long serialVersionUID = 1L;
@@ -55,7 +55,6 @@ Splitter {
         try {
             build = Reflection.method(maker, "build", Framework.class);
         } catch (final NoSuchMethodException e){throw new ClassCastException();}
-        final Class<?> T = build.getReturnType();
-        return (T)Proxies.proxy(new X(), T, Selfless.class);
+        return (T)Proxies.proxy(new X(), build.getReturnType(), Selfless.class);
     }
 }
