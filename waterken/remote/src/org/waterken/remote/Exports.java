@@ -59,13 +59,13 @@ Exports extends Struct implements Serializable {
      * Gets the base URL for this namespace.
      */
     public String
-    getHere() { return (String)local.fetch("x-browser:", Root.here); }
+    getHere() { return local.fetch("x-browser:", Root.here); }
     
     /**
      * Gets the project name for this vat.
      */
     public String
-    getProject() { return (String)local.fetch(null, Root.project); }
+    getProject() { return local.fetch(null, Root.project); }
 
     /**
      * Calls {@link Root#getTransactionTag()}.
@@ -85,7 +85,7 @@ Exports extends Struct implements Serializable {
         if (null == er) { return; }
 
         // output a log event
-        final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
+        final Tracer tracer = local.fetch(null, Root.tracer);
         log(er, new Sent(local.anchor(), null!=tracer?tracer.get():null,
                          local.pipeline(local.pipeline(mid)))); 
     }
@@ -102,7 +102,7 @@ Exports extends Struct implements Serializable {
         if (null == er) { return; }
 
         // output a log event
-        final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
+        final Tracer tracer = local.fetch(null, Root.tracer);
         log(er, new Got(local.anchor(), null != tracer ? tracer.get() : null,
                         local.pipeline(local.pipeline(local.pipeline(mid))))); 
     }
@@ -125,7 +125,7 @@ Exports extends Struct implements Serializable {
         if (pumpkin == r) {
             final Receiver<Event> er = events();
             if (null != er) {
-                final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
+                final Tracer tracer = local.fetch(null, Root.tracer);
                 final Trace trace= null != tracer ? tracer.dummy(member) : null;
                 final String msg = local.pipeline(pipe);
                 log(er, new Got(local.anchor(), trace, msg)); 
@@ -141,14 +141,13 @@ Exports extends Struct implements Serializable {
     
     private Receiver<Event>
     events() {
-        final Factory<Receiver<Event>> erf =
-            (Factory<Receiver<Event>>)local.fetch(null, Root.events);
+        final Factory<Receiver<Event>> erf = local.fetch(null, Root.events);
         return null != erf ? erf.run() : null;
     }
     
     private void
     log(final Receiver<Event> er, final Event e) {
-        final Loop<Effect> effect = (Loop<Effect>)local.fetch(null,Root.effect); 
+        final Loop<Effect> effect = local.fetch(null,Root.effect); 
         effect.run(new Effect() { public void run() { er.run(e); } });
     }
     
@@ -173,7 +172,7 @@ Exports extends Struct implements Serializable {
      */
     public Importer
     connect(final String base) {
-        final ClassLoader code = (ClassLoader)local.fetch(null, Root.code);
+        final ClassLoader code = local.fetch(null, Root.code);
         final Importer next =
             Java.connect(base, code, ID.connect(base, Remote.use(local)));
         class ImporterX extends Struct implements Importer, Serializable {
@@ -241,17 +240,17 @@ Exports extends Struct implements Serializable {
      * @param response  client-side copy of a return promise
      * @return remote reference to the server-side copy of the return value
      */
-    public <R> R
+    public Object
     far(final String base, final String mid,
-        final Class<?> R, final Promise<R> response) {
-        final String here = (String)local.fetch(null, Root.here);
+        final Class<?> R, final Promise<?> response) {
+        final String here = local.fetch(null, Root.here);
         if (null == here) {
-            final Eventual _ = (Eventual)local.fetch(null, Remoting._);
+            final Eventual _ = local.fetch(null, Remoting._);
             return _.cast(R, response);
         }
         final String pipe = local.pipeline(mid);
         local.link(pipe, response);
-        return (R)Remote._(R, local, URI.resolve(base,
+        return Remote._(R, local, URI.resolve(base,
             "./?src=" + URLEncoding.encode(URI.relate(base, here)) + "#"+pipe));
     }
 
@@ -261,7 +260,7 @@ Exports extends Struct implements Serializable {
     public String
     mid() {
         final byte[] secret = new byte[128 / Byte.SIZE];
-        final SecureRandom prng = (SecureRandom)local.fetch(null, Root.prng);
+        final SecureRandom prng = local.fetch(null, Root.prng);
         prng.nextBytes(secret);
         return Base32.encode(secret);
     }

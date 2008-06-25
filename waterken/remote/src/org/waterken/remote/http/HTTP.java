@@ -48,14 +48,14 @@ HTTP extends Struct implements Messenger, Serializable {
      */
     static private final TypeVariable<?> DoP = Typedef.name(Do.class, "P");
 
-    public <P,R> R
-    when(final String URL, final Class<?> R, final Do<P,R> observer) {
+    public <R> R
+    when(final String URL, final Class<?> R, final Do<Object,R> observer) {
         final String src = Exports.src(URL);
         if (null != src) {
             // To ensure when blocks are processed in the same order as
             // enqueued, always ask the source vat for the resolved value.
             final String target = Exports.href(src, Exports.key(URL));
-            final String here = (String)local.fetch(null, Root.here);
+            final String here = local.fetch(null, Root.here);
             if (!src.equalsIgnoreCase(here)) {
                 return message(target).when(target, R, observer);
             }
@@ -65,13 +65,13 @@ HTTP extends Struct implements Messenger, Serializable {
             } catch (final Exception e) {
                 p = new Rejected<Object>(e);
             }
-            final Eventual _ = (Eventual)local.fetch(null, Remoting._);
-            return _.when((P)p, observer);
+            final Eventual _ = local.fetch(null, Remoting._);
+            return _.when(p, observer);
         }
         // already a resolved remote reference
-        final Eventual _ = (Eventual)local.fetch(null, Remoting._);
+        final Eventual _ = local.fetch(null, Remoting._);
         final R r;
-        final Do<P,?> forwarder;
+        final Do<Object,?> forwarder;
         if (void.class == R || Void.class == R) {
             r = null;
             forwarder = observer;
@@ -81,7 +81,7 @@ HTTP extends Struct implements Messenger, Serializable {
             forwarder = Eventual.compose(observer, x.resolver);
         }
         final Class<?> P = Typedef.raw(Typedef.value(DoP, observer.getClass()));
-        final P a = (P)Remote._(P, local, URL);
+        final Object a = Remote._(P, local, URL);
         class Fulfill extends Struct implements Task, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -120,7 +120,7 @@ HTTP extends Struct implements Messenger, Serializable {
         final String peer = scheme + "://" + hostname.toLowerCase() +
                             (standardPort == port ? "" : ":" + port);
         final String peerKey = ".-" + URLEncoding.encode(peer);
-        Pipeline msgs = (Pipeline)local.fetch(null, peerKey);
+        Pipeline msgs = local.fetch(null, peerKey);
         if (null == msgs) {
             msgs = new Pipeline(peer, local);
             local.link(peerKey, msgs);

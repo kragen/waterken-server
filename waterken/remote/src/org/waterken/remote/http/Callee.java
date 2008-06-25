@@ -51,7 +51,7 @@ Callee extends Struct implements Server, Serializable {
     Callee(final Server bootstrap, final Root local) {
         this.bootstrap = bootstrap;
 
-        code = (ClassLoader)local.fetch(null, Root.code);
+        code = local.fetch(null, Root.code);
         exports = new Exports(local);
     }
 

@@ -156,11 +156,11 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                 } catch (final NoSuchMethodException e) {
                     throw new ClassCastException();
                 }
-                final String base = (String)mother.fetch(null, Root.here);
+                final String base = mother.fetch(null, Root.here);
                 final Object tracer = mother.fetch(null, Root.tracer);
                 final Object events = mother.fetch(null, Root.events);
                 final Object client = mother.fetch(null, Remoting.client);
-                final Creator creator= (Creator)mother.fetch(null,Root.creator);
+                final Creator creator = mother.fetch(null, Root.creator);
                 final Class<?> T = build.getReturnType();
                 final String URL;
                 try {
@@ -179,8 +179,9 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                             if (null!=events) {local.link(Root.events, events);}
                             final Token deferred = new Token();
                             local.link(Remoting.deferred, deferred);
-                            final Eventual _ = new Eventual(deferred,
-                                (Loop<Task>)local.fetch(null, Root.enqueue),
+                            final Loop<Task> enqueue =
+                            	local.fetch(null, Root.enqueue);
+                            final Eventual _ = new Eventual(deferred, enqueue,
                                 null == tracer || null == events
                                     ? new Sink() : EventGenerator.make(local));
                             local.link(Remoting._, _);
@@ -221,7 +222,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
 
         public Void
         run(final Root local) throws Exception {
-            final Outbound outbound = (Outbound)local.fetch(null, AMP.outbound);
+            final Outbound outbound = local.fetch(null, AMP.outbound);
             for (final Outbound.Entry x : outbound.getPending()) {
                 x.msgs.resend();
             }

@@ -53,8 +53,8 @@ Caller extends Struct implements Messenger, Serializable {
     
     Caller(final Pipeline msgs, final Root local) {
         this.msgs = msgs;
-        _ = (Eventual)local.fetch(null, Remoting._);
-        code = (ClassLoader)local.fetch(null, Root.code);
+        _ = local.fetch(null, Remoting._);
+        code = local.fetch(null, Root.code);
         exports = new Exports(local);
     }
 
@@ -65,8 +65,8 @@ Caller extends Struct implements Messenger, Serializable {
      */
     static private final TypeVariable<?> DoP = Typedef.name(Do.class, "P");
 
-    public <P,R> R
-    when(final String URL, final Class<?> R, final Do<P,R> observer) {
+    public <R> R
+    when(final String URL, final Class<?> R, final Do<Object,R> observer) {
         final R r_;
         final Resolver<R> resolver;
         if (void.class == R || Void.class == R) {
@@ -93,21 +93,29 @@ Caller extends Struct implements Messenger, Serializable {
 
             public Void
             fulfill(final Response response) {
-                Volatile<P> value;
+                Volatile<Object> value;
                 try {
                     final Type P = Typedef.value(DoP, observer.getClass());
-                    value = Eventual.promised((P)deserialize(P, URL, response));
+                    value = Eventual.promised(deserialize(P, URL, response));
                 } catch (final Exception e) {
-                    value = new Rejected<P>(e);
+                    value = new Rejected<Object>(e);
                 }
-                final R r = _.when(value, observer);
+                final R r = when(value, observer);
                 return null != resolver ? resolver.fulfill(r) : null;
             }
             
             public Void
             reject(final Exception reason) {
-                final R r = _.when(new Rejected<P>(reason), observer);
+                final R r = when(new Rejected<Object>(reason), observer);
                 return null != resolver ? resolver.fulfill(r) : null;
+            }
+            
+            /**
+             * A trick to resolve a dispatch ambiguity in javac.
+             */
+            private <P,O> O
+            when(final Volatile<P> value, final Do<P,O> observer) {
+            	return _.when(value, observer);
             }
         }
         msgs.enqueue(new When());

@@ -59,8 +59,8 @@ Pipeline implements Serializable {
     
     Pipeline(final String peer, final Root local) {
         this.peer = peer;
-        effect = (Loop<Effect>)local.fetch(null, Root.effect);
-        model = (Vat)local.fetch(null, Root.vat);
+        effect = local.fetch(null, Root.effect);
+        model = local.fetch(null, Root.vat);
         outbound = Fulfilled.detach((Outbound)local.fetch(null, AMP.outbound));
     }
 
@@ -131,11 +131,11 @@ Pipeline implements Serializable {
                            public Void
                            run(final Root local) throws Exception {
                                final Server client =
-                                   (Server)local.fetch(null, Remoting.client);
+                                   local.fetch(null, Remoting.client);
                                final Loop<Effect> effect =
-                                   (Loop<Effect>)local.fetch(null, Root.effect);
+                                   local.fetch(null, Root.effect);
                                final Outbound outbound =
-                                   (Outbound)local.fetch(null, AMP.outbound);
+                                   local.fetch(null, AMP.outbound);
                                boolean found = !skipTo;
                                boolean q = false;
                                int n = max;
@@ -220,7 +220,7 @@ Pipeline implements Serializable {
                         public Void
                         run(final Root local) throws Exception {
                             final Outbound outbound =
-                                (Outbound)local.fetch(null, AMP.outbound);
+                            	local.fetch(null, AMP.outbound);
                             final Pipeline msgs = outbound.find(peer);
                             final Message respond = msgs.dequeue(mid);
                             Response value;

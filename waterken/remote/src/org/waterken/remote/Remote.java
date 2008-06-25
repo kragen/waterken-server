@@ -26,7 +26,7 @@ import org.waterken.vat.Root;
  * @param <T> referent type
  */
 public final class
-Remote<T> extends Deferred<T> implements Promise<T> {
+Remote extends Deferred<Object> implements Promise<Object> {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -57,9 +57,9 @@ Remote<T> extends Deferred<T> implements Promise<T> {
      */
     static public Object
     _(final Class<?> type, final Root local, final String URL) {
-        final String here = (String)local.fetch(null, Root.here);
+        final String here = local.fetch(null, Root.here);
         final String target = null == here ? URL : URI.relate(here, URL);
-        final Remote<Object> rp = new Remote<Object>(local, target);
+        final Remote rp = new Remote(local, target);
         return rp._.cast(type, rp);
     }
     
@@ -93,7 +93,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
                 final Object handler = object instanceof Proxy
                     ? Proxies.getHandler((Proxy)object) : object;
                 if (handler instanceof Remote) {
-                    final Remote<?> x = (Remote<?>)handler;
+                    final Remote x = (Remote)handler;
                     if ((Token)local.fetch(null, Remoting.deferred) ==
                         (Token)x.local.fetch(null, Remoting.deferred)) {
                         return x.URL;
@@ -114,9 +114,9 @@ Remote<T> extends Deferred<T> implements Promise<T> {
      */
     public boolean
     equals(final Object x) {
-        return x instanceof Remote && _.equals(((Remote<?>)x)._) &&
-               URL.equals(((Remote<?>)x).URL) &&
-               local.equals(((Remote<?>)x).local);
+        return x instanceof Remote && _.equals(((Remote)x)._) &&
+               URL.equals(((Remote)x).URL) &&
+               local.equals(((Remote)x).local);
     }
     
     /**
@@ -130,8 +130,8 @@ Remote<T> extends Deferred<T> implements Promise<T> {
     /**
      * @return <code>this</code>
      */
-    public T
-    cast() { return (T)this; }
+    public Object
+    cast() { return this; }
     
     // java.lang.reflect.InvocationHandler interface
 
@@ -148,7 +148,7 @@ Remote<T> extends Deferred<T> implements Promise<T> {
             }
         }
         try {
-            final String here = (String)local.fetch(null, Root.here);
+            final String here = local.fetch(null, Root.here);
             final String target = null == here ? URL : URI.resolve(here, URL);
             return message(target).invoke(target, proxy, method, arg);
         } catch (final Exception e) { throw new Error(e); }
@@ -157,8 +157,8 @@ Remote<T> extends Deferred<T> implements Promise<T> {
     // org.ref_send.promise.eventual.Deferred interface
 
     protected <R> R
-    when(final Class<?> R, final Do<T,R> observer) {
-        final String here = (String)local.fetch(null, Root.here);
+    when(final Class<?> R, final Do<Object,R> observer) {
+        final String here = local.fetch(null, Root.here);
         final String target = null == here ? URL : URI.resolve(here, URL);
         return message(target).when(target, R, observer);
     }
@@ -168,21 +168,28 @@ Remote<T> extends Deferred<T> implements Promise<T> {
         final String scheme = URI.scheme("", target);
         if ("https".equals(scheme)) { return new HTTP("https", 443, local); }
         if ("http".equals(scheme)) { return new HTTP("http", 80, local); }
-        final UnknownScheme reason = new UnknownScheme(scheme);
+        final Rejected<Object> answer =
+        	new Rejected<Object>(new UnknownScheme(scheme));
         return new Messenger() {
             
-            public <P,R> R
-            when(final String URL, final Class<?> R, final Do<P,R> observer) {
-                final Eventual _ = (Eventual)local.fetch(null, Remoting._);
-                return _.when(new Rejected<P>(reason), observer);
+            public <R> R
+            when(final String URL, final Class<?> R,
+                 final Do<Object,R> observer) { return when(answer, observer); }
+            
+            /**
+             * A trick to resolve a dispatch ambiguity in javac.
+             */
+            private <P,R> R
+            when(final Promise<P> value, final Do<P,R> observer) {
+                final Eventual _ = local.fetch(null, Remoting._);
+                return _.when(value, observer);
             }
             
             public Object
             invoke(final String URL, final Object proxy, 
                    final Method method, final Object... arg) {
                 try {
-                    return new Rejected<Object>(reason).
-                    				invoke(proxy, method, arg);
+                    return answer.invoke(proxy, method, arg);
                 } catch (final Exception e) { throw new Error(e); }
             }
         };

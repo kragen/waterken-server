@@ -14,14 +14,13 @@ Messenger {
     
     /**
      * Settles a remote promise.
-     * @param <P> observer's parameter type
      * @param <R> observer's return type
      * @param URL       reference identifier
      * @param R         observer's return type
      * @param observer  promise observer
      */
-    <P,R> R
-    when(String URL, Class<?> R, Do<P,R> observer);
+    <R> R
+    when(String URL, Class<?> R, Do<Object,R> observer);
     
     /**
      * Invokes a remote object.
