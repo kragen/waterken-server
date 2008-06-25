@@ -245,7 +245,7 @@ JODB extends Vat {
                 xxx.add(key);
             }
 
-            public <T> T
+			public @SuppressWarnings("unchecked") <T> T
             fetch(final Object otherwise, final String name) {
                 if (!active[0]) { throw new AssertionError(); }
 

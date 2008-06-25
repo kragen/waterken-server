@@ -87,7 +87,7 @@ Cache<K,V> implements Serializable {
         entries.put(id, new CacheReference<K,V>(nonNull(value), wiped, id));
     }
     
-    static private <V> V
+	static private @SuppressWarnings("unchecked") <V> V
     nonNull(final V value) { return null != value ? value : (V)new Null(); }
     
     static private final class
