@@ -116,7 +116,7 @@ Root {
      * @param name      name to lookup
      * @return stored value, or <code>otherwise</code>
      */
-    Object
+    <T> T
     fetch(Object otherwise, String name);
 
     /**

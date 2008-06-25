@@ -31,10 +31,9 @@ EventGenerator {
      */
     static public Log
     make(final Root local) {
-        final Factory<Receiver<Event>> erf =
-            (Factory<Receiver<Event>>)local.fetch(null, Root.events);
-        final Tracer tracer = (Tracer)local.fetch(null, Root.tracer);
-        final Loop<Effect> effect= (Loop<Effect>)local.fetch(null, Root.effect); 
+        final Factory<Receiver<Event>> erf = local.fetch(null, Root.events);
+        final Tracer tracer = local.fetch(null, Root.tracer);
+        final Loop<Effect> effect = local.fetch(null, Root.effect); 
         class LogX extends Struct implements Log, Serializable {
             static private final long serialVersionUID = 1L;
             
