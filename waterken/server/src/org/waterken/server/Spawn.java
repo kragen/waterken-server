@@ -60,11 +60,13 @@ Spawn {
         if (null != credentials) {
             final String host = credentials.getHostname();
             Hostname.vet(host);
-            final int portN = Config.read(HTTPD.class, "https").port;
+            final HTTPD https = Config.read(HTTPD.class, "https");
+            final int portN = https.port;
             final String port = 443 == portN ? "" : ":" + portN;
             hereValue = "https://" + host + port + "/" + vatURIPathPrefix;
         } else {
-            final int portN = Config.read(HTTPD.class, "http").port;
+        	final HTTPD http = Config.read(HTTPD.class, "http");
+            final int portN = http.port;
             final String port = 80 == portN ? "" : ":" + portN;
             hereValue = "http://localhost" + port + "/" + vatURIPathPrefix;
         }
@@ -88,7 +90,7 @@ Spawn {
                     public Anchor
                     anchor() { return local.anchor(); }
 
-                    public Object
+					public @SuppressWarnings("unchecked") Object
                     fetch(final Object otherwise, final String name) {
                         return Root.project.equals(name)
                             ? projectValue

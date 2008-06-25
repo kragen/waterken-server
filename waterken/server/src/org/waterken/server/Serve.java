@@ -82,7 +82,8 @@ Serve {
         }
         
         // ping all the persistent vats to restart any pending tasks
-        ping(Config.read(File.class, "vatRootFolder"));
+        final File vats = Config.read(File.class, "vatRootFolder");
+        ping(vats);
     }
     
     static private void

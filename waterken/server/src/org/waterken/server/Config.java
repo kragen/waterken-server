@@ -70,7 +70,8 @@ Config {
      */
     static protected Vat
     vat() throws Exception {
-        return vats.connect(read(File.class, "vatRootFolder"));
+    	final File id = read(File.class, "vatRootFolder");
+        return vats.connect(id);
     }
 
     static protected final String ext = ".json";
@@ -98,8 +99,8 @@ Config {
      * @param name  setting name
      * @return setting value, or <code>null</code> if not set
      */
-    static public <T> T
-    read(final Class<T> T, final String name) {
+	static public @SuppressWarnings("unchecked") <T> T
+    read(final Class<?> T, final String name) {
         final File file = Filesystem.file(configFolder, name + ext);
         if (!file.isFile()) { return null; }
         return (T)new ImporterX().run(T, file.toURI().toString());
