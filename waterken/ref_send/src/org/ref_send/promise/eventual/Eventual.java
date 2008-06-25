@@ -541,7 +541,7 @@ Eventual extends Struct implements Serializable {
      * @param promise   promise for the referent
      * @return corresponding eventual reference
      */
-    public <T> T
+	public @SuppressWarnings("unchecked") <T> T
     cast(final Class<?> type, final Volatile<T> promise) {
         try {
             return null == promise
@@ -620,7 +620,7 @@ Eventual extends Struct implements Serializable {
      * @throws Error    <code>null</code> <code>reference</code> or
      *                  <code>T</code> not an allowed proxy type
      */
-    public <T> T
+	public @SuppressWarnings("unchecked") <T> T
     _(final T reference) {
         if (reference instanceof Proxy) {
             try {
@@ -747,7 +747,7 @@ Eventual extends Struct implements Serializable {
 	 * @param reference	immediate or eventual reference
 	 * @return corresponding {@linkplain Volatile promise}
 	 */
-    static public <T> Volatile<T>
+    static public @SuppressWarnings("unchecked") <T> Volatile<T>
     promised(final T reference) {
         if (reference instanceof Volatile) { return (Volatile<T>)reference; }
         if (reference instanceof Proxy) {

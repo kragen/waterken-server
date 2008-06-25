@@ -77,7 +77,7 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
             class Invoke extends Do<T,Object> implements Serializable {
                 static private final long serialVersionUID = 1L;
     
-                public Object
+				public @SuppressWarnings("unchecked") Object
                 fulfill(final T object) throws Exception {
                     // AUDIT: call to untrusted application code
                     return Reflection.invoke(method,
