@@ -88,9 +88,9 @@ Spawn {
                     public Anchor
                     anchor() { return local.anchor(); }
 
-                    public <T> T
+                    public Object
                     fetch(final Object otherwise, final String name) {
-                        return (T)(Root.project.equals(name)
+                        return Root.project.equals(name)
                             ? projectValue
                         : Root.here.equals(name)
                             ? hereValue
@@ -104,7 +104,7 @@ Spawn {
                             ? deferredValue
                         : Remoting._.equals(name)
                             ? _Value
-                        : local.fetch(otherwise, name));
+                        : local.fetch(otherwise, name);
                     }
 
                     public void
