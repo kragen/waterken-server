@@ -76,7 +76,7 @@ Spawn {
             run(final Root local) throws Exception {
                 final Token deferredValue = new Token();
                 final Eventual _Value = new Eventual(deferredValue, null, null);
-                final Creator creator= (Creator)local.fetch(null, Root.creator);
+                final Creator creator = local.fetch(null, Root.creator);
                 final ClassLoader code = creator.load(projectValue);
                 final Tracer tracerValue =
                     ProjectTracer.make(code, code.getParent());
@@ -88,9 +88,9 @@ Spawn {
                     public Anchor
                     anchor() { return local.anchor(); }
 
-                    public Object
+                    public <T> T
                     fetch(final Object otherwise, final String name) {
-                        return Root.project.equals(name)
+                        return (T)(Root.project.equals(name)
                             ? projectValue
                         : Root.here.equals(name)
                             ? hereValue
@@ -104,7 +104,7 @@ Spawn {
                             ? deferredValue
                         : Remoting._.equals(name)
                             ? _Value
-                        : local.fetch(otherwise, name);
+                        : local.fetch(otherwise, name));
                     }
 
                     public void
