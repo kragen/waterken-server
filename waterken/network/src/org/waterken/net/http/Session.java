@@ -84,7 +84,7 @@ Session implements Task {
 
             // parse the Request-URI
             final int beginRequestURI = endMethod + 1;
-            final int endRequestURI = requestLine.indexOf(' ');
+            final int endRequestURI = requestLine.indexOf(' ', beginRequestURI);
             if (-1 == endRequestURI) { throw new Exception(); }
             final String requestURI =
                 requestLine.substring(beginRequestURI, endRequestURI);
