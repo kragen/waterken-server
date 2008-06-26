@@ -13,7 +13,7 @@ import java.security.SecureRandom;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
-import org.joe_e.array.PowerlessArray;
+import org.joe_e.array.ConstArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.file.Filesystem;
 import org.ref_send.promise.eventual.Sink;
@@ -145,7 +145,7 @@ Config {
                     final InputStream in = Filesystem.read(file);
                     final Object r = new JSONDeserializer().run(
                         file.toURI().toString(), this, code, mime, in,
-                        PowerlessArray.array((Type)type)).get(0);
+                        ConstArray.array((Type)type)).get(0);
                     in.close();
                     settings.put(file, r);
                     return r;

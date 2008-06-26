@@ -97,11 +97,14 @@ TCP implements Runnable {
                     try {
                         err.println(name + ": processing...");
                         daemon.accept(Config.exe, hostname, socket).run();
+                    } catch (final SocketTimeoutException e) {
+                    	// normal end to a TCP connection
                     } catch (final Throwable e) {
-                        err.println(name + ": " + e);
+                    	e.printStackTrace(err);
                     } finally {
                         try { socket.close(); } catch (final Exception e) {}
                     }
+                    err.println(name + ": done");
                 }
             }, name).start();
         }
