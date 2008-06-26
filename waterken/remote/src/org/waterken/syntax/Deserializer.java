@@ -7,7 +7,6 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Powerless;
 import org.joe_e.array.ConstArray;
-import org.joe_e.array.PowerlessArray;
 import org.waterken.http.MediaType;
 import org.waterken.id.Importer;
 
@@ -31,5 +30,5 @@ Deserializer extends Powerless {
     ConstArray<?>
     run(String base, Importer connect, ClassLoader code,
         MediaType type, InputStream content,
-        PowerlessArray<Type> parameters) throws Exception;
+        ConstArray<Type> parameters) throws Exception;
 }

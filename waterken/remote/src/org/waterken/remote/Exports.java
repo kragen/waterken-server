@@ -173,8 +173,7 @@ Exports extends Struct implements Serializable {
     public Importer
     connect(final String base) {
         final ClassLoader code = local.fetch(null, Root.code);
-        final Importer next =
-            Java.connect(base, code, ID.connect(base, Remote.use(local)));
+        final Importer next = Java.connect(base, code, Remote.use(local));
         class ImporterX extends Struct implements Importer, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -198,15 +197,15 @@ Exports extends Struct implements Serializable {
      */
     public Exporter
     send(final String base) {
-        return Java.export(ID.export(
-                Base.relative(base, Base.absolute(getHere(), export()))));
+        return Java.export(
+                Base.relative(base, Base.absolute(getHere(), export())));
     }
     
     /**
      * Constructs a return argument exporter.
      */
     public Exporter
-    reply() { return Java.export(ID.export(export())); }
+    reply() { return Java.export(export()); }
 
     /**
      * Constructs a reference exporter.

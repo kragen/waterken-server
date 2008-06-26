@@ -24,7 +24,6 @@ import org.joe_e.array.DoubleArray;
 import org.joe_e.array.FloatArray;
 import org.joe_e.array.IntArray;
 import org.joe_e.array.LongArray;
-import org.joe_e.array.PowerlessArray;
 import org.joe_e.array.ShortArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.deserializer;
@@ -81,15 +80,14 @@ JSONParser {
     to(final State next) { state.set(state.size() - 1, next); }
     
     ConstArray<?>
-    parse(final Reader in,
-          final PowerlessArray<Type> parameters) throws Exception {
+    parse(final Reader in, final ConstArray<Type> params) throws Exception {
         final State done = new State() {
             public void
             run(final char c) throws Exception { eatWhitespace(c); }
         };
         push(done);
         final ConstArray<?>[] root = { null };
-        push(parseStart(parameters, new Do<ConstArray<?>,Void>() {
+        push(parseStart(params, new Do<ConstArray<?>,Void>() {
             public Void
             fulfill(final ConstArray<?> referent) {
                 root[0] = referent;
@@ -118,13 +116,12 @@ JSONParser {
     }
     
     private State
-    parseStart(final PowerlessArray<Type> parameters,
-               final Do<ConstArray<?>,?> out) {
+    parseStart(final ConstArray<Type> params, final Do<ConstArray<?>,?> out) {
         return new State() {
             public void
             run(final char c) throws Exception {
                 if ('[' == c) {
-                    to(parseTuple(parameters, out));
+                    to(parseTuple(params, out));
                 } else {
                     eatWhitespace(c);
                 }
@@ -133,9 +130,8 @@ JSONParser {
     }
     
     private State
-    parseTuple(final PowerlessArray<Type> parameters,
-               final Do<ConstArray<?>,?> out) {
-        final Object[] arg = new Object[parameters.length()];
+    parseTuple(final ConstArray<Type> params, final Do<ConstArray<?>,?> out){
+        final Object[] arg = new Object[params.length()];
         return new State() {
             private int i = 0;
             
@@ -144,14 +140,14 @@ JSONParser {
                 if (']' == c) {
                     pop();
                     for (; i != arg.length; ++i) {
-                        arg[i] = defaultValue(parameters.get(i));
+                        arg[i] = defaultValue(params.get(i));
                     }
                     out.fulfill(ConstArray.array(arg));
                 } else if (whitespace.indexOf(c) != -1) {
                     // ignore whitespace
                 } else {
                     push(parseContinuation(']'));
-                    push(parseValue(i<arg.length?parameters.get(i):Object.class,
+                    push(parseValue(i<arg.length ? params.get(i) : Object.class,
                                     new Do<Object,Void>() {
                         public Void
                         fulfill(final Object x) {
