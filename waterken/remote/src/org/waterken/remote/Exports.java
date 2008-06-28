@@ -4,7 +4,6 @@ package org.waterken.remote;
 
 import java.io.Serializable;
 import java.lang.reflect.Member;
-import java.lang.reflect.Type;
 import java.security.SecureRandom;
 
 import org.joe_e.Struct;
@@ -26,7 +25,6 @@ import org.waterken.id.Exporter;
 import org.waterken.id.Importer;
 import org.waterken.id.base.Base;
 import org.waterken.syntax.json.Java;
-import org.waterken.uri.Path;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
 import org.waterken.vat.Effect;
@@ -172,8 +170,7 @@ Exports extends Struct implements Serializable {
      */
     public Importer
     connect(final String base) {
-        final ClassLoader code = local.fetch(null, Root.code);
-        final Importer next = Java.connect(base, code, Remote.use(local));
+        final Importer next = Remote.use(local);
         class ImporterX extends Struct implements Importer, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -181,8 +178,7 @@ Exports extends Struct implements Serializable {
             run(final Class<?> type, final String URL) {
                 try {
                     if (URI.resolve(URL, ".").equalsIgnoreCase(getHere())) {
-                        final String name = Path.name(URI.path(URL));
-                        return use("".equals(name) ? key(URL) : name);
+                        return use(key(URL));
                     }
                 } catch (final Exception e) {}
                 return next.run(type, URL);
@@ -197,15 +193,14 @@ Exports extends Struct implements Serializable {
      */
     public Exporter
     send(final String base) {
-        return Java.export(
-                Base.relative(base, Base.absolute(getHere(), export())));
+        return Base.relative(base, Base.absolute(getHere(), export()));
     }
     
     /**
      * Constructs a return argument exporter.
      */
     public Exporter
-    reply() { return Java.export(export()); }
+    reply() { return export(); }
 
     /**
      * Constructs a reference exporter.
@@ -217,14 +212,11 @@ Exports extends Struct implements Serializable {
 
             public String
             run(final Object object) {
-                final String key = local.export(object);
-                return object instanceof Type
-                    ? key
-                : (object instanceof Volatile ||
+                return (object instanceof Volatile ||
                         null == object || Java.isPBC(object.getClass()) ||
                         object instanceof Entity ||
                         !(Eventual.promised(object) instanceof Fulfilled)
-                    ? "./?src=." : "./") + "#" + key; 
+                    ? "?src=" : "") + "#" + local.export(object); 
             }
         }
         return Remote.bind(local, new ExporterX());

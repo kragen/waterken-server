@@ -5,11 +5,6 @@ package org.waterken.syntax.json;
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 
-import java.io.Serializable;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -17,10 +12,6 @@ import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
-import org.waterken.id.Exporter;
-import org.waterken.id.Importer;
-import org.waterken.uri.Path;
-import org.waterken.uri.URI;
 
 /**
  * Java &lt;=&gt; JSON naming conventions.
@@ -30,85 +21,6 @@ Java {
 
     private
     Java() {}
-    
-    /**
-     * Constructs a reference exporter.
-     * @param next  next exporter to try
-     */
-    static public Exporter
-    export(final Exporter next) {
-        class ExporterX extends Struct implements Exporter, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public String
-            run(final Object target) {
-                final Class<?> type= null!=target?target.getClass():Void.class;
-                try {
-                    if (Class.class == type) { return name((Class<?>)target); }
-                    if (Method.class == type) {
-                        final Method m = (Method)target;
-                        String p = property(m);
-                        if (null == p) { p = m.getName(); }
-                        return name(m.getDeclaringClass()) + "--" + p;
-                    }
-                    if (Field.class == type) {
-                        final Field f = (Field)target;
-                        return name(f.getDeclaringClass()) + "--" + f.getName();
-                    }
-                    if (Constructor.class == type) {
-                        final Constructor<?> c = (Constructor<?>)target;
-                        return name(c.getDeclaringClass()) + "--new";
-                    }
-                } catch (final Exception e) {}
-                return next.run(target);
-            }
-        }
-        return new ExporterX();
-    }
-    
-    /**
-     * Constructs a reference importer.
-     * @param base  base URL for the local namespace
-     * @param code  class loader
-     * @param next  next importer to try
-     */
-    static public Importer
-    connect(final String base, final ClassLoader code, final Importer next) {
-        class ImporterX extends Struct implements Importer, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Object
-            run(final Class<?> type, final String URL) {
-                if (base.equalsIgnoreCase(URI.resolve(URL, "."))) {
-                    final String name = Path.name(URI.path(URL));
-                    if (!"".equals(name)) {
-                        final AnnotatedElement r = reflect(code, name);
-                        if (null != r) { return r; }
-                    }
-                }
-                return next.run(type, URL);
-            }
-        }
-        return new ImporterX();
-    }
-    
-    /**
-     * Reflects a named code element.
-     * @param code  class loader
-     * @param name  code element name
-     */
-    static public AnnotatedElement
-    reflect(final ClassLoader code, final String name) {
-        final int dash = name.indexOf("--");
-        final String typename = -1 == dash ? name : name.substring(0, dash);                        
-        try {
-            final Class<?> declarer = load(code, typename);
-            if (-1 == dash) { return declarer; }
-            final String p = name.substring(dash + "--".length());
-            return (AnnotatedElement)dispatch(declarer, p);
-        } catch (final ClassNotFoundException e) {}
-        return null;
-    }
     
     /**
      * Gets the corresponding property name.
@@ -150,7 +62,7 @@ Java {
      * @param flags Java modifiers
      * @return <code>true</code> if synthetic, else <code>false</code>
      */
-    static public boolean
+    static protected boolean
     isSynthetic(final int flags) { return 0 != (flags & synthetic); }
 
     /**
@@ -159,9 +71,9 @@ Java {
      * @param name  member name
      * @return corresponding member, or <code>null</code> if not found
      */
-    static public Member
+    static public Method
     dispatch(final Class<?> type, final String name) {
-        Member r = null;
+    	Method r = null;
         for (final Method m : Reflection.methods(type)) {
             final int flags = m.getModifiers();
             if (!isStatic(flags) && !isSynthetic(flags)) {
@@ -175,13 +87,7 @@ Java {
                 }
             }
         }
-        if (null != r) { return r; }
-        try {
-            final Field f = Reflection.field(type, name);
-            if (!isStatic(f.getModifiers()) &&
-                isPublic(f.getDeclaringClass().getModifiers())) { return f; }
-        } catch (final NoSuchFieldException e) {}
-        return null;
+        return r;
     }
 
     /**
@@ -220,8 +126,6 @@ Java {
         return org.ref_send.Record.class.isAssignableFrom(type) ||
             Throwable.class.isAssignableFrom(type) ||
             org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
-            java.lang.reflect.Type.class.isAssignableFrom(type) ||
-            java.lang.reflect.AnnotatedElement.class.isAssignableFrom(type) ||
             String.class == type ||
             Void.class == type ||
             Integer.class == type ||
@@ -265,15 +169,15 @@ Java {
         new Alias(org.joe_e.array.ConstArray.class, "array")
     );
     
-    static String
-    name(final Class<?> type) throws Exception {
+    static protected String
+    name(final Class<?> type) throws IllegalArgumentException {
         for (final Alias a : custom) {
             if (type == a.type) { return a.name; }
         }
         return Reflection.getName(type).replace('$', '-');
     }
     
-    static Class<?>
+    static protected Class<?>
     load(final ClassLoader code,
          final String name) throws ClassNotFoundException {
         for (final Alias a : custom) {

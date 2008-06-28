@@ -3,7 +3,7 @@
 package org.waterken.remote.http;
 
 import java.io.Serializable;
-import java.lang.reflect.Member;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -100,8 +100,6 @@ Callee extends Struct implements Server, Serializable {
         Volatile<?> subject;
         try {
             subject = Eventual.promised(exports.use(s));
-        } catch (final NullPointerException e) {
-            subject = Eventual.promised(Java.reflect(code, s));
         } catch (final Exception e) {
             subject = new Rejected<Object>(e);
         }
@@ -142,17 +140,18 @@ Callee extends Struct implements Server, Serializable {
         final Object target = ((Fulfilled<?>)subject).cast();
         
         // prevent access to local implementation details
-        if (null == target || Java.isPBC(target.getClass())) {
+        final Class<?> type = null != target ? target.getClass() : Void.class;
+        if (Java.isPBC(type) || Type.class.isAssignableFrom(type) ||
+        						AnnotatedElement.class.isAssignableFrom(type)) {
             respond.fulfill(never(request.method));
             return;
         }
         
         // process the request
-        final Member member = Java.dispatch(target.getClass(), p);
+        final Method lambda = Java.dispatch(type, p);
         if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
             Object value;
             try {
-                final Method lambda = (Method)member;
                 if (null == Java.property(lambda)) {
                     throw new ClassCastException();
                 }
@@ -161,7 +160,7 @@ Callee extends Struct implements Server, Serializable {
             } catch (final Exception e) {
                 value = new Rejected<Object>(e);
             }
-            final boolean constant = "getClass".equals(member.getName());
+            final boolean constant = "getClass".equals(lambda.getName());
             final int maxAge = constant ? forever : ephemeral; 
             final String etag=constant ? null : exports.getTransactionTag();
             Response r = request.hasVersion(etag)
@@ -174,11 +173,10 @@ Callee extends Struct implements Server, Serializable {
             if (null != etag) { r = r.with("ETag", etag); }
             respond.fulfill(r);
         } else if ("POST".equals(request.method)) {
-            final Object value = exports.once(m, member, new Factory<Object>() {
+            final Object value = exports.once(m, lambda, new Factory<Object>() {
                 @Override public Object
                 run() {
                     try {
-                        final Method lambda = (Method)member;
                         if (null != Java.property(lambda)) {
                             throw new ClassCastException();
                         }
@@ -197,8 +195,8 @@ Callee extends Struct implements Server, Serializable {
             respond.fulfill(serialize(request.method, "200", "OK",
                                       ephemeral, Serializer.render, value));
         } else {
-            final String[] allow = member instanceof Method
-                ? (null == Java.property((Method)member)
+            final String[] allow = null != lambda
+                ? (null == Java.property(lambda)
                     ? new String[] { "TRACE", "OPTIONS", "POST" }
                 : new String[] { "TRACE", "OPTIONS", "GET", "HEAD" })
             : new String[] { "TRACE", "OPTIONS" };
