@@ -3,7 +3,6 @@
 package org.waterken.remote.http;
 
 import java.io.Serializable;
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -141,8 +140,7 @@ Callee extends Struct implements Server, Serializable {
         
         // prevent access to local implementation details
         final Class<?> type = null != target ? target.getClass() : Void.class;
-        if (Java.isPBC(type) || Type.class.isAssignableFrom(type) ||
-        						AnnotatedElement.class.isAssignableFrom(type)) {
+        if (Java.isPBC(type)) {
             respond.fulfill(never(request.method));
             return;
         }

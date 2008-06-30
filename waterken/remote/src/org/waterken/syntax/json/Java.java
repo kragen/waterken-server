@@ -5,6 +5,7 @@ package org.waterken.syntax.json;
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -123,21 +124,25 @@ Java {
      */
     static public boolean
     isPBC(final Class<?> type) {
-        return org.ref_send.Record.class.isAssignableFrom(type) ||
-            Throwable.class.isAssignableFrom(type) ||
-            org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
-            String.class == type ||
+        return String.class == type ||
             Void.class == type ||
             Integer.class == type ||
             Long.class == type ||
+            Boolean.class == type ||
             java.math.BigInteger.class == type ||
             Byte.class == type ||
             Short.class == type ||
-            Boolean.class == type ||
             Character.class == type ||
             Double.class == type ||
             Float.class == type ||
-            java.math.BigDecimal.class == type;
+            java.math.BigDecimal.class == type ||
+            org.web_send.Entity.class == type ||
+            org.ref_send.Record.class.isAssignableFrom(type) ||
+            Throwable.class.isAssignableFrom(type) ||
+            org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
+            org.ref_send.promise.Volatile.class.isAssignableFrom(type) ||
+            Type.class.isAssignableFrom(type) ||
+            AnnotatedElement.class.isAssignableFrom(type);
     }
     
     static private final class

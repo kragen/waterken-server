@@ -15,7 +15,6 @@ import org.ref_send.log.Sent;
 import org.ref_send.log.Trace;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.var.Factory;
@@ -30,7 +29,6 @@ import org.waterken.uri.URI;
 import org.waterken.vat.Effect;
 import org.waterken.vat.Root;
 import org.waterken.vat.Tracer;
-import org.web_send.Entity;
 
 /**
  * A web-key interface to a {@link Root}.
@@ -212,9 +210,7 @@ Exports extends Struct implements Serializable {
 
             public String
             run(final Object object) {
-                return (object instanceof Volatile ||
-                        null == object || Java.isPBC(object.getClass()) ||
-                        object instanceof Entity ||
+                return (null == object || Java.isPBC(object.getClass()) ||
                         !(Eventual.promised(object) instanceof Fulfilled)
                     ? "?src=" : "") + "#" + local.export(object); 
             }
