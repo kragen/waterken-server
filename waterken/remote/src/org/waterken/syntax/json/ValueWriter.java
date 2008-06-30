@@ -7,33 +7,77 @@ import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import org.joe_e.Struct;
+
 /**
  * A JSON writer.
+ * <p>
+ * A client can only output a syntactically correct JSON value, or leave the
+ * {@link ValueWriter} in a {@linkplain #isWritten detectable} error state.
+ * </p>
  */
 /* package */ final class
-ValueWriter {
+ValueWriter extends Struct {
     static protected final String newLine = "\r\n";
     static private   final String tab = "  ";
     
-    private final String indent;
-    private       Writer out;
-    private       boolean written;
+    static protected final class
+    Prize<T> {
+    	private T value;
+    	
+    	protected
+    	Prize(final T value) {
+    		this.value = value;
+    	}
+    	
+    	protected T
+    	claim() {
+    		final T r = value;
+    		value = null;
+    		return r;
+    	}
+    }
+    
+    static protected final class
+    Milestone {
+    	private boolean marked;
+    	
+    	protected
+    	Milestone(final boolean marked) {
+    		this.marked = marked;
+    	}
+    	
+    	protected boolean
+    	is() { return marked; }
+    	
+    	protected void
+    	mark() {
+    		marked = true;
+    	}
+    }
+    
+    private final String indent;		// indentation for this JSON value
+    private final Prize<Writer> output;
+    private final Milestone written;
     
     protected
     ValueWriter(final String indent, final Writer out) {
         this.indent = indent;
-        this.out = out;
-        written = null == out;
+        this.output = new Prize<Writer>(out);
+        written = new Milestone(null == out);
     }
     
+    /**
+     * @return <code>true</code> if a single JSON value was successfully
+     * 		   written, else <code>false</code>
+     */
     protected boolean
-    isWritten() { return written; }
+    isWritten() { return written.is(); }
     
     protected ObjectWriter
     startObject() throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write("{");
+        final Writer out = output.claim();
+        out.write('{');
         return new ObjectWriter(out);
     }
     
@@ -41,16 +85,16 @@ ValueWriter {
     ObjectWriter {
         static private final String comma = "," + newLine;
         
-        private final String inset;
-        private       String separator;
-        private       Writer out;
-        private       ValueWriter member;
+        private final String inset;			// indentation for each member
+        private final Writer out;			
+        private       String prefix;		// current member separator prefix
+        private       ValueWriter member;	// most recent member started	
         
         protected
         ObjectWriter(final Writer out) {
             inset = indent + tab;
-            separator = newLine;
             this.out = out;
+            prefix = newLine;
             member = new ValueWriter(inset, null);
         }
         
@@ -58,32 +102,32 @@ ValueWriter {
         close() throws IOException {
             if (!member.isWritten()) { throw new NullPointerException(); }
             
+            member = null;		// prevent future calls to this object
             out.write(newLine);
             out.write(indent);
-            out.write("}");
-            out = null;
-            member = null;
-            written = true;
+            out.write('}');
+            written.mark();		// mark the containing value successful
         }
         
         protected ValueWriter
         startMember(final String name) throws IOException {
             if (!member.isWritten()) { throw new NullPointerException(); }
             
-            out.write(separator);
+            member = new ValueWriter(inset, out); // prevent calls until after
+            									  // new member is complete
+            out.write(prefix);
             out.write(inset);
             writeStringTo(name, out);
             out.write(" : ");
-            separator = comma;
-            return member = new ValueWriter(inset, out);
+            prefix = comma;
+            return member;
         }
     }
     
     protected ArrayWriter
     startArray() throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write("[");
+        final Writer out = output.claim();
+        out.write('[');
         return new ArrayWriter(out);
     }
     
@@ -91,140 +135,118 @@ ValueWriter {
     ArrayWriter {
         static private final String comma = ", ";
         
-        private final String inset;
-        private       String separator;
-        private       Writer out;
-        private       ValueWriter member;
+        private final String inset;			// indentation for each element
+        private final Writer out;
+        private       String prefix;		// current element separator prefix
+        private       ValueWriter element;	// most recent element started
         
         protected
         ArrayWriter(final Writer out) {
             inset = indent + tab;
-            separator = " ";
             this.out = out;
-            member = new ValueWriter(inset, null);
+            prefix = " ";
+            element = new ValueWriter(inset, null);
         }
 
         protected void
         close() throws IOException {
-            if (!member.isWritten()) { throw new NullPointerException(); }
+            if (!element.isWritten()) { throw new NullPointerException(); }
             
+            element = null;		// prevent future calls to this object
             out.write(" ]");
-            out = null;
-            member = null;
-            written = true;
+            written.mark();		// mark the containing value successful
         }
         
         protected ValueWriter
         startElement() throws IOException {
-            if (!member.isWritten()) { throw new NullPointerException(); }
+            if (!element.isWritten()) { throw new NullPointerException(); }
             
-            out.write(separator);
-            separator = comma;
-            return member = new ValueWriter(inset, out);
+            element = new ValueWriter(inset, out); // prevent calls until after
+			  									   // new element is complete
+            out.write(prefix);
+            prefix = comma;
+            return element;
         }
     }
     
     protected void
     writeLink(final String URL) throws IOException {
-        final Writer out = this.out;
-        this.out = null;
+        final Writer out = output.claim();
         out.write("{ \"@\" : ");
         writeStringTo(URL, out);
         out.write(" }");
-        written = true;
+        written.mark();
     }
     
     protected void
     writeNull() throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write("null");
-        written = true;
+        output.claim().write("null");
+        written.mark();
     }
     
     protected void
     writeBoolean(final boolean value) throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write(value ? "true" : "false");
-        written = true;
+        output.claim().write(value ? "true" : "false");
+        written.mark();
     }
     
     protected void
     writeByte(final byte value) throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write(Byte.toString(value));
-        written = true;
+        output.claim().write(Byte.toString(value));
+        written.mark();
     }
     
     protected void
     writeShort(final short value) throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write(Short.toString(value));
-        written = true;
+        output.claim().write(Short.toString(value));
+        written.mark();
     }
     
     protected void
     writeInt(final int value) throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write(Integer.toString(value));
-        written = true;
+        output.claim().write(Integer.toString(value));
+        written.mark();
     }
     
     protected void
     writeLong(final long value) throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write(Long.toString(value));
-        written = true;
+        output.claim().write(Long.toString(value));
+        written.mark();
     }
     
     protected void
     writeInteger(final BigInteger value) throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write(value.toString());
-        written = true;
+        output.claim().write(value.toString());
+        written.mark();
     }
     
     protected void
     writeFloat(final float value) throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write(Float.toString(value));
-        written = true;
+        output.claim().write(Float.toString(value));
+        written.mark();
     }
     
     protected void
     writeDouble(final double value) throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write(Double.toString(value));
-        written = true;
+        output.claim().write(Double.toString(value));
+        written.mark();
     }
     
     protected void
     writeDecimal(final BigDecimal value) throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        out.write(value.toPlainString());
-        written = true;
+        output.claim().write(value.toString());
+        written.mark();
     }
     
     protected void
     writeString(final String value) throws IOException {
-        final Writer out = this.out;
-        this.out = null;
-        writeStringTo(value, out);
-        written = true;
+        writeStringTo(value, output.claim());
+        written.mark();
     }
     
-    static protected void
+    static private void
     writeStringTo(final String value, final Writer out) throws IOException {
-        out.write("\"");
+        out.write('\"');
         final int len = value.length();
         for (int i = 0; i != len; ++i) {
             final char c = value.charAt(i);
@@ -280,15 +302,15 @@ ValueWriter {
                     break;
                 default:
                     out.write("\\u");
-                    final int u = c;
+                    final int unicode = c;
                     for (int shift = 16; 0 != shift;) {
                         shift -= 4;
-                        final int h = (u >> shift) & 0x0F;
-                        out.write(h < 10 ? '0' + h : 'A' + (h - 10));
+                        final int hex = (unicode >> shift) & 0x0F;
+                        out.write(hex < 10 ? '0' + hex : 'A' + (hex - 10));
                     }
                 }
             }
         }
-        out.write("\"");
+        out.write('\"');
     }
 }

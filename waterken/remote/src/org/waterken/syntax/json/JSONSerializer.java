@@ -184,7 +184,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
 
                     // output the error types
                     final ValueWriter.ArrayWriter eout =
-                        mout.startMember("in").startArray();
+                        mout.startMember("error").startArray();
                     for (final Type e : m.getGenericExceptionTypes()) {
                         describeType(e, eout.startElement());
                     }
@@ -215,7 +215,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             pout.close();
             oout.close();
         } else {
-            final Class<?> c = (Class<?>)type;
+            final Class<?> c = Typedef.raw(type);
             final ValueWriter.ObjectWriter oout = out.startObject();
             oout.startMember("name").writeString(Java.name(jsonType(c)));
             oout.close();
