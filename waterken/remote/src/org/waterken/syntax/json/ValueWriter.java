@@ -63,7 +63,7 @@ ValueWriter extends Struct {
     protected
     ValueWriter(final String indent, final Writer out) {
         this.indent = indent;
-        this.output = new Prize<Writer>(out);
+        output = new Prize<Writer>(out);
         written = new Milestone(null == out);
     }
     
