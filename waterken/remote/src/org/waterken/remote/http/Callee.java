@@ -60,16 +60,12 @@ Callee extends Struct implements Server, Serializable {
     serve(final String resource, final Volatile<Request> requestor,
           final Do<Response,?> respond) throws Exception {
 
-        // further dispatch the request based on the query string
-        final String query = URI.query("", resource);
-        final String s = Query.arg(null, query, "s");
-        final String p = Query.arg(null, query, "p");
-        final String m = Query.arg(null, query, "m");
-
         // check for web browser bootstrap request
-        if (null == s) {
+        final String query = URI.query(null, resource);
+        if (null == query) {
             final String project = exports.getProject();
-            bootstrap.serve("file:///site/" + URLEncoding.encode(project) + "/",
+            bootstrap.serve("file:///site/" + URLEncoding.encode(project) + "/"+
+                              URLEncoding.encode(Path.name(URI.path(resource))),
                             requestor, respond);
             return;
         }
@@ -98,12 +94,14 @@ Callee extends Struct implements Server, Serializable {
         // determine the request subject
         Volatile<?> subject;
         try {
+            final String s = Query.arg(null, query, "s");
             subject = Eventual.promised(exports.use(s));
         } catch (final Exception e) {
             subject = new Rejected<Object>(e);
         }
         
         // determine the request type
+        final String p = Query.arg(null, query, "p");
         if (null == p || "*".equals(p)) {   // when block or introspection
             Object value;
             try {
@@ -171,6 +169,7 @@ Callee extends Struct implements Server, Serializable {
             if (null != etag) { r = r.with("ETag", etag); }
             respond.fulfill(r);
         } else if ("POST".equals(request.method)) {
+            final String m = Query.arg(null, query, "m");
             final Object value = exports.once(m, lambda, new Factory<Object>() {
                 @Override public Object
                 run() {
