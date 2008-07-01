@@ -3,7 +3,6 @@
 package org.waterken.syntax.json;
 
 import static org.joe_e.array.PowerlessArray.builder;
-import static org.ref_send.promise.Fulfilled.ref;
 
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -28,6 +27,7 @@ import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.promise.Inline;
+import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.type.Typedef;
 import org.waterken.id.Exporter;
@@ -51,13 +51,13 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     // org.waterken.syntax.Serializer interface
 
     public Content
-    run(final boolean mode, final Exporter export, final ConstArray<?> values) {
+    run(final boolean mode, final Exporter export, final ConstArray<?> object) {
         return new Content() {
             public void
             writeTo(final OutputStream out) throws Exception {
                 final Writer text = UTF8.output(Open.output(out));
                 final ValueWriter top = new ValueWriter("", text); 
-                serialize(mode, export, ConstArray.class, values, top);
+                serialize(mode, ConstArray.class, object, export, top);
                 if (!top.isWritten()) { throw new NullPointerException(); }
                 text.write(ValueWriter.newLine);
                 text.flush();
@@ -70,85 +70,84 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private final TypeVariable<?> T = Typedef.name(Iterable.class, "T");
     
     static private void
-    serialize(final boolean mode, final Exporter export, final Type implicit,
-              final Object value, final ValueWriter out) throws Exception {
-        final Class<?> actual = null != value ? value.getClass() : Void.class;
+    serialize(final boolean mode, final Type implicit, final Object object,
+              final Exporter export, final ValueWriter out) throws Exception {
+        final Class<?> actual = null != object ? object.getClass() : Void.class;
         if (Inline.class == actual) {
             final Type r = Typedef.value(R, implicit);
-            serialize(mode, export, null != r ? r : Object.class,
-                      ((Inline<?>)value).cast(), out);
+            serialize(mode, null != r ? r : Object.class,
+                      ((Inline<?>)object).cast(), export, out);
         } else if (String.class == actual) {
-            out.writeString((String)value);
+            out.writeString((String)object);
         } else if (Void.class == actual) {
             out.writeNull();
         } else if (Integer.class == actual) {
-            out.writeInt((Integer)value);
+            out.writeInt((Integer)object);
         } else if (Long.class == actual) {
-            out.writeLong((Long)value);
+            out.writeLong((Long)object);
         } else if (BigInteger.class == actual) {
-            out.writeInteger((BigInteger)value);
+            out.writeInteger((BigInteger)object);
         } else if (Byte.class == actual) {
-            out.writeByte((Byte)value);
+            out.writeByte((Byte)object);
         } else if (Short.class == actual) {
-            out.writeShort((Short)value);
+            out.writeShort((Short)object);
         } else if (Boolean.class == actual) {
-            out.writeBoolean((Boolean)value);
+            out.writeBoolean((Boolean)object);
         } else if (Character.class == actual) {
-            out.writeString(((Character)value).toString());
+            out.writeString(((Character)object).toString());
         } else if (Double.class == actual) {
-            final Volatile<Double> pd = ref((Double)value);
-            if (pd instanceof Inline) {
-                out.writeDouble(((Inline<Double>)pd).cast());
-            } else {
-                serialize(mode, export, implicit, pd, out);
-            }
+        	try {
+        		out.writeDouble((Double)object);
+        	} catch (final ArithmeticException e) {
+                serialize(mode, implicit, new Rejected<Double>(e), export, out);
+        	}
         } else if (Float.class == actual) {
-            final Volatile<Float> pf = ref((Float)value);
-            if (pf instanceof Inline) {
-                out.writeFloat(((Inline<Float>)pf).cast());
-            } else {
-                serialize(mode, export, implicit, pf, out);
-            }
+        	try {
+        		out.writeFloat((Float)object);
+        	} catch (final ArithmeticException e) {
+                serialize(mode, implicit, new Rejected<Float>(e), export, out);
+        	}
         } else if (BigDecimal.class == actual) {
-            out.writeDecimal((BigDecimal)value);
+            out.writeDecimal((BigDecimal)object);
         } else if (Class.class == actual) {
-            final Class<?> c = (Class<?>)value;
+            final Class<?> c = (Class<?>)object;
             final ValueWriter.ObjectWriter oout = out.startObject();
             if (Class.class != implicit) {
-                serialize(mode, export, PowerlessArray.class,
-                          PowerlessArray.array("class"), oout.startMember("$"));
+                serialize(mode, PowerlessArray.class,
+                          PowerlessArray.array("class"), export,
+                          oout.startMember("$"));
             }
             oout.startMember("name").writeString(Java.name(c));
             oout.close();
-        } else if (value instanceof ConstArray) {
-            final Type elementType = Typedef.bound(T, implicit);
+        } else if (object instanceof ConstArray) {
+            final Type valueType = Typedef.bound(T, implicit);
             final ValueWriter.ArrayWriter aout = out.startArray();
-            for (final Object i : (ConstArray<?>)value) {
-                serialize(mode, export, elementType, i, aout.startElement());
+            for (final Object value : (ConstArray<?>)object) {
+                serialize(mode, valueType, value, export, aout.startElement());
             }
             aout.close();
-        } else if (value instanceof Record || value instanceof Throwable) {
+        } else if (object instanceof Record || object instanceof Throwable) {
             final ValueWriter.ObjectWriter oout = out.startObject();
             final Class<?> top = Typedef.raw(implicit);
             if (actual != top) {
-                serialize(render, export, PowerlessArray.class,
-                          upto(actual, top), oout.startMember("$"));
+                serialize(render, PowerlessArray.class, upto(actual, top),
+                          export, oout.startMember("$"));
             }
             for (final Field f : Reflection.fields(actual)) {
                 final int flags = f.getModifiers();
                 if (!Modifier.isStatic(flags) && Modifier.isFinal(flags) &&
                     Modifier.isPublic(f.getDeclaringClass().getModifiers())) {
-                    final Object member = Reflection.get(f, value);
-                    if (null != member) {
-                        serialize(render, export,
+                    final Object value = Reflection.get(f, object);
+                    if (null != value) {
+                        serialize(render,
                                   Typedef.bound(f.getGenericType(), actual),
-                                  member, oout.startMember(f.getName()));
+                                  value, export, oout.startMember(f.getName()));
                     }
                 }
             }
             oout.close();
         } else if (render == mode || Java.isPBC(actual)) {
-            out.writeLink(export.run(value));
+            out.writeLink(export.run(object));
         // rest is introspection support not used in normal messaging
         } else {
             final ValueWriter.ObjectWriter oout = out.startObject();
@@ -156,8 +155,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 Struct.class.isAssignableFrom(actual)?Struct.class:Object.class;
             final PowerlessArray.Builder<String> r = builder(4);
             for (Class<?> i=actual; end!=i; i=i.getSuperclass()) { all(i, r); }
-            serialize(mode, export, PowerlessArray.class,
-                      r.snapshot(), oout.startMember("$"));
+            serialize(mode, PowerlessArray.class, r.snapshot(), export,
+                      oout.startMember("$"));
             for (final Method m : Reflection.methods(actual)) {
                 final int flags = m.getModifiers();
                 if (!Modifier.isStatic(flags) && !Java.isSynthetic(flags)) {

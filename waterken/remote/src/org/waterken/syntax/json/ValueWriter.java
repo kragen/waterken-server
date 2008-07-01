@@ -8,6 +8,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.joe_e.Struct;
+import org.ref_send.promise.Infinity;
+import org.ref_send.promise.NaN;
+import org.ref_send.promise.NegativeInfinity;
+import org.ref_send.promise.PositiveInfinity;
 
 /**
  * A JSON writer.
@@ -221,13 +225,29 @@ ValueWriter extends Struct {
     }
 
     protected void
-    writeFloat(final float value) throws IOException {
+    writeFloat(final float value) throws Infinity, NaN, IOException {
+    	if (Float.isNaN(value)) { throw new NaN(); }
+    	if (Float.isInfinite(value)) {
+    		if (Float.NEGATIVE_INFINITY == value) {
+    			throw new NegativeInfinity();
+    		} else {
+    			throw new PositiveInfinity();
+    		}
+    	}
         output.claim().write(Float.toString(value));
         written.mark();
     }
 
     protected void
-    writeDouble(final double value) throws IOException {
+    writeDouble(final double value) throws Infinity, NaN, IOException {
+    	if (Double.isNaN(value)) { throw new NaN(); }
+    	if (Double.isInfinite(value)) {
+    		if (Double.NEGATIVE_INFINITY == value) {
+    			throw new NegativeInfinity();
+    		} else {
+    			throw new PositiveInfinity();
+    		}
+    	}
         output.claim().write(Double.toString(value));
         written.mark();
     }
