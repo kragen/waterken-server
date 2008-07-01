@@ -322,6 +322,14 @@ ValueWriter extends Struct {
                 case Character.FINAL_QUOTE_PUNCTUATION:
                     out.write(c);
                     break;
+                case Character.SPACE_SEPARATOR:
+                case Character.LINE_SEPARATOR:
+                case Character.PARAGRAPH_SEPARATOR:
+                case Character.CONTROL:
+                case Character.FORMAT:
+                case Character.PRIVATE_USE:
+                case Character.SURROGATE:
+                case Character.OTHER_SYMBOL:
                 default:
                     out.write("\\u");
                     final int unicode = c;
