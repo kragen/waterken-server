@@ -177,9 +177,8 @@ Callee extends Struct implements Server, Serializable {
                         if (null != Java.property(lambda)) {
                             throw new ClassCastException();
                         }
-                        final ConstArray<?> argv =
-                            deserialize(request, PowerlessArray.array(
-                                lambda.getGenericParameterTypes()));
+                        final ConstArray<?> argv = deserialize(request,
+                           ConstArray.array(lambda.getGenericParameterTypes()));
 
                         // AUDIT: call to untrusted application code
                         return Reflection.invoke(Java.bubble(lambda), target,
@@ -241,7 +240,7 @@ Callee extends Struct implements Server, Serializable {
     
     private ConstArray<?>
     deserialize(final Request request,
-                final PowerlessArray<Type> parameters) throws Exception {
+                final ConstArray<Type> parameters) throws Exception {
         final ByteArray content = ((Snapshot)request.body).content;
         final String contentType = request.getContentType();
         final MediaType mediaType = 
