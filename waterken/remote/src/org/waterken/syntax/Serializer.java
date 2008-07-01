@@ -27,9 +27,9 @@ Serializer extends Powerless {
      * Serializes an argument list.
      * @param mode      either {@link #render} or {@link #describe}   
      * @param export    reference exporter
-     * @param object    each argument to serialize
+     * @param values    each argument to serialize
      * @return serialized content
      */
     Content
-    run(boolean mode, Exporter export, ConstArray<?> object);
+    run(boolean mode, Exporter export, ConstArray<?> values);
 }
