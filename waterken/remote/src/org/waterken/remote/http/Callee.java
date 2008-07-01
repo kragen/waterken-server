@@ -94,8 +94,7 @@ Callee extends Struct implements Server, Serializable {
         // determine the request subject
         Volatile<?> subject;
         try {
-            final String s = Query.arg(null, query, "s");
-            subject = Eventual.promised(exports.use(s));
+            subject = Eventual.promised(exports.use(Query.arg("", query, "s")));
         } catch (final Exception e) {
             subject = new Rejected<Object>(e);
         }
