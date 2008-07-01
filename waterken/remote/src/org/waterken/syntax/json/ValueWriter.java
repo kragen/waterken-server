@@ -61,8 +61,8 @@ ValueWriter extends Struct {
     }
 
     private final String indent;        // indentation for this JSON value
-    private final Prize<Writer> output;
-    private final Milestone written;
+    private final Prize<Writer> output; // claimed by 1st called output method
+    private final Milestone written;    // marked after output method is done  
 
     protected
     ValueWriter(final String indent, final Writer out) {
