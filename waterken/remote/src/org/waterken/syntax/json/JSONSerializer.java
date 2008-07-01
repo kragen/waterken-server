@@ -51,13 +51,13 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     // org.waterken.syntax.Serializer interface
 
     public Content
-    run(final boolean mode, final Exporter export, final ConstArray<?> object) {
+    run(final boolean mode, final Exporter export, final ConstArray<?> values) {
         return new Content() {
             public void
             writeTo(final OutputStream out) throws Exception {
                 final Writer text = UTF8.output(Open.output(out));
                 final ValueWriter top = new ValueWriter("", text); 
-                serialize(mode, export, ConstArray.class, object, top);
+                serialize(mode, export, ConstArray.class, values, top);
                 if (!top.isWritten()) { throw new NullPointerException(); }
                 text.write(ValueWriter.newLine);
                 text.flush();
