@@ -234,6 +234,7 @@ ValueWriter extends Struct {
     			throw new PositiveInfinity();
     		}
     	}
+    	
         output.claim().write(Float.toString(value));
         written.mark();
     }
@@ -248,6 +249,7 @@ ValueWriter extends Struct {
     			throw new PositiveInfinity();
     		}
     	}
+    	
         output.claim().write(Double.toString(value));
         written.mark();
     }
