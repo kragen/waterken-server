@@ -41,7 +41,7 @@ import org.waterken.syntax.Serializer;
 public final class
 JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private final long serialVersionUID = 1L;
-    
+
     /**
      * Constructs an instance.
      */
@@ -56,7 +56,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             public void
             writeTo(final OutputStream out) throws Exception {
                 final Writer text = UTF8.output(Open.output(out));
-                final ValueWriter top = new ValueWriter("", text); 
+                final ValueWriter top = new ValueWriter("", text);
                 serialize(mode, ConstArray.class, object, export, top);
                 if (!top.isWritten()) { throw new NullPointerException(); }
                 text.write(ValueWriter.newLine);
@@ -68,7 +68,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
 
     static private final TypeVariable<?> R = Typedef.name(Volatile.class, "T");
     static private final TypeVariable<?> T = Typedef.name(Iterable.class, "T");
-    
+
     static private void
     serialize(final boolean mode, final Type implicit, final Object object,
               final Exporter export, final ValueWriter out) throws Exception {
@@ -96,17 +96,17 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         } else if (Character.class == actual) {
             out.writeString(((Character)object).toString());
         } else if (Double.class == actual) {
-        	try {
-        		out.writeDouble((Double)object);
-        	} catch (final ArithmeticException e) {
+            try {
+                out.writeDouble((Double)object);
+            } catch (final ArithmeticException e) {
                 serialize(mode, implicit, new Rejected<Double>(e), export, out);
-        	}
+            }
         } else if (Float.class == actual) {
-        	try {
-        		out.writeFloat((Float)object);
-        	} catch (final ArithmeticException e) {
+            try {
+                out.writeFloat((Float)object);
+            } catch (final ArithmeticException e) {
                 serialize(mode, implicit, new Rejected<Float>(e), export, out);
-        	}
+            }
         } else if (BigDecimal.class == actual) {
             out.writeDecimal((BigDecimal)object);
         } else if (Class.class == actual) {
@@ -187,14 +187,14 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                         describeType(e, eout.startElement());
                     }
                     eout.close();
-                    
+
                     mout.close();
                 }
             }
             oout.close();
         }
     }
-    
+
     static private void
     describeType(final Type type, final ValueWriter out) throws Exception {
         final Type pR = Typedef.value(R, type);
@@ -219,7 +219,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             oout.close();
         }
     }
-    
+
     static private Class<?>
     jsonType(final Class<?> r) {
         return Boolean.class == r
@@ -245,7 +245,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             ? ConstArray.class
         : r;
     }
-    
+
     static private PowerlessArray<String>
     upto(final Class<?> bottom, final Class<?> top) {
         final Class<?> limit = Struct.class.isAssignableFrom(bottom)
@@ -263,8 +263,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         }
         return r.snapshot();
     }
-    
-    
+
+
     static private void
     all(final Class<?> type, final ArrayBuilder<String> r) {
         if (type == Serializable.class) { return; }
