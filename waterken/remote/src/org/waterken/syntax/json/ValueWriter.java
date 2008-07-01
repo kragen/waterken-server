@@ -322,6 +322,7 @@ ValueWriter extends Struct {
                 case Character.FINAL_QUOTE_PUNCTUATION:
                     out.write(c);
                     break;
+                case Character.UNASSIGNED:
                 case Character.SPACE_SEPARATOR:
                 case Character.LINE_SEPARATOR:
                 case Character.PARAGRAPH_SEPARATOR:
