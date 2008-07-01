@@ -226,30 +226,30 @@ ValueWriter extends Struct {
 
     protected void
     writeFloat(final float value) throws Infinity, NaN, IOException {
-    	if (Float.isNaN(value)) { throw new NaN(); }
-    	if (Float.isInfinite(value)) {
-    		if (Float.NEGATIVE_INFINITY == value) {
-    			throw new NegativeInfinity();
-    		} else {
-    			throw new PositiveInfinity();
-    		}
-    	}
-    	
+        if (Float.isNaN(value)) { throw new NaN(); }
+        if (Float.isInfinite(value)) {
+            if (Float.NEGATIVE_INFINITY == value) {
+                throw new NegativeInfinity();
+            } else {
+                throw new PositiveInfinity();
+            }
+        }
+        
         output.claim().write(Float.toString(value));
         written.mark();
     }
 
     protected void
     writeDouble(final double value) throws Infinity, NaN, IOException {
-    	if (Double.isNaN(value)) { throw new NaN(); }
-    	if (Double.isInfinite(value)) {
-    		if (Double.NEGATIVE_INFINITY == value) {
-    			throw new NegativeInfinity();
-    		} else {
-    			throw new PositiveInfinity();
-    		}
-    	}
-    	
+        if (Double.isNaN(value)) { throw new NaN(); }
+        if (Double.isInfinite(value)) {
+            if (Double.NEGATIVE_INFINITY == value) {
+                throw new NegativeInfinity();
+            } else {
+                throw new PositiveInfinity();
+            }
+        }
+        
         output.claim().write(Double.toString(value));
         written.mark();
     }
