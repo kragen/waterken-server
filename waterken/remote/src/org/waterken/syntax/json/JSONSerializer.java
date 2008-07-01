@@ -250,7 +250,9 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         final Class<?> limit = Struct.class.isAssignableFrom(bottom)
             ? Struct.class
         : RuntimeException.class.isAssignableFrom(bottom)
-            ? Exception.class
+            ? (Exception.class.isAssignableFrom(top)
+                ? RuntimeException.class
+            : Exception.class)
         : Exception.class.isAssignableFrom(bottom)
             ? Throwable.class
         : Object.class;
