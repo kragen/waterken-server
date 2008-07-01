@@ -269,6 +269,7 @@ ValueWriter extends Struct {
     static private void
     writeStringTo(final String value, final Writer out) throws IOException {
         out.write('\"');
+        char previous = '\0';
         final int len = value.length();
         for (int i = 0; i != len; ++i) {
             final char c = value.charAt(i);
@@ -293,6 +294,10 @@ ValueWriter extends Struct {
                 break;
             case '\t':
                 out.write("\\t");
+                break;
+            case '/':
+                if ('<' == previous) { out.write('\\'); }
+                out.write(c);
                 break;
             case ' ':
                 out.write(c);
@@ -341,6 +346,7 @@ ValueWriter extends Struct {
                     }
                 }
             }
+            previous = c;
         }
         out.write('\"');
     }
