@@ -334,7 +334,7 @@ ValueWriter extends Struct {
                 default:
                     out.write("\\u");
                     final int unicode = c;
-                    for (int shift = 16; 0 != shift;) {
+                    for (int shift = Character.SIZE; 0 != shift;) {
                         shift -= 4;
                         final int hex = (unicode >> shift) & 0x0F;
                         out.write(hex < 10 ? '0' + hex : 'A' + (hex - 10));
