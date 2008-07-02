@@ -235,10 +235,10 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
           short.class == r || Short.class == r ||
           int.class == r || Integer.class == r ||
           long.class == r || Long.class == r ||
-          java.math.BigDecimal.class == r ||
+          java.math.BigInteger.class == r ||
           float.class == r || Float.class == r ||
           double.class == r || Double.class == r ||
-          java.math.BigInteger.class == r
+          java.math.BigDecimal.class == r
             ? Number.class
         : char.class == r || Character.class == r
             ? String.class
@@ -291,7 +291,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     }
 
     /**
-     * List all the interfaces implemented by a type.
+     * List all the interfaces implemented by a class.
      */
     static private void
     ifaces(final Class<?> type, final ArrayBuilder<String> r) {
