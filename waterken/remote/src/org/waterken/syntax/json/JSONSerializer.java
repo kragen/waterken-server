@@ -149,12 +149,16 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.writeLink(export.run(value));
         // rest is introspection support not used in normal messaging
         } else {
+            /*
+             * This branch documents runtime type information about a
+             * pass-by-reference object. The information is provided for two
+             * purposes: to help the human programmer, and to support type
+             * dependent rendering on the client side. To date, the method
+             * information is only being used as programmer documentation. The
+             * client-side rendering is only using the type declaration.
+             */
             final ValueWriter.ObjectWriter oout = out.startObject();
-            final Class<?> end =
-                Struct.class.isAssignableFrom(actual)?Struct.class:Object.class;
-            final PowerlessArray.Builder<String> r = builder(4);
-            for (Class<?> i=actual; end!=i; i=i.getSuperclass()) { all(i, r); }
-            serialize(mode, export, PowerlessArray.class, r.snapshot(),
+            serialize(mode, export, PowerlessArray.class, types(actual),
                       oout.startMember("$"));
             for (final Method m : Reflection.methods(actual)) {
                 final int flags = m.getModifiers();
@@ -205,7 +209,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             final Class<?> raw = (Class<?>)generic.getRawType();
             oout.startMember("name").writeString(Java.name(jsonType(raw)));
             final ValueWriter.ArrayWriter pout =
-                oout.startMember("arguments").startArray();
+                oout.startMember("parts").startArray();
             for (final Type argument : generic.getActualTypeArguments()) {
                 describeType(argument, pout.startElement());
             }
@@ -219,6 +223,10 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         }
     }
 
+    /**
+     * Java has a more complex type hierarchy than does Javascript. This method
+     * collapses parts of the Java type hierarchy to closer match Javascript.
+     */
     static private Class<?>
     jsonType(final Class<?> r) {
         return Boolean.class == r
@@ -245,6 +253,11 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         : r;
     }
 
+    /**
+     * Enumerate an inheritance chain from [ bottom, top ).
+     * @param bottom    bottom of the inheritance chain
+     * @param top       top of the inheritance chain.
+     */
     static private PowerlessArray<String>
     upto(final Class<?> bottom, final Class<?> top) {
         final Class<?> limit = Struct.class.isAssignableFrom(bottom)
@@ -264,14 +277,28 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         }
         return r.snapshot();
     }
+    
+    /**
+     * Enumerate all types implemented by a class.
+     */
+    static private PowerlessArray<String>
+    types(final Class<?> actual) {
+        final Class<?> end =
+            Struct.class.isAssignableFrom(actual) ? Struct.class : Object.class;
+        final PowerlessArray.Builder<String> r = builder(4);
+        for (Class<?> i=actual; end!=i; i=i.getSuperclass()) { ifaces(i, r); }
+        return r.snapshot();
+    }
 
-
+    /**
+     * List all the interfaces implemented by a type.
+     */
     static private void
-    all(final Class<?> type, final ArrayBuilder<String> r) {
+    ifaces(final Class<?> type, final ArrayBuilder<String> r) {
         if (type == Serializable.class) { return; }
         if (Modifier.isPublic(type.getModifiers())) {
             try { r.append(Java.name(type)); } catch (final Exception e) {}
         }
-        for (final Class<?> i : type.getInterfaces()) { all(i, r); }
+        for (final Class<?> i : type.getInterfaces()) { ifaces(i, r); }
     }
 }
