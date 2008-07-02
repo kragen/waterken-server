@@ -206,7 +206,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         } else if (type instanceof ParameterizedType) {
             final ParameterizedType generic = (ParameterizedType)type;
             final ValueWriter.ObjectWriter oout = out.startObject();
-            final Class<?> raw = (Class<?>)generic.getRawType();
+            final Class<?> raw = Typedef.raw(generic.getRawType());
             oout.startMember("name").writeString(Java.name(jsonType(raw)));
             final ValueWriter.ArrayWriter pout =
                 oout.startMember("parts").startArray();
