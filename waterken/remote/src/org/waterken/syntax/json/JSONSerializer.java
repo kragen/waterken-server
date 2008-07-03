@@ -15,8 +15,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 
 import org.joe_e.Struct;
 import org.joe_e.array.ArrayBuilder;
@@ -77,26 +75,22 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
               final Type implicit, final Object value,
               final JSONWriter.ValueWriter out) throws Exception {
         final Class<?> actual = null != value ? value.getClass() : Void.class;
-        if (Inline.class == actual) {
-            final Type r = Typedef.value(R, implicit);
-            serialize(mode, export, null != r ? r : Object.class,
-                      ((Inline<?>)value).cast(), out);
-        } else if (String.class == actual) {
+        if (String.class == actual) {
             out.writeString((String)value);
-        } else if (Void.class == actual) {
-            out.writeNull();
         } else if (Integer.class == actual) {
             out.writeInt((Integer)value);
+        } else if (Boolean.class == actual) {
+            out.writeBoolean((Boolean)value);
         } else if (Long.class == actual) {
-            out.writeLong((Long)value);
-        } else if (BigInteger.class == actual) {
-            out.writeInteger((BigInteger)value);
+            try {
+                out.writeLong((Long)value);
+            } catch (final ArithmeticException e) {
+                serialize(mode, export, implicit, new Rejected<Long>(e), out);
+            }
         } else if (Byte.class == actual) {
             out.writeByte((Byte)value);
         } else if (Short.class == actual) {
             out.writeShort((Short)value);
-        } else if (Boolean.class == actual) {
-            out.writeBoolean((Boolean)value);
         } else if (Character.class == actual) {
             out.writeString(((Character)value).toString());
         } else if (Double.class == actual) {
@@ -111,8 +105,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             } catch (final ArithmeticException e) {
                 serialize(mode, export, implicit, new Rejected<Float>(e), out);
             }
-        } else if (BigDecimal.class == actual) {
-            out.writeDecimal((BigDecimal)value);
+        } else if (Void.class == actual) {
+            out.writeNull();
         } else if (Class.class == actual) {
             final Class<?> c = (Class<?>)value;
             final JSONWriter.ObjectWriter oout = out.startObject();
@@ -122,6 +116,10 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             }
             oout.startMember("name").writeString(Java.name(c));
             oout.finish();
+        } else if (Inline.class == actual) {
+            final Type r = Typedef.value(R, implicit);
+            serialize(mode, export, null != r ? r : Object.class,
+                      ((Inline<?>)value).cast(), out);
         } else if (value instanceof ConstArray) {
             final Type elementType = Typedef.bound(T, implicit);
             final JSONWriter.ArrayWriter aout = out.startArray();

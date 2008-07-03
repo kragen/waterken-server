@@ -4,8 +4,6 @@ package org.waterken.syntax.json;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 
 /**
  * A JSON writer.
@@ -277,18 +275,18 @@ JSONWriter {
             super.output.claim().write(Integer.toString(value));
             super.written.mark();
         }
+        
+        /**
+         * maximum magnitude of a Javascript number: {@value}
+         */
+        static public final long maxMagnitude = 1L << 53; // = 2^53
 
         public void
-        writeLong(final long value) throws IOException {
-            // TODO: Javascript cannot handle values > 2^53
+        writeLong(final long value) throws ArithmeticException, IOException {
+            if (value > maxMagnitude) { throw new ArithmeticException(); }
+            if (value < -maxMagnitude) { throw new ArithmeticException(); }
+
             super.output.claim().write(Long.toString(value));
-            super.written.mark();
-        }
-
-        public void
-        writeInteger(final BigInteger value) throws IOException {
-            // TODO: Javascript cannot handle values > 2^53
-            super.output.claim().write(value.toString());
             super.written.mark();
         }
 
@@ -307,13 +305,6 @@ JSONWriter {
             if (Double.isInfinite(value)) { throw new ArithmeticException(); }
             
             super.output.claim().write(Double.toString(value));
-            super.written.mark();
-        }
-
-        public void
-        writeDecimal(final BigDecimal value) throws IOException {
-            // TODO: Javascript cannot handle values > 2^53
-            super.output.claim().write(value.toString());
             super.written.mark();
         }
 
