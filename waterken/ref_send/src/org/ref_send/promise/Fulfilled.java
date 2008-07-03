@@ -39,17 +39,15 @@ Fulfilled<T> implements Promise<T>, Selfless, Serializable {
         if (null==value) { return new Rejected<T>(new NullPointerException()); }
         if (value instanceof Double) {
             final Double d = (Double)value;
-            if (d.isNaN()) { return new Rejected<T>(new NaN()); }
+            if (d.isNaN()) {return new Rejected<T>(new ArithmeticException());}
             if (d.isInfinite()) {
-                return new Rejected<T>(d.doubleValue()==Double.NEGATIVE_INFINITY
-                        ? new NegativeInfinity() : new PositiveInfinity());
+                return new Rejected<T>(new ArithmeticException());
             }
         } else if (value instanceof Float) {
             final Float f = (Float)value;
-            if (f.isNaN()) { return new Rejected<T>(new NaN()); }
+            if (f.isNaN()) {return new Rejected<T>(new ArithmeticException());}
             if (f.isInfinite()) {
-                return new Rejected<T>(f.floatValue() == Float.NEGATIVE_INFINITY
-                        ? new NegativeInfinity() : new PositiveInfinity());
+                return new Rejected<T>(new ArithmeticException());
             }
         }
         return new Inline<T>(value);
