@@ -283,8 +283,8 @@ JSONWriter {
 
         public void
         writeLong(final long value) throws ArithmeticException, IOException {
-            if (value > maxMagnitude) { throw new ArithmeticException(); }
-            if (value < -maxMagnitude) { throw new ArithmeticException(); }
+            if (value >= maxMagnitude) { throw new ArithmeticException(); }
+            if (value <= -maxMagnitude) { throw new ArithmeticException(); }
 
             super.output.claim().write(Long.toString(value));
             super.written.mark();
