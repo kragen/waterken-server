@@ -14,9 +14,6 @@ import org.joe_e.Token;
 import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Fulfilled;
-import org.ref_send.promise.NaN;
-import org.ref_send.promise.NegativeInfinity;
-import org.ref_send.promise.PositiveInfinity;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
@@ -182,7 +179,7 @@ Main extends Struct implements Test, Serializable {
      */
     public Promise<Boolean>
     testDouble() throws Exception {
-        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(11);
+        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(5);
         
         // check normal handling
         final Promise<Double> pMin = ref(Double.MIN_VALUE);
@@ -201,14 +198,24 @@ Main extends Struct implements Test, Serializable {
         r.append(_.when(pMin, new EQ()));
         r.append(_.when(Double.MIN_VALUE, new EQ()));
         
-        // check NaN handling
-        final Promise<Double> pNaN = ref(Double.NaN);
+        r.append(testDoubleNaN(Double.NaN));
+        r.append(testDoubleNaN(Double.NEGATIVE_INFINITY));
+        r.append(testDoubleNaN(Double.POSITIVE_INFINITY));
+
+        return and(_, r.snapshot());
+    }
+    
+    private Promise<Boolean>
+    testDoubleNaN(final double NaN) throws Exception {
+        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(3);
+        
+        final Promise<Double> pNaN = ref(NaN);
         check(pNaN.equals(pNaN));
-        check(!pNaN.equals(ref(Double.NaN)));
+        check(!pNaN.equals(ref(NaN)));
         try {
             pNaN.cast();
             check(false);
-        } catch (final NaN e) {}
+        } catch (final ArithmeticException e) {}
         class ENaN extends Do<Double,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -218,63 +225,13 @@ Main extends Struct implements Test, Serializable {
             }
             public Promise<Boolean>
             reject(final Exception reason) throws Exception {
-                if (reason instanceof NaN) { return ref(true); }
+                if (reason instanceof ArithmeticException) { return ref(true); }
                 throw reason;
             }
         }
         r.append(_.when(pNaN, new ENaN()));
-        r.append(_.when(Double.NaN, new ENaN()));
-        r.append(_.when(Fulfilled.detach(Double.NaN), new ENaN()));
-        
-        // check -infinity handling
-        final Promise<Double> pMinusInfinity = ref(Double.NEGATIVE_INFINITY);
-        check(pMinusInfinity.equals(pMinusInfinity));
-        check(!pMinusInfinity.equals(ref(Double.NEGATIVE_INFINITY)));
-        try {
-            pMinusInfinity.cast();
-            check(false);
-        } catch (final NegativeInfinity e) {}
-        class ENI extends Do<Double,Promise<Boolean>> implements Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Promise<Boolean>
-            fulfill(final Double arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NegativeInfinity) { return ref(true); }
-                throw reason;
-            }
-        }
-        r.append(_.when(pMinusInfinity, new ENI()));
-        r.append(_.when(Double.NEGATIVE_INFINITY, new ENI()));
-        r.append(_.when(Fulfilled.detach(Double.NEGATIVE_INFINITY), new ENI()));
-        
-        // check +infinity handling
-        final Promise<Double> pPlusInfinity = ref(Double.POSITIVE_INFINITY);
-        check(pPlusInfinity.equals(pPlusInfinity));
-        check(!pPlusInfinity.equals(ref(Double.POSITIVE_INFINITY)));
-        try {
-            pPlusInfinity.cast();
-            check(false);
-        } catch (final PositiveInfinity e) {}
-        class EPI extends Do<Double,Promise<Boolean>> implements Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Promise<Boolean>
-            fulfill(final Double arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof PositiveInfinity) { return ref(true); }
-                throw reason;
-            }
-        }
-        r.append(_.when(pPlusInfinity, new EPI()));
-        r.append(_.when(Double.POSITIVE_INFINITY, new EPI()));
-        r.append(_.when(Fulfilled.detach(Double.POSITIVE_INFINITY), new EPI()));
+        r.append(_.when(NaN, new ENaN()));
+        r.append(_.when(Fulfilled.detach(NaN), new ENaN()));
 
         return and(_, r.snapshot());
     }
@@ -284,7 +241,7 @@ Main extends Struct implements Test, Serializable {
      */
     public Promise<Boolean>
     testFloat() throws Exception {
-        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(11);
+        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(5);
         
         // check normal handling
         final Promise<Float> pMin = ref(Float.MIN_VALUE);
@@ -303,14 +260,24 @@ Main extends Struct implements Test, Serializable {
         r.append(_.when(pMin, new EQ()));
         r.append(_.when(Float.MIN_VALUE, new EQ()));
         
-        // check NaN handling
-        final Promise<Float> pNaN = ref(Float.NaN);
+        r.append(testFloatNaN(Float.NaN));
+        r.append(testFloatNaN(Float.NEGATIVE_INFINITY));
+        r.append(testFloatNaN(Float.POSITIVE_INFINITY));
+
+        return and(_, r.snapshot());
+    }
+    
+    private Promise<Boolean>
+    testFloatNaN(final float NaN) throws Exception {
+        final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(3);
+        
+        final Promise<Float> pNaN = ref(NaN);
         check(pNaN.equals(pNaN));
-        check(!pNaN.equals(ref(Float.NaN)));
+        check(!pNaN.equals(ref(NaN)));
         try {
             pNaN.cast();
             check(false);
-        } catch (final NaN e) {}
+        } catch (final ArithmeticException e) {}
         class ENaN extends Do<Float,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -320,63 +287,13 @@ Main extends Struct implements Test, Serializable {
             }
             public Promise<Boolean>
             reject(final Exception reason) throws Exception {
-                if (reason instanceof NaN) { return ref(true); }
+                if (reason instanceof ArithmeticException) { return ref(true); }
                 throw reason;
             }
         }
         r.append(_.when(pNaN, new ENaN()));
-        r.append(_.when(Float.NaN, new ENaN()));
-        r.append(_.when(Fulfilled.detach(Float.NaN), new ENaN()));
-        
-        // check -infinity handling
-        final Promise<Float> pMinusInfinity = ref(Float.NEGATIVE_INFINITY);
-        check(pMinusInfinity.equals(pMinusInfinity));
-        check(!pMinusInfinity.equals(ref(Float.NEGATIVE_INFINITY)));
-        try {
-            pMinusInfinity.cast();
-            check(false);
-        } catch (final NegativeInfinity e) {}
-        class ENI extends Do<Float,Promise<Boolean>> implements Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Promise<Boolean>
-            fulfill(final Float arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof NegativeInfinity) { return ref(true); }
-                throw reason;
-            }
-        }
-        r.append(_.when(pMinusInfinity, new ENI()));
-        r.append(_.when(Float.NEGATIVE_INFINITY, new ENI()));
-        r.append(_.when(Fulfilled.detach(Float.NEGATIVE_INFINITY), new ENI()));
-        
-        // check +infinity handling
-        final Promise<Float> pPlusInfinity = ref(Float.POSITIVE_INFINITY);
-        check(pPlusInfinity.equals(pPlusInfinity));
-        check(!pPlusInfinity.equals(ref(Float.POSITIVE_INFINITY)));
-        try {
-            pPlusInfinity.cast();
-            check(false);
-        } catch (final PositiveInfinity e) {}
-        class EPI extends Do<Float,Promise<Boolean>> implements Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Promise<Boolean>
-            fulfill(final Float arg) throws Exception {
-                throw new Exception();
-            }
-            public Promise<Boolean>
-            reject(final Exception reason) throws Exception {
-                if (reason instanceof PositiveInfinity) { return ref(true); }
-                throw reason;
-            }
-        }
-        r.append(_.when(pPlusInfinity, new EPI()));
-        r.append(_.when(Float.POSITIVE_INFINITY, new EPI()));
-        r.append(_.when(Fulfilled.detach(Float.POSITIVE_INFINITY), new EPI()));
+        r.append(_.when(NaN, new ENaN()));
+        r.append(_.when(Fulfilled.detach(NaN), new ENaN()));
 
         return and(_, r.snapshot());
     }
