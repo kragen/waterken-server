@@ -7,25 +7,56 @@ import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import org.joe_e.Struct;
-import org.ref_send.promise.Infinity;
-import org.ref_send.promise.NaN;
-import org.ref_send.promise.NegativeInfinity;
-import org.ref_send.promise.PositiveInfinity;
-
 /**
  * A JSON writer.
  * <p>
- * A client can only output a syntactically correct JSON value, or leave the
- * {@link ValueWriter} in a {@linkplain #isWritten detectable} error state.
+ * A client can only output a syntactically correct JSON text, or leave the
+ * {@link JSONWriter} in a {@linkplain #isWritten detectable} error state. The
+ * implementation does <em>not</em> enforce the constraint that names within an
+ * object SHOULD be unique.
+ * </p>
+ * <p>For example, to output the JSON text:</p>
+ * <pre>
+ * {
+ *   "title" : "I Can Has Cheezburger?",
+ *   "src" : { "@" : "http://www.example.com/image/481989943" },
+ *   "height" : 125,
+ *   "width" : 100,
+ *   "tags" : [ "lolcat", "food" ],
+ *   "score" : 9.5
+ * }
+ * </pre>
+ * <p>, write code:</p>
+ * <pre>
+ * final Writer text = &hellip;
+ * final JSONWriter top = JSONWriter.make(text);
+ * final JSONWriter.ObjectWriter o = top.startObject();
+ * o.startMember("title").writeString("I Can Has Cheezburger?");
+ * o.startMember("src").writeLink("http://www.example.com/image/481989943");
+ * o.startMember("height").writeInt(125);
+ * o.startMember("width").writeInt(100);
+ * final JSONWriter.ArrayWriter tags = o.startArray();
+ * tags.startElement().writeString("lolcat");
+ * tags.startElement().writeString("food");
+ * tags.finish();
+ * o.startMember("score").writeDouble(9.5);
+ * o.finish();
+ * if (!top.isWritten()) { throw new NullPointerException(); }
+ * text.flush();
+ * text.close();
+ * </pre>
+ * <p>
+ * An invalid sequence of calls to this API will cause a
+ * {@link NullPointerException} to be thrown. For example, calling
+ * writeString() twice in succession will throw a {@link NullPointerException}.
  * </p>
  */
-/* package */ final class
-ValueWriter extends Struct {
-    static protected final String newLine = "\r\n";
-    static private   final String tab = "  ";
+public /* final */ class
+JSONWriter {
+    static private final String newLine = "\r\n";
+    static private final String tab = "  ";
 
-    static protected final class
+    static private final class
     Prize<T> {
         private T value;
 
@@ -42,7 +73,7 @@ ValueWriter extends Struct {
         }
     }
 
-    static protected final class
+    static private final class
     Milestone {
         private boolean marked;
 
@@ -55,44 +86,52 @@ ValueWriter extends Struct {
         is() { return marked; }
 
         protected void
-        mark() {
-            marked = true;
-        }
+        mark() { marked = true; }
     }
 
+    private final boolean top;          // Is this the top level JSON container?
     private final String indent;        // indentation for this JSON value
     private final Prize<Writer> output; // claimed by 1st called output method
     private final Milestone written;    // marked after output method is done  
 
-    protected
-    ValueWriter(final String indent, final Writer out) {
+    private
+    JSONWriter(final boolean top, final String indent, final Writer out) {
+        this.top = top;
         this.indent = indent;
         output = new Prize<Writer>(out);
         written = new Milestone(null == out);
     }
+    
+    /**
+     * Constructs a JSON writer.
+     * @param out   character output stream
+     */
+    static public JSONWriter
+    make(final Writer out) { return new JSONWriter(true, "", out); }
 
     /**
      * @return <code>true</code> if a single JSON value was successfully
      *         written, else <code>false</code>
      */
-    protected boolean
+    public boolean
     isWritten() { return written.is(); }
 
-    protected ObjectWriter
+    public ObjectWriter
     startObject() throws IOException {
         final Writer out = output.claim();
         out.write('{');
         return new ObjectWriter(out);
     }
 
-    protected final class
+    public final class
     ObjectWriter {
         static private final String comma = "," + newLine;
 
         private final String inset;         // indentation for each member
         private final Writer out;
         private       String prefix;        // current member separator prefix
-        private       ValueWriter member;   // most recent member started
+        private       ValueWriter member;   // most recent member started, or
+                                            // null if object is finished
 
         protected
         ObjectWriter(final Writer out) {
@@ -102,18 +141,19 @@ ValueWriter extends Struct {
             member = new ValueWriter(inset, null);
         }
 
-        protected void
-        close() throws IOException {
+        public void
+        finish() throws IOException {
             if (!member.isWritten()) { throw new NullPointerException(); }
 
             member = null;      // prevent future calls to this object
             out.write(newLine);
             out.write(indent);
             out.write('}');
+            if (top) { out.write(newLine); }
             written.mark();     // mark the containing value successful
         }
 
-        protected ValueWriter
+        public ValueWriter
         startMember(final String name) throws IOException {
             if (!member.isWritten()) { throw new NullPointerException(); }
 
@@ -126,23 +166,39 @@ ValueWriter extends Struct {
             prefix = comma;
             return member;
         }
+        
+        /*
+         * As soon as the client calls an output method on a JSONWriter, the
+         * output stream is deleted from that writer. If the created JSON value
+         * is an object or an array, the output stream is handed off to either
+         * an ObjectWriter or an ArrayWriter. These JSON container writers hold
+         * onto the output stream forever, but know whether or not they should
+         * be allowed to write to it. Each container does this by remembering
+         * its most recently created child value and only writing to the output
+         * stream if that child has been written and the container itself has
+         * not been finished. At any time, there may be multiple unfinished
+         * containers, but only one of them could have a finished child, since a
+         * JSON structure is a tree and an unfinished container value is not
+         * marked as written.
+         */
     }
 
-    protected ArrayWriter
+    public ArrayWriter
     startArray() throws IOException {
         final Writer out = output.claim();
         out.write('[');
         return new ArrayWriter(out);
     }
 
-    protected final class
+    public final class
     ArrayWriter {
         static private final String comma = ", ";
 
         private final String inset;         // indentation for each element
         private final Writer out;
         private       String prefix;        // current element separator prefix
-        private       ValueWriter element;  // most recent element started
+        private       ValueWriter element;  // most recent element started, or
+                                            // null if array is finished
 
         protected
         ArrayWriter(final Writer out) {
@@ -152,16 +208,17 @@ ValueWriter extends Struct {
             element = new ValueWriter(inset, null);
         }
 
-        protected void
-        close() throws IOException {
+        public void
+        finish() throws IOException {
             if (!element.isWritten()) { throw new NullPointerException(); }
 
             element = null;     // prevent future calls to this object
             out.write(" ]");
+            if (top) { out.write(newLine); }
             written.mark();     // mark the containing value successful
         }
 
-        protected ValueWriter
+        public ValueWriter
         startElement() throws IOException {
             if (!element.isWritten()) { throw new NullPointerException(); }
 
@@ -173,97 +230,98 @@ ValueWriter extends Struct {
         }
     }
 
-    protected void
+    public void
     writeLink(final String URL) throws IOException {
         final Writer out = output.claim();
         out.write("{ \"@\" : ");
         writeStringTo(URL, out);
         out.write(" }");
+        if (top) { out.write(newLine); }
         written.mark();
     }
-
-    protected void
-    writeNull() throws IOException {
-        output.claim().write("null");
-        written.mark();
-    }
-
-    protected void
-    writeBoolean(final boolean value) throws IOException {
-        output.claim().write(value ? "true" : "false");
-        written.mark();
-    }
-
-    protected void
-    writeByte(final byte value) throws IOException {
-        output.claim().write(Byte.toString(value));
-        written.mark();
-    }
-
-    protected void
-    writeShort(final short value) throws IOException {
-        output.claim().write(Short.toString(value));
-        written.mark();
-    }
-
-    protected void
-    writeInt(final int value) throws IOException {
-        output.claim().write(Integer.toString(value));
-        written.mark();
-    }
-
-    protected void
-    writeLong(final long value) throws IOException {
-        output.claim().write(Long.toString(value));
-        written.mark();
-    }
-
-    protected void
-    writeInteger(final BigInteger value) throws IOException {
-        output.claim().write(value.toString());
-        written.mark();
-    }
-
-    protected void
-    writeFloat(final float value) throws Infinity, NaN, IOException {
-        if (Float.isNaN(value)) { throw new NaN(); }
-        if (Float.isInfinite(value)) {
-            if (Float.NEGATIVE_INFINITY == value) {
-                throw new NegativeInfinity();
-            } else {
-                throw new PositiveInfinity();
-            }
-        }
+    
+    static public final class
+    ValueWriter extends JSONWriter {
         
-        output.claim().write(Float.toString(value));
-        written.mark();
-    }
-
-    protected void
-    writeDouble(final double value) throws Infinity, NaN, IOException {
-        if (Double.isNaN(value)) { throw new NaN(); }
-        if (Double.isInfinite(value)) {
-            if (Double.NEGATIVE_INFINITY == value) {
-                throw new NegativeInfinity();
-            } else {
-                throw new PositiveInfinity();
-            }
+        protected
+        ValueWriter(final String indent, final Writer out) {
+            super(false, indent, out);
         }
-        
-        output.claim().write(Double.toString(value));
-        written.mark();
-    }
 
-    protected void
-    writeDecimal(final BigDecimal value) throws IOException {
-        output.claim().write(value.toString());
-        written.mark();
-    }
+        public void
+        writeNull() throws IOException {
+            super.output.claim().write("null");
+            super.written.mark();
+        }
 
-    protected void
-    writeString(final String value) throws IOException {
-        writeStringTo(value, output.claim());
-        written.mark();
+        public void
+        writeBoolean(final boolean value) throws IOException {
+            super.output.claim().write(value ? "true" : "false");
+            super.written.mark();
+        }
+
+        public void
+        writeByte(final byte value) throws IOException {
+            super.output.claim().write(Byte.toString(value));
+            super.written.mark();
+        }
+
+        public void
+        writeShort(final short value) throws IOException {
+            super.output.claim().write(Short.toString(value));
+            super.written.mark();
+        }
+
+        public void
+        writeInt(final int value) throws IOException {
+            super.output.claim().write(Integer.toString(value));
+            super.written.mark();
+        }
+
+        public void
+        writeLong(final long value) throws IOException {
+            // TODO: Javascript cannot handle values > 2^53
+            super.output.claim().write(Long.toString(value));
+            super.written.mark();
+        }
+
+        public void
+        writeInteger(final BigInteger value) throws IOException {
+            // TODO: Javascript cannot handle values > 2^53
+            super.output.claim().write(value.toString());
+            super.written.mark();
+        }
+
+        public void
+        writeFloat(final float value) throws ArithmeticException, IOException {
+            if (Float.isNaN(value)) { throw new ArithmeticException(); }
+            if (Float.isInfinite(value)) { throw new ArithmeticException(); }
+            
+            super.output.claim().write(Float.toString(value));
+            super.written.mark();
+        }
+
+        public void
+        writeDouble(final double value) throws ArithmeticException, IOException{
+            if (Double.isNaN(value)) { throw new ArithmeticException(); }
+            if (Double.isInfinite(value)) { throw new ArithmeticException(); }
+            
+            super.output.claim().write(Double.toString(value));
+            super.written.mark();
+        }
+
+        public void
+        writeDecimal(final BigDecimal value) throws IOException {
+            // TODO: Javascript cannot handle values > 2^53
+            super.output.claim().write(value.toString());
+            super.written.mark();
+        }
+
+        public void
+        writeString(final String value) throws IOException {
+            writeStringTo(value, super.output.claim());
+            super.written.mark();
+        }
     }
 
     static private void
@@ -295,10 +353,19 @@ ValueWriter extends Struct {
             case '\t':
                 out.write("\\t");
                 break;
+            // begin: HTML escaping
             case '/':
                 if ('<' == previous) { out.write('\\'); }
                 out.write(c);
                 break;
+            // need at least the above check, but paranoia demands more
+            case '<':
+                out.write("\\u003C");
+                break;
+            case '>':
+                out.write("\\u003E");
+                break;
+            // end: HTML escaping
             case ' ':
                 out.write(c);
                 break;

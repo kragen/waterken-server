@@ -56,10 +56,13 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             public void
             writeTo(final OutputStream out) throws Exception {
                 final Writer text = UTF8.output(Open.output(out));
-                final ValueWriter top = new ValueWriter("", text);
-                serialize(mode, export, ConstArray.class, values, top);
+                final JSONWriter top = JSONWriter.make(text);
+                final JSONWriter.ArrayWriter aout = top.startArray();
+                for (final Object x : values) {
+                    serialize(mode,export, Object.class,x, aout.startElement());
+                }
+                aout.finish();
                 if (!top.isWritten()) { throw new NullPointerException(); }
-                text.write(ValueWriter.newLine);
                 text.flush();
                 text.close();
             }
@@ -70,8 +73,9 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private final TypeVariable<?> T = Typedef.name(Iterable.class, "T");
 
     static private void
-    serialize(final boolean mode, final Exporter export, final Type implicit,
-              final Object value, final ValueWriter out) throws Exception {
+    serialize(final boolean mode, final Exporter export,
+              final Type implicit, final Object value,
+              final JSONWriter.ValueWriter out) throws Exception {
         final Class<?> actual = null != value ? value.getClass() : Void.class;
         if (Inline.class == actual) {
             final Type r = Typedef.value(R, implicit);
@@ -111,22 +115,22 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.writeDecimal((BigDecimal)value);
         } else if (Class.class == actual) {
             final Class<?> c = (Class<?>)value;
-            final ValueWriter.ObjectWriter oout = out.startObject();
+            final JSONWriter.ObjectWriter oout = out.startObject();
             if (Class.class != implicit) {
                 serialize(mode, export, PowerlessArray.class,
                           PowerlessArray.array("class"), oout.startMember("$"));
             }
             oout.startMember("name").writeString(Java.name(c));
-            oout.close();
+            oout.finish();
         } else if (value instanceof ConstArray) {
             final Type elementType = Typedef.bound(T, implicit);
-            final ValueWriter.ArrayWriter aout = out.startArray();
+            final JSONWriter.ArrayWriter aout = out.startArray();
             for (final Object i : (ConstArray<?>)value) {
-                serialize(mode, export, elementType, i, aout.startElement());
+                serialize(render, export, elementType, i, aout.startElement());
             }
-            aout.close();
+            aout.finish();
         } else if (value instanceof Record || value instanceof Throwable) {
-            final ValueWriter.ObjectWriter oout = out.startObject();
+            final JSONWriter.ObjectWriter oout = out.startObject();
             final Class<?> top = Typedef.raw(implicit);
             if (actual != top) {
                 serialize(render, export, PowerlessArray.class,
@@ -144,7 +148,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                     }
                 }
             }
-            oout.close();
+            oout.finish();
         } else if (render == mode || Java.isPBC(actual)) {
             out.writeLink(export.run(value));
         // rest is introspection support not used in normal messaging
@@ -157,14 +161,14 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
              * information is only being used as programmer documentation. The
              * client-side rendering is only using the type declaration.
              */
-            final ValueWriter.ObjectWriter oout = out.startObject();
+            final JSONWriter.ObjectWriter oout = out.startObject();
             serialize(mode, export, PowerlessArray.class, types(actual),
                       oout.startMember("$"));
             for (final Method m : Reflection.methods(actual)) {
                 final int flags = m.getModifiers();
                 if (!Modifier.isStatic(flags) && !Java.isSynthetic(flags)) {
                     final String name = Java.property(m);
-                    final ValueWriter.ObjectWriter mout = oout.startMember(
+                    final JSONWriter.ObjectWriter mout = oout.startMember(
                         null != name ? name : m.getName()).startObject();
 
                     // output the return type
@@ -175,51 +179,51 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
 
                     // output the parameter types
                     if (null == name) {
-                        final ValueWriter.ArrayWriter pout =
+                        final JSONWriter.ArrayWriter pout =
                             mout.startMember("in").startArray();
                         for (final Type p : m.getGenericParameterTypes()) {
                             describeType(p, pout.startElement());
                         }
-                        pout.close();
+                        pout.finish();
                     }
 
                     // output the error types
-                    final ValueWriter.ArrayWriter eout =
+                    final JSONWriter.ArrayWriter eout =
                         mout.startMember("error").startArray();
                     for (final Type e : m.getGenericExceptionTypes()) {
                         describeType(e, eout.startElement());
                     }
-                    eout.close();
+                    eout.finish();
 
-                    mout.close();
+                    mout.finish();
                 }
             }
-            oout.close();
+            oout.finish();
         }
     }
 
     static private void
-    describeType(final Type type, final ValueWriter out) throws Exception {
+    describeType(final Type type, final JSONWriter out) throws Exception {
         final Type pR = Typedef.value(R, type);
         if (null != pR) {
             describeType(pR, out);
         } else if (type instanceof ParameterizedType) {
             final ParameterizedType generic = (ParameterizedType)type;
-            final ValueWriter.ObjectWriter oout = out.startObject();
+            final JSONWriter.ObjectWriter oout = out.startObject();
             final Class<?> raw = Typedef.raw(generic.getRawType());
             oout.startMember("name").writeString(Java.name(jsonType(raw)));
-            final ValueWriter.ArrayWriter pout =
+            final JSONWriter.ArrayWriter pout =
                 oout.startMember("parts").startArray();
             for (final Type argument : generic.getActualTypeArguments()) {
                 describeType(argument, pout.startElement());
             }
-            pout.close();
-            oout.close();
+            pout.finish();
+            oout.finish();
         } else {
             final Class<?> c = Typedef.raw(type);
-            final ValueWriter.ObjectWriter oout = out.startObject();
+            final JSONWriter.ObjectWriter oout = out.startObject();
             oout.startMember("name").writeString(Java.name(jsonType(c)));
-            oout.close();
+            oout.finish();
         }
     }
 
