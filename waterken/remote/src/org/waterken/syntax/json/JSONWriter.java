@@ -175,7 +175,7 @@ JSONWriter {
          * its most recently created child value and only writing to the output
          * stream if that child has been written and the container itself has
          * not been finished. At any time, there may be multiple unfinished
-         * containers, but only one of them could have a finished child, since a
+         * containers, but only one of them could have a written child, since a
          * JSON structure is a tree and an unfinished container value is not
          * marked as written.
          */
