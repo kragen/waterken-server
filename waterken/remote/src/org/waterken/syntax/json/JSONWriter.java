@@ -102,7 +102,7 @@ JSONWriter {
     
     /**
      * Constructs a JSON writer.
-     * @param out   character output stream
+     * @param out   UTF-8 output stream
      */
     static public JSONWriter
     make(final Writer out) { return new JSONWriter(true, "", out); }
