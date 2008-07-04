@@ -389,8 +389,7 @@ JSONWriter {
                 case Character.SPACE_SEPARATOR:
                 case Character.LINE_SEPARATOR:
                 case Character.PARAGRAPH_SEPARATOR:
-                case Character.CONTROL:
-                case '\u0085':  // (NEW LINE), included in CONTROL
+                case Character.CONTROL:                 // includes '\u0085'
                 case Character.FORMAT:
                 case Character.PRIVATE_USE:
                 case Character.SURROGATE:
