@@ -33,7 +33,7 @@ import java.io.Writer;
  * o.startMember("src").writeLink("http://www.example.com/image/481989943");
  * o.startMember("height").writeInt(125);
  * o.startMember("width").writeInt(100);
- * final JSONWriter.ArrayWriter tags = o.startArray();
+ * final JSONWriter.ArrayWriter tags = o.startMember("tags").startArray();
  * tags.startElement().writeString("lolcat");
  * tags.startElement().writeString("food");
  * tags.finish();
