@@ -60,8 +60,8 @@ Bounce {
             getAll() {
                 return ref(new AllTypes(
                     BooleanArray.array(true, false),
-                    CharArray.array('a', '\"', '\\', '/', '\b',
-                                    '\f', '\n', '\r', '\t', '\0'),
+                    CharArray.array('a', '\"', '\\', '<', '>', '/', '\b',
+                                    '\f', '\n', '\r', '\t', '\u0085'),
                     FloatArray.array(0.0F,
                           Float.MAX_VALUE, Float.MIN_VALUE,
                           -Float.MAX_VALUE, -Float.MIN_VALUE,
@@ -75,8 +75,9 @@ Bounce {
                     ByteArray.array((byte)0, Byte.MAX_VALUE, Byte.MIN_VALUE),
                     ShortArray.array((short)0, Short.MAX_VALUE,Short.MIN_VALUE),
                     IntArray.array(0, Integer.MAX_VALUE, Integer.MIN_VALUE),
-                    LongArray.array(0L, Long.MAX_VALUE, Long.MIN_VALUE),
-                    "a \" \\ / \b \f \n \r \t \0",
+                    LongArray.array(0L, (1L << 53) - 1, (1L << 53),
+                                        -((1L << 53) - 1), -(1L << 53)),
+                    "a \" \\ / </ < > \b \f \n \r \t \u0085",
                     ConstArray.array(normal, null, rejected._(Runnable.class)),
                     ConstArray.array(ref(false),
                                      ref(Integer.MAX_VALUE),
