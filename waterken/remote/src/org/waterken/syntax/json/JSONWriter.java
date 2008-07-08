@@ -166,18 +166,18 @@ JSONWriter {
         }
         
         /*
-         * As soon as the client calls an output method on a JSONWriter, the
-         * output stream is deleted from that writer. If the created JSON value
-         * is an object or an array, the output stream is handed off to either
-         * an ObjectWriter or an ArrayWriter. These JSON container writers hold
-         * onto the output stream forever, but know whether or not they should
-         * be allowed to write to it. Each container does this by remembering
-         * its most recently created child value and only writing to the output
-         * stream if that child has been written and the container itself has
-         * not been finished. At any time, there may be multiple unfinished
-         * containers, but only one of them could have a written child, since a
-         * JSON structure is a tree and an unfinished container value is not
-         * marked as written.
+         * Every output method on a JSONWriter begins by deleting the output
+         * stream from that writer. If the created JSON value is an object or an
+         * array, the output stream is handed off to either an ObjectWriter or
+         * an ArrayWriter. These JSON container writers hold onto the output
+         * stream forever, but know whether or not they should be allowed to
+         * write to it. Each container does this by remembering its most
+         * recently created child value and only writing to the output stream if
+         * that child has been written and the container itself has not been
+         * finished. At any time, there may be multiple unfinished containers,
+         * but only one of them could have a written child, since a JSON
+         * structure is a tree and an unfinished container value is not marked
+         * as written.
          */
     }
 
