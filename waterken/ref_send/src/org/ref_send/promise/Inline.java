@@ -9,6 +9,7 @@ public final class
 Inline<T> extends Fulfilled<T> {
     static private final long serialVersionUID = 1L;
 
+    protected
     Inline(final T value) {
         super(value);
     }
