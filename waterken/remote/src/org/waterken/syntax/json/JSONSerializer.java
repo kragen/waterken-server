@@ -87,12 +87,6 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             } catch (final ArithmeticException e) {
                 serialize(mode, export, implicit, new Rejected<Long>(e), out);
             }
-        } else if (Byte.class == actual) {
-            out.writeByte((Byte)value);
-        } else if (Short.class == actual) {
-            out.writeShort((Short)value);
-        } else if (Character.class == actual) {
-            out.writeString(((Character)value).toString());
         } else if (Double.class == actual) {
             try {
                 out.writeDouble((Double)value);
@@ -105,6 +99,12 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             } catch (final ArithmeticException e) {
                 serialize(mode, export, implicit, new Rejected<Float>(e), out);
             }
+        } else if (Byte.class == actual) {
+            out.writeByte((Byte)value);
+        } else if (Short.class == actual) {
+            out.writeShort((Short)value);
+        } else if (Character.class == actual) {
+            out.writeString(((Character)value).toString());
         } else if (Void.class == actual) {
             out.writeNull();
         } else if (Class.class == actual) {

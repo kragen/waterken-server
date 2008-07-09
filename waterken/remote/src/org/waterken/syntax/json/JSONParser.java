@@ -260,7 +260,7 @@ JSONParser {
                         break;
                     }
                 }
-                if (null == make) {
+                if (null == make && Throwable.class.isAssignableFrom(actual)) {
                     make = Reflection.constructor(actual);
                 }
                 paramv = make.getGenericParameterTypes();
