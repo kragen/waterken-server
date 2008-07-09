@@ -259,18 +259,6 @@ JSONWriter {
         }
 
         public void
-        writeByte(final byte value) throws IOException {
-            super.output.claim().write(Byte.toString(value));
-            super.written.mark();
-        }
-
-        public void
-        writeShort(final short value) throws IOException {
-            super.output.claim().write(Short.toString(value));
-            super.written.mark();
-        }
-
-        public void
         writeInt(final int value) throws IOException {
             super.output.claim().write(Integer.toString(value));
             super.written.mark();

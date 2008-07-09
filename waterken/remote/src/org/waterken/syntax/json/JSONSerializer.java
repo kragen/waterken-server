@@ -100,9 +100,9 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 serialize(mode, export, implicit, new Rejected<Float>(e), out);
             }
         } else if (Byte.class == actual) {
-            out.writeByte((Byte)value);
+            out.writeInt((Byte)value);
         } else if (Short.class == actual) {
-            out.writeShort((Short)value);
+            out.writeInt((Short)value);
         } else if (Character.class == actual) {
             out.writeString(((Character)value).toString());
         } else if (Void.class == actual) {
