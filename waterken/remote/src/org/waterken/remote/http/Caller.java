@@ -23,12 +23,12 @@ import org.ref_send.var.Setter;
 import org.waterken.http.MediaType;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
-import org.waterken.id.Importer;
+import org.waterken.http.TokenList;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.remote.Exports;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remoting;
-import org.waterken.syntax.Serializer;
+import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.syntax.json.Java;
@@ -259,8 +259,7 @@ Caller extends Struct implements Messenger, Serializable {
             final String target = Exports.isPromise(URL)
                 ? URL
             : URI.resolve(URL, "?src=#" + URI.fragment("", URL));
-            _.when(exports.connect(exports.getHere()).run(Object.class, target),
-                   new Retry());
+            _.when(exports.connect().run(Object.class,target,null),new Retry());
         } else if (null != resolver) {
             Volatile<Object> value;
             try {
@@ -289,8 +288,10 @@ Caller extends Struct implements Messenger, Serializable {
                 ), new Snapshot(x.content));        
         }
         final String base = URI.resolve(target, "."); 
-        final Snapshot body = Snapshot.snapshot(1024, new JSONSerializer().run(
-            Serializer.render, exports.send(base), argv));
+        final ByteArray.BuilderOutputStream out =
+            ByteArray.builder(1024).asOutputStream();
+        new JSONSerializer().run(exports.send(base), argv, out);
+        final Snapshot body = new Snapshot(out.snapshot());          
         return new Request("HTTP/1.1", "POST", URI.request(target),
             PowerlessArray.array(
                 new Header("Host", location),
@@ -302,8 +303,7 @@ Caller extends Struct implements Messenger, Serializable {
     private Object
     deserialize(final Type R, final String target,
                 final Response response) throws Exception {
-        final String base = URI.resolve(target, ".");
-        final Importer connect = exports.connect(base);
+        final Importer connect = exports.connect();
         if ("200".equals(response.status) || "201".equals(response.status) ||
             "202".equals(response.status) || "203".equals(response.status)) {
             final ByteArray content = ((Snapshot)response.body).content;
@@ -313,15 +313,19 @@ Caller extends Struct implements Messenger, Serializable {
             if (!AMP.mime.contains(mediaType)) {
                 return new Entity(contentType, content);
             }
-            return new JSONDeserializer().run(base, connect, code, mediaType,
-                content.asInputStream(), PowerlessArray.array(R)).get(0);
+            if (!TokenList.equivalent("UTF-8",
+                                      mediaType.get("charset", "UTF-8"))) {
+                throw new Exception("charset MUST be UTF-8");
+            }
+            return new JSONDeserializer().run(URI.resolve(target, "."), connect,
+                code, content.asInputStream(), PowerlessArray.array(R)).get(0);
         } 
         if ("204".equals(response.status) ||
             "205".equals(response.status)) { return null; }
         if ("303".equals(response.status)) {
             for (final Header h : response.header) {
                 if ("Location".equalsIgnoreCase(h.name)) {
-                    return connect.run(Typedef.raw(R), h.value);
+                    return connect.run(Typedef.raw(R), h.value, null);
                 }
             }
             return null;    // request accepted, but no response provided

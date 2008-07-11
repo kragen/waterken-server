@@ -19,10 +19,10 @@ import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.var.Factory;
 import org.ref_send.var.Receiver;
+import org.waterken.base.Base;
 import org.waterken.base32.Base32;
-import org.waterken.id.Exporter;
-import org.waterken.id.Importer;
-import org.waterken.id.base.Base;
+import org.waterken.syntax.Exporter;
+import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.Java;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
@@ -164,22 +164,22 @@ Exports extends Struct implements Serializable {
     
     /**
      * Constructs a reference importer.
-     * @param base  base URL
      */
     public Importer
-    connect(final String base) {
+    connect() {
         final Importer next = Remote.use(local);
         class ImporterX extends Struct implements Importer, Serializable {
             static private final long serialVersionUID = 1L;
 
             public Object
-            run(final Class<?> type, final String URL) {
+            run(final Class<?> type, final String id, final String base) {
+                final String URL = null != base ? URI.resolve(base, id) : id;
                 try {
                     if (URI.resolve(URL, ".").equalsIgnoreCase(getHere())) {
                         return use(key(URL));
                     }
                 } catch (final Exception e) {}
-                return next.run(type, URL);
+                return next.run(type, URL, null);
             }
         }
         return new ImporterX();

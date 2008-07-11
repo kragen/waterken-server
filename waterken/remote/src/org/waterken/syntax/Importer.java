@@ -1,6 +1,6 @@
 // Copyright 2007 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.id;
+package org.waterken.syntax;
 
 /**
  * A reference importer.
@@ -11,9 +11,10 @@ Importer {
     /**
      * Imports a reference.
      * @param type  reference type
-     * @param URL   reference identifier
+     * @param id    reference identifier
+     * @param base  base URL, may be <code>null</code>
      * @return corresponding reference
      */
     Object
-    run(Class<?> type, String URL);
+    run(Class<?> type, String id, String base);
 }

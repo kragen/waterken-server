@@ -5,9 +5,7 @@ package org.waterken.syntax.json;
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
@@ -63,7 +61,7 @@ Java {
      * @param flags Java modifiers
      * @return <code>true</code> if synthetic, else <code>false</code>
      */
-    static protected boolean
+    static public boolean
     isSynthetic(final int flags) { return 0 != (flags & synthetic); }
 
     /**
@@ -141,8 +139,8 @@ Java {
             Throwable.class.isAssignableFrom(type) ||
             org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
             org.ref_send.promise.Volatile.class.isAssignableFrom(type) ||
-            Type.class.isAssignableFrom(type) ||
-            AnnotatedElement.class.isAssignableFrom(type);
+            java.lang.reflect.Type.class.isAssignableFrom(type) ||
+            java.lang.reflect.AnnotatedElement.class.isAssignableFrom(type);
     }
     
     static private final class
@@ -165,7 +163,7 @@ Java {
         new Alias(Number.class, "number"),
         new Alias(RuntimeException.class, "Error"),
         new Alias(Method.class, "function"),
-        new Alias(Type.class, "class"),
+        new Alias(Class.class, "class"),
         new Alias(ClassCastException.class, "org.ref_send.Forgery"),
         new Alias(NullPointerException.class,
                   "org.ref_send.promise.Indeterminate"),
@@ -174,7 +172,7 @@ Java {
         new Alias(org.joe_e.array.ConstArray.class, "array")
     );
     
-    static protected String
+    static public String
     name(final Class<?> type) throws IllegalArgumentException {
         for (final Alias a : custom) {
             if (type == a.type) { return a.name; }

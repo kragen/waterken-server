@@ -15,9 +15,9 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Deferred;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
-import org.waterken.id.Exporter;
-import org.waterken.id.Importer;
 import org.waterken.remote.http.HTTP;
+import org.waterken.syntax.Exporter;
+import org.waterken.syntax.Importer;
 import org.waterken.uri.URI;
 import org.waterken.vat.Root;
 
@@ -73,7 +73,10 @@ Remote extends Deferred<Object> implements Promise<Object> {
             static private final long serialVersionUID = 1L;
 
             public Object
-            run(final Class<?> type, final String id) {return _(type,local,id);}
+            run(final Class<?> type, final String id, final String base) {
+                final String URL = null != base ? URI.resolve(base, id) : id;
+                return _(type, local, URL);
+            }
         }
         return new ImporterX();
     }

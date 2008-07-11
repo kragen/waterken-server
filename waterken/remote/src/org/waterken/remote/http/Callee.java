@@ -2,11 +2,15 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
+import static org.joe_e.array.PowerlessArray.builder;
+
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
+import org.joe_e.array.ArrayBuilder;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
@@ -17,14 +21,15 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.scope.Scope;
 import org.ref_send.var.Factory;
 import org.waterken.http.MediaType;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
+import org.waterken.http.TokenList;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.remote.Exports;
-import org.waterken.syntax.Serializer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.syntax.json.Java;
@@ -108,14 +113,20 @@ Callee extends Struct implements Server, Serializable {
                 value = subject.cast();
             } catch (final NullPointerException e) {
                 respond.fulfill(serialize(request.method, "404", "not yet",
-                    ephemeral, Serializer.render, new Rejected<Object>(e)));
+                                          ephemeral, new Rejected<Object>(e)));
                 return;
             } catch (final Exception e) {
                 value = new Rejected<Object>(e);
             }
             if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
-                respond.fulfill(serialize(request.method, "200", "OK", forever,
-                    null==p ? Serializer.render : Serializer.describe, value));
+                if ("*".equals(p)) {
+                    final Class<?> t = null!=value?value.getClass():Void.class;
+                    if (!Java.isPBC(t)) {
+                        value = describe(t);
+                    }
+                }
+                respond.fulfill(serialize(request.method, "200", "OK",
+                                          forever, value));
             } else {
                 final String[] allow = { "TRACE", "OPTIONS", "GET", "HEAD" };
                 if ("OPTIONS".equals(request.method)) {
@@ -163,8 +174,7 @@ Callee extends Struct implements Server, Serializable {
                     PowerlessArray.array(
                         new Header("Cache-Control", "max-age=" + maxAge)
                     ), null)
-            : serialize(request.method, "200", "OK",
-                        maxAge, Serializer.render, value);
+            : serialize(request.method, "200", "OK", maxAge, value);
             if (null != etag) { r = r.with("ETag", etag); }
             respond.fulfill(r);
         } else if ("POST".equals(request.method)) {
@@ -188,7 +198,7 @@ Callee extends Struct implements Server, Serializable {
                 }
             });
             respond.fulfill(serialize(request.method, "200", "OK",
-                                      ephemeral, Serializer.render, value));
+                                      ephemeral, value));
         } else {
             final String[] allow = null != lambda
                 ? (null == Java.property(lambda)
@@ -208,14 +218,13 @@ Callee extends Struct implements Server, Serializable {
      */
     private Response
     never(final String method) throws Exception {
-        return serialize(method, "404", "never", forever, Serializer.render,
+        return serialize(method, "404", "never", forever,
                          new Rejected<Object>(new NullPointerException()));
     }
     
     private Response
-    serialize(final String method,
-              final String status, final String phrase, final int maxAge,
-              final boolean describe, final Object value) throws Exception {
+    serialize(final String method, final String status, final String phrase,
+              final int maxAge, final Object value) throws Exception {
         if (value instanceof Entity) {
             final ByteArray content = ((Entity)value).content;
             return new Response("HTTP/1.1", status, phrase,
@@ -226,8 +235,10 @@ Callee extends Struct implements Server, Serializable {
                 ),
                 "HEAD".equals(method) ? null : new Snapshot(content));
         }
-        final Snapshot body = Snapshot.snapshot(1024, new JSONSerializer().run(
-            describe, exports.reply(), ConstArray.array(value)));
+        final ByteArray.BuilderOutputStream out =
+            ByteArray.builder(1024).asOutputStream();
+        new JSONSerializer().run(exports.reply(), ConstArray.array(value), out);
+        final Snapshot body = new Snapshot(out.snapshot());           
         return new Response("HTTP/1.1", status, phrase,
             PowerlessArray.array(
                 new Header("Cache-Control", "max-age=" + maxAge),
@@ -247,8 +258,41 @@ Callee extends Struct implements Server, Serializable {
         if (!AMP.mime.contains(mediaType)) {
             return ConstArray.array(new Entity(contentType, content));
         }
+        if (!TokenList.equivalent("UTF-8", mediaType.get("charset", "UTF-8"))) {
+            throw new Exception("charset MUST be UTF-8");
+        }
         final String base = request.base(exports.getHere());
-        return new JSONDeserializer().run(base, exports.connect(base), code,
-        		mediaType, content.asInputStream(), parameters);
+        return new JSONDeserializer().run(base, exports.connect(), code,
+        		                          content.asInputStream(), parameters);
+    }
+    
+    static private Scope
+    describe(final Class<?> type) {
+        final Object decl = types(type);
+        return new Scope(PowerlessArray.array("$"), ConstArray.array(decl));
+    }
+    
+    /**
+     * Enumerate all types implemented by a class.
+     */
+    static private PowerlessArray<String>
+    types(final Class<?> actual) {
+        final Class<?> end =
+            Struct.class.isAssignableFrom(actual) ? Struct.class : Object.class;
+        final PowerlessArray.Builder<String> r = builder(4);
+        for (Class<?> i=actual; end!=i; i=i.getSuperclass()) { ifaces(i, r); }
+        return r.snapshot();
+    }
+
+    /**
+     * List all the interfaces implemented by a class.
+     */
+    static private void
+    ifaces(final Class<?> type, final ArrayBuilder<String> r) {
+        if (type == Serializable.class) { return; }
+        if (Modifier.isPublic(type.getModifiers())) {
+            try { r.append(Java.name(type)); } catch (final Exception e) {}
+        }
+        for (final Class<?> i : type.getInterfaces()) { ifaces(i, r); }
     }
 }
