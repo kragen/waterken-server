@@ -6,7 +6,6 @@ import static org.joe_e.array.ConstArray.array;
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
 import java.security.SecureRandom;
@@ -19,15 +18,15 @@ import org.joe_e.file.Filesystem;
 import org.ref_send.promise.eventual.Sink;
 import org.waterken.cache.Cache;
 import org.waterken.http.MediaType;
-import org.waterken.id.Importer;
 import org.waterken.jos.JODBCache;
 import org.waterken.net.Execution;
 import org.waterken.project.Project;
 import org.waterken.remote.http.Browser;
-import org.waterken.syntax.Serializer;
+import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.thread.Concurrent;
+import org.waterken.uri.URI;
 import org.waterken.vat.Pool;
 import org.waterken.vat.Vat;
 
@@ -86,11 +85,8 @@ Config {
     init(final String name, final Object value) {
         try {
             final File file = Filesystem.file(configFolder, name + ext);
-            final OutputStream out = Filesystem.writeNew(file);
-            new JSONSerializer().run(Serializer.render, browser.export,
-                                     array(value)).writeTo(out);
-            out.flush();
-            out.close();
+            new JSONSerializer().run(browser.export, array(value),
+                                     Filesystem.writeNew(file));
         } catch (final Exception e) { throw new Error(e); }
     }
 
@@ -103,7 +99,7 @@ Config {
     read(final Class<?> T, final String name) {
         final File file = Filesystem.file(configFolder, name + ext);
         if (!file.isFile()) { return null; }
-        return (T)new ImporterX().run(T, file.toURI().toString());
+        return (T)new ImporterX().run(T, file.toURI().toString(), null);
     }
 
     static private   final Cache<File,Object> settings = Cache.make();
@@ -131,7 +127,8 @@ Config {
     static private final class
     ImporterX extends Struct implements Importer {
         public Object
-        run(final Class<?> type, final String URL) {
+        run(final Class<?> type, final String id, final String base) {
+            final String URL = null != base ? URI.resolve(base, id) : id;
             if ("file:".regionMatches(true, 0, URL, 0, "file:".length())) {
                 try {
                     String filename = URL.substring("file:".length());
@@ -144,17 +141,16 @@ Config {
                     if (pumpkin != found) { return found; }
                     final InputStream in = Filesystem.read(file);
                     final Object r = new JSONDeserializer().run(
-                        file.toURI().toString(), this, code, mime, in,
+                        file.toURI().toString(), this, code, in,
                         ConstArray.array((Type)type)).get(0);
                     in.close();
                     settings.put(file, r);
                     return r;
                 } catch (final Exception e) {
-                    e.printStackTrace();
                     throw new Error(e);
                 }
             }
-            return browser.connect.run(type, URL);
+            return browser.connect.run(type, URL, null);
         }
     }
 }
