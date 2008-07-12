@@ -56,8 +56,7 @@ JSONParser {
         
         protected void
         push(final State child) {
-            ++top;
-            if (states.length == top) {
+            if (states.length == ++top) {
                 System.arraycopy(states, 0, states = new State[2*top], 0, top);
             }
             states[top] = child;
