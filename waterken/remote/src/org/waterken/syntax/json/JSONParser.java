@@ -28,15 +28,6 @@ JSONParser {
         void writeKeyword(String token) throws Exception;
         void writeString(String token) throws Exception;
     }
-
-    static private final String whitespace = " \n\r\t";
-    
-    static private void
-    eatWhitespace(final char c) throws Exception {
-        if (whitespace.indexOf(c) == -1) {
-            throw new Exception("0x" + Integer.toHexString(c));
-        }
-    }
     
     static private interface
     State {
@@ -108,6 +99,15 @@ JSONParser {
             throw new Exception("<"+id+"> ( "+line+ ", "+column+" ) : ", e);
         }
         in.close();
+    }
+
+    static private final String whitespace = " \n\r\t";
+    
+    static private void
+    eatWhitespace(final char c) throws Exception {
+        if (whitespace.indexOf(c) == -1) {
+            throw new Exception("0x" + Integer.toHexString(c));
+        }
     }
     
     private State
