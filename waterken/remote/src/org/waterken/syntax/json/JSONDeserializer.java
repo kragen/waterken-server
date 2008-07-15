@@ -149,7 +149,8 @@ JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
                 value = Float.valueOf(token);
             } else if (BigDecimal.class == expected) {
                 value = new BigDecimal(token);
-            } else if (token.indexOf('.') != -1) {
+            } else if (token.indexOf('.') != -1 ||
+                       token.indexOf('e') != -1 || token.indexOf('E') != -1) {
                 value = Double.valueOf(token);
             } else {
                 final BigInteger x = new BigInteger(token);
@@ -207,9 +208,15 @@ JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
                 : ImmutableArray.class.isAssignableFrom(rawExpected)
                     ? ImmutableArray.builder()
                 : ConstArray.builder();
-            final Type requiredT = Typedef.value(T, expected);
+            final ValueConstructor startElement = new ValueConstructor(base,
+                    connect, code, Typedef.value(T, expected), new Receiver() {
+                @SuppressWarnings("unchecked") public void
+                run(final Object value) {
+                    final ConstArray.Builder raw = builder;
+                    raw.append(value);
+                }
+            });
             return new ArrayBuilder() {
-
                 public void
                 finish() throws Exception {
                     final ConstArray<?> value = builder.snapshot();
@@ -217,16 +224,7 @@ JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
                 }
 
                 public ValueConstructor
-                startElement() throws Exception {
-                    return new ValueConstructor(base, connect, code, requiredT,
-                                                new Receiver() {
-                        @SuppressWarnings("unchecked") public void
-                        run(final Object value) {
-                            final ConstArray.Builder raw = builder;
-                            raw.append(value);
-                        }
-                    });
-                }
+                startElement() { return startElement; }
             };
         }
 
@@ -287,12 +285,12 @@ JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
                     final Object value = Reflection.construct(make, argv);
                     if (value instanceof Rejected) {
                         final Rejected<?> p = (Rejected<?>)value;
-                        if (Double.class==expected || double.class==expected) {
+                        if (Double.class==required || double.class==required) {
                             out.run(Double.NaN);
-                        } else if(Float.class==expected||float.class==expected){
+                        } else if(Float.class==required||float.class==required){
                             out.run(Float.NaN);
                         } else {
-                            out.run(p._(Typedef.raw(expected)));
+                            out.run(p._(Typedef.raw(required)));
                         }
                     } else {
                         out.run(value);
