@@ -33,7 +33,7 @@ import org.ref_send.type.Typedef;
 import org.waterken.syntax.Importer;
 
 /**
- * <a href="http://www.json.org/">JSON</a> parser.
+ * A <a href="http://www.json.org/">JSON</a> parser.
  */
 public final class
 JSONParser {
@@ -136,14 +136,14 @@ JSONParser {
         } else if (BigInteger.class == expected) {
             value = new BigInteger(token);
         } else if (double.class == expected || Double.class == expected) {
-            value = Double.valueOf(token);
+            value = Double.valueOf(token);  // accepts a superset of JSON
         } else if (float.class == expected || Float.class == expected) {
-            value = Float.valueOf(token);
+            value = Float.valueOf(token);   // accepts a superset of JSON
         } else if (BigDecimal.class == expected) {
             value = new BigDecimal(token);
         } else if (token.indexOf('.') != -1 ||
                    token.indexOf('e') != -1 || token.indexOf('E') != -1) {
-            value = Double.valueOf(token);
+            value = Double.valueOf(token);  // accepts a superset of JSON
         } else {
             final BigInteger x = new BigInteger(token);
             int bits = x.bitLength();
@@ -349,23 +349,24 @@ JSONParser {
     defaultValue(final Type required) {
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
-        final Object value = boolean.class == expected
-            ? Boolean.FALSE
-        : char.class == expected
-            ? Character.valueOf('\0')
-        : byte.class == expected
-            ? Byte.valueOf((byte)0)
-        : short.class == expected
-            ? Short.valueOf((short)0)
-        : int.class == expected
-            ? Integer.valueOf(0)
-        : long.class == expected
-            ? Long.valueOf(0)
-        : float.class == expected
-            ? Float.valueOf(0.0f)
-        : double.class == expected
-            ? Double.valueOf(0.0)
-        : (Object)null;
+        final Object value =
+            boolean.class == expected
+                ? Boolean.FALSE
+            : char.class == expected
+                ? Character.valueOf('\0')
+            : byte.class == expected
+                ? Byte.valueOf((byte)0)
+            : short.class == expected
+                ? Short.valueOf((short)0)
+            : int.class == expected
+                ? Integer.valueOf(0)
+            : long.class == expected
+                ? Long.valueOf(0)
+            : float.class == expected
+                ? Float.valueOf(0.0f)
+            : double.class == expected
+                ? Double.valueOf(0.0)
+            : (Object)null;
         return null != promised ? ref(value) : value;
     }
 }
