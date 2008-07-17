@@ -2,377 +2,336 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax.json;
 
-import java.io.EOFException;
+import static org.ref_send.promise.Fulfilled.ref;
+
 import java.io.Reader;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
+import org.joe_e.array.BooleanArray;
+import org.joe_e.array.ByteArray;
+import org.joe_e.array.CharArray;
+import org.joe_e.array.ConstArray;
+import org.joe_e.array.DoubleArray;
+import org.joe_e.array.FloatArray;
+import org.joe_e.array.ImmutableArray;
+import org.joe_e.array.IntArray;
+import org.joe_e.array.LongArray;
+import org.joe_e.array.PowerlessArray;
+import org.joe_e.array.ShortArray;
+import org.joe_e.reflect.Reflection;
+import org.ref_send.deserializer;
+import org.ref_send.name;
+import org.ref_send.promise.Rejected;
+import org.ref_send.promise.Volatile;
+import org.ref_send.type.Typedef;
+import org.waterken.syntax.Importer;
 
 public final class
 JSONParser {
     
-    static public interface
-    Builder {
-        
-        static public interface
-        ObjectBuilder {
-            void finish() throws Exception;
-            Builder startMember(String name) throws Exception;
-        }
-        ObjectBuilder startObject() throws Exception;
-        
-        static public interface
-        ArrayBuilder {
-            void finish() throws Exception; 
-            Builder startElement() throws Exception;
-        }
-        ArrayBuilder startArray() throws Exception;
-          
-        void writeKeyword(String token) throws Exception;
-        void writeString(String token) throws Exception;
-    }
-    
-    static private interface
-    State {
-        void run(char c) throws Exception;
-    }
-    
-    static private final class
-    Stack {
-        private State[] states;
-        private int top;
-        
-        protected
-        Stack() {
-            states = new State[16];
-            top = -1;
-        }
-        
-        protected boolean
-        isEmpty() { return top == -1; }
-        
-        protected State
-        peek() { return states[top]; }
-        
-        protected void
-        pop() { states[top--] = null; }
-        
-        protected void
-        push(final State child) {
-            if (states.length == ++top) {
-                System.arraycopy(states, 0, states = new State[2*top], 0, top);
-            }
-            states[top] = child;
-        }
-        
-        protected void
-        swap(final State next) { states[top] = next; }
-    }
-
-    private final Stack state = new Stack();
+    private final String base;
+    private final Importer connect;
+    private final ClassLoader code;
+    private final JSONLexer lexer;
     
     private
-    JSONParser() {}
-    
-    static public void
-    drive(final String id, final Reader in, final Builder out) throws Exception{
-        final JSONParser parser = new JSONParser();
-        parser.state.push(new State() {
-            public void
-            run(final char c) throws Exception { eatWhitespace(c); }
-        });
-        parser.state.push(parser.parseValue(out));
-        int line = 1;
-        int column = 1;
-        try {
-            for (int i = in.read(); -1 != i; i = in.read()) {
-                parser.state.peek().run((char)i);
-                if ('\n' == i) {
-                    ++line;
-                    column = 1;
-                } else {
-                    ++column;
-                }
-            }
-            parser.state.pop();
-            if (!parser.state.isEmpty()) { throw new EOFException(); }
-        } catch (final Exception e) {
-            try { in.close(); } catch (final Exception e2) {}
-            throw new Exception("<"+id+"> ( "+line+ ", "+column+" ) : ", e);
-        }
-        in.close();
+    JSONParser(final String base, final Importer connect,
+               final ClassLoader code, final Reader in) {
+        this.base = base;
+        this.connect = connect;
+        this.code = code;
+        lexer = new JSONLexer(in);
     }
 
-    static private final String whitespace = " \n\r\t";
-    
-    static private void
-    eatWhitespace(final char c) throws Exception {
-        if (whitespace.indexOf(c) == -1) {
-            throw new Exception("0x" + Integer.toHexString(c));
+    static public ConstArray<?>
+    parse(final String base, final Importer connect,
+            final ClassLoader code, final Reader in,
+            final ConstArray<Type> parameters) throws Exception {
+        final JSONParser parser = new JSONParser(base, connect, code, in);
+        try {
+            if (!"[".equals(parser.lexer.advance())) { throw new Exception(); }
+            final ConstArray<?> r = parser.parseArguments(parameters);
+            if (null != parser.lexer.getHead()) { throw new Exception(); }
+            return r;
+        } catch (final Exception e) {
+            try { parser.lexer.close(); } catch (final Exception e2) {}
+            throw new Exception("<" + parser.base + "> ( " +
+                                parser.lexer.getLine() + ", " +
+                                parser.lexer.getColumn() + " ) : ", e);           
         }
     }
     
-    private State
-    parseValue(final Builder out) {
-        return new State() {
-            public void
-            run(final char c) throws Exception {
-                switch (c) {
-                case '\"':
-                    state.swap(parseString(new StringReceiver() {
-                        public void
-                        run(final String token) throws Exception {
-                            out.writeString(token);
-                        }
-                    }));
+    private ConstArray<?>
+    parseArguments(final ConstArray<Type> parameters) throws Exception {
+        if (!"[".equals(lexer.getHead())) { throw new Exception(); }
+        final ConstArray.Builder<Object> r =
+            ConstArray.builder(parameters.length());
+        if (!"]".equals(lexer.advance())) {
+            while (true) {
+                r.append(parseValue(parameters.get(r.length())));
+                final String token = lexer.getHead();
+                if ("]".equals(token)) { break; }
+                if (!",".equals(token)) { throw new Exception(); }
+                lexer.advance();
+            }
+        }
+        lexer.advance(); 
+        return r.snapshot();
+    }
+
+    static private final TypeVariable<?> R = Typedef.name(Volatile.class, "T");
+    static private final TypeVariable<?> T = Typedef.name(Iterable.class, "T");
+    
+    private Object
+    parseValue(final Type required) throws Exception {
+        final String token = lexer.getHead();
+        return "[".equals(token)
+            ? parseArray(required)
+        : "{".equals(token)
+            ? parseObject(required)
+        : token.startsWith("\"")
+            ? parseString(required)
+        : parseKeyword(required);
+    }
+    
+    private Object
+    parseKeyword(final Type required) throws Exception {
+        final String token = lexer.getHead();
+        final Type promised = Typedef.value(R, required);
+        final Type expected = null != promised ? promised : required;
+        final Object value;
+        if ("null".equals(token)) {
+            value = null;
+        } else if ("false".equals(token)) {
+            value = Boolean.FALSE;
+        } else if ("true".equals(token)) {
+            value = Boolean.TRUE;
+        } else if (int.class == expected || Integer.class == expected) {
+            value = Integer.parseInt(token);
+        } else if (long.class == expected || Long.class == expected) {
+            value = Long.parseLong(token);
+        } else if (byte.class == expected || Byte.class == expected) {
+            value = Byte.parseByte(token);
+        } else if (short.class == expected || Short.class == expected) {
+            value = Short.parseShort(token);
+        } else if (BigInteger.class == expected) {
+            value = new BigInteger(token);
+        } else if (double.class == expected || Double.class == expected) {
+            value = Double.valueOf(token);
+        } else if (float.class == expected || Float.class == expected) {
+            value = Float.valueOf(token);
+        } else if (BigDecimal.class == expected) {
+            value = new BigDecimal(token);
+        } else if (token.indexOf('.') != -1 ||
+                   token.indexOf('e') != -1 || token.indexOf('E') != -1) {
+            value = Double.valueOf(token);
+        } else {
+            final BigInteger x = new BigInteger(token);
+            int bits = x.bitLength();
+            if (x.signum() > 0) { ++bits; }
+            if (bits <= Byte.SIZE) {
+                value = x.byteValue();
+            } else if (bits <= Short.SIZE) {
+                value = x.shortValue();
+            } else if (bits <= Integer.SIZE) {
+                value = x.intValue();
+            } else if (bits <= Long.SIZE) {
+                value = x.longValue();
+            } else {
+                value = x;
+            }
+        }
+        lexer.advance();
+        return null != promised ? ref(value) : value;
+    }
+    
+    private Object
+    parseString(final Type required) throws Exception {
+        final String token = lexer.getHead();
+        final Type promised = Typedef.value(R, required);
+        final Type expected = null != promised ? promised : required;
+        final Object value;
+        if (char.class == expected || Character.class == expected) {
+            if (3 != token.length()) { throw new Exception(); }
+            value = token.charAt(1);
+        } else {
+            value = token.substring(1, token.length() - 1);
+        }
+        lexer.advance();
+        return null != promised ? ref(value) : value;
+    }
+    
+    private @SuppressWarnings("unchecked") ConstArray<?>
+    parseArray(final Type required) throws Exception {
+        if (!"[".equals(lexer.getHead())) { throw new Exception(); }
+        final Type promised = Typedef.value(R, required);
+        final Type expected = null != promised ? promised : required;
+        final Class<?> rawExpected = Typedef.raw(expected);
+        final ConstArray.Builder builder = 
+            BooleanArray.class == rawExpected
+                ? BooleanArray.builder()
+            : CharArray.class == rawExpected
+                ? CharArray.builder()
+            : ByteArray.class == rawExpected
+                ? ByteArray.builder()
+            : ShortArray.class == rawExpected
+                ? ShortArray.builder()
+            : IntArray.class == rawExpected
+                ? IntArray.builder()
+            : LongArray.class == rawExpected
+                ? LongArray.builder()
+            : FloatArray.class == rawExpected
+                ? FloatArray.builder()
+            : DoubleArray.class == rawExpected
+                ? DoubleArray.builder()
+            : PowerlessArray.class.isAssignableFrom(rawExpected)
+                ? PowerlessArray.builder()
+            : ImmutableArray.class.isAssignableFrom(rawExpected)
+                ? ImmutableArray.builder()
+            : ConstArray.builder();
+        if (!"]".equals(lexer.advance())) {
+            final Type elementT = Typedef.value(T, expected);
+            while (true) {
+                builder.append(parseValue(elementT));
+                if ("]".equals(lexer.getHead())) { break; }
+                if (!",".equals(lexer.getHead())) { throw new Exception(); }
+                lexer.advance();
+            }
+        }
+        lexer.advance();
+        return builder.snapshot();
+    }
+    
+    private Object
+    parseObject(final Type required) throws Exception {
+        if (!"{".equals(lexer.getHead())) { throw new Exception(); }
+        if ("\"@\"".equals(lexer.advance())) {
+            if (!":".equals(lexer.advance())) { throw new Exception(); }
+            final String hrefToken = lexer.advance();
+            if (!hrefToken.startsWith("\"")) { throw new Exception(); }
+            if (!"}".equals(lexer.advance())) { throw new Exception(); }
+            final String href = hrefToken.substring(1, hrefToken.length() - 1);
+            final Object value = connect.run(Typedef.raw(required), href, base);
+            lexer.advance();
+            return value;
+        }
+        final Type promised = Typedef.value(R, required);
+        final Type expected = null != promised ? promised : required;
+        Class<?> actual = null;
+        if ("\"$\"".equals(lexer.getHead())) {
+            if (!":".equals(lexer.advance())) { throw new Exception(); }
+            if (!"[".equals(lexer.advance())) { throw new Exception(); }
+            for (final Object name : parseArray(PowerlessArray.class)) {
+                try {
+                    actual = Java.load(code, (String)name);
                     break;
-                case '{':
-                    state.swap(parseFirstMember(out.startObject()));
-                    break;
-                case '[':
-                    state.swap(parseFirstElement(out.startArray()));
-                    break;
-                default:
-                    if (whitespace.indexOf(c) == -1) {
-                        state.swap(parseKeyword(new StringReceiver() {
-                            public void
-                            run(final String token) throws Exception {
-                                out.writeKeyword(token);
-                            }
-                        }));
-                        state.peek().run(c);
+                } catch (final ClassNotFoundException e) {}
+            }
+            if (",".equals(lexer.getHead())) {
+                if ("}".equals(lexer.advance())) { throw new Exception(); }
+            } else {
+                if (!"}".equals(lexer.getHead())) { throw new Exception(); }
+            }
+        } else {
+            actual = Typedef.raw(expected);
+        }
+        Constructor<?> make = null;
+        for (final Constructor<?> c : Reflection.constructors(actual)) {
+            if (c.isAnnotationPresent(deserializer.class)) {
+                make = c;
+                break;
+            }
+        }
+        if (null == make && Throwable.class.isAssignableFrom(actual)) {
+            make = Reflection.constructor(actual);
+        }
+        final Type[] paramv = make.getGenericParameterTypes(); {
+            int i = 0;
+            for (final Type p : paramv) {
+                paramv[i++] = Typedef.bound(p, expected);
+            }
+        }
+        final String[] namev = new String[paramv.length]; {
+            int i = 0;
+            for (final Annotation[] as : make.getParameterAnnotations()) {
+                for (final Annotation a : as) {
+                    if (a instanceof name) {
+                        namev[i] = ((name)a).value();
+                        break;
                     }
-                 }
+                }
+                ++i;
             }
-        };
+        }
+        final Object[] argv = new Object[paramv.length];
+        final boolean[] donev = new boolean[paramv.length];
+        if (!"}".equals(lexer.getHead())) {
+            while (true) {
+                final String nameToken = lexer.getHead();
+                if (!nameToken.startsWith("\"")) { throw new Exception(); }
+                final String name = nameToken.substring(1,nameToken.length()-1);
+                int slot = namev.length;
+                while (0 != slot-- && !name.equals(namev[slot])) {}
+                if (-1 != slot) {
+                    if (donev[slot]) { throw new Exception(); }
+                    donev[slot] = true;
+                }
+                if (!":".equals(lexer.advance())) { throw new Exception(); }
+                lexer.advance();
+                final Type type = -1 != slot ? paramv[slot] : Object.class;
+                final Object value = parseValue(type);
+                if (-1 != slot) {
+                    argv[slot] = value;
+                }
+                if ("}".equals(lexer.getHead())) { break; }
+                if (!",".equals(lexer.getHead())) { throw new Exception(); }
+                lexer.advance();
+            }
+        }
+        for (int i = donev.length; 0 != i--;) {
+            if (!donev[i]) {
+                final Type requiredP = paramv[i];
+                final Type promisedP = Typedef.value(R, requiredP);
+                final Type expectedP = null!=promisedP ? promisedP : requiredP;
+                final Object arg = defaultValue(expectedP);
+                argv[i] = null != promised ? ref(arg) : arg;
+                donev[i] = true;
+            }
+        }
+        Object value = Reflection.construct(make, argv);
+        if (value instanceof Rejected) {
+            value = ((Rejected<?>)value)._(Typedef.raw(required));
+        } else if (null != promised) {
+            value = ref(value);
+        }
+        lexer.advance();    // skip past the closing curly
+        return value;
     }
     
-    private State
-    parseFirstMember(final Builder.ObjectBuilder out) {
-        return new State() {
-            public void
-            run(final char c) throws Exception {
-                if ('}' == c) {
-                    state.pop();
-                    out.finish();
-                } else {
-                    if (whitespace.indexOf(c) == -1) {
-                        state.swap(parseNextMember(out));
-                        state.push(parseMember(out));
-                        state.peek().run(c);
-                    }
-                }
-            }
-            
-        };
-    }
-    
-    private State
-    parseNextMember(final Builder.ObjectBuilder out) {
-        return new State() {
-            public void
-            run(final char c) throws Exception {
-                switch (c) {
-                case ',':
-                    state.push(parseMember(out));
-                    break;
-                case '}':
-                    state.pop();
-                    out.finish();
-                    break;
-                default:
-                    eatWhitespace(c);
-                }
-            }
-        };
-    }
-    
-    private State
-    parseMember(final Builder.ObjectBuilder out) {
-        final StringReceiver startMember = new StringReceiver() {
-            public void
-            run(final String name) throws Exception {
-                state.push(parseMemberValue(out.startMember(name)));
-            }
-        };
-        return new State() {            
-            public void
-            run(final char c) throws Exception {
-                switch (c) {
-                case '\"':
-                    state.swap(parseString(startMember));
-                    break;
-                default:
-                    if (whitespace.indexOf(c) == -1) {
-                        state.swap(parseKeyword(startMember));
-                    }
-                }
-            }
-        };
-    }
-    
-    private State
-    parseMemberValue(final Builder out) {
-        return new State() {
-            public void
-            run(final char c) throws Exception {
-                if (':' == c) {
-                    state.swap(parseValue(out));
-                } else {
-                    eatWhitespace(c);
-                }
-            }
-        };
-    }
-    
-    private State
-    parseFirstElement(final Builder.ArrayBuilder out) {
-        return new State() {
-            public void
-            run(final char c) throws Exception {
-                if (']' == c) {
-                    state.pop();
-                    out.finish();
-                } else {
-                    if (whitespace.indexOf(c) == -1) {
-                        state.swap(parseNextElement(out));
-                        state.push(parseValue(out.startElement()));
-                        state.peek().run(c);
-                    }
-                }
-            }
-            
-        };
-    }
-    
-    private State
-    parseNextElement(final Builder.ArrayBuilder out) {
-        return new State() {
-            public void
-            run(final char c) throws Exception {
-                switch (c) {
-                case ',':
-                    state.push(parseValue(out.startElement()));
-                    break;
-                case ']':
-                    state.pop();
-                    out.finish();
-                    break;
-                default:
-                    eatWhitespace(c);
-                }
-            }
-        };
-    }
-    
-    static private interface
-    StringReceiver {
-        void run(String value) throws Exception;
-    }
-    
-    private State
-    parseKeyword(final StringReceiver out) {
-        final StringBuilder buffer = new StringBuilder();
-        return new State() {
-            public void
-            run(final char c) throws Exception {
-                if (whitespace.indexOf(c) == -1 && ":,}]".indexOf(c) == -1) {
-                    buffer.append(c);
-                } else {
-                    state.pop();
-                    out.run(buffer.toString());
-                    state.peek().run(c);
-                }
-            }
-        };
-    }
-    
-    private State
-    parseString(final StringReceiver out) {
-        final StringBuilder buffer = new StringBuilder();
-        return new State() {
-            public void
-            run(final char c) throws Exception {
-                if ('\"' == c) {
-                    state.pop();
-                    out.run(buffer.toString());
-                } else if ('\\' == c) {
-                    state.push(parseEscape(buffer));
-                } else {
-                    buffer.append(c);
-                }
-            }
-        };
-    }
-    
-    private State
-    parseEscape(final StringBuilder out) {
-        return new State() {
-            public void
-            run(final char c) throws Exception {
-                switch (c) {
-                case '\"':
-                    out.append('\"');
-                    state.pop();
-                    break;
-                case '\\':
-                    out.append('\\');
-                    state.pop();
-                    break;
-                case '/':
-                    out.append('/');
-                    state.pop();
-                    break;
-                case 'b':
-                    out.append('\b');
-                    state.pop();
-                    break;
-                case 'f':
-                    out.append('\f');
-                    state.pop();
-                    break;
-                case 'n':
-                    out.append('\n');
-                    state.pop();
-                    break;
-                case 'r':
-                    out.append('\r');
-                    state.pop();
-                    break;
-                case 't':
-                    out.append('\t');
-                    state.pop();
-                    break;
-                case 'u':
-                    state.swap(parseUnicode(out));
-                    break;
-                default:
-                    throw new Exception("0x" + Integer.toHexString(c));
-                }
-            }            
-        };
-    }
-    
-    private State
-    parseUnicode(final StringBuilder out) {
-        return new State() {
-            private int unicode = 0;
-            private int expected = 4;
-            
-            public void
-            run(final char c) throws Exception {
-                unicode <<= 4;
-                if ('0' <= c && '9' >= c) {
-                    unicode |= (c - '0') & 0x0F;
-                } else if ('A' <= c && 'F' >= c) {
-                    unicode |= (c - 'A' + 10) & 0x0F;
-                } else if ('a' <= c && 'f' >= c) {
-                    unicode |= (c - 'a' + 10) & 0x0F;
-                } else {
-                    throw new Exception("0x" + Integer.toHexString(c));
-                }
-                if (--expected == 0) {
-                    out.append((char)unicode);
-                    state.pop();
-                }
-            }
-        };
+    static private Object
+    defaultValue(final Type type) {
+        final Object NULL = null;
+        return boolean.class == type
+            ? Boolean.FALSE
+        : char.class == type
+            ? Character.valueOf('\0')
+        : byte.class == type
+            ? Byte.valueOf((byte)0)
+        : short.class == type
+            ? Short.valueOf((short)0)
+        : int.class == type
+            ? Integer.valueOf(0)
+        : long.class == type
+            ? Long.valueOf(0)
+        : float.class == type
+            ? Float.valueOf(0.0f)
+        : double.class == type
+            ? Double.valueOf(0.0)
+        : NULL;
     }
 }
