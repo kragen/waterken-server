@@ -34,13 +34,29 @@ Serve {
                 ? new String[] { "http", "https" }
             : new String[] { "http" };
         }
-        
+        final PrintStream err = System.err;
+        try {
+            start(err, args);
+            return;
+        } catch (final Exception e) {
+            e.printStackTrace();
+        } catch (final Error e) {
+            final Throwable cause = e.getCause();
+            final Throwable reason = null != cause ? cause : e;
+            reason.printStackTrace();
+        }
+        err.println();
+        err.println("!!! server exiting due to configuration error !!!");
+        System.exit(-1);
+    }
+    
+    static private void
+    start(final PrintStream err, final String[] args) throws Exception {
         final Credentials credentials = Proxy.init();
         final String hostname =
             null != credentials ? credentials.getHostname() : "localhost";
 
         // summarize the configuration information
-        final PrintStream err = System.err;
         Config.summarize(hostname, err);
 
         // start the network services
@@ -68,22 +84,19 @@ Serve {
 	
 	            // run the corresponding daemon
 	            new Thread(task, service).start();
-	            continue;
 	        } catch (final BindException e) {
 	        	err.println("Unable to use configured port for: " + service);
 	        	err.println("Try configuring a different port number using " +
 	        				"the corresponding file in the config/ folder.");
-	        } catch (final Exception e) {
-	        	e.printStackTrace();
+	        	throw e;
 	        }
-	        err.println();
-	        err.println("!!! server exiting due to configuration error !!!");
-        	System.exit(-1);
         }
         
         // ping all the persistent vats to restart any pending tasks
+        err.println("Restarting all vats...");
         final File vats = Config.read(File.class, "vatRootFolder");
         ping(vats);
+        err.println("All vats restarted.");
     }
     
     static private void
