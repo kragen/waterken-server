@@ -1,4 +1,4 @@
-// Copyright 2007 Waterken Inc. under the terms of the MIT X license
+// Copyright 2007-2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax.json;
 
@@ -28,9 +28,13 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
+import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.Importer;
 
+/**
+ * <a href="http://www.json.org/">JSON</a> parser.
+ */
 public final class
 JSONParser {
     
@@ -48,13 +52,23 @@ JSONParser {
         lexer = new JSONLexer(in);
     }
 
+    /**
+     * Parses an argument list.
+     * @param base          base URL
+     * @param connect       reference importer
+     * @param code          class loader
+     * @param in            UTF-8 JSON text stream
+     * @param parameters    each expected type
+     * @return parsed argument list
+     * @throws Exception    any exception
+     */
     static public ConstArray<?>
     parse(final String base, final Importer connect,
             final ClassLoader code, final Reader in,
             final ConstArray<Type> parameters) throws Exception {
         final JSONParser parser = new JSONParser(base, connect, code, in);
         try {
-            if (!"[".equals(parser.lexer.advance())) { throw new Exception(); }
+            if (!"[".equals(parser.lexer.next())) { throw new Exception(); }
             final ConstArray<?> r = parser.parseArguments(parameters);
             if (null != parser.lexer.getHead()) { throw new Exception(); }
             return r;
@@ -71,16 +85,16 @@ JSONParser {
         if (!"[".equals(lexer.getHead())) { throw new Exception(); }
         final ConstArray.Builder<Object> r =
             ConstArray.builder(parameters.length());
-        if (!"]".equals(lexer.advance())) {
+        if (!"]".equals(lexer.next())) {
             while (true) {
                 r.append(parseValue(parameters.get(r.length())));
                 final String token = lexer.getHead();
                 if ("]".equals(token)) { break; }
                 if (!",".equals(token)) { throw new Exception(); }
-                lexer.advance();
+                lexer.next();
             }
         }
-        lexer.advance(); 
+        lexer.next(); 
         return r.snapshot();
     }
 
@@ -146,23 +160,23 @@ JSONParser {
                 value = x;
             }
         }
-        lexer.advance();
+        lexer.next();
         return null != promised ? ref(value) : value;
     }
     
     private Object
     parseString(final Type required) throws Exception {
-        final String token = lexer.getHead();
+        final String text = string(lexer.getHead());
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
         final Object value;
         if (char.class == expected || Character.class == expected) {
-            if (3 != token.length()) { throw new Exception(); }
-            value = token.charAt(1);
+            if (1 != text.length()) { throw new Exception(); }
+            value = text.charAt(0);
         } else {
-            value = token.substring(1, token.length() - 1);
+            value = text;
         }
-        lexer.advance();
+        lexer.next();
         return null != promised ? ref(value) : value;
     }
     
@@ -194,39 +208,38 @@ JSONParser {
             : ImmutableArray.class.isAssignableFrom(rawExpected)
                 ? ImmutableArray.builder()
             : ConstArray.builder();
-        if (!"]".equals(lexer.advance())) {
+        if (!"]".equals(lexer.next())) {
             final Type elementT = Typedef.value(T, expected);
             while (true) {
                 builder.append(parseValue(elementT));
                 if ("]".equals(lexer.getHead())) { break; }
                 if (!",".equals(lexer.getHead())) { throw new Exception(); }
-                lexer.advance();
+                lexer.next();
             }
         }
-        lexer.advance();
+        lexer.next();
         return builder.snapshot();
     }
     
     private Object
     parseObject(final Type required) throws Exception {
         if (!"{".equals(lexer.getHead())) { throw new Exception(); }
-        if ("\"@\"".equals(lexer.advance())) {
-            if (!":".equals(lexer.advance())) { throw new Exception(); }
-            final String hrefToken = lexer.advance();
-            if (!hrefToken.startsWith("\"")) { throw new Exception(); }
-            if (!"}".equals(lexer.advance())) { throw new Exception(); }
-            final String href = hrefToken.substring(1, hrefToken.length() - 1);
+        if ("\"@\"".equals(lexer.next())) {
+            // connect to linked reference
+            if (!":".equals(lexer.next())) { throw new Exception(); }
+            final String href = string(lexer.next());
+            if (!"}".equals(lexer.next())) { throw new Exception(); }
             final Object value = connect.run(Typedef.raw(required), href, base);
-            lexer.advance();
+            lexer.next();    // skip past the closing curly
             return value;
         }
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
-        Class<?> actual;
+        Class<?> actual = Typedef.raw(expected);
         if ("\"$\"".equals(lexer.getHead())) {
-            if (!":".equals(lexer.advance())) { throw new Exception(); }
-            if (!"[".equals(lexer.advance())) { throw new Exception(); }
-            actual = null;
+            // try to find a corresponding local class
+            if (!":".equals(lexer.next())) { throw new Exception(); }
+            if (!"[".equals(lexer.next())) { throw new Exception(); }
             for (final Object name : parseArray(PowerlessArray.class)) {
                 try {
                     actual = Java.load(code, (String)name);
@@ -234,13 +247,31 @@ JSONParser {
                 } catch (final ClassNotFoundException e) {}
             }
             if (",".equals(lexer.getHead())) {
-                if ("}".equals(lexer.advance())) { throw new Exception(); }
+                if ("}".equals(lexer.next())) { throw new Exception(); }
             } else {
                 if (!"}".equals(lexer.getHead())) { throw new Exception(); }
             }
-        } else {
-            actual = Typedef.raw(expected);
         }
+        if (Object.class == actual || Scope.class == actual) {
+            // just hold onto the members in a generic JSON container
+            final PowerlessArray.Builder<String> names=PowerlessArray.builder();
+            final ConstArray.Builder<Object> values = ConstArray.builder();
+            if (!"}".equals(lexer.getHead())) {
+                while (true) {
+                    names.append(string(lexer.getHead()));
+                    if (!":".equals(lexer.next())) { throw new Exception(); }
+                    lexer.next();
+                    values.append(parseValue(Object.class));
+                    if ("}".equals(lexer.getHead())) { break; }
+                    if (!",".equals(lexer.getHead())) { throw new Exception(); }
+                    lexer.next();
+                }
+            }
+            lexer.next();    // skip past the closing curly
+            return new Scope(names.snapshot(), values.snapshot());
+        }
+        
+        // use reflection to construct an object of the specified type
         Constructor<?> make = null;
         for (final Constructor<?> c : Reflection.constructors(actual)) {
             if (c.isAnnotationPresent(deserializer.class)) {
@@ -273,17 +304,15 @@ JSONParser {
         final boolean[] donev = new boolean[paramv.length];
         if (!"}".equals(lexer.getHead())) {
             while (true) {
-                final String nameToken = lexer.getHead();
-                if (!nameToken.startsWith("\"")) { throw new Exception(); }
-                final String name = nameToken.substring(1,nameToken.length()-1);
+                final String name = string(lexer.getHead());
                 int slot = namev.length;
                 while (0 != slot-- && !name.equals(namev[slot])) {}
                 if (-1 != slot) {
                     if (donev[slot]) { throw new Exception(); }
                     donev[slot] = true;
                 }
-                if (!":".equals(lexer.advance())) { throw new Exception(); }
-                lexer.advance();
+                if (!":".equals(lexer.next())) { throw new Exception(); }
+                lexer.next();
                 final Type type = -1 != slot ? paramv[slot] : Object.class;
                 final Object value = parseValue(type);
                 if (-1 != slot) {
@@ -291,16 +320,12 @@ JSONParser {
                 }
                 if ("}".equals(lexer.getHead())) { break; }
                 if (!",".equals(lexer.getHead())) { throw new Exception(); }
-                lexer.advance();
+                lexer.next();
             }
         }
         for (int i = donev.length; 0 != i--;) {
             if (!donev[i]) {
-                final Type requiredP = paramv[i];
-                final Type promisedP = Typedef.value(R, requiredP);
-                final Type expectedP = null!=promisedP ? promisedP : requiredP;
-                final Object arg = defaultValue(expectedP);
-                argv[i] = null != promised ? ref(arg) : arg;
+                argv[i] = defaultValue(paramv[i]);
                 donev[i] = true;
             }
         }
@@ -310,29 +335,37 @@ JSONParser {
         } else if (null != promised) {
             value = ref(value);
         }
-        lexer.advance();    // skip past the closing curly
+        lexer.next();    // skip past the closing curly
         return value;
     }
     
+    static private String
+    string(final String token) throws Exception {
+        if (!token.startsWith("\"")) { throw new Exception(); }
+        return token.substring(1, token.length() - 1);
+    }
+    
     static private Object
-    defaultValue(final Type type) {
-        final Object NULL = null;
-        return boolean.class == type
+    defaultValue(final Type required) {
+        final Type promised = Typedef.value(R, required);
+        final Type expected = null != promised ? promised : required;
+        final Object value = boolean.class == expected
             ? Boolean.FALSE
-        : char.class == type
+        : char.class == expected
             ? Character.valueOf('\0')
-        : byte.class == type
+        : byte.class == expected
             ? Byte.valueOf((byte)0)
-        : short.class == type
+        : short.class == expected
             ? Short.valueOf((short)0)
-        : int.class == type
+        : int.class == expected
             ? Integer.valueOf(0)
-        : long.class == type
+        : long.class == expected
             ? Long.valueOf(0)
-        : float.class == type
+        : float.class == expected
             ? Float.valueOf(0.0f)
-        : double.class == type
+        : double.class == expected
             ? Double.valueOf(0.0)
-        : NULL;
+        : (Object)null;
+        return null != promised ? ref(value) : value;
     }
 }
