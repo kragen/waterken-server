@@ -112,6 +112,10 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
         try {
             return (T)(type.isAssignableFrom(Promise.class)
                 ? this
+            : Float.class == type || float.class == type
+                ? Float.NaN
+            : Double.class == type || double.class == type
+                ? Double.NaN
             : Proxies.proxy(this, type, Powerless.class, Selfless.class));
         } catch (final Exception e) { throw new Error(e); }
     }
