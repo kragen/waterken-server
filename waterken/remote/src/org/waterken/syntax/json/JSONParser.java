@@ -222,10 +222,11 @@ JSONParser {
         }
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
-        Class<?> actual = null;
+        Class<?> actual;
         if ("\"$\"".equals(lexer.getHead())) {
             if (!":".equals(lexer.advance())) { throw new Exception(); }
             if (!"[".equals(lexer.advance())) { throw new Exception(); }
+            actual = null;
             for (final Object name : parseArray(PowerlessArray.class)) {
                 try {
                     actual = Java.load(code, (String)name);

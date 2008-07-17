@@ -89,6 +89,7 @@ JSONLexer {
         switch (c) {
         case -1:
             head = null;
+            break;
         case ',':
             head = ",";
             s.advance();
