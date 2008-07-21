@@ -236,11 +236,13 @@ JSONParser {
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
         Class<?> actual = Typedef.raw(expected);
+        ConstArray<?> declaration = null;
         if ("\"$\"".equals(lexer.getHead())) {
             // try to find a corresponding local class
             if (!":".equals(lexer.next())) { throw new Exception(); }
             if (!"[".equals(lexer.next())) { throw new Exception(); }
-            for (final Object name : parseArray(PowerlessArray.class)) {
+            declaration = parseArray(PowerlessArray.class);
+            for (final Object name : declaration) {
                 try {
                     actual = Java.load(code, (String)name);
                     break;
@@ -256,6 +258,10 @@ JSONParser {
             // just hold onto the members in a generic JSON container
             final PowerlessArray.Builder<String> names=PowerlessArray.builder();
             final ConstArray.Builder<Object> values = ConstArray.builder();
+            if (null != declaration) {
+                names.append("$");
+                values.append(declaration);
+            }
             if (!"}".equals(lexer.getHead())) {
                 while (true) {
                     names.append(string(lexer.getHead()));
