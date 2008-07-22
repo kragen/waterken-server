@@ -104,12 +104,9 @@ JSONParser {
     private Object
     parseValue(final Type required) throws Exception {
         final String token = lexer.getHead();
-        return "[".equals(token)
-            ? parseArray(required)
-        : "{".equals(token)
-            ? parseObject(required)
-        : token.startsWith("\"")
-            ? parseString(required)
+        return "[".equals(token) ? parseArray(required)
+        : "{".equals(token) ? parseObject(required)
+        : token.startsWith("\"") ? parseString(required)
         : parseKeyword(required);
     }
     
@@ -180,29 +177,21 @@ JSONParser {
         return null != promised ? ref(value) : value;
     }
     
-    private @SuppressWarnings("unchecked") ConstArray<?>
+    private @SuppressWarnings("unchecked") Object
     parseArray(final Type required) throws Exception {
         if (!"[".equals(lexer.getHead())) { throw new Exception(); }
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
         final Class<?> rawExpected = Typedef.raw(expected);
         final ConstArray.Builder builder = 
-            BooleanArray.class == rawExpected
-                ? BooleanArray.builder()
-            : CharArray.class == rawExpected
-                ? CharArray.builder()
-            : ByteArray.class == rawExpected
-                ? ByteArray.builder()
-            : ShortArray.class == rawExpected
-                ? ShortArray.builder()
-            : IntArray.class == rawExpected
-                ? IntArray.builder()
-            : LongArray.class == rawExpected
-                ? LongArray.builder()
-            : FloatArray.class == rawExpected
-                ? FloatArray.builder()
-            : DoubleArray.class == rawExpected
-                ? DoubleArray.builder()
+            BooleanArray.class == rawExpected ? BooleanArray.builder()
+            : CharArray.class == rawExpected ? CharArray.builder()
+            : ByteArray.class == rawExpected ? ByteArray.builder()
+            : ShortArray.class == rawExpected ? ShortArray.builder()
+            : IntArray.class == rawExpected ? IntArray.builder()
+            : LongArray.class == rawExpected ? LongArray.builder()
+            : FloatArray.class == rawExpected ? FloatArray.builder()
+            : DoubleArray.class == rawExpected ? DoubleArray.builder()
             : PowerlessArray.class.isAssignableFrom(rawExpected)
                 ? PowerlessArray.builder()
             : ImmutableArray.class.isAssignableFrom(rawExpected)
@@ -217,8 +206,9 @@ JSONParser {
                 lexer.next();
             }
         }
-        lexer.next();
-        return builder.snapshot();
+        lexer.next();   // skip past the closing bracket
+        final ConstArray<?> value = builder.snapshot();
+        return null != promised ? ref(value) : value;
     }
     
     private Object
@@ -236,12 +226,12 @@ JSONParser {
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
         Class<?> actual = Typedef.raw(expected);
-        ConstArray<?> declaration = null;
+        PowerlessArray<?> declaration = null;
         if ("\"$\"".equals(lexer.getHead())) {
             // try to find a corresponding local class
             if (!":".equals(lexer.next())) { throw new Exception(); }
             if (!"[".equals(lexer.next())) { throw new Exception(); }
-            declaration = parseArray(PowerlessArray.class);
+            declaration = (PowerlessArray<?>)parseArray(PowerlessArray.class);
             for (final Object name : declaration) {
                 try {
                     actual = Java.load(code, (String)name);
@@ -356,22 +346,14 @@ JSONParser {
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
         final Object value =
-            boolean.class == expected
-                ? Boolean.FALSE
-            : char.class == expected
-                ? Character.valueOf('\0')
-            : byte.class == expected
-                ? Byte.valueOf((byte)0)
-            : short.class == expected
-                ? Short.valueOf((short)0)
-            : int.class == expected
-                ? Integer.valueOf(0)
-            : long.class == expected
-                ? Long.valueOf(0)
-            : float.class == expected
-                ? Float.valueOf(0.0f)
-            : double.class == expected
-                ? Double.valueOf(0.0)
+            boolean.class == expected ? Boolean.FALSE
+            : char.class == expected ? Character.valueOf('\0')
+            : byte.class == expected ? Byte.valueOf((byte)0)
+            : short.class == expected ? Short.valueOf((short)0)
+            : int.class == expected ? Integer.valueOf(0)
+            : long.class == expected ? Long.valueOf(0)
+            : float.class == expected ? Float.valueOf(0.0f)
+            : double.class == expected ? Double.valueOf(0.0)
             : (Object)null;
         return null != promised ? ref(value) : value;
     }

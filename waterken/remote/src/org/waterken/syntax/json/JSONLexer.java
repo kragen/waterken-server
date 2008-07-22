@@ -219,14 +219,9 @@ JSONLexer {
     
     static private int
     hex(final int c) throws Exception {
-        if ('0' <= c && '9' >= c) {
-            return (c - '0') & 0x0F;
-        } else if ('A' <= c && 'F' >= c) {
-            return (c - 'A' + 10) & 0x0F;
-        } else if ('a' <= c && 'f' >= c) {
-            return (c - 'a' + 10) & 0x0F;
-        } else {
-            throw new Exception("0x" + Integer.toHexString(c));
-        }
+        if ('0' <= c && '9' >= c) {        return (c - '0'     ) & 0x0F; }
+        else if ('A' <= c && 'F' >= c) {   return (c - 'A' + 10) & 0x0F; }
+        else if ('a' <= c && 'f' >= c) {   return (c - 'a' + 10) & 0x0F; }
+        else { throw new Exception("0x" + Integer.toHexString(c)); }
     }
 }
