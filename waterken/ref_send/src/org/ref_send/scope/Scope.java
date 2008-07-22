@@ -53,7 +53,7 @@ Scope implements Selfless, Serializable {
      */
     public boolean
     equals(final Object o) {
-        return o instanceof Scope &&
+        return null != o && Scope.class == o.getClass() &&
                values.equals(((Scope)o).values) &&
                names.equals(((Scope)o).names);
     }
@@ -72,7 +72,7 @@ Scope implements Selfless, Serializable {
      * @param name  member name
      * @return member value, or <code>null</code> if unspecified
      */
-    @SuppressWarnings("unchecked") public <T> T
+    public @SuppressWarnings("unchecked") <T> T
     get(final String name) {
         for (int i = names.length(); 0 != i--;) {
             if (names.get(i).equals(name)) { return (T)values.get(i); }
