@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 import org.joe_e.Selfless;
 import org.joe_e.array.ConstArray;
-import org.joe_e.array.PowerlessArray;
 
 /**
  * A [ name =&gt; value ] mapping.
@@ -16,31 +15,20 @@ Scope implements Selfless, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
-     * each member name
-     * <p>
-     * A member name MUST NOT be either <code>null</code> or <code>"@"</code>.
-     * </p>
+     * scope meta data
      */
-    public final PowerlessArray<String> names;
+    public final Layout meta;
 
     /**
      * each corresponding value
      */
     public final ConstArray<?> values;
     
-    /**
-     * Constructs an instance.
-     * @param names     {@link #names}
-     * @param values    {@link #values}
-     */
-    public
-    Scope(final PowerlessArray<String> names, final ConstArray<?> values) {
-        if (names.length() != values.length()) {throw new RuntimeException();}
-        for (final String name : names) {
-            if (name.equals("@")) { throw new RuntimeException(); }
-        }
+    protected
+    Scope(final Layout meta, final ConstArray<?> values) {
+        if (meta.names.length()!=values.length()){throw new RuntimeException();}
         
-        this.names = names;
+        this.meta = meta;
         this.values = values;
     }
     
@@ -55,14 +43,14 @@ Scope implements Selfless, Serializable {
     equals(final Object o) {
         return null != o && Scope.class == o.getClass() &&
                values.equals(((Scope)o).values) &&
-               names.equals(((Scope)o).names);
+               meta.equals(((Scope)o).meta);
     }
     
     /**
      * Calculates the hash code.
      */
     public int
-    hashCode() { return 0x4EF5C09E + names.hashCode() + values.hashCode(); }
+    hashCode() { return 0x4EF5C09E + meta.hashCode() + values.hashCode(); }
     
     // org.ref_send.scope.Scope interface
     
@@ -74,9 +62,7 @@ Scope implements Selfless, Serializable {
      */
     public @SuppressWarnings("unchecked") <T> T
     get(final String name) {
-        for (int i = names.length(); 0 != i--;) {
-            if (names.get(i).equals(name)) { return (T)values.get(i); }
-        }
-        return null;
+        final int i = meta.find(name);
+        return -1 != i ? (T)values.get(i) : null;
     }
 }
