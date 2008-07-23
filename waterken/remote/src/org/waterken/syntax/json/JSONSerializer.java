@@ -113,10 +113,10 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         } else if (Scope.class == actual) {
             final JSONWriter.ObjectWriter oout = out.startObject();
             final Scope scope = (Scope)value;
-            final int length = scope.names.length();
+            final int length = scope.values.length();
             for (int i = 0; i != length; ++i) {
                 serialize(export, Object.class, scope.values.get(i),
-                          oout.startMember(scope.names.get(i)));
+                          oout.startMember(scope.meta.names.get(i)));
             }
             oout.finish();
         } else if (Inline.class == actual) {

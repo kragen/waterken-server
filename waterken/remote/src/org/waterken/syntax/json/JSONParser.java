@@ -28,6 +28,7 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
+import org.ref_send.scope.Layout;
 import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.Importer;
@@ -263,8 +264,9 @@ JSONParser {
                     lexer.next();
                 }
             }
+            final Scope x= new Layout(names.snapshot()).make(values.snapshot());  
             lexer.next();    // skip past the closing curly
-            return new Scope(names.snapshot(), values.snapshot());
+            return null != promised ? ref(x) : x;
         }
         
         // use reflection to construct an object of the specified type

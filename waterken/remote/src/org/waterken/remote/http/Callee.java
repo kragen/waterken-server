@@ -21,6 +21,7 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.scope.Layout;
 import org.ref_send.scope.Scope;
 import org.ref_send.var.Factory;
 import org.waterken.http.MediaType;
@@ -268,8 +269,8 @@ Callee extends Struct implements Server, Serializable {
     
     static private Scope
     describe(final Class<?> type) {
-        final Object decl = types(type);
-        return new Scope(PowerlessArray.array("$"), ConstArray.array(decl));
+        final Object ts = types(type);
+        return new Layout(PowerlessArray.array("$")).make(ConstArray.array(ts));
     }
     
     /**
