@@ -2,6 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 
 /**
- * A [ name =&gt; value ] object representation.
+ * A [ name =&gt; value ] record.
  */
 @org.joe_e.IsJoeE package org.ref_send.scope;

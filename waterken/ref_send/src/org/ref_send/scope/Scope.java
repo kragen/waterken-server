@@ -8,14 +8,14 @@ import org.joe_e.Selfless;
 import org.joe_e.array.ConstArray;
 
 /**
- * A [ name =&gt; value ] object representation.
+ * A [ name =&gt; value ] record.
  */
 public final class
 Scope implements Selfless, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
-     * meta data
+     * metadata
      */
     public final Layout meta;
 

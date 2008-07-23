@@ -13,7 +13,7 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * A description of a {@linkplain Scope [name =&gt; value] object}.
+ * A description of a {@linkplain Scope record}.
  */
 public class
 Layout implements Powerless, Selfless, Record, Serializable {
