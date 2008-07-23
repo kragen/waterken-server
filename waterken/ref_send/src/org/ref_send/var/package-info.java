@@ -2,6 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 
 /**
- * A variable implementation.
+ * A reified variable.
  */
 @org.joe_e.IsJoeE package org.ref_send.var;

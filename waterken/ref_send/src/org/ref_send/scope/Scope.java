@@ -15,7 +15,7 @@ Scope implements Selfless, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
-     * scope meta data
+     * meta data
      */
     public final Layout meta;
 
