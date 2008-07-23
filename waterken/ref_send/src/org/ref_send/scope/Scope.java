@@ -8,7 +8,7 @@ import org.joe_e.Selfless;
 import org.joe_e.array.ConstArray;
 
 /**
- * A [ name =&gt; value ] mapping.
+ * A [ name =&gt; value ] object representation.
  */
 public final class
 Scope implements Selfless, Serializable {
