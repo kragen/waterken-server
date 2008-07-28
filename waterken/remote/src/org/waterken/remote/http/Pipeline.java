@@ -41,9 +41,9 @@ Pipeline implements Serializable {
         final int id;       // serial number
         final Message msg;  // pending message
         
-        Entry(final int id, final Message message) {
+        Entry(final int id, final Message msg) {
             this.id = id;
-            this.msg = message;
+            this.msg = msg;
         }
     }
     
@@ -68,8 +68,8 @@ Pipeline implements Serializable {
     resend() { effect.run(restart(model, peer, pending.getSize(), false, 0)); }
     
     /*
-     * Message sending is halted when an Update follows a Query. Sending resumes
-     * once the response to the preceeding Query has been received.
+     * Message sending is halted before an Update that follows a Query. Sending
+     * resumes once the response to the Query has been received.
      */
     
     void
