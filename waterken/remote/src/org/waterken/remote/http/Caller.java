@@ -101,13 +101,15 @@ Caller extends Struct implements Messenger, Serializable {
                     value = new Rejected<Object>(e);
                 }
                 final R r = when(value, observer);
-                return null != resolver ? resolver.fulfill(r) : null;
+                if (null != resolver) { resolver.run(r); }
+                return null;
             }
             
             public Void
             reject(final Exception reason) {
                 final R r = when(new Rejected<Object>(reason), observer);
-                return null != resolver ? resolver.fulfill(r) : null;
+                if (null != resolver) { resolver.run(r); }
+                return null;
             }
             
             /**
@@ -248,12 +250,14 @@ Caller extends Struct implements Messenger, Serializable {
                         _.cast(method.getDeclaringClass(),
                                Eventual.promised(object)),
                         argv.toArray(new Object[argv.length()]));
-                    return null != resolver ? resolver.fulfill(r) : null;
+                    if (null != resolver) { resolver.run(r); }
+                    return null;
                 }
                 
                 public Void
                 reject(final Exception reason) {
-                    return null != resolver ? resolver.reject(reason) : null;
+                    if (null != resolver) { resolver.reject(reason); }
+                    return null;
                 }
             }
             final String target = Exports.isPromise(URL)
