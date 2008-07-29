@@ -10,7 +10,7 @@ import org.ref_send.promise.Volatile;
  * @param <T> promised referent type
  */
 public interface
-Resolver<T> {
+Resolver<T> extends Receiver<T> {
 
     /**
      * Put the corresponding promise in the fulfilled state.
@@ -21,10 +21,9 @@ Resolver<T> {
      *     return resolve(Eventual.promised(value));
      * </pre>
      * @param referent  fulfilled value of the corresponding promise
-     * @return <code>null</code>
      */
-    Void
-    fulfill(T referent);
+    void
+    run(T referent);
 
     /**
      * Put the corresponding promise in the rejected state.
@@ -35,7 +34,6 @@ Resolver<T> {
      *     return resolve(new Rejected&lt;T&gt;(reason));
      * </pre>
      * @param reason    reason the corresponding promise will not be fulfilled
-     * @return <code>null</code>
      */
     Void
     reject(Exception reason);
@@ -43,8 +41,7 @@ Resolver<T> {
     /**
      * Chains the correponding promise to the given promise.
      * @param promise   promise to forward requests to
-     * @return <code>null</code>
      */
-    Void
+    void
     resolve(Volatile<T> promise);
 }

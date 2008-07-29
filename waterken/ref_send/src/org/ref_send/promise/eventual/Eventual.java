@@ -319,7 +319,8 @@ Eventual extends Struct implements Serializable {
                 } catch (final Exception e) {
                     return second.reject(e);
                 }
-                return second.fulfill(b);
+                second.run(b);
+                return null;
             }
 
             public Void
@@ -330,7 +331,8 @@ Eventual extends Struct implements Serializable {
                 } catch (final Exception e) {
                     return second.reject(e);
                 }
-                return second.fulfill(b);
+                second.run(b);
+                return null;
             }
         }
         return new Compose();
@@ -406,18 +408,19 @@ Eventual extends Struct implements Serializable {
                 }
             }
         }
-        class Head extends Do<T,Void> implements Resolver<T>, Serializable {
+        class Head implements Resolver<T>, Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Void
-            fulfill(final T value) { return resolve(promised(value)); }
+            public void
+            run(final T value) { resolve(promised(value)); }
 
             public Void
             reject(final Exception reason) {
-                return resolve(new Rejected<T>(reason));
+                resolve(new Rejected<T>(reason));
+                return null;
             }
             
-            public Void
+            public void
             resolve(final Volatile<T> value) {
                 final State m = state.cast();
                 if (null == m.value) {
@@ -427,7 +430,6 @@ Eventual extends Struct implements Serializable {
                     : new Rejected<T>(new NullPointerException());
                     if (null != m.front) { enqueue.run(new Pop()); }
                 }
-                return null;
             }
         }
         class Tail extends Deferred<T> implements Promise<T> {

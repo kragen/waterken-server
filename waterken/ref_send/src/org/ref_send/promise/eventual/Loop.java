@@ -7,7 +7,7 @@ package org.ref_send.promise.eventual;
  * @param <T> {@link Task} type to execute
  */
 public interface
-Loop<T extends Task> {
+Loop<T extends Task> extends Receiver<T> {
 
     /**
      * Posts a task to this event loop.

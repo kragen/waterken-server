@@ -91,9 +91,6 @@ Variable<T> extends Struct implements Record, Serializable {
 
             public void
             run(final T value) {m.set(null!=guard ? guard.run(value) : value);}
-            
-            public void
-            set(final T value) { run(value); }
         }
         return new Variable<T>(m, new SetterX(), guard);
     }
