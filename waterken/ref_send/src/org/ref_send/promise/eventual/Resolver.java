@@ -18,7 +18,7 @@ Resolver<T> extends Receiver<T> {
      * This method is syntactic sugar for:
      * </p>
      * <pre>
-     *     return resolve(Eventual.promised(value));
+     *     resolve(Eventual.promised(value));
      * </pre>
      * @param referent  fulfilled value of the corresponding promise
      */
@@ -31,7 +31,7 @@ Resolver<T> extends Receiver<T> {
      * This method is syntactic sugar for:
      * </p>
      * <pre>
-     *     return resolve(new Rejected&lt;T&gt;(reason));
+     *     resolve(new Rejected&lt;T&gt;(reason));
      * </pre>
      * @param reason    reason the corresponding promise will not be fulfilled
      */
