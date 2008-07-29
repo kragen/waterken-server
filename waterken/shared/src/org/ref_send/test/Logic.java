@@ -60,10 +60,10 @@ Logic {
                     if (value) {
                         todo.set(todo.get() - 1);
                         if (0 == todo.get()) {
-                            answer.resolver.fulfill(true);
+                            answer.resolver.run(true);
                         }
                     } else {
-                        answer.resolver.fulfill(false);
+                        answer.resolver.run(false);
                     }
                     return null;
                 }
