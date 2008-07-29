@@ -13,8 +13,8 @@ import org.ref_send.log.Resolved;
 import org.ref_send.log.SentIf;
 import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Loop;
+import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.var.Factory;
-import org.ref_send.var.Receiver;
 
 /**
  * A log {@link Event} generator.
