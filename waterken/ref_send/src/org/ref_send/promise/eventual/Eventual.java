@@ -344,14 +344,14 @@ Eventual extends Struct implements Serializable {
      * The return from this method is a ( {@linkplain Promise promise},
      * {@linkplain Resolver resolver} ) pair. The promise is initially in the
      * deferred state and can only be resolved by the resolver once. If the
-     * promise is {@linkplain Resolver#fulfill fulfilled}, the promise will
-     * forever refer to the provided referent. If the promise, is
-     * {@linkplain Resolver#reject rejected}, the promise will forever be in the
-     * rejected state, with the provided reason. If the promise is
+     * promise is {@linkplain Resolver#run fulfilled}, the promise will forever
+     * refer to the provided referent. If the promise, is
+     * {@linkplain Resolver#reject rejected}, the promise will forever be in
+     * the rejected state, with the provided reason. If the promise is
      * {@linkplain Resolver#resolve resolved}, the promise will forever be in
      * the same state as the provided promise. After this initial state
      * transition, all subsequent invocations of either
-     * {@link Resolver#fulfill fulfill}, {@link Resolver#reject reject} or
+     * {@link Resolver#run fulfill}, {@link Resolver#reject reject} or
      * {@link Resolver#resolve resolve} are silently ignored. Any
      * {@linkplain Do observer} {@linkplain #when registered} on the promise
      * will only be notified after the promise is resolved.

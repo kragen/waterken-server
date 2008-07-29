@@ -10,7 +10,7 @@ import org.ref_send.Record;
 import org.ref_send.deserializer;
 
 /**
- * A condition on a {@link Variable} {@linkplain Setter#set assignment}.
+ * A condition on a {@link Variable} {@linkplain Setter#run assignment}.
  * @param <T> value type
  */
 public class
