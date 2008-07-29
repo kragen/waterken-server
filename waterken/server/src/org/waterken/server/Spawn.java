@@ -8,7 +8,7 @@ import org.joe_e.Token;
 import org.ref_send.log.Anchor;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.var.Receiver;
+import org.ref_send.promise.eventual.Receiver;
 import org.waterken.net.http.HTTPD;
 import org.waterken.project.ProjectTracer;
 import org.waterken.remote.Remote;
