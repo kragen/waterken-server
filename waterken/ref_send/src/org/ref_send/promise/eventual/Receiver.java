@@ -3,15 +3,15 @@
 package org.ref_send.promise.eventual;
 
 /**
- * An output writer.
+ * An output receiver.
  * @param <T> value type
  */
 public interface
 Receiver<T> {
 
     /**
-     * Receives another output value.
-     * @param value received output
+     * Receives a value.
+     * @param value received value
      */
     void
     run(T value);
