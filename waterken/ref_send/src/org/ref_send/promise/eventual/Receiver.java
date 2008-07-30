@@ -3,15 +3,20 @@
 package org.ref_send.promise.eventual;
 
 /**
- * An output receiver.
+ * A notification receiver.
+ * <p>
+ * This interface should be reused in any "fire-and-forget"-like pattern where
+ * the caller is simply sending a notification to the callee. For example, this
+ * interface should be used when implementing the Observer pattern.
+ * </p>
  * @param <T> value type
  */
 public interface
 Receiver<T> {
 
     /**
-     * Receives a value.
-     * @param value received value
+     * Receives a notification.
+     * @param value any additional details about the notification
      */
     void
     run(T value);

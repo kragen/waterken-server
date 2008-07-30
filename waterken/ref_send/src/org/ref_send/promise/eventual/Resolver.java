@@ -3,6 +3,7 @@
 package org.ref_send.promise.eventual;
 
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 
 /**
@@ -13,14 +14,14 @@ public interface
 Resolver<T> extends Receiver<T> {
 
     /**
-     * Put the corresponding promise in the fulfilled state.
+     * Resolve the corresponding promise to the given reference.
      * <p>
      * This method is syntactic sugar for:
      * </p>
      * <pre>
-     *     resolve(Eventual.promised(value));
+     * {@link #resolve resolve}({@link Eventual#promised promised}(referent));
      * </pre>
-     * @param referent  fulfilled value of the corresponding promise
+     * @param referent  resolved value of the corresponding promise
      */
     void
     run(T referent);
@@ -31,7 +32,7 @@ Resolver<T> extends Receiver<T> {
      * This method is syntactic sugar for:
      * </p>
      * <pre>
-     *     resolve(new Rejected&lt;T&gt;(reason));
+     * {@link #resolve resolve}(new {@link Rejected}&lt;T&gt;(reason));
      * </pre>
      * @param reason    reason the corresponding promise will not be fulfilled
      */
@@ -39,7 +40,7 @@ Resolver<T> extends Receiver<T> {
     reject(Exception reason);
     
     /**
-     * Chains the correponding promise to the given promise.
+     * Resolve the corresponding promise to the given promise.
      * @param promise   promise to forward requests to
      */
     void
