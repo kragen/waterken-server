@@ -8,6 +8,7 @@ import org.joe_e.Struct;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.eventual.Receiver;
 import org.waterken.dns.Domain;
 import org.waterken.dns.Resource;
 import org.waterken.menu.Menu;
@@ -22,7 +23,7 @@ DomainMaster extends Struct implements Record, Serializable {
     /**
      * corresponding destructor
      */
-    public final Runnable destruct;
+    public final Receiver<?> destruct;
     
     /**
      * {@linkplain Domain#getAnswers() answers} editor
@@ -41,7 +42,7 @@ DomainMaster extends Struct implements Record, Serializable {
      * @param extension {@link #extension}
      */
     public @deserializer
-    DomainMaster(@name("destruct") final Runnable destruct,
+    DomainMaster(@name("destruct") final Receiver<?> destruct,
                  @name("answers") final Menu<Resource> answers,
                  @name("extension") final Extension extension) {
         this.destruct = destruct;
