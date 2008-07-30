@@ -12,7 +12,7 @@ import org.ref_send.promise.eventual.Receiver;
  * A normal pass-by-reference object.
  */
 class
-Normal extends Struct implements Receiver<Void>, Powerless, Serializable {
+Normal extends Struct implements Receiver<Object>, Powerless, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -27,5 +27,5 @@ Normal extends Struct implements Receiver<Void>, Powerless, Serializable {
      * Does nothing.
      */
     public void
-    run(final Void ignored) {}
+    run(final Object ignored) {}
 }
