@@ -19,6 +19,7 @@ import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
+import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Sink;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.http.MediaType;
@@ -196,8 +197,8 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                         final Publisher publisher = publish(local);
                         final Framework framework = new Framework(
                             _,
-                            new Destruct(
-                                (Runnable)local.fetch(null, Root.destruct)),
+                            new Destruct((Receiver<Void>)
+                                    local.fetch(null, Root.destruct)),
                             AMP.spawn(publisher),
                             null != name ? publisher : null
                         );

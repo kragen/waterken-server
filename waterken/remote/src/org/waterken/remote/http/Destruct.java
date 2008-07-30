@@ -5,25 +5,26 @@ package org.waterken.remote.http;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
+import org.ref_send.promise.eventual.Receiver;
 
 /**
  * An exportable reference to the destruct operation.
  */
 public final class
-Destruct extends Struct implements Runnable, Serializable {
+Destruct extends Struct implements Receiver<Void>, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
      * {@link Root#destruct}
      */
-    private final Runnable destruct;
+    private final Receiver<?> destruct;
     
-    Destruct(final Runnable destruct) {
+    Destruct(final Receiver<?> destruct) {
         this.destruct = destruct;
     }
     
     // java.lang.Runnable interface
 
     public void
-    run() { destruct.run(); }
+    run(final Void value) { destruct.run(null); }
 }

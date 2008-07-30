@@ -20,6 +20,7 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Loop;
+import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Server;
 import org.waterken.remote.Remote;
@@ -143,9 +144,9 @@ Browser extends Struct implements Record, Serializable {
         final Token deferred = new Token();
         final Eventual _ = new Eventual(deferred, enqueue, log);
         local.link(Root.code, code);
-        local.link(Root.destruct, new Runnable() {
+        local.link(Root.destruct, new Receiver<Void>() {
             public void
-            run() { throw new Error(); }
+            run(final Void value) { throw new Error(); }
         });
         local.link(Root.effect, enqueue);
         local.link(Root.enqueue, enqueue);
