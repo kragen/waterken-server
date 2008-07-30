@@ -6,12 +6,13 @@ import java.io.Serializable;
 
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
+import org.ref_send.promise.eventual.Receiver;
 
 /**
  * A normal pass-by-reference object.
  */
-public class
-Normal extends Struct implements Runnable, Powerless, Serializable {
+class
+Normal extends Struct implements Receiver<Void>, Powerless, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -26,5 +27,5 @@ Normal extends Struct implements Runnable, Powerless, Serializable {
      * Does nothing.
      */
     public void
-    run() {}
+    run(final Void ignored) {}
 }

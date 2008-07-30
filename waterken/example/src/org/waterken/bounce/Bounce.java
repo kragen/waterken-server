@@ -24,6 +24,7 @@ import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Receiver;
 import org.web_send.graph.Framework;
 
 /**
@@ -49,9 +50,9 @@ Bounce {
      */
     static public Wall
     make(final Eventual _) {
-        final Runnable normal = new Normal();
-        final Rejected<Runnable> rejected =
-            new Rejected<Runnable>(new Exception());
+        final Receiver<?> normal = new Normal();
+        final Rejected<Receiver<?>> rejected =
+            new Rejected<Receiver<?>>(new Exception());
         final Channel<Boolean> d = _.defer(); 
         class WallX extends Struct implements Wall, Serializable {
             static private final long serialVersionUID = 1L;
@@ -78,7 +79,7 @@ Bounce {
                     LongArray.array(0L, (1L << 53) - 1, (1L << 53),
                                         -((1L << 53) - 1), -(1L << 53)),
                     "a \" \\ / </ < > \b \f \n \r \t \u0085",
-                    ConstArray.array(normal, null, rejected._(Runnable.class)),
+                    ConstArray.array(normal, null, rejected._(Receiver.class)),
                     ConstArray.array(ref(false),
                                      ref(Integer.MAX_VALUE),
                                      ref("a"),

@@ -18,6 +18,7 @@ import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.ref_send.promise.Volatile;
+import org.ref_send.promise.eventual.Receiver;
 
 /**
  * A record containing a field of each type.
@@ -74,7 +75,7 @@ AllTypes extends Struct implements Record, Serializable {
     /**
      * pass-by-reference
      */
-    public final ConstArray<Runnable> r;
+    public final ConstArray<Receiver<?>> r;
     
     /**
      * promise
@@ -110,7 +111,7 @@ AllTypes extends Struct implements Record, Serializable {
              @name("i") final IntArray i,
              @name("l") final LongArray l,
              @name("t") final String t,
-             @name("r") final ConstArray<Runnable> r,
+             @name("r") final ConstArray<Receiver<?>> r,
              @name("p") final ConstArray<? extends Volatile<?>> p,
              @name("a") final Object a) {
         this.b = b;

@@ -19,6 +19,7 @@ import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
+import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Sink;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.test.Test;
@@ -98,33 +99,34 @@ Main extends Struct implements Test, Serializable {
     testNormal() throws Exception {
         final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(3);
         
-        class Normal implements Runnable, Equatable, Serializable {
+        class Normal implements Receiver<Void>, Equatable, Serializable {
             static private final long serialVersionUID = 1L;
 
-            public void run() {}
+            public void run(final Void ignored) {}
         }
         final Normal x = new Normal();
-        final Runnable ix = x;
-        final Promise<Runnable> p = ref(ix);
+        final Receiver<Void> ix = x;
+        final Promise<Receiver<Void>> p = ref(ix);
         check(p.equals(p));
         check(ref(x).equals(p));
         check(x == p.cast());
-        class EQ extends Do<Runnable,Promise<Boolean>> implements Serializable {
+        class EQ extends Do<Receiver<Void>,Promise<Boolean>>
+                 implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public Promise<Boolean>
-            fulfill(final Runnable arg) throws Exception {
+            fulfill(final Receiver<Void> arg) throws Exception {
                 check(x == arg);
                 return ref(true);
             }
         }
         r.append(_.when(p, new EQ()));
         r.append(_.when(ix, new EQ()));
-        final Runnable x_ = _._(ix);
+        final Receiver<Void> x_ = _._(ix);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
         check(_._(ix).equals(x_));
-        check(_.cast(Runnable.class, p).equals(x_));
+        check(_.cast(Receiver.class, p).equals(x_));
         check(Eventual.promised(x_).equals(p));
         check(x == near(x_));
         r.append(_.when(x_, new EQ()));
@@ -139,18 +141,19 @@ Main extends Struct implements Test, Serializable {
     testNull() throws Exception {
         final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(4);
         
-        final Promise<Runnable> p = ref(null);
+        final Promise<Receiver<Void>> p = ref(null);
         check(p.equals(p));
         check(!ref(null).equals(p));
         try {
             p.cast();
             check(false);
         } catch (final NullPointerException e) {}
-        class NE extends Do<Runnable,Promise<Boolean>> implements Serializable {
+        class NE extends Do<Receiver<Void>,Promise<Boolean>>
+                 implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public Promise<Boolean>
-            fulfill(final Runnable arg) throws Exception {
+            fulfill(final Receiver<Void> arg) throws Exception {
                 throw new Exception();
             }
             public Promise<Boolean>
@@ -160,14 +163,14 @@ Main extends Struct implements Test, Serializable {
             }
         }
         r.append(_.when(p, new NE()));
-        final Runnable x = null;
+        final Receiver<Void> x = null;
         r.append(_.when(x, new NE()));
-        final Promise<Runnable> sneaky = Fulfilled.detach(null); 
+        final Promise<Receiver<Void>> sneaky = Fulfilled.detach(null); 
         r.append(_.when(sneaky, new NE()));
-        final Runnable x_ = _.cast(Runnable.class, p);
+        final Receiver<Void> x_ = _.cast(Receiver.class, p);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
-        check(_.cast(Runnable.class, p).equals(x_));
+        check(_.cast(Receiver.class, p).equals(x_));
         check(Eventual.promised(x_).equals(p));
         r.append(_.when(x_, new NE()));
         
