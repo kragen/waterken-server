@@ -462,9 +462,9 @@ JODB extends Vat {
             public void
             run(final Effect task) { effects.append(task); }
         };
-        final Runnable destruct = new Runnable() {
+        final Receiver<Void> destruct = new Receiver<Void>() {
             public void
-            run() {
+            run(final Void value) {
                 if (!active[0]) { throw new AssertionError(); }
 
                 root.link(dead, true);

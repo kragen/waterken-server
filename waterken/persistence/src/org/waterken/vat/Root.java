@@ -6,6 +6,7 @@ import java.security.SecureRandom;
 
 import org.ref_send.log.Anchor;
 import org.ref_send.promise.eventual.Loop;
+import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
 import org.web_send.graph.Collision;
 
@@ -33,7 +34,7 @@ Root {
     String creator = ".creator";
     
     /**
-     * {@link Runnable deletes} the corresponding {@link Vat}
+     * {@link Receiver deletes} the corresponding {@link Vat}
      */
     String destruct = ".destruct";
 
