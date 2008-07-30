@@ -197,7 +197,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                         final Publisher publisher = publish(local);
                         final Framework framework = new Framework(
                             _,
-                            new Destruct((Receiver<Void>)
+                            new Destruct((Receiver<?>)
                                     local.fetch(null, Root.destruct)),
                             AMP.spawn(publisher),
                             null != name ? publisher : null
