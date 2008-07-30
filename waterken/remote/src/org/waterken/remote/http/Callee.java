@@ -67,8 +67,9 @@ Callee extends Struct implements Server, Serializable {
           final Do<Response,?> respond) throws Exception {
 
         // check for web browser bootstrap request
-        final String query = URI.query(null, resource);
-        if (null == query) {
+        final String query = URI.query("", resource);
+        final String s = Query.arg(null, query, "s");
+        if (null == s) {
             final String project = exports.getProject();
             bootstrap.serve("file:///site/" + URLEncoding.encode(project) + "/"+
                               URLEncoding.encode(Path.name(URI.path(resource))),
@@ -169,7 +170,7 @@ Callee extends Struct implements Server, Serializable {
             }
             final boolean constant = "getClass".equals(lambda.getName());
             final int maxAge = constant ? forever : ephemeral; 
-            final String etag=constant ? null : exports.getTransactionTag();
+            final String etag = constant ? null : exports.getTransactionTag();
             Response r = request.hasVersion(etag)
                 ? new Response("HTTP/1.1", "304", "Not Modified",
                     PowerlessArray.array(

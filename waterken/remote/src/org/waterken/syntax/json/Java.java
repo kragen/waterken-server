@@ -61,7 +61,7 @@ Java {
      * @param flags Java modifiers
      * @return <code>true</code> if synthetic, else <code>false</code>
      */
-    static public boolean
+    static private boolean
     isSynthetic(final int flags) { return 0 != (flags & synthetic); }
 
     /**

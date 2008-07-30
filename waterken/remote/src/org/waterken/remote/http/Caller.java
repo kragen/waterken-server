@@ -128,15 +128,12 @@ Caller extends Struct implements Messenger, Serializable {
     invoke(final String URL, final Object proxy,
            final Method method, final Object... arg) {
         final ConstArray<?> argv= ConstArray.array(null==arg?new Object[0]:arg);
-        return 1 == argv.length() && proxy instanceof Setter &&
-                                     "run".equals(method.getName())
-            ? put(URL, proxy, method, argv)
-        : null != Java.property(method)
+        return null != Java.property(method)
             ? get(URL, proxy, method, argv)
         : post(URL, proxy, method, argv);
     }
     
-    private Void
+    private @Deprecated Void
     put(final String URL, final Object proxy,
         final Method method, final ConstArray<?> argv) {
         class PUT extends Message implements Update, Query {

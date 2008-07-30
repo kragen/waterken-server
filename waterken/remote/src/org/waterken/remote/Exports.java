@@ -105,16 +105,13 @@ Exports extends Struct implements Serializable {
     
     /**
      * Does an operation at most once.
-     * @param mid       message identifier,
-     *                  or <code>null</code> for idempotent operation
-     * @param member    member to invoke
+     * @param mid       message identifier
+     * @param member    member to invoke, or <code>null</code> if unspecified
      * @param invoke    member invoker
      * @return <code>invoke</code> return value
      */
     public Object
     once(final String mid, final Member member, final Factory<Object> invoke) {
-        if (null == mid) { return invoke.run(); }
-        
         final String pipe = local.pipeline(mid);
         final Token pumpkin = new Token();
         Object r = local.fetch(pumpkin, pipe);
@@ -122,7 +119,9 @@ Exports extends Struct implements Serializable {
             final Receiver<Event> er = events();
             if (null != er) {
                 final Tracer tracer = local.fetch(null, Root.tracer);
-                final Trace trace= null != tracer ? tracer.dummy(member) : null;
+                final Trace trace = null != tracer
+                    ? (null != member ? tracer.dummy(member) : tracer.get())
+                : null;
                 final String msg = local.pipeline(pipe);
                 log(er, new Got(local.anchor(), trace, msg)); 
                 r = invoke.run();
@@ -238,7 +237,7 @@ Exports extends Struct implements Serializable {
         final String pipe = local.pipeline(mid);
         local.link(pipe, response);
         return Remote._(R, local, URI.resolve(base,
-            "./?src=" + URLEncoding.encode(URI.relate(base, here)) + "#"+pipe));
+            "?src=" + URLEncoding.encode(URI.relate(base, here)) + "#" + pipe));
     }
 
     /**
