@@ -9,6 +9,7 @@ import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Receiver;
 
 /**
  * The authority provided to the creator of a new vat.
@@ -36,7 +37,7 @@ Framework extends Struct implements Record, Serializable {
     /**
      * permission to destruct this vat
      */
-    public final Runnable destruct;
+    public final Receiver<?> destruct;
 
     /**
      * sub-vat factory
@@ -63,7 +64,7 @@ Framework extends Struct implements Record, Serializable {
      */
     public @deserializer
     Framework(@name("_") final Eventual _,
-              @name("destruct") final Runnable destruct,
+              @name("destruct") final Receiver<?> destruct,
               @name("spawn") final Spawn spawn,
               @name("publisher") final Publisher publisher) {
         this._ = _;

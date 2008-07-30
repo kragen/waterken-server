@@ -8,6 +8,7 @@ import org.joe_e.Struct;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.eventual.Receiver;
 
 /**
  * A base class for a return from a {@link Splitter} interface.
@@ -19,14 +20,14 @@ Component extends Struct implements Record, Serializable {
     /**
      * permission to destruct the corresponding vat
      */
-    public final Runnable destruct;
+    public final Receiver<?> destruct;
     
     /**
      * Constructs an instance.
      * @param destruct  {@link #destruct}
      */
     public @deserializer
-    Component(@name("destruct") final Runnable destruct) {
+    Component(@name("destruct") final Receiver<?> destruct) {
         this.destruct = destruct;
     }
 }
