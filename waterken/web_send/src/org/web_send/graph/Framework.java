@@ -36,6 +36,9 @@ Framework extends Struct implements Record, Serializable {
 
     /**
      * permission to destruct this vat
+     * <p>
+     * call like: <code>destruct.run(null)</code>
+     * </p>
      */
     public final Receiver<?> destruct;
 
