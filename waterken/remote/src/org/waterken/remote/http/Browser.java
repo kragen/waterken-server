@@ -144,9 +144,9 @@ Browser extends Struct implements Record, Serializable {
         final Token deferred = new Token();
         final Eventual _ = new Eventual(deferred, enqueue, log);
         local.link(Root.code, code);
-        local.link(Root.destruct, new Receiver<Void>() {
+        local.link(Root.destruct, new Receiver<Object>() {
             public void
-            run(final Void value) { throw new Error(); }
+            run(final Object ignored) { throw new Error(); }
         });
         local.link(Root.effect, enqueue);
         local.link(Root.enqueue, enqueue);

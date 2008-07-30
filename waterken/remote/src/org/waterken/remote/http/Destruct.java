@@ -11,7 +11,7 @@ import org.ref_send.promise.eventual.Receiver;
  * An exportable reference to the destruct operation.
  */
 public final class
-Destruct extends Struct implements Receiver<Void>, Serializable {
+Destruct extends Struct implements Receiver<Object>, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -26,5 +26,5 @@ Destruct extends Struct implements Receiver<Void>, Serializable {
     // java.lang.Runnable interface
 
     public void
-    run(final Void value) { destruct.run(null); }
+    run(final Object value) { destruct.run(null); }
 }
