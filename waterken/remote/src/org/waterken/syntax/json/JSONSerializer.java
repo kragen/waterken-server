@@ -12,7 +12,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.net.URI;
 
 import org.joe_e.Struct;
 import org.joe_e.array.ConstArray;
@@ -44,7 +43,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
 
     // org.waterken.syntax.Serializer interface
 
-    public @Override void
+    public void
     run(final Exporter export, final ConstArray<?> values,
                                final OutputStream out) throws Exception {
         final Writer text = new BufferedWriter(UTF8.output(out));
@@ -98,8 +97,6 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.writeString(((Character)value).toString());
         } else if (Void.class == actual) {
             out.writeNull();
-        } else if (URI.class == actual) {
-            out.writeString(((URI)value).toString());
         } else if (Class.class == actual) {
             final Class<?> c = (Class<?>)value;
             final JSONWriter.ObjectWriter oout = out.startObject();
@@ -151,7 +148,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             }
             oout.finish();
         } else {
-            out.writeLink(export.run(value).toString());
+            out.writeLink(export.run(value));
         }
     }
 
