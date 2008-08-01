@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax.json;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -34,6 +35,6 @@ JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
             final ClassLoader code, final InputStream content,
             final ConstArray<Type> parameters) throws Exception {
         return JSONParser.parse(base, connect, code,
-                                UTF8.input(content), parameters);
+                new BufferedReader(UTF8.input(content)), parameters);
     }
 }
