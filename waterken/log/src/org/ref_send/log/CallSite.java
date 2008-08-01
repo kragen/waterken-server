@@ -60,9 +60,8 @@ CallSite extends Struct implements Powerless, Record, Serializable {
      * <p>
      * Both lines and columns are numbered starting from one, so the first
      * character in a source file is at <code>[ 1, 1 ]</code>. A column is a
-     * <em>Unicode code unit</em>, the same unit represented by a Java
-     * <code>char</code>. Lines are separated by any character sequence
-     * considered a Unicode <a
+     * UTF-16 code unit, the same unit represented by a Java <code>char</code>.
+     * Lines are separated by any character sequence considered a Unicode <a
      * href="http://en.wikipedia.org/wiki/Newline#Unicode">line terminator</a>.
      * </p>
      */
