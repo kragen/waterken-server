@@ -1,10 +1,10 @@
 #!/bin/sh
 if [ "$OS" = 'Windows_NT' ]
 then
-    SRC='joe-e\src;ref_send\src;web_send\src;shared\src;example\src'
+    SRC='joe-e\src;ref_send\src;web_send\src;shared\src;example\src;log\src'
     OVERVIEW='ref_send\src\overview.html'
 else
-    SRC='joe-e/src:ref_send/src:web_send/src:shared/src:example/src'
+    SRC='joe-e/src:ref_send/src:web_send/src:shared/src:example/src:log/src'
     OVERVIEW='ref_send/src/overview.html'
 fi
 if [ "$1" = 'ref_send' ]
@@ -18,9 +18,9 @@ else
     VERSION="$MAJOR.$MINOR"
     if [ "$OS" = 'Windows_NT' ]
     then
-        SRC="$SRC;network\src;log\src;persistence\src;remote\src;server\src;dns\src;genkey\src"
+        SRC="$SRC;network\src;persistence\src;remote\src;server\src;dns\src;genkey\src"
     else
-        SRC="$SRC:network/src:log/src:persistence/src:remote/src:server/src:dns/src:genkey/src"
+        SRC="$SRC:network/src:persistence/src:remote/src:server/src:dns/src:genkey/src"
     fi
 fi
 SLOGAN='defensive programming in Java'
@@ -46,7 +46,7 @@ javadoc \
     -group 'Eventual Control Flow' 'org.ref_send.promise*' \
     -group 'Example Applications' \
         'org.waterken.all:org.waterken.bang:org.waterken.bounce:org.waterken.eq:org.waterken.factorial:org.waterken.put:org.waterken.serial:org.ref_send.test' \
-    -group 'Collection' 'org.joe_e.array:org.ref_send.list:org.ref_send.var' \
+    -group 'Collection' 'org.joe_e.array:org.ref_send.list:org.ref_send.scope:org.ref_send.var' \
     -group 'Reflection' 'org.joe_e.reflect:org.joe_e.taming:org.ref_send.type' \
     -group 'I/O' 'org.joe_e.charset:org.joe_e.file' \
     -group 'Web Datatypes' 'org.web_send*' \
