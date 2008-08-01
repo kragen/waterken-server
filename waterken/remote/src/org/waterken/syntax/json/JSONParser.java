@@ -89,13 +89,12 @@ JSONParser {
         if (!"]".equals(lexer.next())) {
             while (true) {
                 r.append(parseValue(parameters.get(r.length())));
-                final String token = lexer.getHead();
-                if ("]".equals(token)) { break; }
-                if (!",".equals(token)) { throw new Exception(); }
+                if ("]".equals(lexer.getHead())) { break; }
+                if (!",".equals(lexer.getHead())) { throw new Exception(); }
                 lexer.next();
             }
         }
-        lexer.next(); 
+        lexer.next();   // skip past the closing bracket 
         return r.snapshot();
     }
 
@@ -158,7 +157,7 @@ JSONParser {
                 value = x;
             }
         }
-        lexer.next();
+        lexer.next();   // pop the keyword from the stream
         return null != promised ? ref(value) : value;
     }
     
@@ -174,7 +173,7 @@ JSONParser {
         } else {
             value = text;
         }
-        lexer.next();
+        lexer.next();   // pop the string from the stream
         return null != promised ? ref(value) : value;
     }
     
