@@ -64,7 +64,7 @@ Settings {
      */
     static protected Vat
     vat() throws Exception {
-        final File id = config.read(File.class, "vatRootFolder");
+        final File id = config.read("vatRootFolder");
         return vats.connect(id);
     }
     

@@ -3,6 +3,7 @@
 package org.waterken.server;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 
 import org.ref_send.var.Factory;
 
@@ -17,16 +18,17 @@ ReadConfig {
 
     /**
      * Constructs an instance.
-     * @param <T>   value type
+     * @param <T>   expected value type
+     * @param type  expected value type
      * @param name  setting name
      */
     static protected <T> Factory<T>
-    make(final Class<T> T, final String name) {
+    make(final String name, final Type type) {
         class FactoryX extends Factory<T> implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public T
-            run() { return Settings.config.read(T, name); }
+            run() { return Settings.config.read(name, type); }
         }
         return new FactoryX();
     }

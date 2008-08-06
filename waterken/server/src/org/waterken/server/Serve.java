@@ -63,7 +63,7 @@ Serve {
         for (int i = 0; i != args.length; ++i) {
             final String service = args[i];
         	try {
-	            final Object config= Settings.config.read(Object.class,service);
+	            final Object config = Settings.config.read(service);
 	            final Runnable task;
 	            if (config instanceof TCPDaemon) {
 	                final TCPDaemon daemon = (TCPDaemon)config;
@@ -94,7 +94,7 @@ Serve {
         
         // ping all the persistent vats to restart any pending tasks
         err.println("Restarting all vats...");
-        final File vats = Settings.config.read(File.class, "vatRootFolder");
+        final File vats = Settings.config.read("vatRootFolder");
         ping(vats);
         err.println("All vats restarted.");
     }

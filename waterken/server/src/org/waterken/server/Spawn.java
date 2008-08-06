@@ -51,8 +51,7 @@ Spawn {
         final String label = 2 < args.length ? args[2] : null;
 
         // load configured values
-        final String vatURIPathPrefix =
-            Settings.config.read(String.class, "vatURIPathPrefix");
+        final String vatURIPathPrefix= Settings.config.read("vatURIPathPrefix");
 
         // determine the local address
         final String hereValue;
@@ -60,12 +59,12 @@ Spawn {
         if (null != credentials) {
             final String host = credentials.getHostname();
             Hostname.vet(host);
-            final HTTPD https = Settings.config.read(HTTPD.class, "https");
+            final HTTPD https = Settings.config.read("https");
             final int portN = https.port;
             final String port = 443 == portN ? "" : ":" + portN;
             hereValue = "https://" + host + port + "/" + vatURIPathPrefix;
         } else {
-        	final HTTPD http = Settings.config.read(HTTPD.class, "http");
+        	final HTTPD http = Settings.config.read("http");
             final int portN = http.port;
             final String port = 80 == portN ? "" : ":" + portN;
             hereValue = "http://localhost" + port + "/" + vatURIPathPrefix;
@@ -97,7 +96,7 @@ Spawn {
                         : Root.here.equals(name)
                             ? hereValue
                         : Root.events.equals(name)
-                            ? ReadConfig.make(Receiver.class, "events")
+                            ? ReadConfig.make("events", Receiver.class)
                         : Root.tracer.equals(name)
                             ? tracerValue
                         : Remoting.client.equals(name)

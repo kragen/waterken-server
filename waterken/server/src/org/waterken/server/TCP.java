@@ -49,8 +49,7 @@ TCP implements Runnable {
         final ThreadGroup threads = new ThreadGroup(service);
         final Setter<Resource> updater_;
         if (daemon.SSL) {
-            final Variable<Resource> ip =
-                Settings.config.read(Variable.class, "ip");
+            final Variable<Resource> ip = Settings.config.read("ip");
             if (null != ip) {
                 updater_ = Settings.browser._._(ip.setter);
                 try {
