@@ -3,6 +3,7 @@
 package org.waterken.remote.http;
 
 import static org.ref_send.promise.Fulfilled.ref;
+import static org.ref_send.scope.Scope.Empty;
 
 import java.io.Serializable;
 import java.security.SecureRandom;
@@ -83,7 +84,7 @@ Browser extends Struct implements Record, Serializable {
          final Loop<Task> enqueue, final Log log) {
         final long[] turns = { 0L };
         final Root local = new Root() {
-            private Scope bound = Scope.empty.make();
+            private Scope bound = Empty.make();
             private long events = 0L;
             
             public String
