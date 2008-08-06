@@ -14,7 +14,6 @@ import org.ref_send.scope.Scope;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
-import org.waterken.syntax.json.JSONParser;
 import org.waterken.syntax.json.JSONSerializer;
 
 /**
@@ -127,7 +126,7 @@ Config {
                     if ("".equals(name)) { return folder; }
                     final File file = Filesystem.file(folder, name);
                     if (!name.endsWith(ext)) { return file; }
-                    if (!file.isFile()) {return JSONParser.defaultValue(type);}
+                    if (!file.isFile()) { return null; }
                     
                     // deserialize the named object
                     final String key = path + name;

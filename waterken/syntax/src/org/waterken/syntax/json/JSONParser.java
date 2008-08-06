@@ -345,7 +345,7 @@ JSONParser {
      * @param required  expected type
      * @return default value
      */
-    static public Object
+    static private Object
     defaultValue(final Type required) {
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
