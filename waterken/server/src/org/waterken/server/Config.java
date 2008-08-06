@@ -127,7 +127,7 @@ Config {
     static private final class
     ImporterX extends Struct implements Importer {
         public Object
-        run(final Class<?> type, final String id, final String base) {
+        run(final Type type, final String id, final String base) {
             final String URL = null != base ? URI.resolve(base, id) : id;
             if ("file:".regionMatches(true, 0, URL, 0, "file:".length())) {
                 try {
@@ -142,7 +142,7 @@ Config {
                     final InputStream in = Filesystem.read(file);
                     final Object r = new JSONDeserializer().run(
                         file.toURI().toString(), this, code, in,
-                        ConstArray.array((Type)type)).get(0);
+                        ConstArray.array(type)).get(0);
                     in.close();
                     settings.put(file, r);
                     return r;
