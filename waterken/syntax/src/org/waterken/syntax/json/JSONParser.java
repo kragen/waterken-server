@@ -260,7 +260,8 @@ JSONParser {
                     lexer.next();
                 }
             }
-            final Scope x= new Layout(names.snapshot()).make(values.snapshot());  
+            final Scope x = new Scope(new Layout(names.snapshot()),
+                                      values.snapshot());  
             lexer.next();    // skip past the closing curly
             return null != promised ? ref(x) : x;
         }

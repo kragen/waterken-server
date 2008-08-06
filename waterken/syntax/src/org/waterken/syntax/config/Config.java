@@ -7,8 +7,8 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
 import org.joe_e.array.ConstArray;
-import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
+import org.ref_send.scope.Scope;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
@@ -51,36 +51,14 @@ import org.waterken.syntax.json.JSONSerializer;
  * </pre>
  */
 public final class
-Config extends Struct {
+Config {
 
     private final File root;
     private final ClassLoader code;
     private final Importer connect;
     private final Exporter export;
     
-    static private final class
-    Cache {
-        private PowerlessArray<String> keys;
-        private ConstArray<Object> values;
-        
-        protected int
-        find(final String key) {
-            int i = keys.length();
-            while (0 != i-- && !key.equals(keys.get(i))) {}
-            return i;
-        }
-        
-        protected Object
-        at(final int i) { return values.get(i); }
-        
-        protected void
-        put(final String key, final Object value) {
-            keys = keys.with(key);
-            values = values.with(value);
-        }
-    }
-    
-    private final Cache cache;
+    private       Scope cache;
     
     /**
      * Constructs an instance.
@@ -97,7 +75,7 @@ Config extends Struct {
         this.connect = connect;
         this.export = export;
         
-        cache = new Cache();
+        cache = Scope.empty.make();
     }
 
     static private final String ext = ".json";
@@ -142,12 +120,12 @@ Config extends Struct {
                     
                     // deserialize the named object
                     final String key = path + name;
-                    final int i = cache.find(key);
-                    if (-1 != i) { return cache.at(i); }
+                    final int i = cache.meta.find(key);
+                    if (-1 != i) { return cache.values.get(i); }
                     final Object r = new JSONDeserializer().run("file:///",
                         sub(folder, path), code, Filesystem.read(file),
                         ConstArray.array(type)).get(0);
-                    cache.put(key, r);
+                    cache = cache.with(key, r);
                     return r;
                 } catch (final Exception e) { throw new Error(e); }
             }
@@ -166,7 +144,7 @@ Config extends Struct {
             final String key = name + ext;
             new JSONSerializer().run(export, ConstArray.array(value),
                 Filesystem.writeNew(Filesystem.file(root, key)));
-            cache.put(key, value);
+            cache = cache.with(key, value);
         } catch (final Exception e) { throw new Error(e); }
     }
     
@@ -179,6 +157,6 @@ Config extends Struct {
     override(final String name, final Object value) {
         final String key = name + ext;
         Filesystem.file(root, key);
-        cache.put(key, value);
+        cache = cache.with(key, value);
     }
 }
