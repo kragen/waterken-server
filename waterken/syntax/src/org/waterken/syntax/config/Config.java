@@ -2,14 +2,12 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax.config;
 
-import static org.joe_e.array.ConstArray.array;
-
 import java.io.File;
 import java.lang.reflect.Type;
-import java.util.HashMap;
 
 import org.joe_e.Struct;
 import org.joe_e.array.ConstArray;
+import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
@@ -27,7 +25,29 @@ Config extends Struct {
     private final Importer connect;
     private final Exporter export;
     
-    private final HashMap<String,Object> cache;
+    static private final class
+    Cache {
+        private PowerlessArray<String> keys;
+        private ConstArray<Object> values;
+        
+        protected int
+        find(final String key) {
+            int i = keys.length();
+            while (0 != i-- && !key.equals(keys.get(i))) {}
+            return i;
+        }
+        
+        protected Object
+        at(final int i) { return values.get(i); }
+        
+        protected void
+        put(final String key, final Object value) {
+            keys = keys.with(key);
+            values = values.with(value);
+        }
+    }
+    
+    private final Cache cache;
     
     /**
      * Constructs an instance.
@@ -43,7 +63,8 @@ Config extends Struct {
         this.code = code;
         this.connect = connect;
         this.export = export;
-        cache = new HashMap<String,Object>();
+        
+        cache = new Cache();
     }
 
     static private final String ext = ".json";
@@ -73,7 +94,7 @@ Config extends Struct {
                     // descend to the named file
                     File folder = root;     // sub-folder containing file
                     String path = prefix;   // path to folder from config root
-                    String name = href;       // filename
+                    String name = href;     // filename
                     while (true) {
                         final int i = name.indexOf('/');
                         if (-1 == i) { break; }
@@ -88,7 +109,8 @@ Config extends Struct {
                     
                     // deserialize the named object
                     final String key = path + name;
-                    if (cache.containsKey(key)) { return cache.get(key); }
+                    final int i = cache.find(key);
+                    if (-1 != i) { return cache.at(i); }
                     final Object r = new JSONDeserializer().run("file:///",
                         sub(folder, path), code, Filesystem.read(file),
                         ConstArray.array((Type)type)).get(0);
@@ -109,7 +131,7 @@ Config extends Struct {
     init(final String name, final Object value) {
         try {
             final String key = name + ext;
-            new JSONSerializer().run(export, array(value),
+            new JSONSerializer().run(export, ConstArray.array(value),
                 Filesystem.writeNew(Filesystem.file(root, key)));
             cache.put(key, value);
         } catch (final Exception e) { throw new Error(e); }
