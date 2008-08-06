@@ -72,6 +72,7 @@ JSONParser {
             if (!"[".equals(parser.lexer.next())) { throw new Exception(); }
             final ConstArray<?> r = parser.parseArguments(parameters);
             if (null != parser.lexer.getHead()) { throw new Exception(); }
+            parser.lexer.close();
             return r;
         } catch (final Exception e) {
             try { parser.lexer.close(); } catch (final Exception e2) {}

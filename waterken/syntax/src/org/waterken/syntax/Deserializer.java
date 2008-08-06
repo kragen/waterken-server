@@ -19,7 +19,7 @@ Deserializer extends Powerless {
      * @param base          base URL
      * @param connect       reference importer
      * @param code          class loader
-     * @param content       serialized content
+     * @param content       serialized content input, will be closed
      * @param parameters    each expected type
      * @return each deserialized argument
      * @throws Exception    any exception
