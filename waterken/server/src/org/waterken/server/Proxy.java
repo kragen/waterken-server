@@ -36,7 +36,7 @@ Proxy extends Struct implements Server, Serializable {
                 Concurrent.loop(threads, "=>" + peer);
             final Loop<Client.Inbound> receiver =
                 Concurrent.loop(threads, "<=" + peer);
-            r = Client.make(peer, transport, Config.exe, sender, receiver);
+            r = Client.make(peer, transport, Settings.exe, sender, receiver);
             connections.put(peer, r);
         }
         return r;
@@ -50,8 +50,8 @@ Proxy extends Struct implements Server, Serializable {
     init() {
         if (!protocols.isEmpty()) { throw new Error(); }
         Proxy.protocols.put("http", Loopback.client(80));
-        if (Config.keys.isFile()) {
-            credentials = SSL.keystore("TLS", Config.keys, "nopass");
+        if (Settings.keys.isFile()) {
+            credentials = SSL.keystore("TLS", Settings.keys, "nopass");
             Proxy.protocols.put("https", SSL.client(443, credentials));
         }
         return credentials;

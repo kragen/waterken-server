@@ -30,7 +30,7 @@ Serve {
     static public void
     main(String[] args) throws Exception {
         if (args.length == 0) {
-            args = Config.keys.isFile()
+            args = Settings.keys.isFile()
                 ? new String[] { "http", "https" }
             : new String[] { "http" };
         }
@@ -57,13 +57,13 @@ Serve {
             null != credentials ? credentials.getHostname() : "localhost";
 
         // summarize the configuration information
-        Config.summarize(hostname, err);
+        Settings.summarize(hostname, err);
 
         // start the network services
         for (int i = 0; i != args.length; ++i) {
             final String service = args[i];
         	try {
-	            final Object config = Config.read(Object.class, service);
+	            final Object config= Settings.config.read(Object.class,service);
 	            final Runnable task;
 	            if (config instanceof TCPDaemon) {
 	                final TCPDaemon daemon = (TCPDaemon)config;
@@ -94,7 +94,7 @@ Serve {
         
         // ping all the persistent vats to restart any pending tasks
         err.println("Restarting all vats...");
-        final File vats = Config.read(File.class, "vatRootFolder");
+        final File vats = Settings.config.read(File.class, "vatRootFolder");
         ping(vats);
         err.println("All vats restarted.");
     }
@@ -111,7 +111,7 @@ Serve {
             }
         });
         try {
-            Config.vats.connect(dir).enter(Vat.extend, new Transaction<Void>() {
+            Settings.vats.connect(dir).enter(Vat.extend, new Transaction<Void>() {
                 public Void
                 run(final Root local) { return null; }
             });

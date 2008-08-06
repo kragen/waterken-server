@@ -52,7 +52,7 @@ Spawn {
 
         // load configured values
         final String vatURIPathPrefix =
-            Config.read(String.class, "vatURIPathPrefix");
+            Settings.config.read(String.class, "vatURIPathPrefix");
 
         // determine the local address
         final String hereValue;
@@ -60,12 +60,12 @@ Spawn {
         if (null != credentials) {
             final String host = credentials.getHostname();
             Hostname.vet(host);
-            final HTTPD https = Config.read(HTTPD.class, "https");
+            final HTTPD https = Settings.config.read(HTTPD.class, "https");
             final int portN = https.port;
             final String port = 443 == portN ? "" : ":" + portN;
             hereValue = "https://" + host + port + "/" + vatURIPathPrefix;
         } else {
-        	final HTTPD http = Config.read(HTTPD.class, "http");
+        	final HTTPD http = Settings.config.read(HTTPD.class, "http");
             final int portN = http.port;
             final String port = 80 == portN ? "" : ":" + portN;
             hereValue = "http://localhost" + port + "/" + vatURIPathPrefix;
@@ -73,7 +73,7 @@ Spawn {
         final Proxy clientValue = new Proxy();
         
         // create the database
-        final String r=Config.vat().enter(Vat.change,new Transaction<String>() {
+        final String r=Settings.vat().enter(Vat.change,new Transaction<String>() {
             public String
             run(final Root local) throws Exception {
                 final Token deferredValue = new Token();

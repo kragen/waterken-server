@@ -49,9 +49,10 @@ TCP implements Runnable {
         final ThreadGroup threads = new ThreadGroup(service);
         final Setter<Resource> updater_;
         if (daemon.SSL) {
-            final Variable<Resource> ip = Config.read(Variable.class, "ip");
+            final Variable<Resource> ip =
+                Settings.config.read(Variable.class, "ip");
             if (null != ip) {
-                updater_ = Config.browser._._(ip.setter);
+                updater_ = Settings.browser._._(ip.setter);
                 try {
                     port.setSoTimeout(60 * 1000);
                 } catch (final Exception e) {
@@ -96,7 +97,7 @@ TCP implements Runnable {
                 run() {
                     try {
                         err.println(name + ": processing...");
-                        daemon.accept(Config.exe, hostname, socket).run();
+                        daemon.accept(Settings.exe, hostname, socket).run();
                     } catch (final SocketTimeoutException e) {
                     	// normal end to a TCP connection
                     } catch (final Throwable e) {
