@@ -19,7 +19,6 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Resolver;
 import org.ref_send.type.Typedef;
-import org.ref_send.var.Setter;
 import org.waterken.http.MediaType;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
@@ -31,7 +30,6 @@ import org.waterken.remote.Remoting;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
-import org.waterken.syntax.json.Java;
 import org.waterken.uri.Authority;
 import org.waterken.uri.Header;
 import org.waterken.uri.URI;
@@ -128,7 +126,7 @@ Caller extends Struct implements Messenger, Serializable {
     invoke(final String URL, final Object proxy,
            final Method method, final Object... arg) {
         final ConstArray<?> argv= ConstArray.array(null==arg?new Object[0]:arg);
-        return null != Java.property(method)
+        return null != Exports.property(method)
             ? get(URL, proxy, method, argv)
         : post(URL, proxy, method, argv);
     }
@@ -165,7 +163,7 @@ Caller extends Struct implements Messenger, Serializable {
             Request
             send() throws Exception {
                 final String target = URI.resolve(URL,
-                    "?p=" + Java.property(method) + "&s=" + Exports.key(URL));
+                    "?p=" + Exports.property(method) + "&s="+ Exports.key(URL));
                 final String authority = URI.authority(target);
                 final String location = Authority.location(authority);
                 return new Request("HTTP/1.1", "GET", URI.request(target),

@@ -33,7 +33,6 @@ import org.waterken.io.snapshot.Snapshot;
 import org.waterken.remote.Exports;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
-import org.waterken.syntax.json.Java;
 import org.waterken.uri.Header;
 import org.waterken.uri.Path;
 import org.waterken.uri.Query;
@@ -123,7 +122,7 @@ Callee extends Struct implements Server, Serializable {
             if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
                 if ("*".equals(p)) {
                     final Class<?> t = null!=value?value.getClass():Void.class;
-                    if (!Java.isPBC(t)) {
+                    if (!Exports.isPBC(t)) {
                         value = describe(t);
                     }
                 }
@@ -150,21 +149,21 @@ Callee extends Struct implements Server, Serializable {
         
         // prevent access to local implementation details
         final Class<?> type = null != target ? target.getClass() : Void.class;
-        if (Java.isPBC(type)) {
+        if (Exports.isPBC(type)) {
             respond.fulfill(never(request.method));
             return;
         }
         
         // process the request
-        final Method lambda = Java.dispatch(type, p);
+        final Method lambda = Exports.dispatch(type, p);
         if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
             Object value;
             try {
-                if (null == Java.property(lambda)) {
+                if (null == Exports.property(lambda)) {
                     throw new ClassCastException();
                 }
                 // AUDIT: call to untrusted application code
-                value = Reflection.invoke(Java.bubble(lambda), target);
+                value = Reflection.invoke(Exports.bubble(lambda), target);
             } catch (final Exception e) {
                 value = new Rejected<Object>(e);
             }
@@ -185,14 +184,14 @@ Callee extends Struct implements Server, Serializable {
                 @Override public Object
                 run() {
                     try {
-                        if (null != Java.property(lambda)) {
+                        if (null != Exports.property(lambda)) {
                             throw new ClassCastException();
                         }
                         final ConstArray<?> argv = deserialize(request,
                            ConstArray.array(lambda.getGenericParameterTypes()));
 
                         // AUDIT: call to untrusted application code
-                        return Reflection.invoke(Java.bubble(lambda), target,
+                        return Reflection.invoke(Exports.bubble(lambda), target,
                                 argv.toArray(new Object[argv.length()]));
                     } catch (final Exception e) {
                         return new Rejected<Object>(e);
@@ -203,7 +202,7 @@ Callee extends Struct implements Server, Serializable {
                                       ephemeral, value));
         } else {
             final String[] allow = null != lambda
-                ? (null == Java.property(lambda)
+                ? (null == Exports.property(lambda)
                     ? new String[] { "TRACE", "OPTIONS", "POST" }
                 : new String[] { "TRACE", "OPTIONS", "GET", "HEAD" })
             : new String[] { "TRACE", "OPTIONS" };
@@ -293,7 +292,8 @@ Callee extends Struct implements Server, Serializable {
     ifaces(final Class<?> type, final ArrayBuilder<String> r) {
         if (type == Serializable.class) { return; }
         if (Modifier.isPublic(type.getModifiers())) {
-            try { r.append(Java.name(type)); } catch (final Exception e) {}
+            try { r.append(Reflection.getName(type).replace('$', '-')); }
+            catch (final Exception e) {}
         }
         for (final Class<?> i : type.getInterfaces()) { ifaces(i, r); }
     }

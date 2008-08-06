@@ -8,5 +8,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/web_send"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/persistence"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/log"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/syntax"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -2,13 +2,18 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote;
 
+import static java.lang.reflect.Modifier.isPublic;
+import static java.lang.reflect.Modifier.isStatic;
+
 import java.io.Serializable;
 import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 import java.security.SecureRandom;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
+import org.joe_e.reflect.Reflection;
 import org.ref_send.log.Event;
 import org.ref_send.log.Got;
 import org.ref_send.log.Sent;
@@ -23,7 +28,6 @@ import org.waterken.base32.Base32;
 import org.waterken.remote.base.Base;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
-import org.waterken.syntax.json.Java;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
 import org.waterken.vat.Effect;
@@ -209,7 +213,7 @@ Exports extends Struct implements Serializable {
 
             public String
             run(final Object object) {
-                return (null == object || Java.isPBC(object.getClass()) ||
+                return (null == object || isPBC(object.getClass()) ||
                         !(Eventual.promised(object) instanceof Fulfilled)
                     ? "?src=" : "") + "#" + local.export(object); 
             }
@@ -298,5 +302,127 @@ Exports extends Struct implements Serializable {
     static public String
     href(final String dst, final String key) {
         return "".equals(key) ? dst : URI.resolve(dst, "#" + key);
+    }
+    
+    /**
+     * Is the given type a pass-by-construction type?
+     * @param type  candidate type
+     * @return <code>true</code> if pass-by-construction,
+     *         else <code>false</code>
+     */
+    static public boolean
+    isPBC(final Class<?> type) {
+        return String.class == type ||
+            Void.class == type ||
+            Integer.class == type ||
+            Long.class == type ||
+            Boolean.class == type ||
+            java.math.BigInteger.class == type ||
+            Byte.class == type ||
+            Short.class == type ||
+            Character.class == type ||
+            Double.class == type ||
+            Float.class == type ||
+            java.math.BigDecimal.class == type ||
+            org.web_send.Entity.class == type ||
+            org.ref_send.Record.class.isAssignableFrom(type) ||
+            Throwable.class.isAssignableFrom(type) ||
+            org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
+            org.ref_send.promise.Volatile.class.isAssignableFrom(type) ||
+            java.lang.reflect.Type.class.isAssignableFrom(type) ||
+            java.lang.reflect.AnnotatedElement.class.isAssignableFrom(type);
+    }
+    
+    /**
+     * Gets the corresponding property name.
+     * <p>
+     * This method implements the standard Java beans naming conventions.
+     * </p>
+     * @param method    candidate method
+     * @return name, or null if the method is not a property accessor
+     */
+    static public String
+    property(final Method method) {
+        final String name = method.getName();
+        String r =
+            name.startsWith("get") &&
+            (name.length() == "get".length() ||
+             Character.isUpperCase(name.charAt("get".length()))) &&
+            method.getParameterTypes().length == 0
+                ? name.substring("get".length())
+            : (name.startsWith("is") &&
+               (name.length() != "is".length() ||
+                Character.isUpperCase(name.charAt("is".length()))) &&
+               method.getParameterTypes().length == 0
+                ? name.substring("is".length())
+            : null);
+        if (null != r && 0 != r.length() &&
+                (1 == r.length() || !Character.isUpperCase(r.charAt(1)))) {
+            r = Character.toLowerCase(r.charAt(0)) + r.substring(1);
+        }
+        return r;
+    }
+    
+    /**
+     * synthetic modifier
+     */
+    static private final int synthetic = 0x1000;
+    
+    /**
+     * Is the synthetic flag set?
+     * @param flags Java modifiers
+     * @return <code>true</code> if synthetic, else <code>false</code>
+     */
+    static private boolean
+    isSynthetic(final int flags) { return 0 != (flags & synthetic); }
+
+    /**
+     * Finds a named instance member.
+     * @param type  class to search
+     * @param name  member name
+     * @return corresponding member, or <code>null</code> if not found
+     */
+    static public Method
+    dispatch(final Class<?> type, final String name) {
+        Method r = null;
+        for (final Method m : Reflection.methods(type)) {
+            final int flags = m.getModifiers();
+            if (!isStatic(flags) && !isSynthetic(flags)) {
+                String mn = property(m);
+                if (null == mn) {
+                    mn = m.getName();
+                }
+                if (name.equals(mn)) {
+                    if (null != r) { return null; }
+                    r = m;
+                }
+            }
+        }
+        return r;
+    }
+
+    /**
+     * Finds the first invocable declaration of a public method.
+     */
+    static public Method
+    bubble(final Method method) {
+        final Class<?> declarer = method.getDeclaringClass();
+        if (isPublic(declarer.getModifiers())) { return method; }
+        final String name = method.getName();
+        final Class<?>[] param = method.getParameterTypes();
+        for (final Class<?> i : declarer.getInterfaces()) {
+            try {
+                final Method r = bubble(Reflection.method(i, name, param));
+                if (null != r) { return r; }
+            } catch (final NoSuchMethodException e) {}
+        }
+        final Class<?> parent = declarer.getSuperclass();
+        if (null != parent) {
+            try {
+                final Method r = bubble(Reflection.method(parent, name, param));
+                if (null != r) { return r; }
+            } catch (final NoSuchMethodException e) {}
+        }
+        return null;
     }
 }
