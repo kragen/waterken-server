@@ -85,12 +85,21 @@ Config {
     /**
      * Reads a configuration setting.
      * @param <T>   expected value type
-     * @param type  expected value type
      * @param name  setting name
      * @return setting value, or <code>null</code> if not set
      */
+    public <T> T
+    read(final String name) { return read(name, Object.class); }
+    
+    /**
+     * Reads a configuration setting.
+     * @param <T>   expected value type
+     * @param name  setting name
+     * @param type  expected value type
+     * @return setting value, or <code>null</code> if not set
+     */
     public @SuppressWarnings("unchecked") <T> T
-    read(final Type type, final String name) {
+    read(final String name, final Type type) {
         return (T)sub(root, "").run(type, name + ext, "file:///");
     }
     
