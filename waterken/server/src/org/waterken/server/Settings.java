@@ -27,8 +27,8 @@ Settings {
     Settings() {}
 
     // initialize bootstrap configuration from system properties
-    static private final File configFolder;
-    static private final ClassLoader code;
+    static private   final File configFolder;
+    static private   final ClassLoader code;
     static {
         try {
             configFolder = new File(Project.home, System.getProperty(
@@ -38,13 +38,6 @@ Settings {
     }
     static public    final File keys= Filesystem.file(configFolder, "keys.jks");
     static protected final Pool vats = new JODBCache();
-    
-    static public    final Browser browser = Browser.make(
-            new Proxy(), new SecureRandom(), code,
-            Concurrent.loop(Thread.currentThread().getThreadGroup(), "config"),
-            new Sink());
-    static public    final Config config =
-        new Config(configFolder, code, browser.connect, browser.export);
     static protected final Execution exe = new Execution() {
         public void
         sleep(final long ms) throws InterruptedException { Thread.sleep(ms); }
@@ -52,6 +45,14 @@ Settings {
         public void
         yield() { Thread.yield(); }
     };
+    
+    // remaining configuration is stored in the config folder
+    static public    final Browser browser = Browser.make(
+            new Proxy(), new SecureRandom(), code,
+            Concurrent.loop(Thread.currentThread().getThreadGroup(), "config"),
+            new Sink());
+    static public    final Config config =
+        new Config(configFolder, code, browser.connect, browser.export);
     static {
         config.override("vats", vats);
         config.override("tag", new LastModified());
