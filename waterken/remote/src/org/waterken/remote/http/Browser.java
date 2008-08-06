@@ -6,7 +6,6 @@ import static org.ref_send.promise.Fulfilled.ref;
 
 import java.io.Serializable;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
@@ -22,15 +21,16 @@ import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
+import org.ref_send.scope.Scope;
 import org.waterken.http.Server;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
-import org.waterken.vat.Service;
-import org.waterken.vat.Vat;
 import org.waterken.vat.Root;
+import org.waterken.vat.Service;
 import org.waterken.vat.Transaction;
+import org.waterken.vat.Vat;
 import org.web_send.graph.Collision;
 
 /**
@@ -83,8 +83,7 @@ Browser extends Struct implements Record, Serializable {
          final Loop<Task> enqueue, final Log log) {
         final long[] turns = { 0L };
         final Root local = new Root() {
-            private final ArrayList<Binding> bound = new ArrayList<Binding>();
-            
+            private Scope bound = Scope.empty.make();
             private long events = 0L;
             
             public String
@@ -95,20 +94,13 @@ Browser extends Struct implements Record, Serializable {
 
 			public @SuppressWarnings("unchecked") Object
             fetch(final Object otherwise, final String name) {
-                final String key = name.toLowerCase();
-                for (final Binding x : bound) {
-                    if (x.key.equals(key)) { return x.value; }
-                }
-                return otherwise;
+			    final int i = bound.meta.find(name.toLowerCase());
+			    return -1 != i ? bound.values.get(i) : otherwise;
             }
 
             public void
             link(final String name, final Object value) throws Collision {
-                final String key = name.toLowerCase();
-                for (final Binding x : bound) {
-                    if (x.key.equals(key)) { throw new Collision(); }
-                }
-                bound.add(new Binding(key, value));
+                bound = bound.with(name.toLowerCase(), value);
             }
 
             public String
@@ -162,15 +154,4 @@ Browser extends Struct implements Record, Serializable {
     
 	static private @SuppressWarnings("unchecked") Loop<Service>
     reuse(final Loop<Task> loop) { return (Loop)loop; }
-
-    static private final class
-    Binding {
-        final String key;
-        final Object value;
-        
-        Binding(final String key, final Object value) {
-            this.key = key;
-            this.value = value;
-        }
-    }
 }

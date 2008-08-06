@@ -270,7 +270,8 @@ Callee extends Struct implements Server, Serializable {
     static private Scope
     describe(final Class<?> type) {
         final Object ts = types(type);
-        return new Layout(PowerlessArray.array("$")).make(ConstArray.array(ts));
+        return new Scope(new Layout(PowerlessArray.array("$")),
+                         ConstArray.array(ts));
     }
     
     /**
