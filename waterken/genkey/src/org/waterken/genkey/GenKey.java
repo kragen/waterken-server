@@ -224,8 +224,7 @@ GenKey {
                            fulfill(final Variable<Resource> a) throws Exception{
                                Settings.config.init("ip", a);
                                
-                               final HTTPD https =
-                            	   Settings.config.read(HTTPD.class, "https");
+                               final HTTPD https= Settings.config.read("https");
                                final int portN = https.port;
                                final String port= 443 == portN ? "" : ":"+portN;
                                System.err.println(
