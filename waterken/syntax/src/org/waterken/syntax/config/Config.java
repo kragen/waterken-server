@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax.config;
 
+import static org.ref_send.scope.Scope.Empty;
+
 import java.io.File;
 import java.lang.reflect.Type;
 
@@ -75,7 +77,7 @@ Config {
         this.connect = connect;
         this.export = export;
         
-        cache = Scope.empty.make();
+        cache = Empty.make();
     }
 
     static private final String ext = ".json";
