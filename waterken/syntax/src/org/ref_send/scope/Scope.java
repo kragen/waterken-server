@@ -41,11 +41,8 @@ Scope implements Selfless, Serializable {
     /**
      * an empty scope layout
      */
-    static public final Layout Empty;
-    static {
-        final PowerlessArray<String> names = PowerlessArray.array();
-        Empty = new Layout(names);
-    }
+    static public final Layout Empty =
+        new Layout(PowerlessArray.array(new String[] {}));
     
     // java.lang.Object interface
     
