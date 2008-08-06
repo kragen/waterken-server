@@ -78,17 +78,23 @@ Config {
         
         cache = Empty.make();
     }
-
-    static private final String ext = ".json";
     
     /**
      * Reads a configuration setting.
+     * <p>
+     * This method is just syntactic sugar for:
+     * </p>
+     * <p>
+     * <code>return read(name, Object.class);</code>
+     * </p>
      * @param <T>   expected value type
      * @param name  setting name
      * @return setting value, or <code>null</code> if not set
      */
     public <T> T
     read(final String name) { return read(name, Object.class); }
+
+    static private final String ext = ".json";
     
     /**
      * Reads a configuration setting.
