@@ -45,6 +45,8 @@ Config extends Struct {
         this.export = export;
         cache = new HashMap<String,Object>();
     }
+
+    static private final String ext = ".json";
     
     /**
      * Reads a configuration setting.
@@ -57,8 +59,6 @@ Config extends Struct {
     read(final Class<?> type, final String name) {
         return (T)sub(root, "").run(type, name + ext, "file:///");
     }
-
-    static private final String ext = ".json";
     
     private Importer
     sub(final File root, final String prefix) {
