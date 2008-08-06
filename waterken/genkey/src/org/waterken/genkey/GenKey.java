@@ -22,7 +22,7 @@ import org.waterken.dns.Resource;
 import org.waterken.dns.editor.DomainMaster;
 import org.waterken.dns.editor.redirectory.Redirectory;
 import org.waterken.net.http.HTTPD;
-import org.waterken.server.Config;
+import org.waterken.server.Settings;
 import org.waterken.server.Proxy;
 
 /**
@@ -195,37 +195,37 @@ GenKey {
         certs.load(null, password);
         certs.setKeyEntry("mykey", p.getPrivate(), password,
                           new Certificate[] { cert });
-        final OutputStream fout = Filesystem.writeNew(Config.keys);
+        final OutputStream fout = Filesystem.writeNew(Settings.keys);
         certs.store(fout, password);
         fout.close();
         
         // register the public key
         System.err.println("Registering the public key...");
         Proxy.init();
-        final Eventual _ = Config.browser._;
+        final Eventual _ = Settings.browser._;
         final String redirectoryURL = 2 < args.length
             ? args[2]
         : "https://y-hzpaiycw7dur5zcyena5qzq.yurl.net/-/dns/#redirectory";
         _.enqueue.run(new Task() {
            public void
            run() throws Exception {
-               final Redirectory redirectory_ = (Redirectory)Config.browser.
+               final Redirectory redirectory_ = (Redirectory)Settings.browser.
                    connect.run(Redirectory.class, redirectoryURL, null);
                _.when(redirectory_.register(fingerprint),
                       new Do<DomainMaster,Void>() {
                    public Void
                    fulfill(final DomainMaster master) throws Exception {
-                       Config.init("registration", master);
+                       Settings.config.init("registration", master);
                        
                        // setup an IP updater
                        _.when(master.answers.grow(),
                               new Do<Variable<Resource>,Void>() {
                            public Void
                            fulfill(final Variable<Resource> a) throws Exception{
-                               Config.init("ip", a);
+                               Settings.config.init("ip", a);
                                
                                final HTTPD https =
-                            	   Config.read(HTTPD.class, "https");
+                            	   Settings.config.read(HTTPD.class, "https");
                                final int portN = https.port;
                                final String port= 443 == portN ? "" : ":"+portN;
                                System.err.println(
