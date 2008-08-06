@@ -47,9 +47,9 @@ import org.waterken.syntax.json.JSONSerializer;
  * </p>
  * <pre>
  * final Config config = &hellip;
- * final String username = config.read(String.class, "username");
- * final int port = config.read(int.class, "port");
- * final Anchor home = config.read(Anchor.class, "home");
+ * final String username = config.read("username");
+ * final int port = config.read("port");
+ * final Anchor home = config.read("home");
  * </pre>
  */
 public final class
