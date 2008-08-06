@@ -12,10 +12,43 @@ import org.joe_e.file.Filesystem;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
+import org.waterken.syntax.json.JSONParser;
 import org.waterken.syntax.json.JSONSerializer;
 
 /**
  * A folder of serialized configuration settings.
+ * <p>
+ * This class provides convenient access to a folder of JSON files; each of
+ * which represents a particular configuration setting. The class provides
+ * methods for {@link #init initializing} and {@link read reading} these
+ * settings.
+ * </p>
+ * <p>
+ * For example, consider a folder with contents:
+ * </p>
+ * <pre>
+ * config/
+ *     - username.json
+ *         [ "tyler.close" ]
+ *     - port.json
+ *         [ 8088 ]
+ *     - home.json
+ *         [ {
+ *             "$" : [ "org.example.hypertext.Anchor" ],
+ *             "icon" : "home.png",
+ *             "href" : "http://waterken.sourceforge.net/",
+ *             "tooltip" : "Home page"
+ *           } ]
+ * </pre>
+ * <p>
+ * These settings can be read with code:
+ * </p>
+ * <pre>
+ * final Config config = &hellip;
+ * final String username = config.read(String.class, "username");
+ * final int port = config.read(int.class, "port");
+ * final Anchor home = config.read(Anchor.class, "home");
+ * </pre>
  */
 public final class
 Config extends Struct {
@@ -77,7 +110,7 @@ Config extends Struct {
      * @return setting value, or <code>null</code> if not set
      */
     public @SuppressWarnings("unchecked") <T> T
-    read(final Class<?> type, final String name) {
+    read(final Type type, final String name) {
         return (T)sub(root, "").run(type, name + ext, "file:///");
     }
     
@@ -85,7 +118,7 @@ Config extends Struct {
     sub(final File root, final String prefix) {
         class ImporterX extends Struct implements Importer {
             public Object
-            run(final Class<?> type, final String href, final String base) {
+            run(final Type type, final String href, final String base) {
                 try {
                     if (!"file:///".equals(base) || -1 != href.indexOf(':')) {
                         return connect.run(type, href, base);
@@ -105,7 +138,7 @@ Config extends Struct {
                     if ("".equals(name)) { return folder; }
                     final File file = Filesystem.file(folder, name);
                     if (!name.endsWith(ext)) { return file; }
-                    if (!file.isFile()) { return null; }
+                    if (!file.isFile()) {return JSONParser.defaultValue(type);}
                     
                     // deserialize the named object
                     final String key = path + name;
@@ -113,7 +146,7 @@ Config extends Struct {
                     if (-1 != i) { return cache.at(i); }
                     final Object r = new JSONDeserializer().run("file:///",
                         sub(folder, path), code, Filesystem.read(file),
-                        ConstArray.array((Type)type)).get(0);
+                        ConstArray.array(type)).get(0);
                     cache.put(key, r);
                     return r;
                 } catch (final Exception e) { throw new Error(e); }

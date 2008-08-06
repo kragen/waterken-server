@@ -216,7 +216,7 @@ JSONParser {
             if (!":".equals(lexer.next())) { throw new Exception(); }
             final String href = string(lexer.next());
             if (!"}".equals(lexer.next())) { throw new Exception(); }
-            final Object value = connect.run(Typedef.raw(required), href, base);
+            final Object value = connect.run(required, href, base);
             lexer.next();    // skip past the closing curly
             return value;
         }
@@ -339,7 +339,12 @@ JSONParser {
         return token.substring(1, token.length() - 1);
     }
     
-    static private Object
+    /**
+     * Gets the default value of a specified type.
+     * @param required  expected type
+     * @return default value
+     */
+    static public Object
     defaultValue(final Type required) {
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
