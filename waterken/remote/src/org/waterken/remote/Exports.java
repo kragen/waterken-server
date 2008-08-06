@@ -8,6 +8,7 @@ import static java.lang.reflect.Modifier.isStatic;
 import java.io.Serializable;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.security.SecureRandom;
 
 import org.joe_e.Struct;
@@ -175,8 +176,8 @@ Exports extends Struct implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public Object
-            run(final Class<?> type, final String id, final String base) {
-                final String URL = null != base ? URI.resolve(base, id) : id;
+            run(final Type type, final String href, final String base) {
+                final String URL = null != base ? URI.resolve(base,href) : href;
                 try {
                     if (URI.resolve(URL, ".").equalsIgnoreCase(getHere())) {
                         return use(key(URL));

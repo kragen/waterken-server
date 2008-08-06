@@ -5,6 +5,7 @@ package org.waterken.remote;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
@@ -15,6 +16,7 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Deferred;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.type.Typedef;
 import org.waterken.remote.http.HTTP;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
@@ -73,9 +75,9 @@ Remote extends Deferred<Object> implements Promise<Object> {
             static private final long serialVersionUID = 1L;
 
             public Object
-            run(final Class<?> type, final String id, final String base) {
-                final String URL = null != base ? URI.resolve(base, id) : id;
-                return _(type, local, URL);
+            run(final Type type, final String href, final String base) {
+                final String URL = null != base ? URI.resolve(base,href) : href;
+                return _(Typedef.raw(type), local, URL);
             }
         }
         return new ImporterX();

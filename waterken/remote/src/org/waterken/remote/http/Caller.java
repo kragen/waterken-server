@@ -324,7 +324,7 @@ Caller extends Struct implements Messenger, Serializable {
         if ("303".equals(response.status)) {
             for (final Header h : response.header) {
                 if ("Location".equalsIgnoreCase(h.name)) {
-                    return connect.run(Typedef.raw(R), h.value, null);
+                    return connect.run(R, h.value, null);
                 }
             }
             return null;    // request accepted, but no response provided
