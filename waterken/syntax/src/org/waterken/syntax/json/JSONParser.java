@@ -146,11 +146,7 @@ JSONParser {
             final BigInteger x = new BigInteger(token);
             int bits = x.bitLength();
             if (x.signum() > 0) { ++bits; }
-            if (bits <= Byte.SIZE) {
-                value = x.byteValue();
-            } else if (bits <= Short.SIZE) {
-                value = x.shortValue();
-            } else if (bits <= Integer.SIZE) {
+            if (bits <= Integer.SIZE) {
                 value = x.intValue();
             } else if (bits <= Long.SIZE) {
                 value = x.longValue();
