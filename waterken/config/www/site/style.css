@@ -1,0 +1,16 @@
+h1 { text-align: center }
+h1 a, h2 a, h3 a, h4 a, .heading {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #007FB2
+}
+a { text-decoration: none }
+a:hover { color: blue; text-decoration: underline }
+sup { font-size: small }
+.highlight { background-color: yellow }
+.figure { padding-left: 5em; width: 400px }
+caption, .caption { font-size: large; font-weight: bold }
+form { padding: 0px; margin: 0px }
+th { text-align: right; vertical-align: baseline; background-color: #99CCCC }
+.navigation { padding-bottom: 2px }
+.main { border-top: 2px solid #007FB2; border-bottom: 2px solid #007FB2 }
+.comment { color: gray; font-style: italic }
