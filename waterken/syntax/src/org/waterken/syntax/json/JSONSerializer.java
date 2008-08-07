@@ -135,6 +135,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             serialize(export, null != r ? r : Object.class,
                       ((Inline<?>)value).cast(), out);
         } else if (value instanceof ConstArray) {
+            // Application code cannot extend ConstArray, so iteration of the
+            // value will *not* transfer control flow to application code.
             final Type elementType = Typedef.bound(T, implicit);
             final JSONWriter.ArrayWriter aout = out.startArray();
             for (final Object element : (ConstArray<?>)value) {
