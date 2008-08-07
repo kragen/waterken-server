@@ -34,7 +34,7 @@ JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
     run(final String base, final Importer connect,
             final ConstArray<Type> parameters, final ClassLoader code,
             final InputStream content) throws Exception {
-        return JSONParser.parse(base, connect, code,
-                new BufferedReader(UTF8.input(content)), parameters);
+        return JSONParser.parse(base, connect, parameters, code,
+                                new BufferedReader(UTF8.input(content)));
     }
 }

@@ -57,16 +57,16 @@ JSONParser {
      * Parses an argument list.
      * @param base          base URL
      * @param connect       reference importer
+     * @param parameters    each expected type
      * @param code          class loader
      * @param in            UTF-8 JSON text stream
-     * @param parameters    each expected type
      * @return parsed argument list
      * @throws Exception    any exception
      */
     static public ConstArray<?>
     parse(final String base, final Importer connect,
-            final ClassLoader code, final Reader in,
-            final ConstArray<Type> parameters) throws Exception {
+            final ConstArray<Type> parameters, final ClassLoader code,
+            final Reader in) throws Exception {
         final JSONParser parser = new JSONParser(base, connect, code, in);
         try {
             if (!"[".equals(parser.lexer.next())) { throw new Exception(); }
@@ -90,7 +90,7 @@ JSONParser {
         if (!"]".equals(lexer.next())) {
             while (true) {
                 r.append(parseValue(r.length() < parameters.length()
-                        ? parameters.get(r.length()) : Object.class));
+                                ? parameters.get(r.length()) : Object.class));
                 if ("]".equals(lexer.getHead())) { break; }
                 if (!",".equals(lexer.getHead())) { throw new Exception(); }
                 lexer.next();
