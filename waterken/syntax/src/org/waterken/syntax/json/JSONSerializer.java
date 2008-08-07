@@ -51,6 +51,9 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     
     /**
      * Serializes an array of Java objects to a JSON text stream.
+     * @param export    reference exporter
+     * @param values    each value to serialize
+     * @param out       UTF-8 text output, will be flushed and closed
      */
     static public void
     write(final Exporter export, final ConstArray<?> values,
