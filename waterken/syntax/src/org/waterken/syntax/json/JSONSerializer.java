@@ -2,8 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax.json;
 
-import static org.joe_e.array.PowerlessArray.builder;
-
 import java.io.BufferedWriter;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -204,7 +202,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         : Exception.class.isAssignableFrom(bottom)
             ? Throwable.class
         : Object.class;
-        final PowerlessArray.Builder<String> r = builder(4);
+        final PowerlessArray.Builder<String> r = PowerlessArray.builder(4);
         for (Class<?> i = bottom; top != i && limit != i; i=i.getSuperclass()) {
             if (Modifier.isPublic(i.getModifiers())) {
                 try { r.append(Java.name(i)); } catch (final Exception e) {}
