@@ -130,10 +130,10 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             oout.startMember("name").writeString(Java.name(c));
             oout.finish();
         } else if (Scope.class == actual) {
+            final Scope scope = (Scope)value;
             // Application code cannot extend ConstArray, so iteration of the
             // scope arrays will not transfer control flow to application code.
             final JSONWriter.ObjectWriter oout = out.startObject();
-            final Scope scope = (Scope)value;
             final int length = scope.values.length();
             for (int i = 0; i != length; ++i) {
                 final Object member = scope.values.get(i);
