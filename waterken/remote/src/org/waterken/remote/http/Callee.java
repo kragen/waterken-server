@@ -262,8 +262,8 @@ Callee extends Struct implements Server, Serializable {
             throw new Exception("charset MUST be UTF-8");
         }
         final String base = request.base(exports.getHere());
-        return new JSONDeserializer().run(base, exports.connect(), code,
-        		                          content.asInputStream(), parameters);
+        return new JSONDeserializer().run(base, exports.connect(), parameters,
+        		                          code, content.asInputStream());
     }
     
     static private Scope

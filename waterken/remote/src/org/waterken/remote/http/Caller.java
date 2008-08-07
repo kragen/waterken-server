@@ -94,7 +94,7 @@ Caller extends Struct implements Messenger, Serializable {
                 Volatile<Object> value;
                 try {
                     final Type P = Typedef.value(DoP, observer.getClass());
-                    value = Eventual.promised(deserialize(P, URL, response));
+                    value = Eventual.promised(deserialize(URL, response, P));
                 } catch (final Exception e) {
                     value = new Rejected<Object>(e);
                 }
@@ -145,7 +145,7 @@ Caller extends Struct implements Messenger, Serializable {
 
             public Void
             fulfill(final Response response) {
-                return receive(response, URL, proxy, method, argv, null);
+                return receive(URL, response, proxy, method, argv, null);
             }
         }
         msgs.enqueue(new PUT());
@@ -174,7 +174,7 @@ Caller extends Struct implements Messenger, Serializable {
 
             public Void
             fulfill(final Response response) {
-                return receive(response, URL, proxy, method, argv, resolver);
+                return receive(URL, response, proxy, method, argv, resolver);
             }
             
             public Void
@@ -219,7 +219,7 @@ Caller extends Struct implements Messenger, Serializable {
             public Void
             fulfill(final Response response) {
                 exports.received(m);
-                return receive(response, URL, proxy, method, argv, resolver);
+                return receive(URL, response, proxy, method, argv, resolver);
             }
             
             public Void
@@ -232,7 +232,7 @@ Caller extends Struct implements Messenger, Serializable {
     }
     
     private Void
-    receive(final Response response, final String URL,
+    receive(final String target, final Response response,
             final Object proxy, final Method method,
             final ConstArray<?> argv, final Resolver<Object> resolver) {
         if ("404".equals(response.status)) {
@@ -255,14 +255,14 @@ Caller extends Struct implements Messenger, Serializable {
                     return null;
                 }
             }
-            _.when(exports.connect().
-                run(Object.class, Exports.asPromise(URL), null), new Retry());
+            _.when(exports.connect().run(
+                Exports.asPromise(target), null, Object.class), new Retry());
         } else if (null != resolver) {
             Volatile<Object> value;
             try {
                 final Type R = Typedef.bound(
                     method.getGenericReturnType(), proxy.getClass());
-                value = Eventual.promised(deserialize(R, URL, response));
+                value = Eventual.promised(deserialize(target, response, R));
             } catch (final Exception e) {
                 value = new Rejected<Object>(e);
             }
@@ -298,8 +298,8 @@ Caller extends Struct implements Messenger, Serializable {
     }
     
     private Object
-    deserialize(final Type R, final String target,
-                final Response response) throws Exception {
+    deserialize(final String target, final Response response,
+                final Type R) throws Exception {
         final Importer connect = exports.connect();
         if ("200".equals(response.status) || "201".equals(response.status) ||
             "202".equals(response.status) || "203".equals(response.status)) {
@@ -315,14 +315,14 @@ Caller extends Struct implements Messenger, Serializable {
                 throw new Exception("charset MUST be UTF-8");
             }
             return new JSONDeserializer().run(URI.resolve(target, "."), connect,
-                code, content.asInputStream(), PowerlessArray.array(R)).get(0);
+                ConstArray.array(R), code, content.asInputStream()).get(0);
         } 
         if ("204".equals(response.status) ||
             "205".equals(response.status)) { return null; }
         if ("303".equals(response.status)) {
             for (final Header h : response.header) {
                 if ("Location".equalsIgnoreCase(h.name)) {
-                    return connect.run(R, h.value, null);
+                    return connect.run(h.value, null, R);
                 }
             }
             return null;    // request accepted, but no response provided

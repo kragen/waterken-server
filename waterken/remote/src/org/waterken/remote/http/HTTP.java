@@ -61,7 +61,7 @@ HTTP extends Struct implements Messenger, Serializable {
             }
             Object p;
             try {
-                p = new Exports(local).connect().run(Object.class,target,null);
+                p = new Exports(local).connect().run(target,null,Object.class);
             } catch (final Exception e) {
                 p = new Rejected<Object>(e);
             }

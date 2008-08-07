@@ -25,7 +25,6 @@ import org.waterken.vat.Root;
 
 /**
  * A remote reference.
- * @param <T> referent type
  */
 public final class
 Remote extends Deferred<Object> implements Promise<Object> {
@@ -52,7 +51,6 @@ Remote extends Deferred<Object> implements Promise<Object> {
     
     /**
      * Creates a remote reference.
-     * @param <T>   referent type
      * @param type  referent type
      * @param local local address space
      * @param URL   reference URL
@@ -75,7 +73,7 @@ Remote extends Deferred<Object> implements Promise<Object> {
             static private final long serialVersionUID = 1L;
 
             public Object
-            run(final Type type, final String href, final String base) {
+            run(final String href, final String base, final Type type) {
                 final String URL = null != base ? URI.resolve(base,href) : href;
                 return _(Typedef.raw(type), local, URL);
             }

@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.ref_send.promise.eventual.Receiver;
+import org.waterken.vat.Root;
 
 /**
  * An exportable reference to the destruct operation.
