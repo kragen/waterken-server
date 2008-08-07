@@ -46,7 +46,15 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     public void
     run(final Exporter export, final ConstArray<?> values,
                                final OutputStream out) throws Exception {
-        final Writer text = new BufferedWriter(UTF8.output(out));
+        write(export, values, new BufferedWriter(UTF8.output(out)));
+    }
+    
+    /**
+     * Serializes an array of Java objects to a JSON text stream.
+     */
+    static public void
+    write(final Exporter export, final ConstArray<?> values,
+                                 final Writer text) throws Exception {
         final JSONWriter top = JSONWriter.make(text);
         final JSONWriter.ArrayWriter aout = top.startArray();
         for (final Object value : values) {
