@@ -58,7 +58,18 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static public void
     write(final Exporter export, final ConstArray<?> values,
                                  final Writer text) throws Exception {
+        /*
+         * The application objects provided by the values argument are
+         * serialized without ever causing execution of application code. This
+         * constraint ensures that application objects cannot cause repeated
+         * serialization of an object tree to result in different JSON texts. If
+         * the behavior of the provided Exporter is deterministic, always
+         * producing the same URL for the same object, then repeated
+         * serialization of an object tree produces identical JSON text.
+         */
         final JSONWriter top = JSONWriter.make(text);
+        // Application code cannot extend ConstArray, so iteration of the
+        // values array will not transfer control flow to application code.
         final JSONWriter.ArrayWriter aout = top.startArray();
         for (final Object value : values) {
             serialize(export, Object.class, value, aout.startElement());
@@ -119,6 +130,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             oout.startMember("name").writeString(Java.name(c));
             oout.finish();
         } else if (Scope.class == actual) {
+            // Application code cannot extend ConstArray, so iteration of the
+            // scope arrays will not transfer control flow to application code.
             final JSONWriter.ObjectWriter oout = out.startObject();
             final Scope scope = (Scope)value;
             final int length = scope.values.length();
@@ -136,7 +149,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                       ((Inline<?>)value).cast(), out);
         } else if (value instanceof ConstArray) {
             // Application code cannot extend ConstArray, so iteration of the
-            // value will *not* transfer control flow to application code.
+            // value array will not transfer control flow to application code.
             final Type elementType = Typedef.bound(T, implicit);
             final JSONWriter.ArrayWriter aout = out.startArray();
             for (final Object element : (ConstArray<?>)value) {

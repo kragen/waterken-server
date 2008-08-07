@@ -15,7 +15,7 @@ import org.ref_send.name;
 /**
  * A description of a {@linkplain Scope record}.
  */
-public class
+public final class
 Layout implements Powerless, Selfless, Record, Serializable {
     static private final long serialVersionUID = 1L;
     
