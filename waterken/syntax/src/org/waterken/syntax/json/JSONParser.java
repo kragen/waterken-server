@@ -34,7 +34,7 @@ import org.ref_send.type.Typedef;
 import org.waterken.syntax.Importer;
 
 /**
- * A <a href="http://www.json.org/">JSON</a> parser.
+ * Deserializes a JSON text stream to an array of Java objects.
  */
 public final class
 JSONParser {
@@ -77,8 +77,8 @@ JSONParser {
         } catch (final Exception e) {
             try { parser.lexer.close(); } catch (final Exception e2) {}
             throw new Exception("<" + parser.base + "> ( " +
-                                parser.lexer.getLine() + ", " +
-                                parser.lexer.getColumn() + " ) : ", e);           
+                                parser.lexer.getStartLine() + ", " +
+                                parser.lexer.getStartColumn() + " ) : ", e);           
         }
     }
     

@@ -16,7 +16,7 @@ import org.waterken.syntax.Deserializer;
 import org.waterken.syntax.Importer;
 
 /**
- * <a href="http://www.json.org/">JSON</a> deserialization.
+ * Deserializes a JSON byte stream to an array of Java objects.
  */
 public final class
 JSONDeserializer extends Struct implements Deserializer, Record, Serializable {

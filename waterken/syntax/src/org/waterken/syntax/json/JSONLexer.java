@@ -81,13 +81,13 @@ JSONLexer {
      * Gets the starting line of the last {@linkplain #next read} token.
      */
     public int
-    getLine() { return line; }
+    getStartLine() { return line; }
     
     /**
      * Gets the starting column of the last {@linkplain #next read} token.
      */
     public int
-    getColumn() { return column; }
+    getStartColumn() { return column; }
     
     /**
      * Gets the last {@linkplain #next read} token.

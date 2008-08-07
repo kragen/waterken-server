@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.Writer;
 
 /**
- * A JSON writer.
+ * A SAX-like API for generating JSON text.
  * <p>
  * A client can only output a syntactically correct JSON text, or leave the
  * {@link JSONWriter} in a {@linkplain #isWritten detectable} error state. The

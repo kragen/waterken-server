@@ -29,7 +29,7 @@ import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Serializer;
 
 /**
- * <a href="http://www.json.org/">JSON</a> serialization.
+ * Serializes an array of Java objects to a JSON byte stream.
  */
 public final class
 JSONSerializer extends Struct implements Serializer, Record, Serializable {
