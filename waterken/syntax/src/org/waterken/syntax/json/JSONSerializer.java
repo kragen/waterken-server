@@ -64,7 +64,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             serialize(export, Object.class, value, aout.startElement());
         }
         aout.finish();
-        if (!top.isWritten()) { throw new NullPointerException(); }
+        if (!top.isWritten()) { throw new Exception(); }
         text.flush();
         text.close();
     }
