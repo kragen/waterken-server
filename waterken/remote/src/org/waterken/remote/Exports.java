@@ -214,9 +214,10 @@ Exports extends Struct implements Serializable {
 
             public String
             run(final Object object) {
-                return (null == object || isPBC(object.getClass()) ||
+                return "#" + local.export(object) +
+                    (null == object || isPBC(object.getClass()) ||
                         !(Eventual.promised(object) instanceof Fulfilled)
-                    ? "?src=" : "") + "#" + local.export(object); 
+                            ? "&src=" : ""); 
             }
         }
         return Remote.bind(local, new ExporterX());
@@ -241,8 +242,8 @@ Exports extends Struct implements Serializable {
         }
         final String pipe = local.pipeline(mid);
         local.link(pipe, response);
-        return Remote._(R, local, URI.resolve(base,
-            "?src=" + URLEncoding.encode(URI.relate(base, here)) + "#" + pipe));
+        return Remote._(R, local, URI.resolve(base, "#" + pipe +
+            "&src=" + URLEncoding.encode(URI.relate(base, here))));
     }
 
     /**
@@ -262,7 +263,11 @@ Exports extends Struct implements Serializable {
      * @return corresponding key
      */
     static public String
-    key(final String URL) { return URI.fragment("", URL); }
+    key(final String URL) {
+        final String fragment = URI.fragment("", URL);
+        final int iArgs = fragment.indexOf('&');
+        return iArgs != -1 ? fragment.substring(0, iArgs) : fragment;
+    }
     
     /**
      * Is the given web-key a pipeline web-key?
@@ -273,7 +278,19 @@ Exports extends Struct implements Serializable {
     isPromise(final String URL) { return null != arg(URL, "src"); }
     
     /**
-     * Extracts the soure vat URL from a pipeline web-key.
+     * Converts a web-key to a promise web-key.
+     * @param URL   web-key
+     * @return promise version of the <code>URL</code>
+     */
+    static public String
+    asPromise(final String URL) {
+        return isPromise(URL)
+            ? URL
+        : URL + (null != URI.fragment(null, URL) ? "" : "#") + "&src=";
+    }
+    
+    /**
+     * Extracts the source vat URL from a pipeline web-key.
      * @param URL   web-key
      * @return source vat URL, or <code>null</code> if <code>URL</code> is not
      *         a pipeline web-key
@@ -292,7 +309,7 @@ Exports extends Struct implements Serializable {
      */
     static private String
     arg(final String URL, final String name) {
-        return Query.arg(null, URI.query("", URL), name);
+        return Query.arg(null, URI.fragment("", URL), name);
     }
     
     /**

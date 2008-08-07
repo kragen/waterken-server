@@ -66,9 +66,8 @@ Callee extends Struct implements Server, Serializable {
           final Do<Response,?> respond) throws Exception {
 
         // check for web browser bootstrap request
-        final String query = URI.query("", resource);
-        final String s = Query.arg(null, query, "s");
-        if (null == s) {
+        final String query = URI.query(null, resource);
+        if (null == query) {
             final String project = exports.getProject();
             bootstrap.serve("file:///site/" + URLEncoding.encode(project) + "/"+
                               URLEncoding.encode(Path.name(URI.path(resource))),

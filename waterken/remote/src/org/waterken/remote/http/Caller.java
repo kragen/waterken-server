@@ -255,10 +255,8 @@ Caller extends Struct implements Messenger, Serializable {
                     return null;
                 }
             }
-            final String target = Exports.isPromise(URL)
-                ? URL
-            : URI.resolve(URL, "?src=#" + URI.fragment("", URL));
-            _.when(exports.connect().run(Object.class,target,null),new Retry());
+            _.when(exports.connect().
+                run(Object.class, Exports.asPromise(URL), null), new Retry());
         } else if (null != resolver) {
             Volatile<Object> value;
             try {
