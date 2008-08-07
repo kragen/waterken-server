@@ -149,6 +149,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             final Type r = Typedef.value(R, implicit);
             serialize(export, null != r ? r : Object.class,
                       ((Inline<?>)value).cast(), out);
+            // The Inline.cast() method simply returns the value of the private
+            // final field containing the promise's referent.
         } else if (value instanceof ConstArray) {
             // Application code cannot extend ConstArray, so iteration of the
             // value array will not transfer control flow to application code.
