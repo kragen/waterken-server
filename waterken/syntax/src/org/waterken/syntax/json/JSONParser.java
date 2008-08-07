@@ -89,7 +89,8 @@ JSONParser {
             ConstArray.builder(parameters.length());
         if (!"]".equals(lexer.next())) {
             while (true) {
-                r.append(parseValue(parameters.get(r.length())));
+                r.append(parseValue(r.length() < parameters.length()
+                        ? parameters.get(r.length()) : Object.class));
                 if ("]".equals(lexer.getHead())) { break; }
                 if (!",".equals(lexer.getHead())) { throw new Exception(); }
                 lexer.next();
@@ -216,7 +217,7 @@ JSONParser {
             if (!":".equals(lexer.next())) { throw new Exception(); }
             final String href = string(lexer.next());
             if (!"}".equals(lexer.next())) { throw new Exception(); }
-            final Object value = connect.run(required, href, base);
+            final Object value = connect.run(href, base, required);
             lexer.next();    // skip past the closing curly
             return value;
         }

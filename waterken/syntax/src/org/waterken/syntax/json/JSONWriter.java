@@ -121,6 +121,9 @@ JSONWriter {
         return new ObjectWriter(out);
     }
 
+    /**
+     * A JSON <em>object</em> writer.
+     */
     public final class
     ObjectWriter {
         static private final String comma = "," + newLine;
@@ -188,6 +191,9 @@ JSONWriter {
         return new ArrayWriter(out);
     }
 
+    /**
+     * A JSON <em>array</em> writer.
+     */
     public final class
     ArrayWriter {
         static private final String comma = ", ";
@@ -238,6 +244,9 @@ JSONWriter {
         written.mark();
     }
     
+    /**
+     * A JSON <em>value</em> writer.
+     */
     static public final class
     ValueWriter extends JSONWriter {
         

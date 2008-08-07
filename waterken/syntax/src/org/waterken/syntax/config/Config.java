@@ -21,7 +21,7 @@ import org.waterken.syntax.json.JSONSerializer;
  * <p>
  * This class provides convenient access to a folder of JSON files; each of
  * which represents a particular configuration setting. The class provides
- * methods for {@link #init initializing} and {@link read reading} these
+ * methods for {@link #init initializing} and {@link #read reading} these
  * settings.
  * </p>
  * <p>
@@ -85,14 +85,14 @@ Config {
      * This method is just syntactic sugar for:
      * </p>
      * <p>
-     * <code>return read(name, Object.class);</code>
+     * <code>return {@link #readType readType}(name, Object.class);</code>
      * </p>
      * @param <T>   expected value type
      * @param name  setting name
      * @return setting value, or <code>null</code> if not set
      */
     public <T> T
-    read(final String name) { return read(name, Object.class); }
+    read(final String name) { return readType(name, Object.class); }
 
     static private final String ext = ".json";
     
@@ -104,18 +104,18 @@ Config {
      * @return setting value, or <code>null</code> if not set
      */
     public @SuppressWarnings("unchecked") <T> T
-    read(final String name, final Type type) {
-        return (T)sub(root, "").run(type, name + ext, "file:///");
+    readType(final String name, final Type type) {
+        return (T)sub(root, "").run(name + ext, "file:///", type);
     }
     
     private Importer
     sub(final File root, final String prefix) {
         class ImporterX extends Struct implements Importer {
             public Object
-            run(final Type type, final String href, final String base) {
+            run(final String href, final String base, final Type type) {
                 try {
                     if (!"file:///".equals(base) || -1 != href.indexOf(':')) {
-                        return connect.run(type, href, base);
+                        return connect.run(href, base, type);
                     }
 
                     // descend to the named file
@@ -138,9 +138,10 @@ Config {
                     final String key = path + name;
                     final int i = cache.meta.find(key);
                     if (-1 != i) { return cache.values.get(i); }
-                    final Object r = new JSONDeserializer().run("file:///",
-                        sub(folder, path), code, Filesystem.read(file),
-                        ConstArray.array(type)).get(0);
+                    final Object r = new JSONDeserializer().run(
+                        "file:///", sub(folder, path),
+                        ConstArray.array(type), code,
+                        Filesystem.read(file)).get(0);
                     cache = cache.with(key, r);
                     return r;
                 } catch (final Exception e) { throw new Error(e); }

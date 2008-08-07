@@ -12,11 +12,11 @@ Importer {
 
     /**
      * Imports a reference.
-     * @param type  reference type
      * @param href  reference identifier
      * @param base  base URL, may be <code>null</code>
+     * @param type  reference type
      * @return corresponding reference
      */
     Object
-    run(Type type, String href, String base);
+    run(String href, String base, Type type);
 }

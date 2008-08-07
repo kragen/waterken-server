@@ -18,13 +18,13 @@ Deserializer extends Powerless {
      * Deserializes an argument list.
      * @param base          base URL
      * @param connect       reference importer
+     * @param parameters    each expected type
      * @param code          class loader
      * @param content       serialized content input, will be closed
-     * @param parameters    each expected type
      * @return each deserialized argument
      * @throws Exception    any exception
      */
     ConstArray<?>
-    run(String base, Importer connect, ClassLoader code,
-        InputStream content, ConstArray<Type> parameters) throws Exception;
+    run(String base, Importer connect, ConstArray<Type> parameters,
+        ClassLoader code, InputStream content) throws Exception;
 }
