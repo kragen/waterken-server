@@ -210,7 +210,7 @@ GenKey {
            public void
            run() throws Exception {
                final Redirectory redirectory_ = (Redirectory)Settings.browser.
-                   connect.run(Redirectory.class, redirectoryURL, null);
+                   connect.run(redirectoryURL, null, Redirectory.class);
                _.when(redirectory_.register(fingerprint),
                       new Do<DomainMaster,Void>() {
                    public Void
