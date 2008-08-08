@@ -33,6 +33,8 @@ Slicer extends ObjectOutputStream {
         this.root = root;
         enableReplaceObject(true);
     }
+    
+    static private final Class<?> Detachable = Fulfilled.detach(0).getClass();
 
     protected Object
     replaceObject(Object x) throws IOException {
@@ -48,8 +50,8 @@ Slicer extends ObjectOutputStream {
         } else if (BigDecimal.class == type) {
             x = new BigDecimalWrapper((BigDecimal)x);
         } else if (value == x) {
-        } else if (Fulfilled.class == type) {
-            x = new Faulting(root, root.export(((Fulfilled<?>)x).cast()));
+        } else if (Detachable == type) {
+            x = new Faulting(root,root.export(Fulfilled.near((Fulfilled<?>)x)));
         } else if (!inline(type)) {
             if (value instanceof Throwable &&
                 StackTraceElement.class == type.getComponentType()) {

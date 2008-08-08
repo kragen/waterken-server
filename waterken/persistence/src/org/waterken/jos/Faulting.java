@@ -16,8 +16,6 @@ Faulting extends Fulfilled<Object>  {
     private final String name;
 
     Faulting(final Root root, final String name) {
-        super(null);
-
         if (null == root) { throw new NullPointerException(); }
         if (null == name) { throw new NullPointerException(); }
         
@@ -38,9 +36,5 @@ Faulting extends Fulfilled<Object>  {
     // org.ref_send.promise.Volatile interface
 
     public Object
-    cast() {
-        try {
-            return root.fetch(null, name);
-        } catch (final Exception e) { throw new Error(e); }
-    }
+    cast() { return root.fetch(null, name); }
 }
