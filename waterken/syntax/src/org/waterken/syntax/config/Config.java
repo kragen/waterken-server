@@ -132,12 +132,14 @@ Config {
                     if ("".equals(name)) { return folder; }
                     final File file = Filesystem.file(folder, name);
                     if (!name.endsWith(ext)) { return file; }
-                    if (!file.isFile()) { return null; }
                     
-                    // deserialize the named object
+                    // check the cache
                     final String key = path + name;
                     final int i = cache.meta.find(key);
                     if (-1 != i) { return cache.values.get(i); }
+                    if (!file.isFile()) { return null; }
+
+                    // deserialize the named object
                     final Object r = new JSONDeserializer().run(
                         "file:///", sub(folder, path),
                         ConstArray.array(type), code,
