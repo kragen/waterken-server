@@ -117,6 +117,8 @@ Exports extends Struct implements Serializable {
      */
     public Object
     once(final String mid, final Member member, final Factory<Object> invoke) {
+        if (null == mid) { return invoke.run(); }
+        
         final String pipe = local.pipeline(mid);
         final Token pumpkin = new Token();
         Object r = local.fetch(pumpkin, pipe);

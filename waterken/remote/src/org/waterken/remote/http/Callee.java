@@ -178,6 +178,19 @@ Callee extends Struct implements Server, Serializable {
             if (null != etag) { r = r.with("ETag", etag); }
             respond.fulfill(r);
         } else if ("POST".equals(request.method)) {
+            final String contentType = request.getContentType();
+            final MediaType mime = 
+                null != contentType ? MediaType.decode(contentType) : AMP.mime;
+            final Entity raw;
+            if (AMP.mime.contains(mime) || MediaType.text.contains(mime)) {
+                if (!TokenList.equivalent("UTF-8",
+                        mime.get("charset", "UTF-8"))) {
+                    throw new Exception("charset MUST be UTF-8");
+                }
+                raw = null;
+            } else {
+                raw = new Entity(contentType, ((Snapshot)request.body).content);
+            }
             final String m = Query.arg(null, query, "m");
             final Object value = exports.once(m, lambda, new Factory<Object>() {
                 @Override public Object
@@ -186,8 +199,10 @@ Callee extends Struct implements Server, Serializable {
                         if (null != Exports.property(lambda)) {
                             throw new ClassCastException();
                         }
-                        final ConstArray<?> argv = deserialize(request,
-                           ConstArray.array(lambda.getGenericParameterTypes()));
+                        final ConstArray<?> argv = null != raw
+                            ? ConstArray.array(raw)
+                        : deserialize(request, ConstArray.array(
+                                            lambda.getGenericParameterTypes()));
 
                         // AUDIT: call to untrusted application code
                         return Reflection.invoke(Exports.bubble(lambda), target,
@@ -251,19 +266,9 @@ Callee extends Struct implements Server, Serializable {
     private ConstArray<?>
     deserialize(final Request request,
                 final ConstArray<Type> parameters) throws Exception {
-        final ByteArray content = ((Snapshot)request.body).content;
-        final String contentType = request.getContentType();
-        final MediaType mediaType = 
-        	null != contentType ? MediaType.decode(contentType) : AMP.mime;
-        if (!AMP.mime.contains(mediaType)) {
-            return ConstArray.array(new Entity(contentType, content));
-        }
-        if (!TokenList.equivalent("UTF-8", mediaType.get("charset", "UTF-8"))) {
-            throw new Exception("charset MUST be UTF-8");
-        }
         final String base = request.base(exports.getHere());
         return new JSONDeserializer().run(base, exports.connect(), parameters,
-        		                          code, content.asInputStream());
+                code, ((Snapshot)request.body).content.asInputStream());
     }
     
     static private Scope

@@ -14,6 +14,7 @@ import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.deserializer;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
@@ -88,11 +89,12 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                     }
                     buffered = q;
                 }
-                respond.fulfill(vat.enter("GET".equals(buffered.method) ||
-                                          "HEAD".equals(buffered.method) ||
-                                          "OPTIONS".equals(buffered.method) ||
-                                          "TRACE".equals(buffered.method),
-                                          new Transaction<Response>() {
+                final Promise<Response> respondor =
+                        vat.enter("GET".equals(buffered.method) ||
+                                  "HEAD".equals(buffered.method) ||
+                                  "OPTIONS".equals(buffered.method) ||
+                                  "TRACE".equals(buffered.method),
+                                  new Transaction<Response>() {
                     public Response
                     run(final Root local) throws Exception {
                         final Response[] response = { null };
@@ -112,7 +114,15 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                         });
                         return response[0];
                     }
-                }).cast());
+                });
+                final Response response;
+                try {
+                    response = respondor.cast();
+                } catch (final Exception e) {
+                    respond.reject(e);
+                    return;
+                }
+                respond.fulfill(response);
             }
         };
     }
