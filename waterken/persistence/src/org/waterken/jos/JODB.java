@@ -87,6 +87,11 @@ JODB extends Vat {
      * Has the event loop been restarted?
      */
     private boolean awake = false;
+    
+    public synchronized String
+    getProject() throws Exception {
+        return (String)getConfig(folder, Root.project);
+    }
 
     /**
      * Processes a transaction within this vat.

@@ -41,6 +41,12 @@ Vat {
     Vat(final Loop<Service> service) {
         this.service = service;
     }
+    
+    /**
+     * Gets the corresponding project name
+     */
+    public abstract String
+    getProject() throws Exception;
 
     /**
      * Processes a transaction within this vat.
