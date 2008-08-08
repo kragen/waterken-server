@@ -107,7 +107,8 @@ ADSAFE.lib('web', function () {
         case 202:
         case 203:
             var contentType = http.getResponseHeader('Content-Type');
-            if (!/^application\/jsonrequest;/i.test(contentType)) {
+            if (!/^application\/jsonrequest(;|$)/i.test(contentType) &&
+                             !/^text\/plain(;|$)/i.test(contentType)) {
                 return {
                     $: [ 'org.web_send.Entity' ],
                     type: contentType,
