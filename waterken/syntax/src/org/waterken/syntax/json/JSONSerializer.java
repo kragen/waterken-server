@@ -18,7 +18,7 @@ import org.joe_e.charset.UTF8;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
-import org.ref_send.promise.Inline;
+import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.scope.Scope;
@@ -86,6 +86,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private final TypeVariable<?> R = Typedef.name(Volatile.class, "T");
     static private final TypeVariable<?> T = Typedef.name(Iterable.class, "T");
 
+    static private final Class<?> Inline = Fulfilled.ref(0).getClass();
+    
     static private void
     serialize(final Exporter export, final Type implicit, final Object value,
               final JSONWriter.ValueWriter out) throws Exception {
@@ -146,11 +148,11 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 }
             }
             oout.finish();
-        } else if (Inline.class == actual) {
+        } else if (Inline == actual) {
             final Type r = Typedef.value(R, implicit);
             serialize(export, null != r ? r : Object.class,
-                      ((Inline<?>)value).cast(), out);
-            // The Inline.cast() method simply returns the value of the private
+                      ((Fulfilled<?>)value).cast(), out);
+            // The Inline.cast() method simply returns the value of the
             // final field containing the promise's referent.
         } else if (value instanceof ConstArray) {
             // Application code cannot extend ConstArray, so iteration of the
