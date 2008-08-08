@@ -72,7 +72,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
          */
         final JSONWriter top = JSONWriter.make(text);
         // Application code cannot extend ConstArray, so iteration of the
-        // values array will not transfer control flow to application code.
+        // values array will not transfer control to application code.
         final JSONWriter.ArrayWriter aout = top.startArray();
         for (final Object value : values) {
             serialize(export, Object.class, value, aout.startElement());
@@ -135,7 +135,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         } else if (Scope.class == actual) {
             final Scope scope = (Scope)value;
             // Application code cannot extend ConstArray, so iteration of the
-            // scope arrays will not transfer control flow to application code.
+            // scope arrays will not transfer control to application code.
             final JSONWriter.ObjectWriter oout = out.startObject();
             final int length = scope.values.length();
             for (int i = 0; i != length; ++i) {
@@ -154,7 +154,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             // final field containing the promise's referent.
         } else if (value instanceof ConstArray) {
             // Application code cannot extend ConstArray, so iteration of the
-            // value array will not transfer control flow to application code.
+            // value array will not transfer control to application code.
             final Type elementType = Typedef.bound(T, implicit);
             final JSONWriter.ArrayWriter aout = out.startArray();
             for (final Object element : (ConstArray<?>)value) {
