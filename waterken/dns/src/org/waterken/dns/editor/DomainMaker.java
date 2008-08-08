@@ -2,8 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.dns.editor;
 
+import static org.ref_send.promise.Fulfilled.near;
 import static org.ref_send.promise.Fulfilled.ref;
-import static org.ref_send.promise.eventual.Eventual.near;
 import static org.ref_send.var.Variable.var;
 
 import java.io.Serializable;
