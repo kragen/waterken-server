@@ -13,13 +13,13 @@
       "$" : [ "org.waterken.http.dump.Dump" ],
       "path" : "log/",
       "key" : null,
-      "folder" : { "@" : "../www/log/" },
+      "folder" : { "@" : "www/log/" },
       "formats" : { "@" : "mime.json" },
       "next" : {
         "$" : [ "org.waterken.http.mirror.Mirror" ],
         "maxAge" : 0,
         "tag" : { "@" : "tag.json" },
-        "root" : { "@" : "../www/" },
+        "root" : { "@" : "www/" },
         "formats" : { "@" : "mime.json" }
       }
     }
