@@ -166,7 +166,8 @@ Callee extends Struct implements Server, Serializable {
             } catch (final Exception e) {
                 value = new Rejected<Object>(e);
             }
-            final boolean constant = "getClass".equals(lambda.getName());
+            final boolean constant =
+                null == lambda || "getClass".equals(lambda.getName());
             final int maxAge = constant ? forever : ephemeral; 
             final String etag = constant ? null : exports.getTransactionTag();
             Response r = request.hasVersion(etag)
