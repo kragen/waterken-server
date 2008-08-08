@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
+import static org.ref_send.promise.Fulfilled.near;
 import static org.ref_send.promise.Fulfilled.ref;
 import static org.web_send.Entity.maxContentSize;
 
@@ -75,7 +76,7 @@ Pipeline implements Serializable {
     void
     enqueue(final Message message) {
         if (pending.isEmpty()) {
-            outbound.cast().add(peer, this);
+            near(outbound).add(peer, this);
         }
         final int mid = serialMID++;
         pending.append(new Entry(mid, message));
@@ -95,7 +96,7 @@ Pipeline implements Serializable {
         
         final Entry front = pending.pop();
         if (pending.isEmpty()) {
-            outbound.cast().remove(peer);
+            near(outbound).remove(peer);
         }
         if (front.msg instanceof Query) {
             if (0 == halts) {
