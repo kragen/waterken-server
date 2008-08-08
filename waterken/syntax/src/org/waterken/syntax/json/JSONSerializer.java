@@ -59,13 +59,16 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         /*
          * Only the immutable root of the application object tree provided by
          * the values argument is serialized. The Exporter is used to assign a
-         * URL to each mutable sub-tree. Iteration of the immutable root happens
-         * without ever causing execution of application code. These constraints
-         * ensure that application objects cannot cause repeated serialization
-         * of an object tree to result in different JSON texts. If the behavior
-         * of the provided Exporter is deterministic, always producing the same
-         * URL for the same object, then repeated serialization of an object
-         * tree produces identical JSON text.
+         * URL to each mutable sub-tree. This constraint ensures that
+         * application objects cannot cause repeated serialization of an object
+         * tree to result in different JSON texts. If the behavior of the
+         * provided Exporter is deterministic, always producing the same URL for
+         * the same object, then repeated serialization of an object tree
+         * produces identical JSON text.
+         * 
+         * Iteration of the immutable root is done without causing execution of
+         * application code. This constraint ensures that serialization has no
+         * effect on the application object tree.
          */
         final JSONWriter top = JSONWriter.make(text);
         // Application code cannot extend ConstArray, so iteration of the
