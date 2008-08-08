@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.eq;
 
+import static org.ref_send.promise.Fulfilled.detach;
 import static org.ref_send.promise.Fulfilled.ref;
 import static org.ref_send.promise.eventual.Eventual.near;
 import static org.ref_send.test.Logic.and;
@@ -13,7 +14,6 @@ import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
-import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
@@ -165,7 +165,7 @@ Main extends Struct implements Test, Serializable {
         r.append(_.when(p, new NE()));
         final Receiver<Void> x = null;
         r.append(_.when(x, new NE()));
-        final Promise<Receiver<Void>> sneaky = Fulfilled.detach(null); 
+        final Promise<Receiver<Void>> sneaky = detach(null); 
         r.append(_.when(sneaky, new NE()));
         final Receiver<Void> x_ = _.cast(Receiver.class, p);
         check(x_.equals(x_));
@@ -234,7 +234,7 @@ Main extends Struct implements Test, Serializable {
         }
         r.append(_.when(pNaN, new ENaN()));
         r.append(_.when(NaN, new ENaN()));
-        r.append(_.when(Fulfilled.detach(NaN), new ENaN()));
+        r.append(_.when(detach(NaN), new ENaN()));
 
         return and(_, r.snapshot());
     }
@@ -296,7 +296,7 @@ Main extends Struct implements Test, Serializable {
         }
         r.append(_.when(pNaN, new ENaN()));
         r.append(_.when(NaN, new ENaN()));
-        r.append(_.when(Fulfilled.detach(NaN), new ENaN()));
+        r.append(_.when(detach(NaN), new ENaN()));
 
         return and(_, r.snapshot());
     }
