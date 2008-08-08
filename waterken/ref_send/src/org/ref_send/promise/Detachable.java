@@ -1,32 +1,32 @@
-// Copyright 2006 Waterken Inc. under the terms of the MIT X license
+// Copyright 2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.promise;
 
 /**
- * A fulfilled promise that should not use persistent object faulting.
+ * A promise whose referent should be left on disk until needed. 
  */
 final class
-Inline<T> extends Fulfilled<T> {
+Detachable<T> extends Fulfilled<T> {
     static private final long serialVersionUID = 1L;
 
     /**
      * referent
      */
-    public final T value;
+    private final T value;
 
     /**
      * Construct an instance.
-     * @param value {@link #value value}
+     * @param value {@link #cast value}
      */
     protected
-    Inline(final T value) {
+    Detachable(final T value) {
         this.value = value;
     }
 
     // org.ref_send.promise.Volatile interface
 
     /**
-     * Gets the {@link #value}.
+     * Gets the fulfilled value.
      */
     public T
     cast() { return value; }

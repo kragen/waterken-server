@@ -422,7 +422,7 @@ Eventual extends Struct implements Serializable {
             
             public void
             resolve(final Volatile<T> value) {
-                final State m = state.cast();
+                final State m = Fulfilled.near(state);
                 if (null == m.value) {
                     log.resolved(m);
                     m.value = null != value
@@ -465,14 +465,14 @@ Eventual extends Struct implements Serializable {
                 }
                 final When<T> block = new When<T>(forwarder);
 
-                final State m = state.cast();
+                final State m = Fulfilled.near(state);
                 if (null != log) { log.sentIf(block, m); }
                 if (null == m.front) {
                     m.front = detach(block);
                     m.back = m.front;
                     if (null != m.value) { enqueue.run(new Pop()); }
                 } else {
-                    final When<T> previous = m.back.cast();
+                    final When<T> previous = Fulfilled.near(m.back);
                     m.back = previous.next = detach(block);
                 }
                 
@@ -708,32 +708,16 @@ Eventual extends Struct implements Serializable {
      * This method is the inverse of {@link #_(Object) _}; it gets the
      * corresponding immediate reference for a given eventual reference.
      * </p>
+     * <p>
+     * This method will not throw an {@link Exception}.
+     * </p>
      * @param <T> referent type
      * @param reference possibly eventual reference for a local referent
      * @return corresponding immediate reference
-     * @throws ClassCastException   no corresponding immediate reference
      */
     static public <T> T
-    near(final T reference) throws ClassCastException {
-        return near(promised(reference));
-    }
+    near(final T reference) { return Fulfilled.near(promised(reference)); }
     
-    /**
-     * Gets the corresponding immediate reference.
-     * <p>
-     * The implementation behavior is the same as that documented for the
-     * reference based {@link #near(Object) near} guard.
-     * </p>
-     * @param <T> referent type
-     * @param promise   promise for a local referent
-     * @return corresponding immediate reference
-     * @throws ClassCastException   no corresponding immediate reference
-     */
-    static public <T> T
-    near(final Volatile<T> promise) throws ClassCastException {
-        return ((Fulfilled<T>)promise).cast();
-    }
-
     /**
 	 * Gets the corresponding {@linkplain Volatile promise}.
 	 * <p>

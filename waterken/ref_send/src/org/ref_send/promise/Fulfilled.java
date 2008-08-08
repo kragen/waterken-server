@@ -10,23 +10,15 @@ import org.joe_e.Selfless;
  * A promise that alleges to be fulfilled.
  * @param <T> referent type
  */
-public class
+public abstract class
 Fulfilled<T> implements Promise<T>, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * referent
-     */
-    private final T value;
-
-    /**
      * Construct an instance.
-     * @param value {@link #cast value}
      */
     protected
-    Fulfilled(final T value) {
-        this.value = value;
-    }
+    Fulfilled() {}
 
     /**
      * Adapts an immediate reference to the {@link Promise} interface.
@@ -61,11 +53,30 @@ Fulfilled<T> implements Promise<T>, Selfless, Serializable {
      * deserialization of the referent until it is {@linkplain #cast accessed}.
      * </p>
      * @param <T> referent type
-     * @param value referent
-     * @return promise that {@linkplain #cast refers} to the <code>value</code>
+     * @param value {@linkplain #cast referent}
+     * @return {@linkplain Fulfilled fulfilled} promise for <code>value</code>
      */
     static public <T> Fulfilled<T>
-    detach(final T value) { return new Fulfilled<T>(value); }
+    detach(final T value) { return new Detachable<T>(value); }
+
+    /**
+     * Gets the corresponding reference for a fulfilled promise.
+     * <p>
+     * This method is the inverse of {@link #detach}.
+     * </p>
+     * <p>
+     * This method will not throw an {@link Exception}.
+     * </p>
+     * @param <T> referent type
+     * @param promise   {@linkplain Fulfilled fulfilled} promise
+     * @return {@linkplain #cast corresponding} reference
+     */
+    static public <T> T
+    near(final Volatile<T> promise) {
+        try {
+            return ((Fulfilled<T>)promise).cast();
+        } catch (final Exception e) { throw new Error(e); }
+    }
 
     // java.lang.Object interface
 
@@ -76,7 +87,7 @@ Fulfilled<T> implements Promise<T>, Selfless, Serializable {
      */
     public boolean
     equals(final Object x) {
-        return x instanceof Fulfilled && same(cast(), ((Fulfilled<?>)x).cast());
+        return x instanceof Fulfilled && same(near(this),near((Fulfilled<?>)x));
     }
 
     static private boolean
@@ -87,14 +98,6 @@ Fulfilled<T> implements Promise<T>, Selfless, Serializable {
     /**
      * Calculates the hash code.
      */
-    public int
+    public final int
     hashCode() { return 0xF0F111ED; }
-
-    // org.ref_send.promise.Volatile interface
-
-    /**
-     * Gets the fulfilled value.
-     */
-    public T
-    cast() { return value; }
 }
