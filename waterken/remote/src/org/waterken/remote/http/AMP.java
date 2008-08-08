@@ -32,6 +32,7 @@ import org.waterken.io.snapshot.Snapshot;
 import org.waterken.remote.Exports;
 import org.waterken.remote.Remote;
 import org.waterken.remote.Remoting;
+import org.waterken.uri.Path;
 import org.waterken.uri.URI;
 import org.waterken.vat.Creator;
 import org.waterken.vat.EventGenerator;
@@ -73,6 +74,17 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
             serve(final String resource,
                   final Volatile<Request> requestor,
                   final Do<Response,?> respond) throws Exception {
+
+                // check for web browser bootstrap request
+                final String query = URI.query(null, resource);
+                if (null == query) {
+                    bootstrap.serve("file:///site/" +
+                            URLEncoding.encode(vat.getProject()) + "/" +
+                            URLEncoding.encode(Path.name(URI.path(resource))),
+                        requestor, respond);
+                    return;
+                }
+
                 final Request buffered; {
                     Request q = requestor.cast();
                     if (null != q.body) {
@@ -98,8 +110,8 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                     public Response
                     run(final Root local) throws Exception {
                         final Response[] response = { null };
-                        new Callee(bootstrap, local).serve(resource,
-                                ref(buffered), new Do<Response,Void>() {
+                        new Callee(local).serve(resource, ref(buffered),
+                                                new Do<Response,Void>() {
                             public Void
                             fulfill(Response r) throws Exception {
                                 if (null != r.body &&

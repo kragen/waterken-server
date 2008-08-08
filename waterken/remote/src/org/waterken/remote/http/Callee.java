@@ -14,7 +14,6 @@ import org.joe_e.array.ArrayBuilder;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
-import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Rejected;
@@ -39,6 +38,7 @@ import org.waterken.uri.Query;
 import org.waterken.uri.URI;
 import org.waterken.vat.Root;
 import org.web_send.Entity;
+import org.web_send.Failure;
 
 /**
  * Server-side of the HTTP web-amp protocol.
@@ -46,15 +46,11 @@ import org.web_send.Entity;
 final class
 Callee extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
-
-    private final Server bootstrap;
     
     private final ClassLoader code;
     private final Exports exports;
 
-    Callee(final Server bootstrap, final Root local) {
-        this.bootstrap = bootstrap;
-
+    Callee(final Root local) {
         code = local.fetch(null, Root.code);
         exports = new Exports(local);
     }
@@ -65,38 +61,18 @@ Callee extends Struct implements Server, Serializable {
     serve(final String resource, final Volatile<Request> requestor,
           final Do<Response,?> respond) throws Exception {
 
-        // check for web browser bootstrap request
-        final String query = URI.query(null, resource);
-        if (null == query) {
-            final String project = exports.getProject();
-            bootstrap.serve("file:///site/" + URLEncoding.encode(project) + "/"+
-                              URLEncoding.encode(Path.name(URI.path(resource))),
-                            requestor, respond);
-            return;
-        }
-
-        // determine the request
-        final Request request;
-        try {
-            request = requestor.cast();
-        } catch (final Exception e) {
-            respond.reject(e);
-            return;
-        }
-
         // made it to the final processor, so bounce a TRACE
+        final Request request = requestor.cast();
         if ("TRACE".equals(request.method)) {
             respond.fulfill(request.trace());
             return;
         }
         
         // check that there is no path name
-        if (!"".equals(Path.name(URI.path(resource)))) {
-            respond.fulfill(never(request.method));
-            return;
-        }
+        if (!"".equals(Path.name(URI.path(resource)))) {throw new Exception();}
         
         // determine the request subject
+        final String query = URI.query(null, resource);
         Volatile<?> subject;
         try {
             subject = Eventual.promised(exports.use(Query.arg("", query, "s")));
@@ -139,26 +115,21 @@ Callee extends Struct implements Server, Serializable {
         }                                   // member access
 
         // to preserve message order, force settling of a promise
-        if (!(subject instanceof Fulfilled)) {
-            respond.fulfill(never(request.method));
-            return;
-        }
+        if (!(subject instanceof Fulfilled)) { throw Failure.notFound(); }
+        
         // AUDIT: call to untrusted application code
         final Object target = ((Fulfilled<?>)subject).cast();
         
         // prevent access to local implementation details
         final Class<?> type = null != target ? target.getClass() : Void.class;
-        if (Exports.isPBC(type)) {
-            respond.fulfill(never(request.method));
-            return;
-        }
+        if (Exports.isPBC(type)) { throw Failure.notFound(); }
         
         // process the request
         final Method lambda = Exports.dispatch(type, p);
         if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
             Object value;
             try {
-                if (null == Exports.property(lambda)) {
+                if (null == lambda || null == Exports.property(lambda)) {
                     throw new ClassCastException();
                 }
                 // AUDIT: call to untrusted application code
@@ -184,9 +155,10 @@ Callee extends Struct implements Server, Serializable {
                 null != contentType ? MediaType.decode(contentType) : AMP.mime;
             final Entity raw;
             if (AMP.mime.contains(mime) || MediaType.text.contains(mime)) {
-                if (!TokenList.equivalent("UTF-8",
-                        mime.get("charset", "UTF-8"))) {
-                    throw new Exception("charset MUST be UTF-8");
+                final String charset = mime.get("charset", "UTF-8");
+                if (!TokenList.equivalent("UTF-8", charset) &&
+                        !TokenList.equivalent("US-ASCII", charset)) {
+                    throw Failure.notSupported();
                 }
                 raw = null;
             } else {
@@ -197,7 +169,7 @@ Callee extends Struct implements Server, Serializable {
                 @Override public Object
                 run() {
                     try {
-                        if (null != Exports.property(lambda)) {
+                        if (null == lambda || null != Exports.property(lambda)){
                             throw new ClassCastException();
                         }
                         final ConstArray<?> argv = null != raw
@@ -227,15 +199,6 @@ Callee extends Struct implements Server, Serializable {
                 respond.fulfill(Request.notAllowed(allow));
             }
         }
-    }
-    
-    /**
-     * Constructs a 404 response.
-     */
-    private Response
-    never(final String method) throws Exception {
-        return serialize(method, "404", "never", forever,
-                         new Rejected<Object>(new NullPointerException()));
     }
     
     private Response

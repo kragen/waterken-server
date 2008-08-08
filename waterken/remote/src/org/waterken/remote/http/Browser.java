@@ -116,6 +116,9 @@ Browser extends Struct implements Record, Serializable {
         final Vat vat = new Vat(reuse(enqueue)) {
             
             private boolean busy = false;
+
+            public String
+            getProject() { return null; }
             
             public synchronized <R> Promise<R>
             enter(final boolean extend,

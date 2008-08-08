@@ -61,12 +61,6 @@ Exports extends Struct implements Serializable {
      */
     public String
     getHere() { return local.fetch("x-browser:", Root.here); }
-    
-    /**
-     * Gets the project name for this vat.
-     */
-    public String
-    getProject() { return local.fetch(null, Root.project); }
 
     /**
      * Calls {@link Root#getTransactionTag()}.
