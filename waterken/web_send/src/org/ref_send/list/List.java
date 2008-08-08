@@ -3,6 +3,7 @@
 package org.ref_send.list;
 
 import static org.ref_send.promise.Fulfilled.detach;
+import static org.ref_send.promise.Fulfilled.near;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -70,7 +71,7 @@ List<T> implements Iterable<T>, Serializable {
      * @return forward iterator over this list
      */
     public final Iterator<T>
-    iterator() { return new IteratorX(first.cast()); }
+    iterator() { return new IteratorX(near(first)); }
 
     private final class
     IteratorX implements Iterator<T>, Serializable {
@@ -89,7 +90,7 @@ List<T> implements Iterable<T>, Serializable {
         next() {
             if (current == last) { throw new NoSuchElementException(); }
             final T r = current.value;
-            current = current.next.cast();
+            current = near(current.next);
             return r;
         }
 
@@ -119,7 +120,7 @@ List<T> implements Iterable<T>, Serializable {
     public T
     getFront() throws NullPointerException {
         if (0 == size) { throw new NullPointerException(); }
-        return first.cast().value;
+        return near(first).value;
     }
 
     /**
@@ -130,7 +131,7 @@ List<T> implements Iterable<T>, Serializable {
     public T
     pop() throws NullPointerException {
         if (0 == size) { throw new NullPointerException(); }
-        final Link<T> x = first.cast();
+        final Link<T> x = near(first);
         final T r = x.value;
         x.value = null;
         first = x.next;
@@ -152,6 +153,6 @@ List<T> implements Iterable<T>, Serializable {
             last.next = detach(spare);
             capacity += 1;
         }
-        last = last.next.cast();
+        last = near(last.next);
     }
 }
