@@ -19,6 +19,11 @@ import org.waterken.uri.Header;
 public class
 MediaType extends Struct implements Powerless, Selfless, Record, Serializable {
     static private final long serialVersionUID = 1L;
+    
+    /**
+     * text/plain
+     */
+    static public final MediaType text = new MediaType("text", "plain");
 
     public final String type;
     public final String subtype;
