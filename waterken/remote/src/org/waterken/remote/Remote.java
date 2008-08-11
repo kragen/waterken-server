@@ -51,12 +51,12 @@ Remote extends Deferred<Object> implements Promise<Object> {
     
     /**
      * Creates a remote reference.
-     * @param type  referent type
      * @param local local address space
      * @param URL   reference URL
+     * @param type  referent type
      */
     static public Object
-    _(final Class<?> type, final Root local, final String URL) {
+    _(final Root local, final String URL, final Class<?> type) {
         final String here = local.fetch(null, Root.here);
         final String target = null == here ? URL : URI.relate(here, URL);
         final Remote rp = new Remote(local, target);
@@ -75,7 +75,7 @@ Remote extends Deferred<Object> implements Promise<Object> {
             public Object
             run(final String href, final String base, final Type type) {
                 final String URL = null != base ? URI.resolve(base,href) : href;
-                return _(Typedef.raw(type), local, URL);
+                return _(local, URL, Typedef.raw(type));
             }
         }
         return new ImporterX();

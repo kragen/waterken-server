@@ -237,8 +237,8 @@ Exports extends Struct implements Serializable {
         }
         final String pipe = local.pipeline(mid);
         local.link(pipe, response);
-        return Remote._(R, local, URI.resolve(base, "#" + pipe +
-            "&src=" + URLEncoding.encode(URI.relate(base, here))));
+        return Remote._(local, URI.resolve(base, "#" + pipe +
+            "&src=" + URLEncoding.encode(URI.relate(base, here))), R);
     }
 
     /**

@@ -61,7 +61,7 @@ Caller extends Struct implements Messenger, Serializable {
     /**
      * {@link Do} block parameter type
      */
-    static private final TypeVariable<?> DoP = Typedef.name(Do.class, "P");
+    static private final TypeVariable<?> P = Typedef.var(Do.class, "P");
 
     public <R> R
     when(final String URL, final Class<?> R, final Do<Object,R> observer) {
@@ -93,8 +93,8 @@ Caller extends Struct implements Messenger, Serializable {
             fulfill(final Response response) {
                 Volatile<Object> value;
                 try {
-                    final Type P = Typedef.value(DoP, observer.getClass());
-                    value = Eventual.promised(deserialize(URL, response, P));
+                    final Type p = Typedef.value(P, observer.getClass());
+                    value = Eventual.promised(deserialize(URL, response, p));
                 } catch (final Exception e) {
                     value = new Rejected<Object>(e);
                 }

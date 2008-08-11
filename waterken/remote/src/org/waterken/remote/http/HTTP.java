@@ -46,7 +46,7 @@ HTTP extends Struct implements Messenger, Serializable {
     /**
      * {@link Do} block parameter type
      */
-    static private final TypeVariable<?> DoP = Typedef.name(Do.class, "P");
+    static private final TypeVariable<?> P = Typedef.var(Do.class, "P");
 
     public <R> R
     when(final String URL, final Class<?> R, final Do<Object,R> observer) {
@@ -80,8 +80,8 @@ HTTP extends Struct implements Messenger, Serializable {
             r = _.cast(R, x.promise);
             forwarder = Eventual.compose(observer, x.resolver);
         }
-        final Class<?> P = Typedef.raw(Typedef.value(DoP, observer.getClass()));
-        final Object a = Remote._(P, local, URL);
+        final Class<?> p = Typedef.raw(Typedef.value(P, observer.getClass()));
+        final Object a = Remote._(local, URL, p);
         class Fulfill extends Struct implements Task, Serializable {
             static private final long serialVersionUID = 1L;
 
