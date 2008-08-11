@@ -4,6 +4,7 @@ package org.waterken.syntax.json;
 
 import static org.ref_send.promise.Fulfilled.ref;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -64,10 +65,11 @@ JSONParser {
      * Deserializes an array of Java objects.
      * @param parameters    each expected type
      * @return parsed argument list
-     * @throws Exception    any exception
+     * @throws IOException  any I/O error
+     * @throws BadFormat    invalid JSON text
      */
     public ConstArray<?>
-    readTuple(final ConstArray<Type> parameters) throws Exception {
+    readTuple(final ConstArray<Type> parameters) throws IOException, BadFormat {
         try {
             if (!"[".equals(lexer.next())) { throw new Exception(); }
             final ConstArray.Builder<Object> r =
@@ -84,11 +86,13 @@ JSONParser {
             if (null != lexer.next()) { throw new Exception(); }
             lexer.close();
             return r.snapshot();
+        } catch (final IOException e) {
+            try { lexer.close(); } catch (final Exception e2) {}
+            throw e;
         } catch (final Exception e) {
             try { lexer.close(); } catch (final Exception e2) {}
-            throw new Exception("<" + base + "> ( " +
-                                lexer.getStartLine() + ", " +
-                                lexer.getStartColumn() + " ) : ", e);           
+            throw new BadFormat(base, lexer.getStartLine(),
+                                lexer.getStartColumn(), e);           
         }
     }
 
