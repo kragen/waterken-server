@@ -40,16 +40,23 @@ JSONLexer {
         protected int
         getHead() { return head; }
         
+        /**
+         * all Unicode line terminators
+         */
+        static protected final String newLine = "\n\r\u0085\u000C\u2028\u2029";
+        
         protected int
         read() throws IOException {
             if (-1 == head) { throw new EOFException(); }
-            if ('\n' == head) {
+            
+            final int next = in.read();
+            if (-1 == newLine.indexOf(head) || ('\r' == head && '\n' == next)) {
+                ++column;
+            } else {
                 ++line;
                 column = 1;
-            } else {
-                ++column;
             }
-            return head = in.read();
+            return head = next;
         }
         
         public void
@@ -151,7 +158,7 @@ JSONLexer {
     
     // rest of implementation consists of static helper functions
     
-    static private final String whitespace = " \n\r\t";
+    static private final String whitespace = " \t" + Stream.newLine;
     
     static private int
     skipWhitespace(final Stream s) throws IOException {
