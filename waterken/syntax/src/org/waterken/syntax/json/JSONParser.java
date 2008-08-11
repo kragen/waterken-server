@@ -34,7 +34,7 @@ import org.ref_send.type.Typedef;
 import org.waterken.syntax.Importer;
 
 /**
- * Deserializes a JSON text stream to an array of Java objects.
+ * Deserializes a JSON text stream.
  */
 public final class
 JSONParser {
@@ -44,60 +44,52 @@ JSONParser {
     private final ClassLoader code;
     private final JSONLexer lexer;
     
-    private
+    /**
+     * Constructs an instance.
+     * @param base      base URL
+     * @param connect   reference importer
+     * @param code      class loader
+     * @param text      UTF-8 JSON text stream
+     */
+    public
     JSONParser(final String base, final Importer connect,
-               final ClassLoader code, final Reader in) {
+               final ClassLoader code, final Reader text) {
         this.base = base;
         this.connect = connect;
         this.code = code;
-        lexer = new JSONLexer(in);
+        lexer = new JSONLexer(text);
     }
-
+    
     /**
-     * Parses an argument list.
-     * @param base          base URL
-     * @param connect       reference importer
+     * Deserializes an array of Java objects.
      * @param parameters    each expected type
-     * @param code          class loader
-     * @param in            UTF-8 JSON text stream
      * @return parsed argument list
      * @throws Exception    any exception
      */
-    static public ConstArray<?>
-    parse(final String base, final Importer connect,
-            final ConstArray<Type> parameters, final ClassLoader code,
-            final Reader in) throws Exception {
-        final JSONParser parser = new JSONParser(base, connect, code, in);
+    public ConstArray<?>
+    readTuple(final ConstArray<Type> parameters) throws Exception {
         try {
-            if (!"[".equals(parser.lexer.next())) { throw new Exception(); }
-            final ConstArray<?> r = parser.parseArguments(parameters);
-            if (null != parser.lexer.getHead()) { throw new Exception(); }
-            parser.lexer.close();
-            return r;
-        } catch (final Exception e) {
-            try { parser.lexer.close(); } catch (final Exception e2) {}
-            throw new Exception("<" + parser.base + "> ( " +
-                                parser.lexer.getStartLine() + ", " +
-                                parser.lexer.getStartColumn() + " ) : ", e);           
-        }
-    }
-    
-    private ConstArray<?>
-    parseArguments(final ConstArray<Type> parameters) throws Exception {
-        if (!"[".equals(lexer.getHead())) { throw new Exception(); }
-        final ConstArray.Builder<Object> r =
-            ConstArray.builder(parameters.length());
-        if (!"]".equals(lexer.next())) {
-            while (true) {
-                r.append(parseValue(r.length() < parameters.length()
-                                ? parameters.get(r.length()) : Object.class));
-                if ("]".equals(lexer.getHead())) { break; }
-                if (!",".equals(lexer.getHead())) { throw new Exception(); }
-                lexer.next();
+            if (!"[".equals(lexer.next())) { throw new Exception(); }
+            final ConstArray.Builder<Object> r =
+                ConstArray.builder(parameters.length());
+            if (!"]".equals(lexer.next())) {
+                while (true) {
+                    r.append(parseValue(r.length() < parameters.length()
+                            ? parameters.get(r.length()) : Object.class));
+                    if ("]".equals(lexer.getHead())) { break; }
+                    if (!",".equals(lexer.getHead())) { throw new Exception(); }
+                    lexer.next();
+                }
             }
+            if (null != lexer.next()) { throw new Exception(); }
+            lexer.close();
+            return r.snapshot();
+        } catch (final Exception e) {
+            try { lexer.close(); } catch (final Exception e2) {}
+            throw new Exception("<" + base + "> ( " +
+                                lexer.getStartLine() + ", " +
+                                lexer.getStartColumn() + " ) : ", e);           
         }
-        lexer.next();   // skip past the closing bracket 
-        return r.snapshot();
     }
 
     static private final TypeVariable<?> R = Typedef.var(Volatile.class, "T");

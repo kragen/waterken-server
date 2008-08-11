@@ -16,7 +16,7 @@ import org.waterken.syntax.Deserializer;
 import org.waterken.syntax.Importer;
 
 /**
- * Deserializes a JSON byte stream to an array of Java objects.
+ * Deserializes a JSON byte stream.
  */
 public final class
 JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
@@ -34,7 +34,7 @@ JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
     run(final String base, final Importer connect,
             final ConstArray<Type> parameters, final ClassLoader code,
             final InputStream content) throws Exception {
-        return JSONParser.parse(base, connect, parameters, code,
-                                new BufferedReader(UTF8.input(content)));
+        return new JSONParser(base, connect, code,
+            new BufferedReader(UTF8.input(content))).readTuple(parameters);
     }
 }

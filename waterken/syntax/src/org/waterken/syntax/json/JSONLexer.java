@@ -61,6 +61,7 @@ JSONLexer {
         
         public void
         close() throws IOException {
+            head = -1;
             in.close();
         }
     }
