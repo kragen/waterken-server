@@ -18,7 +18,7 @@ Do<P,R> extends Struct {
     /**
      * return type
      */
-    static protected final TypeVariable<?> R = Typedef.name(Do.class, "R");
+    static protected final TypeVariable<?> R = Typedef.var(Do.class, "R");
     
     protected
     Do() {}

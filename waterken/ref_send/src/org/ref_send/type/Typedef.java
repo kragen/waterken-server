@@ -25,7 +25,7 @@ Typedef {
      * @throws NullPointerException no matching variable found
      */
     static public <T> TypeVariable<Class<T>>
-    name(final Class<T> declaration, final String name) {
+    var(final Class<T> declaration, final String name) {
         for (final TypeVariable<Class<T>> i : declaration.getTypeParameters()) {
             if (i.getName().equals(name)) { return i; }
         }
