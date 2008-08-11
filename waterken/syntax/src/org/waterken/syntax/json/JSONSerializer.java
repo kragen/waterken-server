@@ -83,8 +83,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         text.close();
     }
 
-    static private final TypeVariable<?> R = Typedef.name(Volatile.class, "T");
-    static private final TypeVariable<?> T = Typedef.name(Iterable.class, "T");
+    static private final TypeVariable<?> R = Typedef.var(Volatile.class, "T");
+    static private final TypeVariable<?> T = Typedef.var(Iterable.class, "T");
 
     static private final Class<?> Inline = Fulfilled.ref(0).getClass();
     
