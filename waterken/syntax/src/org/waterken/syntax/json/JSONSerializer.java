@@ -179,7 +179,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                     final Object member = Reflection.get(f, value);
                     if (null != member) {
                         serialize(export,
-                                  Typedef.bound(f.getGenericType(), actual),
+                                  Typedef.bound(f.getGenericType(), implicit),
                                   member, oout.startMember(f.getName()));
                     }
                 }
