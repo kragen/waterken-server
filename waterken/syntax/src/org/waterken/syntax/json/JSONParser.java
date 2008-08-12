@@ -117,9 +117,9 @@ JSONParser {
         if ("null".equals(token)) {
             value = null;
         } else if ("false".equals(token)) {
-            value = Boolean.FALSE;
+            value = Boolean.FALSE;                              // intern value
         } else if ("true".equals(token)) {
-            value = Boolean.TRUE;
+            value = Boolean.TRUE;                               // intern value
         } else if (int.class == expected || Integer.class == expected) {
             value = Integer.valueOf(Integer.parseInt(token));   // intern value
         } else if (long.class == expected || Long.class == expected) {
