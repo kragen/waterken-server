@@ -284,13 +284,14 @@ JSONParser {
         }
         if (null == make) {
             if (Throwable.class.isAssignableFrom(actual)) {
-                for (Class<?> i = actual; true; i = i.getSuperclass()) {
+                for (Class<?> i = actual; null != i; i = i.getSuperclass()) {
                     try {
                         make = Reflection.constructor(i);
                         break;
                     } catch (final NoSuchMethodException e) {}
                 }
-            } else {
+            }
+            if (null == make) {
                 throw new NoSuchMethodException(
                     "not a pass-by-construction Joe-E class: " +
                     Reflection.getName(actual));
