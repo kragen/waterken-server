@@ -144,9 +144,9 @@ JSONParser {
             int bits = x.bitLength();
             if (x.signum() > 0) { ++bits; }
             if (bits <= Integer.SIZE) {
-                value = x.intValue();
+                value = Integer.valueOf(x.intValue());          // intern value
             } else if (bits <= Long.SIZE) {
-                value = x.longValue();
+                value = Long.valueOf(x.longValue());            // intern value
             } else {
                 value = x;
             }
