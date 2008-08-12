@@ -3,6 +3,7 @@
 package org.waterken.syntax.json;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -33,7 +34,7 @@ JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
     public ConstArray<?>
     run(final String base, final Importer connect,
             final ConstArray<Type> parameters, final ClassLoader code,
-            final InputStream content) throws Exception {
+            final InputStream content) throws IOException, BadFormat {
         return new JSONParser(base, connect, code,
             new BufferedReader(UTF8.input(content))).readTuple(parameters);
     }
