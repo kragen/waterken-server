@@ -72,7 +72,8 @@ Spawn {
         final Proxy clientValue = new Proxy();
         
         // create the database
-        final String r=Settings.vat().enter(Vat.change,new Transaction<String>() {
+        final String r = Settings.vat().enter(Vat.change,
+                                              new Transaction<String>() {
             public String
             run(final Root local) throws Exception {
                 final Token deferredValue = new Token();
@@ -116,7 +117,9 @@ Spawn {
                     export(final Object value) { throw new AssertionError(); }
 
                     public String
-                    pipeline(final String m) { throw new AssertionError(); }
+                    pipeline(final String m, final long w, final long i) {
+                        throw new AssertionError();
+                    }
 
                     public String
                     getTransactionTag() { throw new AssertionError(); }
