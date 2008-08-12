@@ -68,6 +68,14 @@ Exports extends Struct implements Serializable {
     public String
     getTransactionTag() { return local.getTransactionTag(); }
     
+    /*
+     * message identifiers
+     * mid:                     authority to determine the return value
+     * pipe: hash(mid)          authority to access the return value
+     * qid:  hash(pipe)         POST request identifier
+     * rid:  hash(qid)          POST response identifier
+     */
+    
     /**
      * Logs a POST request send.
      * @param mid   request message identifier
@@ -82,7 +90,7 @@ Exports extends Struct implements Serializable {
         // output a log event
         final Tracer tracer = local.fetch(null, Root.tracer);
         log(er, new Sent(local.anchor(), null!=tracer?tracer.get():null,
-                         local.pipeline(local.pipeline(mid)))); 
+                         local.pipeline(local.pipeline(mid, 0, 0), 0, 0))); 
     }
     
     /**
@@ -99,7 +107,8 @@ Exports extends Struct implements Serializable {
         // output a log event
         final Tracer tracer = local.fetch(null, Root.tracer);
         log(er, new Got(local.anchor(), null != tracer ? tracer.get() : null,
-                        local.pipeline(local.pipeline(local.pipeline(mid))))); 
+                        local.pipeline(local.pipeline(local.pipeline(mid, 0, 0),
+                                                      0, 0), 0, 0))); 
     }
     
     /**
@@ -113,7 +122,7 @@ Exports extends Struct implements Serializable {
     once(final String mid, final Member member, final Factory<Object> invoke) {
         if (null == mid) { return invoke.run(); }
         
-        final String pipe = local.pipeline(mid);
+        final String pipe = local.pipeline(mid, 0, 0);
         final Token pumpkin = new Token();
         Object r = local.fetch(pumpkin, pipe);
         if (pumpkin == r) {
@@ -123,10 +132,10 @@ Exports extends Struct implements Serializable {
                 final Trace trace = null != tracer
                     ? (null != member ? tracer.dummy(member) : tracer.get())
                 : null;
-                final String msg = local.pipeline(pipe);
+                final String msg = local.pipeline(pipe, 0, 0);
                 log(er, new Got(local.anchor(), trace, msg)); 
                 r = invoke.run();
-                log(er, new Sent(local.anchor(), trace, local.pipeline(msg)));
+                log(er, new Sent(local.anchor(),trace,local.pipeline(msg,0,0)));
             } else {
                 r = invoke.run();
             }
@@ -235,7 +244,7 @@ Exports extends Struct implements Serializable {
             final Eventual _ = local.fetch(null, Remoting._);
             return _.cast(R, response);
         }
-        final String pipe = local.pipeline(mid);
+        final String pipe = local.pipeline(mid, 0, 0);
         local.link(pipe, response);
         return Remote._(local, URI.resolve(base, "#" + pipe +
             "&src=" + URLEncoding.encode(URI.relate(base, here))), R);

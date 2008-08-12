@@ -108,7 +108,9 @@ Browser extends Struct implements Record, Serializable {
             export(final Object value) { throw new AssertionError(); }
 
             public String
-            pipeline(final String m) { throw new AssertionError(); }
+            pipeline(final String m, final long w, final long i) {
+                throw new AssertionError();
+            }
 
             public String
             getTransactionTag() { throw new AssertionError(); }

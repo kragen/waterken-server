@@ -141,7 +141,7 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
 
     // org.waterken.remote.http.AMP interface
     
-    static public Spawn
+    static protected Spawn
     spawn(final Publisher publisher) {
         class SpawnX extends Struct implements Spawn, Serializable {
             static private final long serialVersionUID = 1L;
