@@ -289,7 +289,8 @@ JSONParser {
             }
             if (null == make) {
                 throw new NoSuchMethodException(
-                    "not a pass-by-construction Joe-E class: " + actual);
+                    "not a pass-by-construction Joe-E class: " +
+                    Reflection.getName(actual));
             }
         }
         final Type[] paramv = make.getGenericParameterTypes(); {
