@@ -121,13 +121,13 @@ JSONParser {
         } else if ("true".equals(token)) {
             value = Boolean.TRUE;
         } else if (int.class == expected || Integer.class == expected) {
-            value = Integer.parseInt(token);
+            value = Integer.valueOf(Integer.parseInt(token));   // intern value
         } else if (long.class == expected || Long.class == expected) {
-            value = Long.parseLong(token);
+            value = Long.valueOf(Long.parseLong(token));        // intern value
         } else if (byte.class == expected || Byte.class == expected) {
-            value = Byte.parseByte(token);
+            value = Byte.valueOf(Byte.parseByte(token));        // intern value
         } else if (short.class == expected || Short.class == expected) {
-            value = Short.parseShort(token);
+            value = Short.valueOf(Short.parseShort(token));     // intern value
         } else if (BigInteger.class == expected) {
             value = new BigInteger(token);
         } else if (double.class == expected || Double.class == expected) {
@@ -163,7 +163,7 @@ JSONParser {
         final Object value;
         if (char.class == expected || Character.class == expected) {
             if (1 != text.length()) { throw new Exception(); }
-            value = text.charAt(0);
+            value = Character.valueOf(text.charAt(0));          // intern value
         } else {
             value = text;
         }
