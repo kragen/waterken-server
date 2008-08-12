@@ -264,6 +264,13 @@ JSONParser {
         }
         
         // use reflection to construct an object of the specified type
+        /*
+         * SECURITY CLAIM: The held ClassLoader will only be used to construct
+         * Joe-E objects. Although any class may be loaded via the ClassLoader,
+         * the class will only be used to access a Joe-E constructor. If the
+         * loaded class is not a Joe-E class, no Joe-E constructor will be found
+         * and deserialization will fail.
+         */
         Constructor<?> make = null;
         for (final Constructor<?> c : Reflection.constructors(actual)) {
             if (c.isAnnotationPresent(deserializer.class)) {
@@ -271,8 +278,19 @@ JSONParser {
                 break;
             }
         }
-        if (null == make && Throwable.class.isAssignableFrom(actual)) {
-            make = Reflection.constructor(actual);
+        if (null == make) {
+            if (Throwable.class.isAssignableFrom(actual)) {
+                for (Class<?> i = actual; null != i; i = i.getSuperclass()) {
+                    try {
+                        make = Reflection.constructor(i);
+                        break;
+                    } catch (final NoSuchMethodException e) {}
+                }
+            }
+            if (null == make) {
+                throw new NoSuchMethodException(
+                    "not a pass-by-construction Joe-E class: " + actual);
+            }
         }
         final Type[] paramv = make.getGenericParameterTypes(); {
             int i = 0;
@@ -358,4 +376,17 @@ JSONParser {
             : (Object)null;
         return null != promised ? ref(value) : value;
     }
+    
+    /*
+     * This implementation provides few security properties. In particular,
+     * clients of this class should assume:
+     * - repeated deserialization of a JSON text may produce different Java
+     * object graphs
+     * - deserialized application objects can detect the number of times they
+     * have been deserialized
+     * - via the Importer, application objects may gain access to any reference
+     * they are able to name
+     * - an object of any pass-by-construction Joe-E class may be constructed
+     * from whole cloth
+     */
 }
