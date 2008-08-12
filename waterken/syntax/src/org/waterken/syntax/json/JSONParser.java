@@ -284,7 +284,7 @@ JSONParser {
         }
         if (null == make) {
             if (Throwable.class.isAssignableFrom(actual)) {
-                for (Class<?> i = actual; null != i; i = i.getSuperclass()) {
+                for (Class<?> i = actual; true; i = i.getSuperclass()) {
                     try {
                         make = Reflection.constructor(i);
                         break;
