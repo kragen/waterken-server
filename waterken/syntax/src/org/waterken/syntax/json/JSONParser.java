@@ -290,8 +290,7 @@ JSONParser {
                         break;
                     } catch (final NoSuchMethodException e) {}
                 }
-            }
-            if (null == make) {
+            } else {
                 throw new NoSuchMethodException(
                     "not a pass-by-construction Joe-E class: " +
                     Reflection.getName(actual));
