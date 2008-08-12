@@ -266,10 +266,14 @@ JSONParser {
         // use reflection to construct an object of the specified type
         /*
          * SECURITY CLAIM: The held ClassLoader will only be used to construct
-         * Joe-E objects. Although any class may be loaded via the ClassLoader,
-         * the class will only be used to access a Joe-E constructor. If the
-         * loaded class is not a Joe-E class, no Joe-E constructor will be found
-         * and deserialization will fail.
+         * pass-by-construction Joe-E objects. Although any class may be loaded
+         * via the ClassLoader, the class will only be used to access a Joe-E
+         * constructor. If the loaded class is not a Joe-E class, no Joe-E
+         * constructor will be found and deserialization will fail.
+         * 
+         * A "pass-by-construction" Joe-E class is a Joe-E class which either:
+         * - declares a public constructor with the deserializer annotation
+         * - is a subclass of Throwable and declares a public no-arg constructor
          */
         Constructor<?> make = null;
         for (final Constructor<?> c : Reflection.constructors(actual)) {
