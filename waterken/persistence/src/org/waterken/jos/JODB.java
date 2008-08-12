@@ -200,14 +200,14 @@ JODB extends Vat {
             }
 
             public String
-            pipeline(final String m) {
+            pipeline(final String m, long w, long i) {
                 final byte[] key = Base32.decode(m);
                 if (128/Byte.SIZE != key.length) {throw new RuntimeException();}
                 try {
-                    final byte[] plaintext = new byte[128 / Byte.SIZE];
-                    final byte[] cyphertext = new byte[128 / Byte.SIZE];
                     final Cipher aes = Cipher.getInstance("AES/ECB/NoPadding");
                     aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key,"AES"));
+                    final byte[] plaintext = new byte[128 / Byte.SIZE];
+                    final byte[] cyphertext = new byte[128 / Byte.SIZE];
                     aes.doFinal(plaintext, 0, plaintext.length, cyphertext);
                     return Base32.encode(cyphertext);
                 } catch (final Exception e) { throw new Error(e); }
@@ -818,6 +818,13 @@ JODB extends Vat {
 
     private void
     freeMac(final Mac h) { macs.add(h); }
+    
+    static private void
+    bytes(final long a, final byte[] v, final int i) {
+        for (int j = 8; 0 != j--;) {
+            v[i + j] = (byte)(a >>> (56 - (j * 8)));
+        }
+    }
 
     /**
      * an output sink

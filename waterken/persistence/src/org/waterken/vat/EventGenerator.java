@@ -79,7 +79,7 @@ EventGenerator {
                 final StringBuilder m = new StringBuilder(mlen);
                 m.append(local.export(object));
                 for (int i = mlen - m.length(); 0 != i--;) { m.append('a'); }
-                return local.pipeline(m.toString());
+                return local.pipeline(m.toString(), 0, 0);
             }
             
             private void

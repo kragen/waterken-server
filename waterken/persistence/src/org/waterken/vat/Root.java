@@ -105,11 +105,13 @@ Root {
     
     /**
      * Calculates a pipeline key.
-     * @param m message key
+     * @param m session key
+     * @param w message window
+     * @param i intra-window message number
      * @return return value key
      */
     String
-    pipeline(String m);
+    pipeline(String m, long w, long i);
 
     /**
      * Retrieves a stored value.
