@@ -13,22 +13,22 @@ public final class
 JSONLexer {
     
     /**
-     * A text reader that keeps track of the line and column number, as well as
-     * the last character read.
+     * A text reader that keeps track of the current line and column number, as
+     * well as the most recent character {@linkplain #read read}.
      */
     static private final class
     Stream {
         private final Reader in;
-        private       int line;
-        private       int column;
-        private       int head;
+        private       int line;     // line number of the head character
+        private       int column;   // column number of the head character
+        private       int head;     // most recent character read, or -1 for EOF
         
         protected
         Stream(final Reader in) {
             this.in = in;
-            line = 0;
+            line = 0;       // position (0, 0) means nothing has been read yet
             column = 0;
-            head = '\n';
+            head = '\n';    // will put the stream at (1, 1) on first read op
         }
         
         protected int
@@ -61,15 +61,16 @@ JSONLexer {
         
         public void
         close() throws IOException {
+            ++column;
             head = -1;
             in.close();
         }
     }
     
     private final Stream s;
-    private       int line;
-    private       int column;
-    private       String head;
+    private       int line;     // start line of the head token
+    private       int column;   // start column of the head token
+    private       String head;  // most recent token read, or null for EOF
     
     /**
      * Constructs an instance.
@@ -80,26 +81,26 @@ JSONLexer {
         s = new Stream(in);
         line = s.getLine();
         column = s.getColumn();
-        head = null;
+        head = "";              // empty token indicates start of token stream
     }
     
     // org.waterken.syntax.json.JSONLexer interface
     
     /**
-     * Gets the starting line of the last {@linkplain #next read} token.
+     * Gets the start line of the most recent token {@linkplain #next read}.
      */
     public int
     getStartLine() { return line; }
     
     /**
-     * Gets the starting column of the last {@linkplain #next read} token.
+     * Gets the start column of the most recent token {@linkplain #next read}.
      */
     public int
     getStartColumn() { return column; }
     
     /**
-     * Gets the last {@linkplain #next read} token.
-     * @return last token, or <code>null</code> if EOF
+     * Gets the most recent token {@linkplain #next read}.
+     * @return most recent token, or <code>null</code> if EOF
      */
     public String
     getHead() { return head; }
