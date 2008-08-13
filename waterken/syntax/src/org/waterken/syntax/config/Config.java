@@ -57,27 +57,27 @@ Config {
     /**
      * root folder for configuration files
      */
-    public  final File root;
+    public    final File root;
     
     /**
      * class loader for serialized objects
      */
-    private final ClassLoader code;
+    protected final ClassLoader code;
     
     /**
-     * reference importer, may be <code>null</code>
+     * remote reference importer, may be <code>null</code>
      */
-    public  final Importer connect;
+    public    final Importer connect;
     
     /**
-     * reference exporter, may be <code>null</code>
+     * remote reference exporter, may be <code>null</code>
      */
-    public  final Exporter export;
+    public    final Exporter export;
     
     /**
      * cache of previously deserialized objects
      */
-    private       Scope cache;
+    private         Scope cache;
     
     /**
      * Constructs an instance.
@@ -127,8 +127,6 @@ Config {
     readType(final String name, final Type type) throws Exception {
         return (T)sub(root, "").run(name, "file:///", type);
     }
-
-    static private final String ext = ".json";
     
     private Importer
     sub(final File root, final String prefix) {
@@ -163,12 +161,8 @@ Config {
                 }
 
                 // deserialize the named object
-                final File file = Filesystem.file(folder, name + ext);
-                if (!file.isFile()) { return null; }
-                final Object r = new JSONDeserializer().run(
-                    "file:///", sub(folder, path),
-                    ConstArray.array(type), code,
-                    Filesystem.read(file)).get(0);
+                final Object r = deserialize(folder, name,
+                                             type, sub(folder, path));
                 cache = cache.with(key, r);
                 return r;
             }
@@ -184,8 +178,7 @@ Config {
      */
     public void
     init(final String name, final Object value) throws Exception {
-        new JSONSerializer().run(export, ConstArray.array(value),
-            Filesystem.writeNew(Filesystem.file(root, name + ext)));
+        serialize(root, name, value, export);
         cache = cache.with(name, value);
     }
     
@@ -196,7 +189,46 @@ Config {
      */
     public void
     override(final String name, final Object value) {
-        Filesystem.file(root, name + ext);
+        Filesystem.file(root, name);
         cache = cache.with(name, value);
+    }
+    
+    // JSON specific implementation
+
+    static private final String ext = ".json";
+    
+    /**
+     * Deserializes a configuration setting.
+     * @param folder    containing folder
+     * @param name      setting name
+     * @param type      expected value type
+     * @param connect   reference importer
+     * @return setting value, or <code>null</code> if not set
+     * @throws Exception    any problem connecting to the identified reference
+     */
+    protected Object
+    deserialize(final File folder, final String name,
+                final Type type, final Importer connect) throws Exception {
+        final File file = Filesystem.file(folder, name + ext);
+        if (!file.isFile()) { return null; }
+        return new JSONDeserializer().run(
+            "file:///", connect,
+            ConstArray.array(type), code,
+            Filesystem.read(file)).get(0);
+    }
+    
+    /**
+     * Serializes a configuration setting.
+     * @param folder    containing folder
+     * @param name      setting name
+     * @param value     setting value
+     * @param export    reference exporter
+     * @throws Exception    any problem persisting the <code>value</code>
+     */
+    protected void
+    serialize(final File folder, final String name,
+              final Object value, final Exporter export) throws Exception {
+        new JSONSerializer().run(export, ConstArray.array(value),
+                Filesystem.writeNew(Filesystem.file(folder, name + ext)));
     }
 }
