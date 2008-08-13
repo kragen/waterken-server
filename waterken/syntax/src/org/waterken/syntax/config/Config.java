@@ -57,24 +57,24 @@ Config {
     /**
      * root folder for configuration files
      */
-    public final File root;
+    public  final File root;
     
     /**
      * class loader for serialized objects
      */
-    public final ClassLoader code;
+    private final ClassLoader code;
     
     /**
      * reference importer, may be <code>null</code>
      */
-    public final Importer connect;
+    public  final Importer connect;
     
     /**
      * reference exporter, may be <code>null</code>
      */
-    public final Exporter export;
+    public  final Exporter export;
     
-    private      Scope cache;
+    private       Scope cache;
     
     /**
      * Constructs an instance.
