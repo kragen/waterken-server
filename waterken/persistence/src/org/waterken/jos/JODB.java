@@ -207,6 +207,8 @@ JODB extends Vat {
                     final Cipher aes = Cipher.getInstance("AES/ECB/NoPadding");
                     aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key,"AES"));
                     final byte[] plaintext = new byte[128 / Byte.SIZE];
+                    bytes(w, plaintext, 0);
+                    bytes(i, plaintext, Long.SIZE / Byte.SIZE);
                     final byte[] cyphertext = new byte[128 / Byte.SIZE];
                     aes.doFinal(plaintext, 0, plaintext.length, cyphertext);
                     return Base32.encode(cyphertext);
@@ -392,11 +394,9 @@ JODB extends Vat {
                 }
                 if (JODB.this.code instanceof Project) {
                     // include code timestamp in the ETag
-                    long buffer = ((Project)JODB.this.code).timestamp;
-                    for (int i = Long.SIZE; 0 != i; i -= Byte.SIZE) {
-                        mac.update((byte)buffer);
-                        buffer >>>= Byte.SIZE;
-                    }
+                    final byte[] buffer = new byte[Long.SIZE / Byte.SIZE];
+                    bytes(((Project)JODB.this.code).timestamp, buffer, 0);
+                    mac.update(buffer);
                 }
                 final byte[] id = mac.doFinal();
                 freeMac(mac);
@@ -820,9 +820,10 @@ JODB extends Vat {
     freeMac(final Mac h) { macs.add(h); }
     
     static private void
-    bytes(final long a, final byte[] v, final int i) {
-        for (int j = 8; 0 != j--;) {
-            v[i + j] = (byte)(a >>> (56 - (j * 8)));
+    bytes(final long a, final byte[] v, int i) {
+        for (int shift = Long.SIZE; 0 != shift; ++i) {
+            shift -= Byte.SIZE;
+            v[i] = (byte)(a >>> shift);
         }
     }
 
