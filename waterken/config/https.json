@@ -4,5 +4,5 @@
   "backlog" : 100,
   "SSL" : true,
   "soTimeout" : 60000,
-  "server" : { "@" : "server.json" }
+  "server" : { "@" : "server" }
 } ]

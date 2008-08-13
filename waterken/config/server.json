@@ -1,8 +1,8 @@
 [ {
   "$" : [ "org.waterken.remote.mux.Mux" ],
-  "vatURIPathPrefix" : { "@" : "vatURIPathPrefix.json" },
-  "vatRoot" : { "@" : "vatRootFolder.json" },
-  "vats" : { "@" : "vats.json" },
+  "vatURIPathPrefix" : { "@" : "vatURIPathPrefix" },
+  "vatRoot" : { "@" : "vatRootFolder" },
+  "vats" : { "@" : "vats" },
   "remoting" : {
     "$" : [ "org.waterken.remote.http.AMP" ]
   },
@@ -14,13 +14,13 @@
       "path" : "log/",
       "key" : null,
       "folder" : { "@" : "www/log/" },
-      "formats" : { "@" : "mime.json" },
+      "formats" : { "@" : "mime" },
       "next" : {
         "$" : [ "org.waterken.http.mirror.Mirror" ],
         "maxAge" : 0,
-        "tag" : { "@" : "tag.json" },
+        "tag" : { "@" : "tag" },
         "root" : { "@" : "www/" },
-        "formats" : { "@" : "mime.json" }
+        "formats" : { "@" : "mime" }
       }
     }
   }
