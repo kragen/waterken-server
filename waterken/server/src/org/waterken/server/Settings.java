@@ -52,7 +52,8 @@ Settings {
             Concurrent.loop(Thread.currentThread().getThreadGroup(), "config"),
             new Sink());
     static public    final Config config =
-        new Config(configFolder, code, browser.connect, browser.export);
+        new Config(configFolder, code, browser.connect, browser.export,
+                   Config.known);
     static {
         config.override("vats", vats);
         config.override("tag", new LastModified());
