@@ -28,7 +28,11 @@ ReadConfig {
             static private final long serialVersionUID = 1L;
 
             public T
-            run() { return Settings.config.readType(name, type); }
+            run() {
+                try {
+                    return Settings.config.readType(name, type);
+                } catch (final Exception e) { throw new Error(e); }
+            }
         }
         return new FactoryX();
     }
