@@ -50,17 +50,15 @@ Remote extends Deferred<Object> implements Promise<Object> {
     }
     
     /**
-     * Creates a remote reference.
+     * Constructs an instance.
      * @param local local address space
      * @param URL   reference URL
-     * @param type  referent type
      */
-    static public Object
-    _(final Root local, final String URL, final Class<?> type) {
+    static public Remote
+    make(final Root local, final String URL) {
         final String here = local.fetch(null, Root.here);
-        final String target = null == here ? URL : URI.relate(here, URL);
-        final Remote rp = new Remote(local, target);
-        return rp._.cast(type, rp);
+        final String href = null == here ? URL : URI.relate(here, URL);
+        return new Remote(local, href);
     }
     
     /**
@@ -75,7 +73,7 @@ Remote extends Deferred<Object> implements Promise<Object> {
             public Object
             run(final String href, final String base, final Type type) {
                 final String URL = null != base ? URI.resolve(base,href) : href;
-                return _(local, URL, Typedef.raw(type));
+                return make(local, URL)._(Typedef.raw(type));
             }
         }
         return new ImporterX();
@@ -197,4 +195,13 @@ Remote extends Deferred<Object> implements Promise<Object> {
             }
         };
     }
+    
+    // org.waterken.remote.Remote interface
+    
+    /**
+     * Creates a remote reference.
+     * @param type  referent type
+     */
+    public Object
+    _(final Class<?> type) { return _.cast(type, this);  }
 }

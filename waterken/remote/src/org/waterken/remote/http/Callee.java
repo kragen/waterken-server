@@ -30,6 +30,7 @@ import org.waterken.http.Server;
 import org.waterken.http.TokenList;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.remote.Exports;
+import org.waterken.syntax.json.BadFormat;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.uri.Header;
@@ -71,8 +72,26 @@ Callee extends Struct implements Server, Serializable {
         // check that there is no path name
         if (!"".equals(Path.name(URI.path(resource)))) {throw new Exception();}
         
-        // determine the request subject
+        // check for a PRNG bootstrap message
         final String query = URI.query(null, resource);
+        if ("*prng*".equals(Query.arg(null, query, "s")) &&
+                "seed".equals(Query.arg(null, query, "p"))) {
+            if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
+                // enable a client without a good PRNG to seed from the server
+                respond.fulfill(serialize(request.method, "200", "OK",
+                                          ephemeral, exports.mid()));
+            } else {
+                final String[] allow = { "TRACE", "OPTIONS", "GET", "HEAD" };
+                if ("OPTIONS".equals(request.method)) {
+                    respond.fulfill(Request.options(allow));
+                } else {
+                    respond.fulfill(Request.notAllowed(allow));
+                }
+            }
+            return;
+        }
+        
+        // determine the request subject
         Volatile<?> subject;
         try {
             subject = Eventual.promised(exports.use(Query.arg("", query, "s")));
@@ -150,6 +169,10 @@ Callee extends Struct implements Server, Serializable {
             if (null != etag) { r = r.with("ETag", etag); }
             respond.fulfill(r);
         } else if ("POST".equals(request.method)) {
+            /*
+             * Do MIME type checking outside the once block, so that any error
+             * is reported as an HTTP 4xx error.
+             */
             final String contentType = request.getContentType();
             final MediaType mime = 
                 null != contentType ? MediaType.decode(contentType) : AMP.mime;
@@ -164,18 +187,34 @@ Callee extends Struct implements Server, Serializable {
             } else {
                 raw = new Entity(contentType, ((Snapshot)request.body).content);
             }
-            final String m = Query.arg(null, query, "m");
-            final Object value = exports.once(m, lambda, new Factory<Object>() {
+            final Object value = exports.once(query, lambda,
+                                              new Factory<Object>() {
                 @Override public Object
                 run() {
                     try {
                         if (null == lambda || null != Exports.property(lambda)){
                             throw new ClassCastException();
                         }
-                        final ConstArray<?> argv = null != raw
-                            ? ConstArray.array(raw)
-                        : deserialize(request, ConstArray.array(
-                                            lambda.getGenericParameterTypes()));
+                        final ConstArray<?> argv;
+                        if (null != raw) {
+                            argv = ConstArray.array(raw);
+                        } else {
+                            /*
+                             * SECURITY CLAIM: deserialize inside the once block
+                             * to ensure application code cannot detect request
+                             * replay by causing failed deserialization
+                             */ 
+                            try {
+                                argv = deserialize(request, ConstArray.array(
+                                        lambda.getGenericParameterTypes()));
+                            } catch (final BadFormat e) {
+                                /*
+                                 * strip out the parsing information to avoid
+                                 * leaking information to the application layer
+                                 */ 
+                                throw (Exception)e.getCause();
+                            }
+                        }
 
                         // AUDIT: call to untrusted application code
                         return Reflection.invoke(Exports.bubble(lambda), target,

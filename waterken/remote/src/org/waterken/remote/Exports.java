@@ -20,7 +20,7 @@ import org.ref_send.log.Got;
 import org.ref_send.log.Sent;
 import org.ref_send.log.Trace;
 import org.ref_send.promise.Fulfilled;
-import org.ref_send.promise.Promise;
+import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Receiver;
@@ -70,35 +70,56 @@ Exports extends Struct implements Serializable {
     
     /*
      * message identifiers
-     * mid:                     authority to determine the return value
-     * pipe: hash(mid)          authority to access the return value
+     * mid:                     authority to determine return values
+     * pipe: hash(mid,w,i)      authority to access a particular return value
      * qid:  hash(pipe)         POST request identifier
      * rid:  hash(qid)          POST response identifier
      */
     
     /**
-     * Logs a POST request send.
-     * @param mid   request message identifier
+     * Produces a remote request channel.
+     * @param type      return type
+     * @param URL       target URL
+     * @param mid       message identifier
+     * @param w         message window number
+     * @param i         intra-window message number
+     * @return return value channel, or <code>null</code> if none
      */
-    public void
-    sent(final String mid) {
+    public Channel<Object>
+    request(final Class<?> type, final String URL,
+            final String mid, final long w, final long i) {
+        final String pipe = local.pipeline(mid, w, i);
         
-        // determine if logging is turned on
+        // log the request
         final Receiver<Event> er = events();
-        if (null == er) { return; }
-
-        // output a log event
-        final Tracer tracer = local.fetch(null, Root.tracer);
-        log(er, new Sent(local.anchor(), null!=tracer?tracer.get():null,
-                         local.pipeline(local.pipeline(mid, 0, 0), 0, 0))); 
+        if (null != er) {
+            final Tracer tracer = local.fetch(null, Root.tracer);
+            log(er, new Sent(local.anchor(), null!=tracer ? tracer.get() : null,
+                             local.pipeline(pipe, 0, 0))); 
+        }
+        
+        // build the return value channel
+        if (void.class == type || Void.class == type) { return null; }
+        final Eventual _ = local.fetch(null, Remoting._);        
+        final Channel<Object> x = _.defer();
+        final String here = local.fetch(null, Root.here);
+        if (null == here) { return x; }
+        local.link(pipe, x.promise);
+        final String base = URI.resolve(URL, ".");
+        return new Channel<Object>(
+            Remote.make(local, URI.resolve(base,
+                "#"+pipe+"&src="+URLEncoding.encode(URI.relate(base, here)))),
+            x.resolver);
     }
     
     /**
-     * Logs receipt of an HTTP response.
-     * @param mid   request message identifier
+     * Logs receipt of a remote request response.
+     * @param mid   messaging session identifier
+     * @param w     message window number
+     * @param i     intra-window message number
      */
     public void
-    received(final String mid) {
+    response(final String mid, long w, long i) {
         
         // determine if logging is turned on
         final Receiver<Event> er = events();
@@ -107,22 +128,25 @@ Exports extends Struct implements Serializable {
         // output a log event
         final Tracer tracer = local.fetch(null, Root.tracer);
         log(er, new Got(local.anchor(), null != tracer ? tracer.get() : null,
-                        local.pipeline(local.pipeline(local.pipeline(mid, 0, 0),
+                        local.pipeline(local.pipeline(local.pipeline(mid, w, i),
                                                       0, 0), 0, 0))); 
     }
     
     /**
      * Does an operation at most once.
-     * @param mid       message identifier
+     * @param query     message query arguments
      * @param member    member to invoke, or <code>null</code> if unspecified
-     * @param invoke    member invoker
+     * @param op        operation to run
      * @return <code>invoke</code> return value
      */
     public Object
-    once(final String mid, final Member member, final Factory<Object> invoke) {
-        if (null == mid) { return invoke.run(); }
+    once(final String query, final Member member, final Factory<Object> op) {
+        final String mid = Query.arg(null, query, "m");
+        if (null == mid) { return op.run(); }
         
-        final String pipe = local.pipeline(mid, 0, 0);
+        final String pipe = local.pipeline(mid,
+                Long.parseLong(Query.arg("0", query, "w")),
+                Long.parseLong(Query.arg("0", query, "i")));
         final Token pumpkin = new Token();
         Object r = local.fetch(pumpkin, pipe);
         if (pumpkin == r) {
@@ -134,10 +158,10 @@ Exports extends Struct implements Serializable {
                 : null;
                 final String msg = local.pipeline(pipe, 0, 0);
                 log(er, new Got(local.anchor(), trace, msg)); 
-                r = invoke.run();
+                r = op.run();
                 log(er, new Sent(local.anchor(),trace,local.pipeline(msg,0,0)));
             } else {
-                r = invoke.run();
+                r = op.run();
             }
             local.link(pipe, r);
         }
@@ -226,28 +250,6 @@ Exports extends Struct implements Serializable {
             }
         }
         return Remote.bind(local, new ExporterX());
-    }
-    
-    /**
-     * Produces a promise for the server-side copy of a return value.
-     * @param base      base URL for the server
-     * @param mid       message identifier
-     * @param R         return type
-     * @param response  client-side copy of a return promise
-     * @return remote reference to the server-side copy of the return value
-     */
-    public Object
-    far(final String base, final String mid,
-        final Class<?> R, final Promise<?> response) {
-        final String here = local.fetch(null, Root.here);
-        if (null == here) {
-            final Eventual _ = local.fetch(null, Remoting._);
-            return _.cast(R, response);
-        }
-        final String pipe = local.pipeline(mid, 0, 0);
-        local.link(pipe, response);
-        return Remote._(local, URI.resolve(base, "#" + pipe +
-            "&src=" + URLEncoding.encode(URI.relate(base, here))), R);
     }
 
     /**

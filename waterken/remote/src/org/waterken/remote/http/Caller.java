@@ -194,19 +194,10 @@ Caller extends Struct implements Messenger, Serializable {
         final String m = exports.mid();
         final Class<?> R = Typedef.raw(
             Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
-        final Object r_;
-        final Resolver<Object> resolver;
-        if (void.class == R || Void.class == R) {
-            r_ = null;
-            resolver = null;
-        } else {
-            final Channel<Object> x = _.defer();
-            r_ = exports.far(URI.resolve(URL, "."), m, R, x.promise);
-            resolver = x.resolver;
-        }
+        final Channel<Object> r = exports.request(R, URL, m, 0, 0);
+        final Resolver<Object> resolver = null != r ? r.resolver : null;
         
         // schedule the message
-        exports.sent(m);
         class POST extends Message implements Update {
             static private final long serialVersionUID = 1L;
             
@@ -218,7 +209,7 @@ Caller extends Struct implements Messenger, Serializable {
 
             public Void
             fulfill(final Response response) {
-                exports.received(m);
+                exports.response(m, 0, 0);
                 return receive(URL, response, proxy, method, argv, resolver);
             }
             
@@ -228,7 +219,7 @@ Caller extends Struct implements Messenger, Serializable {
             }
         }
         msgs.enqueue(new POST());
-        return r_;
+        return null != r ? _.cast(R, r.promise) : null;
     }
     
     private Void
