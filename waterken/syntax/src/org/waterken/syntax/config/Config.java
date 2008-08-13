@@ -74,12 +74,15 @@ Config {
      */
     public  final Exporter export;
     
+    /**
+     * cache of previously deserialized objects
+     */
     private       Scope cache;
     
     /**
      * Constructs an instance.
      * @param root      {@link #root}
-     * @param code      {@link #code}
+     * @param code      class loader for serialized objects
      * @param connect   {@link #connect}
      * @param export    {@link #export}
      */
