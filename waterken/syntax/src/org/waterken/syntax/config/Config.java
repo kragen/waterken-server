@@ -51,22 +51,37 @@ import org.waterken.syntax.json.JSONSerializer;
  * final Anchor home = config.read("home");
  * </pre>
  */
-public final class
+public class
 Config {
 
-    private final File root;
-    private final ClassLoader code;
-    private final Importer connect;
-    private final Exporter export;
+    /**
+     * root folder for configuration files
+     */
+    public final File root;
     
-    private       Scope cache;
+    /**
+     * class loader for serialized objects
+     */
+    public final ClassLoader code;
+    
+    /**
+     * reference importer, may be <code>null</code>
+     */
+    public final Importer connect;
+    
+    /**
+     * reference exporter, may be <code>null</code>
+     */
+    public final Exporter export;
+    
+    private      Scope cache;
     
     /**
      * Constructs an instance.
-     * @param root      root folder for configuration files
-     * @param code      class loader for serialized objects
-     * @param connect   reference importer, may be <code>null</code>
-     * @param export    reference exporter, may be <code>null</code>
+     * @param root      {@link #root}
+     * @param code      {@link #code}
+     * @param connect   {@link #connect}
+     * @param export    {@link #export}
      */
     public
     Config(final File root, final ClassLoader code,
