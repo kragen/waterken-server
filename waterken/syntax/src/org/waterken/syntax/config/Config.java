@@ -121,6 +121,12 @@ Config {
                 if (!"file:///".equals(base) || -1 != href.indexOf(':')) {
                     return connect.run(href, base, type);
                 }
+                
+                // check the cache
+                final String key = prefix + href; {
+                    final int i = cache.meta.find(key);
+                    if (-1 != i) { return cache.values.get(i); }
+                }
 
                 // descend to the named file
                 File folder = root;     // sub-folder containing file
@@ -137,11 +143,6 @@ Config {
                 if (-1 != name.indexOf('.')) {
                     return Filesystem.file(folder, name);
                 }
-                
-                // check the cache
-                final String key = path + name;
-                final int i = cache.meta.find(key);
-                if (-1 != i) { return cache.values.get(i); }
 
                 // deserialize the named object
                 final File file = Filesystem.file(folder, name + ext);
