@@ -146,7 +146,7 @@ ADSAFE.lib('web', function () {
             });
         }
     }
-    function request(URLref, member) {
+    function request(URLref, member, args) {
         var iRef = URLref.indexOf('#');
         var ref = -1 !== iRef ? URLref.substring(iRef + 1) : undefined;
         var URL = -1 !== iRef ? URLref.substring(0, iRef) : URLref;
@@ -156,6 +156,10 @@ ADSAFE.lib('web', function () {
         target += '?';
         if (undefined !== member) {
             target += 'p=' + encodeURIComponent(member) + '&';
+        }
+        if (undefined !== args) {
+            target += 'm=' + args.m + '&';
+            target += 'w=' + args.w + '&';
         }
         if (undefined != ref) {
             target += 's=' + ref;
@@ -171,9 +175,16 @@ ADSAFE.lib('web', function () {
         } else {
             http = new ActiveXObject('MSXML2.XMLHTTP.3.0');
         }
+
+        var sessions = {};  // [ origin => { m, w } ]
+
         var output = function () {
             var m = pending[0];
-            http.open(m.op, request(m.URLref, m.member), true);
+            var session;
+            if ('POST' === m.op) {
+                session = ADSAFE.get(sessions, resolveURI(m.URLref, '/'));
+            }
+            http.open(m.op, request(m.URLref, m.member, session), true);
             http.onreadystatechange = function () {
                 if (4 !== http.readyState) { return; }
                 if (m !== pending.shift()) { throw null.error; }
@@ -187,6 +198,9 @@ ADSAFE.lib('web', function () {
                     // TODO
                     return;
                 }
+                if (session) {
+                    session.w += 1;
+                }
                 m.resolve(deserialize(m.URLref, http));
             };
             if (undefined === m.argv) {
@@ -197,6 +211,23 @@ ADSAFE.lib('web', function () {
             }
         };
         return function (URLref, op, resolve, member, argv) {
+            if ('POST' === op) {
+                var origin = resolveURI(URLref, '/');
+                if (!ADSAFE.get(sessions, origin)) {
+                    ADSAFE.set(sessions, origin, {});
+                    pending.push({
+                        op: 'GET',
+                        URLref: resolveURI(URLref, './#*prng*'),
+                        member: 'seed',
+                        resolve: function (value) {
+                            ADSAFE.set(sessions, origin, {
+                                m: value,
+                                w: 0
+                            });
+                        }
+                    });
+                }
+            }
             pending.push({
                 URLref: URLref,
                 op: op,
