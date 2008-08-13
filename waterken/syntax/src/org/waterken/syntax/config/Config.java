@@ -90,9 +90,12 @@ Config {
      * @param <T>   expected value type
      * @param name  setting name
      * @return setting value, or <code>null</code> if not set
+     * @throws Exception    any problem connecting to the identified reference
      */
     public <T> T
-    read(final String name) { return readType(name, Object.class); }
+    read(final String name) throws Exception {
+        return readType(name, Object.class);
+    }
 
     static private final String ext = ".json";
     
@@ -102,9 +105,10 @@ Config {
      * @param name  setting name
      * @param type  expected value type
      * @return setting value, or <code>null</code> if not set
+     * @throws Exception    any problem connecting to the identified reference
      */
     public @SuppressWarnings("unchecked") <T> T
-    readType(final String name, final Type type) {
+    readType(final String name, final Type type) throws Exception {
         return (T)sub(root, "").run(name + ext, "file:///", type);
     }
     
@@ -112,41 +116,40 @@ Config {
     sub(final File root, final String prefix) {
         class ImporterX extends Struct implements Importer {
             public Object
-            run(final String href, final String base, final Type type) {
-                try {
-                    if (!"file:///".equals(base) || -1 != href.indexOf(':')) {
-                        return connect.run(href, base, type);
-                    }
+            run(final String href, final String base,
+                                   final Type type) throws Exception {
+                if (!"file:///".equals(base) || -1 != href.indexOf(':')) {
+                    return connect.run(href, base, type);
+                }
 
-                    // descend to the named file
-                    File folder = root;     // sub-folder containing file
-                    String path = prefix;   // path to folder from config root
-                    String name = href;     // filename
-                    while (true) {
-                        final int i = name.indexOf('/');
-                        if (-1 == i) { break; }
-                        folder = Filesystem.file(folder, name.substring(0, i));
-                        path += name.substring(0, i + 1);
-                        name = name.substring(i + 1);
-                    }
-                    if ("".equals(name)) { return folder; }
-                    final File file = Filesystem.file(folder, name);
-                    if (!name.endsWith(ext)) { return file; }
-                    
-                    // check the cache
-                    final String key = path + name;
-                    final int i = cache.meta.find(key);
-                    if (-1 != i) { return cache.values.get(i); }
-                    if (!file.isFile()) { return null; }
+                // descend to the named file
+                File folder = root;     // sub-folder containing file
+                String path = prefix;   // path to folder from config root
+                String name = href;     // filename
+                while (true) {
+                    final int i = name.indexOf('/');
+                    if (-1 == i) { break; }
+                    folder = Filesystem.file(folder, name.substring(0, i));
+                    path += name.substring(0, i + 1);
+                    name = name.substring(i + 1);
+                }
+                if ("".equals(name)) { return folder; }
+                final File file = Filesystem.file(folder, name);
+                if (!name.endsWith(ext)) { return file; }
+                
+                // check the cache
+                final String key = path + name;
+                final int i = cache.meta.find(key);
+                if (-1 != i) { return cache.values.get(i); }
+                if (!file.isFile()) { return null; }
 
-                    // deserialize the named object
-                    final Object r = new JSONDeserializer().run(
-                        "file:///", sub(folder, path),
-                        ConstArray.array(type), code,
-                        Filesystem.read(file)).get(0);
-                    cache = cache.with(key, r);
-                    return r;
-                } catch (final Exception e) { throw new Error(e); }
+                // deserialize the named object
+                final Object r = new JSONDeserializer().run(
+                    "file:///", sub(folder, path),
+                    ConstArray.array(type), code,
+                    Filesystem.read(file)).get(0);
+                cache = cache.with(key, r);
+                return r;
             }
         }
         return new ImporterX();
@@ -156,15 +159,14 @@ Config {
      * Initializes a configuration setting.
      * @param name      setting name
      * @param value     setting value
+     * @throws Exception    any problem persisting the <code>value</code>
      */
     public void
-    init(final String name, final Object value) {
-        try {
-            final String key = name + ext;
-            new JSONSerializer().run(export, ConstArray.array(value),
-                Filesystem.writeNew(Filesystem.file(root, key)));
-            cache = cache.with(key, value);
-        } catch (final Exception e) { throw new Error(e); }
+    init(final String name, final Object value) throws Exception {
+        final String key = name + ext;
+        new JSONSerializer().run(export, ConstArray.array(value),
+            Filesystem.writeNew(Filesystem.file(root, key)));
+        cache = cache.with(key, value);
     }
     
     /**

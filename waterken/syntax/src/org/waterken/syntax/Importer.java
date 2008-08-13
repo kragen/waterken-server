@@ -16,7 +16,8 @@ Importer {
      * @param base  base URL, may be <code>null</code>
      * @param type  reference type
      * @return corresponding reference
+     * @throws Exception    any problem connecting to the identified reference
      */
     Object
-    run(String href, String base, Type type);
+    run(String href, String base, Type type) throws Exception;
 }
