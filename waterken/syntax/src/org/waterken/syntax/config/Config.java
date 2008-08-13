@@ -96,8 +96,6 @@ Config {
     read(final String name) throws Exception {
         return readType(name, Object.class);
     }
-
-    static private final String ext = ".json";
     
     /**
      * Reads a configuration setting.
@@ -109,8 +107,10 @@ Config {
      */
     public @SuppressWarnings("unchecked") <T> T
     readType(final String name, final Type type) throws Exception {
-        return (T)sub(root, "").run(name + ext, "file:///", type);
+        return (T)sub(root, "").run(name, "file:///", type);
     }
+
+    static private final String ext = ".json";
     
     private Importer
     sub(final File root, final String prefix) {
@@ -134,16 +134,18 @@ Config {
                     name = name.substring(i + 1);
                 }
                 if ("".equals(name)) { return folder; }
-                final File file = Filesystem.file(folder, name);
-                if (!name.endsWith(ext)) { return file; }
+                if (-1 != name.indexOf('.')) {
+                    return Filesystem.file(folder, name);
+                }
                 
                 // check the cache
                 final String key = path + name;
                 final int i = cache.meta.find(key);
                 if (-1 != i) { return cache.values.get(i); }
-                if (!file.isFile()) { return null; }
 
                 // deserialize the named object
+                final File file = Filesystem.file(folder, name + ext);
+                if (!file.isFile()) { return null; }
                 final Object r = new JSONDeserializer().run(
                     "file:///", sub(folder, path),
                     ConstArray.array(type), code,
@@ -163,10 +165,9 @@ Config {
      */
     public void
     init(final String name, final Object value) throws Exception {
-        final String key = name + ext;
         new JSONSerializer().run(export, ConstArray.array(value),
-            Filesystem.writeNew(Filesystem.file(root, key)));
-        cache = cache.with(key, value);
+            Filesystem.writeNew(Filesystem.file(root, name + ext)));
+        cache = cache.with(name, value);
     }
     
     /**
@@ -176,8 +177,7 @@ Config {
      */
     public void
     override(final String name, final Object value) {
-        final String key = name + ext;
-        Filesystem.file(root, key);
-        cache = cache.with(key, value);
+        Filesystem.file(root, name + ext);
+        cache = cache.with(name, value);
     }
 }
