@@ -9,9 +9,11 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
 import org.joe_e.array.ConstArray;
+import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.ref_send.scope.Scope;
 import org.waterken.syntax.Exporter;
+import org.waterken.syntax.Format;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
@@ -45,7 +47,7 @@ import org.waterken.syntax.json.JSONSerializer;
  * These settings can be read with code:
  * </p>
  * <pre>
- * final Config config = &hellip;
+ * final Config config= new Config(new File(""), Anchor.class.getClassLoader());
  * final String username = config.read("username");
  * final int port = config.read("port");
  * final Anchor home = config.read("home");
@@ -75,9 +77,22 @@ Config {
     public    final Exporter export;
     
     /**
+     * list of known formats 
+     */
+    private   final PowerlessArray<Format> formats;
+    
+    /**
      * cache of previously deserialized objects
      */
     private         Scope cache;
+    
+    static private final Format json =
+        new Format(".json", new JSONSerializer(), new JSONDeserializer());
+    
+    /**
+     * known formats
+     */
+    static public PowerlessArray<Format> known = PowerlessArray.array(json);
     
     /**
      * Constructs an instance.
@@ -85,16 +100,29 @@ Config {
      * @param code      class loader for serialized objects
      * @param connect   {@link #connect}
      * @param export    {@link #export}
+     * @param formats   list of known formats
      */
     public
     Config(final File root, final ClassLoader code,
-           final Importer connect, final Exporter export) {
+           final Importer connect, final Exporter export, 
+           final PowerlessArray<Format> formats) {
         this.root = root;
         this.code = code;
         this.connect = connect;
         this.export = export;
+        this.formats = formats;
         
         cache = Empty.make();
+    }
+    
+    /**
+     * Constructs an instance.
+     * @param root      {@link #root}
+     * @param code      class loader for serialized objects
+     */
+    public
+    Config(final File root, final ClassLoader code) {
+        this(root, code, null, null, known);
     }
     
     /**
@@ -161,8 +189,16 @@ Config {
                 }
 
                 // deserialize the named object
-                final Object r = deserialize(folder, name,
-                                             type, sub(folder, path));
+                Object r = null;
+                for (final Format format : formats) {
+                    final File file = Filesystem.file(folder, name+format.ext);
+                    if (!file.isFile()) { continue; }
+                    r = format.deserialize.run(
+                            "file:///", sub(folder, path),
+                            ConstArray.array(type), code,
+                            Filesystem.read(file)).get(0);
+                    break;
+                }
                 cache = cache.with(key, r);
                 return r;
             }
@@ -178,7 +214,8 @@ Config {
      */
     public void
     init(final String name, final Object value) throws Exception {
-        serialize(root, name, value, export);
+        json.serialize.run(export, ConstArray.array(value),
+                Filesystem.writeNew(Filesystem.file(root, name + json.ext)));
         cache = cache.with(name, value);
     }
     
@@ -191,44 +228,5 @@ Config {
     override(final String name, final Object value) {
         Filesystem.file(root, name);
         cache = cache.with(name, value);
-    }
-    
-    // JSON specific implementation
-
-    static protected final String ext = ".json";
-    
-    /**
-     * Deserializes a configuration setting.
-     * @param folder    containing folder
-     * @param name      setting name
-     * @param type      expected value type
-     * @param connect   reference importer
-     * @return setting value, or <code>null</code> if not set
-     * @throws Exception    any problem connecting to the identified reference
-     */
-    protected Object
-    deserialize(final File folder, final String name,
-                final Type type, final Importer connect) throws Exception {
-        final File file = Filesystem.file(folder, name + ext);
-        if (!file.isFile()) { return null; }
-        return new JSONDeserializer().run(
-            "file:///", connect,
-            ConstArray.array(type), code,
-            Filesystem.read(file)).get(0);
-    }
-    
-    /**
-     * Serializes a configuration setting.
-     * @param folder    containing folder
-     * @param name      setting name
-     * @param value     setting value
-     * @param export    reference exporter
-     * @throws Exception    any problem persisting the <code>value</code>
-     */
-    protected void
-    serialize(final File folder, final String name,
-              final Object value, final Exporter export) throws Exception {
-        new JSONSerializer().run(export, ConstArray.array(value),
-                Filesystem.writeNew(Filesystem.file(folder, name + ext)));
     }
 }
