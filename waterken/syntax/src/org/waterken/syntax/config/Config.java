@@ -195,7 +195,7 @@ Config {
     
     // JSON specific implementation
 
-    static private final String ext = ".json";
+    static protected final String ext = ".json";
     
     /**
      * Deserializes a configuration setting.
