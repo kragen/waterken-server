@@ -77,6 +77,42 @@ Exports extends Struct implements Serializable {
      */
     
     /**
+     * Does an operation at most once.
+     * @param query     message query arguments
+     * @param member    member to invoke, or <code>null</code> if unspecified
+     * @param op        operation to run
+     * @return <code>invoke</code> return value
+     */
+    public Object
+    once(final String query, final Member member, final Factory<Object> op) {
+        final String mid = Query.arg(null, query, "m");
+        if (null == mid) { return op.run(); }
+        
+        final String pipe = local.pipeline(mid,
+                Long.parseLong(Query.arg("0", query, "w")),
+                Long.parseLong(Query.arg("0", query, "i")));
+        final Token pumpkin = new Token();
+        Object r = local.fetch(pumpkin, pipe);
+        if (pumpkin == r) {
+            final Receiver<Event> er = events();
+            if (null != er) {
+                final Tracer tracer = local.fetch(null, Root.tracer);
+                final Trace trace = null != tracer
+                    ? (null != member ? tracer.dummy(member) : tracer.get())
+                : null;
+                final String qid = local.pipeline(pipe, 0, 0);
+                log(er, new Got(local.anchor(), trace, qid)); 
+                r = op.run();
+                log(er, new Sent(local.anchor(),trace,local.pipeline(qid,0,0)));
+            } else {
+                r = op.run();
+            }
+            local.link(pipe, r);
+        }
+        return r;
+    }
+    
+    /**
      * Produces a remote request channel.
      * @param type      return type
      * @param URL       target URL
@@ -132,42 +168,6 @@ Exports extends Struct implements Serializable {
                                                       0, 0), 0, 0))); 
     }
     
-    /**
-     * Does an operation at most once.
-     * @param query     message query arguments
-     * @param member    member to invoke, or <code>null</code> if unspecified
-     * @param op        operation to run
-     * @return <code>invoke</code> return value
-     */
-    public Object
-    once(final String query, final Member member, final Factory<Object> op) {
-        final String mid = Query.arg(null, query, "m");
-        if (null == mid) { return op.run(); }
-        
-        final String pipe = local.pipeline(mid,
-                Long.parseLong(Query.arg("0", query, "w")),
-                Long.parseLong(Query.arg("0", query, "i")));
-        final Token pumpkin = new Token();
-        Object r = local.fetch(pumpkin, pipe);
-        if (pumpkin == r) {
-            final Receiver<Event> er = events();
-            if (null != er) {
-                final Tracer tracer = local.fetch(null, Root.tracer);
-                final Trace trace = null != tracer
-                    ? (null != member ? tracer.dummy(member) : tracer.get())
-                : null;
-                final String msg = local.pipeline(pipe, 0, 0);
-                log(er, new Got(local.anchor(), trace, msg)); 
-                r = op.run();
-                log(er, new Sent(local.anchor(),trace,local.pipeline(msg,0,0)));
-            } else {
-                r = op.run();
-            }
-            local.link(pipe, r);
-        }
-        return r;
-    }
-    
     private Receiver<Event>
     events() {
         final Factory<Receiver<Event>> erf = local.fetch(null, Root.events);
@@ -205,7 +205,8 @@ Exports extends Struct implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public Object
-            run(final String href, final String base, final Type type) {
+            run(final String href, final String base,
+                                   final Type type) throws Exception {
                 final String URL = null != base ? URI.resolve(base,href) : href;
                 try {
                     if (URI.resolve(URL, ".").equalsIgnoreCase(getHere())) {
@@ -276,7 +277,7 @@ Exports extends Struct implements Serializable {
     }
     
     /**
-     * Is the given web-key a pipeline web-key?
+     * Is the given web-key a promise web-key?
      * @param URL   web-key
      * @return <code>true</code> if a promise, else <code>false</code>
      */
@@ -296,10 +297,10 @@ Exports extends Struct implements Serializable {
     }
     
     /**
-     * Extracts the source vat URL from a pipeline web-key.
+     * Extracts the source vat URL from a promise web-key.
      * @param URL   web-key
      * @return source vat URL, or <code>null</code> if <code>URL</code> is not
-     *         a pipeline web-key
+     *         a promise web-key
      */
     static public String
     src(final String URL) {

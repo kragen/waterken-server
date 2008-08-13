@@ -131,27 +131,6 @@ Caller extends Struct implements Messenger, Serializable {
         : post(URL, proxy, method, argv);
     }
     
-    private @Deprecated Void
-    put(final String URL, final Object proxy,
-        final Method method, final ConstArray<?> argv) {
-        class PUT extends Message implements Update, Query {
-            static private final long serialVersionUID = 1L;
-
-            Request
-            send() throws Exception {
-                return serialize(URI.resolve(URL, "?p=run&s="+Exports.key(URL)),
-                                 argv);
-            }
-
-            public Void
-            fulfill(final Response response) {
-                return receive(URL, response, proxy, method, argv, null);
-            }
-        }
-        msgs.enqueue(new PUT());
-        return null;
-    }
-    
     private Object
     get(final String URL, final Object proxy,
         final Method method, final ConstArray<?> argv) {
@@ -246,8 +225,14 @@ Caller extends Struct implements Messenger, Serializable {
                     return null;
                 }
             }
-            _.when(exports.connect().run(
-                Exports.asPromise(target), null, Object.class), new Retry());
+            Object src;
+            try {
+                src = exports.connect().run(
+                        Exports.asPromise(target), null, Object.class);
+            } catch (final Exception e) {
+                src = new Rejected<Object>(e);
+            }
+            _.when(src, new Retry());
         } else if (null != resolver) {
             Volatile<Object> value;
             try {
