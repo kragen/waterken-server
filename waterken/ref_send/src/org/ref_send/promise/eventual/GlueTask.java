@@ -6,4 +6,4 @@ package org.ref_send.promise.eventual;
  * A {@linkplain Log#got conditional} message processor.
  */
 public interface
-ConditionalRunner extends Task {}
+GlueTask extends Task {}

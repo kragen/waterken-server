@@ -165,7 +165,17 @@ Eventual extends Struct implements Serializable {
     Eventual(final Token deferred, final Loop<Task> enqueue, final Log log) {
         this.deferred = deferred;
         this.enqueue = enqueue;
-        this.log = log;
+        this.log = null != log ? log : new Sink();
+    }
+
+    /**
+     * Constructs an instance.
+     * @param deferred  {@link Deferred} permission
+     * @param enqueue   {@link #enqueue}
+     */
+    public
+    Eventual(final Token deferred, final Loop<Task> enqueue) {
+        this (deferred, enqueue, null);
     }
 
     // org.ref_send.promise.eventual.Eventual interface
@@ -380,7 +390,7 @@ Eventual extends Struct implements Serializable {
             Fulfilled<When<T>> back;
         }
         final Fulfilled<State> state = detach(new State());
-        class Pop extends Struct implements ConditionalRunner, Serializable {
+        class Pop extends Struct implements GlueTask, Serializable {
             static private final long serialVersionUID = 1L;
 
             /**
@@ -466,7 +476,7 @@ Eventual extends Struct implements Serializable {
                 final When<T> block = new When<T>(forwarder);
 
                 final State m = Fulfilled.near(state);
-                if (null != log) { log.sentIf(block, m); }
+                log.sentIf(block, m);
                 if (null == m.front) {
                     m.front = detach(block);
                     m.back = m.front;
