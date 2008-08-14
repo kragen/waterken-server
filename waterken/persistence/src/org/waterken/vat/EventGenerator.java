@@ -36,9 +36,6 @@ EventGenerator {
         final Loop<Effect> effect = local.fetch(null, Root.effect); 
         class LogX extends Struct implements Log, Serializable {
             static private final long serialVersionUID = 1L;
-            
-            public boolean
-            isOn() { return null != erf.run(); }
 
             public void
             comment(final String text) {

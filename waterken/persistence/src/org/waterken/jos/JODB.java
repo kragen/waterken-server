@@ -38,7 +38,7 @@ import org.ref_send.log.Turn;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
-import org.ref_send.promise.eventual.ConditionalRunner;
+import org.ref_send.promise.eventual.GlueTask;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
@@ -504,7 +504,7 @@ JODB extends Vat {
                 scheduled[0] = true;
                 
                 // skip logging of a self-logging task
-                if (task instanceof ConditionalRunner) { return; }
+                if (task instanceof GlueTask) { return; }
                 
                 // determine if logging is turned on
                 final Factory<Receiver<Event>> erf=root.fetch(null,Root.events);
@@ -875,7 +875,7 @@ JODB extends Vat {
                     
                     // update the log
                     final Loop<Effect> effect = local.fetch(null, Root.effect); 
-                    if (!(task instanceof ConditionalRunner)) {
+                    if (!(task instanceof GlueTask)) {
                         final Factory<Receiver<Event>> erf =
                         	local.fetch(null, Root.events);
                         final Receiver<Event> er = null!=erf ? erf.run() : null;
