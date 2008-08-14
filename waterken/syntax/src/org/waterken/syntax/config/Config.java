@@ -128,19 +128,19 @@ Config {
     /**
      * Reads a configuration setting.
      * <p>
-     * The configuration folder itself can be accessed using the code:
-     * </p>
-     * <pre>
-     * final Config config = &hellip;
-     * final File root = config.read("");
-     * </pre>
-     * <p>
      * Any <code>name</code> argument containing a period is assumed to refer
      * to a configuration file, rather than the serialized object. For example:
      * </p>
      * <pre>
+     * final Config config = &hellip;
      * final String username = config.read("username");
      * final File usernameFile = config.read("username.json");
+     * </pre>
+     * <p>
+     * The configuration folder itself can be accessed using the code:
+     * </p>
+     * <pre>
+     * final File root = config.read("");
      * </pre>
      * @param <T>   expected value type
      * @param name  setting name
