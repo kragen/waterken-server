@@ -77,7 +77,7 @@ Spawn {
             public String
             run(final Root local) throws Exception {
                 final Token deferredValue = new Token();
-                final Eventual _Value = new Eventual(deferredValue, null, null);
+                final Eventual _Value = new Eventual(deferredValue, null);
                 final Creator creator = local.fetch(null, Root.creator);
                 final ClassLoader code = creator.load(projectValue);
                 final Tracer tracerValue =
