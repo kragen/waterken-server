@@ -13,8 +13,10 @@ import java.security.SecureRandom;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
+import org.ref_send.log.CallSite;
 import org.ref_send.log.Event;
 import org.ref_send.log.Got;
 import org.ref_send.log.Sent;
@@ -70,8 +72,8 @@ Exports extends Struct implements Serializable {
     
     /*
      * message identifiers
-     * mid:                     authority to determine return values
-     * pipe: hash(mid,w,i)      authority to access a particular return value
+     * mid:                     message session key
+     * pipe: hash(mid,w,i)      read key for a particular return value
      * qid:  hash(pipe)         POST request identifier
      * rid:  hash(qid)          POST response identifier
      */
@@ -97,13 +99,16 @@ Exports extends Struct implements Serializable {
             final Receiver<Event> er = events();
             if (null != er) {
                 final Tracer tracer = local.fetch(null, Root.tracer);
-                final Trace trace = null != tracer
-                    ? (null != member ? tracer.dummy(member) : tracer.get())
-                : null;
+                final Trace trace = null != tracer && null != member
+                    ? tracer.dummy(member)
+                : new Trace(PowerlessArray.array(new CallSite[] {}));
                 final String qid = local.pipeline(pipe, 0, 0);
-                log(er, new Got(local.anchor(), trace, qid)); 
+                log(er, new Got(local.anchor(), trace, qid));
+                
                 r = op.run();
-                log(er, new Sent(local.anchor(),trace,local.pipeline(qid,0,0)));
+                
+                log(er, new Sent(local.anchor(), trace,
+                                 local.pipeline(qid, 0, 0)));
             } else {
                 r = op.run();
             }
@@ -114,11 +119,11 @@ Exports extends Struct implements Serializable {
     
     /**
      * Produces a remote request channel.
-     * @param type      return type
-     * @param URL       target URL
-     * @param mid       message identifier
-     * @param w         message window number
-     * @param i         intra-window message number
+     * @param type  return type
+     * @param URL   target URL
+     * @param mid   message session key
+     * @param w     message window number
+     * @param i     intra-window message number
      * @return return value channel, or <code>null</code> if none
      */
     public Channel<Object>
@@ -129,41 +134,37 @@ Exports extends Struct implements Serializable {
         // log the request
         final Receiver<Event> er = events();
         if (null != er) {
-            final Tracer tracer = local.fetch(null, Root.tracer);
-            log(er, new Sent(local.anchor(), null!=tracer ? tracer.get() : null,
+            log(er, new Sent(local.anchor(),
+                             new Trace(PowerlessArray.array(new CallSite[] {})),
                              local.pipeline(pipe, 0, 0))); 
         }
         
         // build the return value channel
         if (void.class == type || Void.class == type) { return null; }
         final Eventual _ = local.fetch(null, Remoting._);        
-        final Channel<Object> x = _.defer();
+        final Channel<Object> r = _.defer();
         final String here = local.fetch(null, Root.here);
-        if (null == here) { return x; }
-        local.link(pipe, x.promise);
+        if (null == here) { return r; }
+        local.link(pipe, r.promise);
         final String base = URI.resolve(URL, ".");
         return new Channel<Object>(
             Remote.make(local, URI.resolve(base,
                 "#"+pipe+"&src="+URLEncoding.encode(URI.relate(base, here)))),
-            x.resolver);
+            r.resolver);
     }
     
     /**
      * Logs receipt of a remote request response.
-     * @param mid   messaging session identifier
+     * @param mid   message session key
      * @param w     message window number
      * @param i     intra-window message number
      */
     public void
     response(final String mid, long w, long i) {
-        
-        // determine if logging is turned on
         final Receiver<Event> er = events();
         if (null == er) { return; }
-
-        // output a log event
-        final Tracer tracer = local.fetch(null, Root.tracer);
-        log(er, new Got(local.anchor(), null != tracer ? tracer.get() : null,
+        log(er, new Got(local.anchor(),
+                        new Trace(PowerlessArray.array(new CallSite[] {})),
                         local.pipeline(local.pipeline(local.pipeline(mid, w, i),
                                                       0, 0), 0, 0))); 
     }
@@ -176,7 +177,7 @@ Exports extends Struct implements Serializable {
     
     private void
     log(final Receiver<Event> er, final Event e) {
-        final Loop<Effect> effect = local.fetch(null,Root.effect); 
+        final Loop<Effect> effect = local.fetch(null, Root.effect); 
         effect.run(new Effect() { public void run() { er.run(e); } });
     }
     
