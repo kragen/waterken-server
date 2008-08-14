@@ -11,7 +11,7 @@ import org.ref_send.name;
  * Signals invalid JSON text.
  */
 public class
-BadFormat extends Exception implements Powerless, Record {
+BadSyntax extends Exception implements Powerless, Record {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -36,7 +36,7 @@ BadFormat extends Exception implements Powerless, Record {
      * @param column    {@link #column}
      */
     public @deserializer
-    BadFormat(@name("source") final String source,
+    BadSyntax(@name("source") final String source,
               @name("line") final int line,
               @name("column") final int column,
               @name("cause") final Exception cause) {

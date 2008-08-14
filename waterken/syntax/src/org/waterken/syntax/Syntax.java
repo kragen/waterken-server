@@ -11,10 +11,10 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * A serialization format.
+ * A serialization syntax.
  */
 public class
-Format extends Struct implements Powerless, Record, Serializable {
+Syntax extends Struct implements Powerless, Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -39,7 +39,7 @@ Format extends Struct implements Powerless, Record, Serializable {
      * @param deserialize   {@link #deserialize}
      */
     public @deserializer
-    Format(@name("ext") final String ext,
+    Syntax(@name("ext") final String ext,
            @name("serialize") final Serializer serialize,
            @name("deserialize") final Deserializer deserialize) {
         this.ext = ext;

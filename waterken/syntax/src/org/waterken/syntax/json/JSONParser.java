@@ -66,10 +66,10 @@ JSONParser {
      * @param parameters    each expected type
      * @return parsed argument list
      * @throws IOException  any I/O error
-     * @throws BadFormat    invalid JSON text
+     * @throws BadSyntax    invalid JSON text
      */
     public ConstArray<?>
-    readTuple(final ConstArray<Type> parameters) throws IOException, BadFormat {
+    readTuple(final ConstArray<Type> parameters) throws IOException, BadSyntax {
         try {
             if (!"[".equals(lexer.next())) { throw new Exception(); }
             final ConstArray.Builder<Object> r =
@@ -91,7 +91,7 @@ JSONParser {
             throw e;
         } catch (final Exception e) {
             try { lexer.close(); } catch (final Exception e2) {}
-            throw new BadFormat(base, lexer.getStartLine(),
+            throw new BadSyntax(base, lexer.getStartLine(),
                                 lexer.getStartColumn(), e);           
         }
     }

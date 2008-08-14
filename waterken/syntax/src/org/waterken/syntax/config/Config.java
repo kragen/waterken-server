@@ -13,7 +13,7 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.ref_send.scope.Scope;
 import org.waterken.syntax.Exporter;
-import org.waterken.syntax.Format;
+import org.waterken.syntax.Syntax;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
@@ -58,15 +58,15 @@ public final class
 Config {
     
     /**
-     * JSON format
+     * JSON syntax
      */
-    static private final Format json =
-        new Format(".json", new JSONSerializer(), new JSONDeserializer());
+    static private final Syntax json =
+        new Syntax(".json", new JSONSerializer(), new JSONDeserializer());
     
     /**
-     * all known formats
+     * each known syntax
      */
-    static private final PowerlessArray<Format> known = PowerlessArray.array(
+    static private final PowerlessArray<Syntax> known = PowerlessArray.array(
         json
     );
 
@@ -74,7 +74,7 @@ Config {
     private   final ClassLoader code;
     private   final Importer connect;
     private   final Exporter export;
-    private   final PowerlessArray<Format> supported;
+    private   final PowerlessArray<Syntax> supported;
     private   final String outputExt;
     private         Scope cache;
     
@@ -84,14 +84,14 @@ Config {
      * @param code      class loader for serialized objects
      * @param connect   remote reference importer, may be <code>null</code>
      * @param export    remote reference exporter, may be <code>null</code>
-     * @param supported list of supported serialization formats
-     * @param outputExt {@linkplain Format#ext extension} of the
-     *                  {@linkplain #init output} format
+     * @param supported each supported serialization syntax
+     * @param outputExt {@linkplain Syntax#ext extension} of the
+     *                  {@linkplain #init output} syntax
      */
     public
     Config(final File root, final ClassLoader code,
            final Importer connect, final Exporter export, 
-           final PowerlessArray<Format> supported, final String outputExt) {
+           final PowerlessArray<Syntax> supported, final String outputExt) {
         this.root = root;
         this.code = code;
         this.connect = connect;
@@ -199,10 +199,10 @@ Config {
 
                 // deserialize the named object
                 Object r = null;
-                for (final Format format : supported) {
-                    final File file = Filesystem.file(folder, name+format.ext);
+                for (final Syntax syntax : supported) {
+                    final File file = Filesystem.file(folder, name+syntax.ext);
                     if (!file.isFile()) { continue; }
-                    r = format.deserialize.run(
+                    r = syntax.deserialize.run(
                             "file:///", sub(folder, path),
                             ConstArray.array(type), code,
                             Filesystem.read(file)).get(0);
@@ -223,10 +223,10 @@ Config {
      */
     public void
     init(final String name, final Object value) throws Exception {
-        Format output = null;
-        for (final Format format : supported) {
-            if (format.ext.equals(outputExt)) {
-                output = format;
+        Syntax output = null;
+        for (final Syntax syntax : supported) {
+            if (syntax.ext.equals(outputExt)) {
+                output = syntax;
                 break;
             }
         }
