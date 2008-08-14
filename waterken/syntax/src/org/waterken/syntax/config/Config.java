@@ -47,92 +47,101 @@ import org.waterken.syntax.json.JSONSerializer;
  * These settings can be read with code:
  * </p>
  * <pre>
- * final Config config= new Config(new File(""), Anchor.class.getClassLoader());
+ * final Config config = new Config(new File("config/"),
+ *                                  getClass().getClassLoader());
  * final String username = config.read("username");
  * final int port = config.read("port");
  * final Anchor home = config.read("home");
  * </pre>
  */
-public class
+public final class
 Config {
-
-    /**
-     * root folder for configuration files
-     */
-    public    final File root;
     
     /**
-     * class loader for serialized objects
+     * JSON format
      */
-    protected final ClassLoader code;
-    
-    /**
-     * remote reference importer, may be <code>null</code>
-     */
-    public    final Importer connect;
-    
-    /**
-     * remote reference exporter, may be <code>null</code>
-     */
-    public    final Exporter export;
-    
-    /**
-     * list of known formats 
-     */
-    private   final PowerlessArray<Format> formats;
-    
-    /**
-     * cache of previously deserialized objects
-     */
-    private         Scope cache;
-    
     static private final Format json =
         new Format(".json", new JSONSerializer(), new JSONDeserializer());
     
     /**
-     * known formats
+     * all known formats
      */
-    static public PowerlessArray<Format> known = PowerlessArray.array(json);
+    static private final PowerlessArray<Format> known = PowerlessArray.array(
+        json
+    );
+
+    private   final File root;
+    private   final ClassLoader code;
+    private   final Importer connect;
+    private   final Exporter export;
+    private   final PowerlessArray<Format> supported;
+    private   final String outputExt;
+    private         Scope cache;
     
     /**
      * Constructs an instance.
-     * @param root      {@link #root}
+     * @param root      root folder for configuration files
      * @param code      class loader for serialized objects
-     * @param connect   {@link #connect}
-     * @param export    {@link #export}
-     * @param formats   list of known formats
+     * @param connect   remote reference importer, may be <code>null</code>
+     * @param export    remote reference exporter, may be <code>null</code>
+     * @param supported list of supported serialization formats
+     * @param outputExt {@linkplain Format#ext extension} of the
+     *                  {@linkplain #init output} format
      */
     public
     Config(final File root, final ClassLoader code,
            final Importer connect, final Exporter export, 
-           final PowerlessArray<Format> formats) {
+           final PowerlessArray<Format> supported, final String outputExt) {
         this.root = root;
         this.code = code;
         this.connect = connect;
         this.export = export;
-        this.formats = formats;
+        this.supported = supported;
+        this.outputExt = outputExt;
         
         cache = Empty.make();
     }
     
     /**
      * Constructs an instance.
-     * @param root      {@link #root}
+     * @param root      root folder for configuration files
+     * @param code      class loader for serialized objects
+     * @param connect   remote reference importer, may be <code>null</code>
+     * @param export    remote reference exporter, may be <code>null</code>
+     */
+    public
+    Config(final File root, final ClassLoader code,
+           final Importer connect, final Exporter export) {
+        this(root, code, connect, export, known, json.ext);
+    }
+    
+    /**
+     * Constructs an instance.
+     * @param root      root folder for configuration files
      * @param code      class loader for serialized objects
      */
     public
     Config(final File root, final ClassLoader code) {
-        this(root, code, null, null, known);
+        this(root, code, null, null);
     }
     
     /**
      * Reads a configuration setting.
      * <p>
-     * This method is just syntactic sugar for:
+     * The configuration folder itself can be accessed using the code:
      * </p>
+     * <pre>
+     * final Config config = &hellip;
+     * final File root = config.read("");
+     * </pre>
      * <p>
-     * <code>return {@link #readType readType}(name, Object.class);</code>
+     * Any <code>name</code> argument containing a period is assumed to refer
+     * to a configuration file, rather than the serialized object. For example:
      * </p>
+     * <pre>
+     * final String username = config.read("username");
+     * final File usernameFile = config.read("username.json");
+     * </pre>
      * @param <T>   expected value type
      * @param name  setting name
      * @return setting value, or <code>null</code> if not set
@@ -145,11 +154,11 @@ Config {
     
     /**
      * Reads a configuration setting.
-     * @param <T>   expected value type
-     * @param name  setting name
-     * @param type  expected value type
+     * @param <T> expected value type
+     * @param name setting name
+     * @param type expected value type used as a hint to help deserialization
      * @return setting value, or <code>null</code> if not set
-     * @throws Exception    any problem connecting to the identified reference
+     * @throws Exception any problem connecting to the identified reference
      */
     public @SuppressWarnings("unchecked") <T> T
     readType(final String name, final Type type) throws Exception {
@@ -190,7 +199,7 @@ Config {
 
                 // deserialize the named object
                 Object r = null;
-                for (final Format format : formats) {
+                for (final Format format : supported) {
                     final File file = Filesystem.file(folder, name+format.ext);
                     if (!file.isFile()) { continue; }
                     r = format.deserialize.run(
@@ -214,7 +223,14 @@ Config {
      */
     public void
     init(final String name, final Object value) throws Exception {
-        json.serialize.run(export, ConstArray.array(value),
+        Format output = null;
+        for (final Format format : supported) {
+            if (format.ext.equals(outputExt)) {
+                output = format;
+                break;
+            }
+        }
+        output.serialize.run(export, ConstArray.array(value),
                 Filesystem.writeNew(Filesystem.file(root, name + json.ext)));
         cache = cache.with(name, value);
     }
