@@ -231,7 +231,7 @@ Config {
             }
         }
         output.serialize.run(export, ConstArray.array(value),
-                Filesystem.writeNew(Filesystem.file(root, name + json.ext)));
+                Filesystem.writeNew(Filesystem.file(root, name + output.ext)));
         cache = cache.with(name, value);
     }
     
