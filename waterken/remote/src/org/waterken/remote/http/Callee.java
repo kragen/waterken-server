@@ -30,7 +30,7 @@ import org.waterken.http.Server;
 import org.waterken.http.TokenList;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.remote.Exports;
-import org.waterken.syntax.json.BadFormat;
+import org.waterken.syntax.json.BadSyntax;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.uri.Header;
@@ -207,7 +207,7 @@ Callee extends Struct implements Server, Serializable {
                             try {
                                 argv = deserialize(request, ConstArray.array(
                                         lambda.getGenericParameterTypes()));
-                            } catch (final BadFormat e) {
+                            } catch (final BadSyntax e) {
                                 /*
                                  * strip out the parsing information to avoid
                                  * leaking information to the application layer
