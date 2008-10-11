@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Eventual control flow in Javascript</title>
+<link rel="icon" type="image/gif" href="icon.gif">
+<link rel="StyleSheet" type="text/css" href="style.css">
+<script type="text/javascript" src="json2.js"></script>
+<script type="text/javascript" src="adsafe.js"></script>
+<script type="text/javascript" src="dom.js"></script>
+<style type="text/css">
+.input, .prompt { color: blue }
+.output { color: green }
+.listing { border: 2px solid black }
+</style>
+</head>
+<body>
+<noscript>
+<h1>This page requires a Javascript enabled web browser.</h1>
+</noscript>
+
+<div id="SHELL_">
+<p>Using this page, you can try out the
+<a href="ref_send.js">ref_send promise API</a> in the
+<a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a> console.
+For example, select the "Console" tab in Firebug and then enter the following
+commands at the "<kbd><span class="prompt">&gt;&gt;&gt;</span></kbd>" prompt at
+the bottom of the window:</p>
+<pre class="listing">
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">var username = Q.defer()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">// setup GUI for collecting username</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">var onChange = function () { username.resolve(this.value); }</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">// put a marker in the debug log at the point the username is entered</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { console.log('username: ' + value); })</span>
+<span class="output">function()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">// start updating the page...</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { /* update some text on the page */ })</span>
+<span class="output">function()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { /* update some other text on the page */ })</span>
+<span class="output">function()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">// pretend the text box event has fired</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">username.resolve('Tyler')</span>
+<span class="stdout">username: Tyler</span>
+</pre>
+<p>All of the callbacks registered in the code above, via the
+<code>Q.when()</code> method, will be executed in the same order as they were
+registered on the promise. So any console messages output by the callbacks that
+update the DOM will show up after the message that echoes the username.</p>
+<p>In addition to notifying callbacks, a promise can also queue invocations for
+later delivery. For example:</p>
+<pre class="listing">
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">var logger = Q.defer()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(logger.promise, 'log', [ 'Starting process...' ])</span>
+<span class="output">function()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(logger.promise, 'log', [ 'Finished foo setup.' ])</span>
+<span class="output">function()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(logger.promise, 'log', [ 'Finished bar setup.' ])</span>
+<span class="output">function()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">logger.resolve(console)</span>
+<span class="stdout">Starting process...</span>
+<span class="stdout">Finished foo setup.</span>
+<span class="stdout">Finished bar setup.</span>
+</pre>
+<p>Using promises can make it easier to decouple code that collects information
+from code that processes it, allowing you to easily setup complex "if this
+happens, then do that" chains in your program.</p>
+<script type="text/javascript">
+'use subset cautious';
+ADSAFE.id('SHELL_');
+</script>
+<script type="text/javascript" src="ref_send.js"></script>
+<script type="text/javascript">
+'use subset cautious';
+ADSAFE.go('SHELL_', function (dom, lib) {
+    // Promote the widget context...
+    window.dom = dom;  // not ADsafe
+    window.lib = lib;  // not ADsafe
+    window.Q = lib.Q;  // not ADsafe
+    // , so that it can be used from the console.
+    // Normally, you'd put your code here, instead of writing in the console.
+});
+</script>
+</div>
+
+</body>
+</html>
