@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>clickjacking: The Confused Deputy rides again!</title>
+<link rel="StyleSheet" type="text/css" href="../site/style.css">
+<link rel="icon" type="image/gif" href="../site/icon.gif">
+</head>
+<body>
+<div class="navigation">
+<a href="../"><img alt="home" src="../site/icon.gif" width="16" height="16" border="0"></a>
+<span class="heading">&rarr; clickjacking</span>
+</div>
+<div class="main">
+<h1><a name="title" href="#title">The Confused Deputy rides again!</a></h1>
+<p>The <a href="http://ha.ckers.org/blog/20080915/clickjacking/">announcement
+of the clickjacking research</a> ignited interest in a number of Web exploits,
+some of which seem new and others similar to known exploits. Already, there's
+lots of
+<a href="http://blog.whatwg.org/this-week-in-html-5-episode-7">discussion of
+possible workarounds</a>, mainly focused on changes to the application's user
+interface, or the browser's rendering logic. While the flexibility of the
+browser's user interface languages gives clickjacking a polished look, this
+flexibility isn't actually what enables these attacks. That blame lies with the
+ambient authority model used by most web applications. If applications instead
+used an explicit authorization model, they would not be vulnerable to
+clickjacking and there would be no need to reduce the flexibility of the
+browser's user interface languages. Web applications can be implemented to an
+explicit authorization model without any change to Web protocols or
+formats.</p>
+<h2><a name="clickjacking" href="#clickjacking">Clickjacking</a></h2>
+<p>As a Web user, you may have the ability to initiate privileged actions that
+others cannot. For example, you can delete all the email from your web-mail
+account, or liquidate your stock portfolio, or start recording video from your
+webcam. Normally, you initiate these actions by clicking on buttons in web
+pages. A clickjacking attack can be used to direct seemingly benign mouse
+clicks to these privileged buttons.
+<a href="http://www.youtube.com/watch?v=gxyLbpldmuU">For example, you may think
+you're playing a game, when you're actually starting a webcam recording</a>.
+Using only CSS and HTML, an attacker can create a transparent IFRAME of a
+victim web page that contains privileged buttons. Below this transparent
+IFRAME, the attacker puts content, like a game, that entices the user to click.
+Although the user only sees the game, the mouse clicks are delivered to the
+transparent buttons, since they are on top of the game.</p>
+<h2><a name="reaction" href="#reaction">The reaction</a></h2>
+<p>Specific information about the clickjacking research is still
+<a href="http://ha.ckers.org/blog/20081007/clickjacking-details/">coming
+out</a>, but it looks like the researchers have found a number of compelling
+ways to entice users to click on privileged buttons without realizing it. So far,
+<a href="http://blog.whatwg.org/this-week-in-html-5-episode-7">initial
+proposals</a> to fix these problems seem directly inspired by the details of
+these exploits; either banning the particular techniques used; or sending the
+victim server metadata about the particular interaction, so that it can choose
+to reject the request.</p>
+<p>The particular rendering techniques highlighted by the clickjacking
+research are fascinating, but this glitz may distract from the actual
+underlying problem. Much simpler techniques could also be used in a plausible
+clickjacking attack, and so perhaps make the actual problem more apparent.  For
+example, consider a scenario where a single button press can launch a dangerous
+action. The attacker could engage the user in a game of mouse clicking, and
+then, just as the user was about to click, navigate the browser to the page
+containing the privileged button. In this case, there are no IFRAMEs or
+transparency settings, just a simple page navigation. If the solution to this
+problem is restricting the features of the Web's user interface languages, then
+much of the Web sits on the chopping block. Perhaps there's another, better,
+way to look at this problem.</p>
+<h2><a name="ambient" href="#ambient">Ambient authority</a></h2>
+<p>The buttons that the clickjacker directs clicks to are privileged buttons
+that require the user's authority to work. Typically, this authority is
+expressed in the form of cookies, derived from the user's password . Whenever
+the browser sends off an HTTP request, it includes all the corresponding
+cookies for the request target. This model for using authority is called
+<i>ambient</i> because requests don't explicitly specify what authority should
+be used. Instead, the execution environment automatically adds all possibly
+relevant authority to every request. From the programmer's perspective, things
+automatically provided by the execution environment, like CPU time and memory,
+seem to be part of the ambient environment in which they work, never explicitly
+mentioned, but there when you want them.</p>
+<h2><a name="confused-deputy" href="#confused-deputy">Confused Deputy</a></h2>
+<p>Over 20 years ago, Norm Hardy noticed that treating authority as part of the
+ambient environment of a program creates problems when that program is running
+on behalf of distinct parties. To illustrate the problem, Norm wrote a paper,
+<a href="http://www.cap-lore.com/CapTheory/ConfusedDeputy.html">The Confused
+Deputy</a>, about a compiler that keeps a usage log for billing purposes. This
+compiler runs on behalf of the user, accessing user source code files and
+output files; but also on behalf of the compiler writer, accessing the usage
+log. When the compiler is running, it has access to both the user's authority
+and the compiler author's authority, but no way to specify when it's using
+which. So for example, a tricky user could specify the name of the usage log as
+the output file for compilation, thus overwriting all the billing
+information.</p>
+<p>Today's web browsers are much like the compiler in the Confused Deputy
+paper. The browser runs on behalf of the user, using the user's passwords; but
+also on behalf of web sites, rendering their web pages. Like in the compiler
+example, there's no way to specify whether a particular request is being done
+at the user's direction, or solely on the instructions of a visited web page.
+Once again, a tricky web site can exploit this ambiguity by specifying the name
+of a victim web page in an IFRAME request, thus puting a dangerous button in an
+unexpected place.</p>
+<p>When viewed from an access-control perspective, clickjacking is another
+formulation of a Confused Deputy attack, similar to Cross-Site-Request-Forgery
+(CSRF). Typically, an CSRF attack is considered to be one in which the attacker
+sends a POST request to a victim site, under the user's authority. Clickjacking
+can similarly be thought of as an attack in which the attacker sends a GET
+request to a victim site, under the user's authority. In an CSRF attack, the
+payoff to the attacker comes from the side-effects of the POST request. In a
+clickjacking attack, the payoff comes from the on-screen positioning of private
+information.</p>
+<h2><a name="explicit" href="#explicit">Explicit authority</a></h2>
+<p>The most popular counter-measure for CSRF is to embed an unguessable secret
+in the legitimate HTML FORM element. Since the attacker doesn't know the
+secret, he is unable to create a FORM that generates a POST request the server
+will accept. This use of an unguessable secret for access-control shifts the
+web-application from an ambient authority model to an explicit one. The
+unguessable secret embodies the authority to perform the request and it must be
+explicitly included in the request. A similar technique can be used to protect
+against clickjacking.</p>
+<p>If the URL for a page containing privileged buttons included an unguessable
+secret, the attacker would be unable to create an IFRAME element that refers to
+the page. Similarly, the attacker would also be unable to navigate the web
+browser to that page at an unexpected moment. By taking away the attacker's
+authority to display the privileged buttons, we take away the opportunity to
+play tricks with the timing and positioning of their display.</p>
+<h2><a name="saving-features" href="#saving-features">Saving the Web</a></h2>
+<p>In an explicit authority model, the rendering tricks used in the
+clickjacking attacks are not dangerous and so need not be restricted. For
+example, there's no need to place restrictions on the use of IFRAMEs or opacity
+styling. If an attacker doesn't know the unguessable URL for a victim web page,
+he is unable to load the page and so is unable to trick the user into
+interacting with the page. If a legitimate site does know the unguessable URL
+for a page at a partner site, it can load the page and customize its
+presentation. Such customization isn't trickery, since there's no need for
+trickery. The legitimate site can already send any request it likes using the
+unguessable URL; interaction from the user isn't needed.</p>
+<p>Providing comprehensive protection against clickjacking attacks by
+restricting the features of the Web's GUI languages would severely handicap the
+Web. Even basic functionality such as linking would be negatively affected. A
+much better solution is to continue the progression towards explicit
+authorization models that began with defense against CSRF.</p>
+<h2><a name="web-key" href="#web-key">Web-key</a></h2>
+<p>A surprising number of the security problems with today's Web are directly
+attributable to the use of ambient authorization. The
+<a href="../web-key/">web-key</a> paper explains many of these problems and
+also describes how best to use unguessable URLs to address these problems. If
+you're starting a new web-application, or trying to fix an existing one, take a
+look at web-keys as way to implement a comprehensive solution to these
+problems. If you're a browser implementer or standards author consider how best
+to support web-keys, before considering how to handicap the Web's GUI
+languages.</p>
+</div>
+<p class="footer">
+</p>
+</body>
+</html>
