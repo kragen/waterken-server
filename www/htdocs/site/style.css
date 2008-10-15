@@ -7,19 +7,25 @@ a { text-decoration: none }
 a:hover { color: blue; text-decoration: underline }
 sup { font-size: small }
 .highlight { background-color: yellow }
+.comment { color: gray; font-style: italic }
 .figure { padding-left: 5em; width: 400px }
 caption, .caption { font-size: large; font-weight: bold }
 form { padding: 0px; margin: 0px }
-th { text-align: right; vertical-align: baseline; background-color: #99CCCC }
+th {
+    text-align: right;
+    vertical-align: baseline;
+    background-color: #99CCCC;
+}
+body {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
 .navigation {
     padding-bottom: 2px;
     border-bottom: 2px solid #007FB2;
 }
-.main { max-width: 600px }
-.comment { color: gray; font-style: italic }
 .footer {
-    padding-top: 2px;
     border-top: 2px solid #007FB2;
-    color: gray;
-    font-style: italic;
+    padding-top: 2px;
 }

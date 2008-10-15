@@ -8,9 +8,9 @@
 <link rel="icon" type="image/gif" href="../site/icon.gif">
 </head>
 <body>
-<div class="navigation">
+<div class="navigation heading">
 <a href="../"><img alt="home" src="../site/icon.gif" width="16" height="16" border="0"></a>
-<span class="heading">&rarr; clickjacking</span>
+&rarr; <a class="heading" href="./">clickjacking</a>
 </div>
 <div class="main">
 <h1><a name="title" href="#title">The Confused Deputy rides again!</a></h1>
@@ -71,12 +71,12 @@ that require the user's authority to work. Typically, this authority is
 expressed in the form of cookies, derived from the user's password . Whenever
 the browser sends off an HTTP request, it includes all the corresponding
 cookies for the request target. This model for using authority is called
-<i>ambient</i> because requests don't explicitly specify what authority should
-be used. Instead, the execution environment automatically adds all possibly
-relevant authority to every request. From the programmer's perspective, things
-automatically provided by the execution environment, like CPU time and memory,
-seem to be part of the ambient environment in which they work, never explicitly
-mentioned, but there when you want them.</p>
+<i>ambient</i> because the requestor doesn't explicitly specify what authority
+should be used. Instead, the execution environment automatically adds all
+possibly relevant authority to every request. From the programmer's
+perspective, things automatically provided by the execution environment, like
+CPU time and memory, seem to be part of the ambient environment in which they
+work, never explicitly mentioned, but there when you want them.</p>
 <h2><a name="confused-deputy" href="#confused-deputy">Confused Deputy</a></h2>
 <p>Over 20 years ago, Norm Hardy noticed that treating authority as part of the
 ambient environment of a program creates problems when that program is running
@@ -89,7 +89,7 @@ log. When the compiler is running, it has access to both the user's authority
 and the compiler author's authority, but no way to specify when it's using
 which. So for example, a tricky user could specify the name of the usage log as
 the output file for compilation, thus overwriting all the billing
-information.</p>
+information with compiled code.</p>
 <p>Today's web browsers are much like the compiler in the Confused Deputy
 paper. The browser runs on behalf of the user, using the user's passwords; but
 also on behalf of web sites, rendering their web pages. Like in the compiler
@@ -106,7 +106,7 @@ can similarly be thought of as an attack in which the attacker sends a GET
 request to a victim site, under the user's authority. In a CSRF attack, the
 payoff to the attacker comes from the side-effects of the POST request. In a
 clickjacking attack, the payoff comes from the on-screen positioning of private
-information.</p>
+controls.</p>
 <h2><a name="explicit" href="#explicit">Explicit authority</a></h2>
 <p>The most popular counter-measure for CSRF is to embed an unguessable secret
 in the legitimate HTML FORM element. Since the attacker doesn't know the
@@ -122,7 +122,7 @@ the page. Similarly, the attacker would also be unable to navigate the web
 browser to that page at an unexpected moment. By taking away the attacker's
 authority to display the privileged buttons, we take away the opportunity to
 play tricks with the timing and positioning of their display.</p>
-<h2><a name="saving-features" href="#saving-features">Saving the Web</a></h2>
+<h2><a name="saving-the-web" href="#saving-the-web">Saving the Web</a></h2>
 <p>In an explicit authority model, the rendering tricks used in the
 clickjacking attacks are not dangerous and so need not be restricted. For
 example, there's no need to place restrictions on the use of IFRAMEs or opacity
@@ -140,16 +140,16 @@ much better solution is to continue the progression towards explicit
 authorization models that began with defense against CSRF.</p>
 <h2><a name="web-key" href="#web-key">Web-key</a></h2>
 <p>A surprising number of the security problems with today's Web are directly
-attributable to the use of ambient authorization. The
+attributable to the use of ambient authority. The
 <a href="../web-key/">web-key</a> paper explains many of these problems and
 also describes how best to use unguessable URLs to address these problems. If
 you're starting a new web-application, or trying to fix an existing one, take a
-look at web-keys as way to implement a comprehensive solution to these
+look at web-keys as a way to implement a comprehensive solution to these
 problems. If you're a browser implementer or standards author consider how best
 to support web-keys, before considering how to handicap the Web's GUI
 languages.</p>
 </div>
-<p class="footer">
+<p class="footer comment">
 by Tyler Close on October 14, 2008
 </p>
 </body>
