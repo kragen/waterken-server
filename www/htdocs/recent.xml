@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xml:base="http://waterken.sourceforge.net/recent.atom">
+
+<title>Waterken Server</title>
+<id>http://waterken.sourceforge.net/recent.atom</id>
+<link href="/"/>
+<logo>site/icon.gif</logo>
+<icon>site/icon.gif</icon>
+<subtitle>Capability-based security for the Web</subtitle>
+<updated>2008-10-15Z</updated>
+<author><name>Tyler Close</name></author>
+
+<entry xml:base="http://waterken.sourceforge.net/clickjacking/">
+<title>clickjacking: The Confused Deputy rides again!</title>
+<link href=""/>
+<id>http://waterken.sourceforge.net/clickjacking/</id>
+<updated>2008-10-15Z</updated>
+<summary type='xhtml'>
+<div xmlns='http://www.w3.org/1999/xhtml'>
+<p>The <a href="http://ha.ckers.org/blog/20080915/clickjacking/">announcement
+of the clickjacking research</a> ignited interest in a number of Web exploits,
+some of which seem new and others similar to known exploits. Already, there's
+lots of
+<a href="http://blog.whatwg.org/this-week-in-html-5-episode-7">discussion of
+possible workarounds</a>, mainly focused on changes to the application's user
+interface, or the browser's rendering logic. While the flexibility of the
+browser's user interface languages gives clickjacking a polished look, this
+flexibility isn't actually what enables these attacks. That blame lies with the
+ambient authority model used by most web applications. If applications instead
+used an explicit authorization model, they would not be vulnerable to
+clickjacking and there would be no need to reduce the flexibility of the
+browser's user interface languages. Web applications can be implemented to an
+explicit authorization model without any change to Web protocols or
+formats.</p>
+</div>
+</summary>
+</entry>
+
+<entry xml:base="http://waterken.sourceforge.net/upgrade/">
+<title>upgrade: Live fast, die young and leave a good-looking corpse</title>
+<link href=""/>
+<id>http://waterken.sourceforge.net/upgrade/</id>
+<updated>2008-03-22Z</updated>
+<summary type='xhtml'>
+<div xmlns='http://www.w3.org/1999/xhtml'>
+<p>Any application that keeps state needs a plan for maintaining it as the
+application evolves. Successfully managing these upgrades is one of the more
+challenging aspects of application development. This document explains several
+patterns and techniques for managing upgrade in a Waterken application.</p>
+</div>
+</summary>
+</entry>
+
+<entry xml:base="http://waterken.sourceforge.net/web-key/">
+<title>web-key: Mashing with Permission</title>
+<link href=""/>
+<id>http://waterken.sourceforge.net/web-key/</id>
+<updated>2007-10-28Z</updated>
+<summary type='xhtml'>
+<div xmlns='http://www.w3.org/1999/xhtml'>
+<p>Mashups, web applications that interact with other web applications, are
+receiving increasing developer interest and providing users with valuable new
+functionality. When one or more of the interacting applications have access
+control requirements, many design challenges arise. Failure to meet these
+challenges brings unnecessary risk to the user.  Addressing the challenges
+using a poorly suited technique can add significant complexity to both the
+application code and the user interface, all while not reducing risk to the
+user.  In addition to examining and explaining these failings, this paper
+introduces a solution, the web-key, an https URL convention for representing a
+transferable permission in a web application. Using web-keys, access control
+challenges can be effectively solved using existing development tools for web
+applications deployed to existing web browsers.</p>
+</div>
+</summary>
+</entry>
+
+</feed>
