@@ -37,15 +37,30 @@ formats.</p>
 </content>
 </entry>
 
-<entry xml:base="https://addons.mozilla.org/en-US/firefox/addon/957">
+<entry>
 <title>Petname Tool: updated for Firefox 3</title>
-<link href=""/>
+<link href="https://addons.mozilla.org/en-US/firefox/addon/957"/>
 <id>https://addons.mozilla.org/en-US/firefox/addons/versions/957#version-1.6</id>
 <updated>2008-09-25Z</updated>
 <content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
 <p>I've ported the Petname Tool to the new Places API for bookmarks in Firefox
 3.</p>
+</div>
+</content>
+</entry>
+
+<entry>
+<title>Using promises to orchestrate Web interactions</title>
+<link href="http://www.windley.com/archives/2008/04/tyler_close_using_promises_to_orchestrate_web_interactions.shtml"/>
+<id>http://www.windley.com/archives/2008/04/tyler_close_using_promises_to_orchestrate_web_interactions.shtml</id>
+<updated>2008-04-25Z</updated>
+<content type='xhtml'>
+<div xmlns='http://www.w3.org/1999/xhtml'>
+<p>Phil Windley blogs about
+<a href="http://www2008.org/program/program-DevTrack.html#seven">my WWW 2008
+presentation</a> of the <a href="bang/">ref_send library for
+Javascript</a>.</p>
 </div>
 </content>
 </entry>
