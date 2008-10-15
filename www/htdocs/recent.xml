@@ -92,6 +92,20 @@ patterns and techniques for managing upgrade in a Waterken application.</p>
 </content>
 </entry>
 
+<entry xml:base="http://www.w3.org/TR/wsc-usecases/">
+<title>W3C Note on browser security UI finishes Last Call</title>
+<link href=""/>
+<id>http://www.w3.org/TR/wsc-usecases/</id>
+<updated>2008-03-06Z</updated>
+<content type='xhtml'>
+<div xmlns='http://www.w3.org/1999/xhtml'>
+<p>This publication completes my duties as editor for the W3C Web Security
+Context Working Group. I think the <a href="#problems">Problems with the status
+quo</a> section provides a good summary of the challenges facing the group.</p>
+</div>
+</content>
+</entry>
+
 <entry xml:base="http://waterken.sourceforge.net/web-key/">
 <title>web-key: Mashing with Permission</title>
 <link href=""/>
