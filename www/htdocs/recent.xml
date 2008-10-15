@@ -38,6 +38,19 @@ formats.</p>
 </entry>
 
 <entry xml:base="http://waterken.sourceforge.net/upgrade/">
+<title>Petname Tool: updated for Firefox 3</title>
+<link href="https://addons.mozilla.org/en-US/firefox/addon/957"/>
+<id>https://addons.mozilla.org/en-US/firefox/addons/versions/957#version-1.6</id>
+<updated>2008-09-25Z</updated>
+<summary type='xhtml'>
+<div xmlns='http://www.w3.org/1999/xhtml'>
+<p>I've ported the Petname Tool to the new Places API for bookmarks in Firefox
+3.</p>
+</div>
+</summary>
+</entry>
+
+<entry xml:base="http://waterken.sourceforge.net/upgrade/">
 <title>upgrade: Live fast, die young and leave a good-looking corpse</title>
 <link href=""/>
 <id>http://waterken.sourceforge.net/upgrade/</id>
