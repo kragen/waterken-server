@@ -16,7 +16,7 @@
 <link href=""/>
 <id>http://waterken.sourceforge.net/clickjacking/</id>
 <updated>2008-10-15Z</updated>
-<summary type='xhtml'>
+<content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
 <p>The <a href="http://ha.ckers.org/blog/20080915/clickjacking/">announcement
 of the clickjacking research</a> ignited interest in a number of Web exploits,
@@ -34,7 +34,7 @@ browser's user interface languages. Web applications can be implemented to an
 explicit authorization model without any change to Web protocols or
 formats.</p>
 </div>
-</summary>
+</content>
 </entry>
 
 <entry xml:base="https://addons.mozilla.org/en-US/firefox/addon/957">
@@ -42,12 +42,12 @@ formats.</p>
 <link href=""/>
 <id>https://addons.mozilla.org/en-US/firefox/addons/versions/957#version-1.6</id>
 <updated>2008-09-25Z</updated>
-<summary type='xhtml'>
+<content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
 <p>I've ported the Petname Tool to the new Places API for bookmarks in Firefox
 3.</p>
 </div>
-</summary>
+</content>
 </entry>
 
 <entry xml:base="http://waterken.sourceforge.net/upgrade/">
@@ -55,14 +55,14 @@ formats.</p>
 <link href=""/>
 <id>http://waterken.sourceforge.net/upgrade/</id>
 <updated>2008-03-22Z</updated>
-<summary type='xhtml'>
+<content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
 <p>Any application that keeps state needs a plan for maintaining it as the
 application evolves. Successfully managing these upgrades is one of the more
 challenging aspects of application development. This document explains several
 patterns and techniques for managing upgrade in a Waterken application.</p>
 </div>
-</summary>
+</content>
 </entry>
 
 <entry xml:base="http://waterken.sourceforge.net/web-key/">
@@ -70,7 +70,7 @@ patterns and techniques for managing upgrade in a Waterken application.</p>
 <link href=""/>
 <id>http://waterken.sourceforge.net/web-key/</id>
 <updated>2007-10-28Z</updated>
-<summary type='xhtml'>
+<content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
 <p>Mashups, web applications that interact with other web applications, are
 receiving increasing developer interest and providing users with valuable new
@@ -85,7 +85,7 @@ transferable permission in a web application. Using web-keys, access control
 challenges can be effectively solved using existing development tools for web
 applications deployed to existing web browsers.</p>
 </div>
-</summary>
+</content>
 </entry>
 
 </feed>
