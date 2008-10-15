@@ -37,9 +37,9 @@ formats.</p>
 </summary>
 </entry>
 
-<entry>
+<entry xml:base="https://addons.mozilla.org/en-US/firefox/addon/957">
 <title>Petname Tool: updated for Firefox 3</title>
-<link href="https://addons.mozilla.org/en-US/firefox/addon/957"/>
+<link href=""/>
 <id>https://addons.mozilla.org/en-US/firefox/addons/versions/957#version-1.6</id>
 <updated>2008-09-25Z</updated>
 <summary type='xhtml'>
