@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom"
-      xml:base="http://waterken.sourceforge.net/recent.atom">
+      xml:base="http://waterken.sourceforge.net/recent.xml">
 
 <title>Waterken Server</title>
-<id>http://waterken.sourceforge.net/recent.atom</id>
+<id>http://waterken.sourceforge.net/recent</id>
 <link href="/"/>
 <logo>site/icon.gif</logo>
 <icon>site/icon.gif</icon>
