@@ -115,8 +115,8 @@ secret, he is unable to create a FORM that generates a POST request the server
 will accept. This use of an unguessable secret for access-control shifts the
 web-application from an ambient authority model to an explicit one. The
 unguessable secret embodies the authority to perform the request and it must be
-explicitly included in the request. A similar technique can be used to protect
-against clickjacking.</p>
+explicitly provided when making the request. A similar technique can be used to
+protect against clickjacking.</p>
 <p>If the URL for a page containing privileged buttons included an unguessable
 secret, the attacker would be unable to create an IFRAME element that refers to
 the page. Similarly, the attacker would also be unable to navigate the web
