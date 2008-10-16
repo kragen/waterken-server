@@ -29,7 +29,7 @@
             <xsl:text> </xsl:text>
             <a class="heading" href="{atom:link/@href}"><xsl:value-of select="atom:title"/></a>
             <xsl:text> </xsl:text>
-            <xsl:copy-of select="atom:content/*"/>
+            <xsl:copy-of select="atom:content/*/*"/>
             </div>
         </xsl:for-each>
         </div>
