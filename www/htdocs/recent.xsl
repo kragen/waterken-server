@@ -25,7 +25,7 @@
         <h1><a name="subtitle" href="#subtitle"><xsl:value-of select="atom:subtitle"/></a></h1>
         <xsl:for-each select="atom:entry">
             <div class="entry">
-            <span class="dateTime comment"><xsl:value-of select="atom:updated"/></span>
+            <span class="date comment"><xsl:value-of select="substring-before(atom:updated, 'T')"/></span>
             <xsl:text> </xsl:text>
             <a class="heading" href="{atom:link/@href}"><xsl:value-of select="atom:title"/></a>
             <xsl:text> </xsl:text>
@@ -35,7 +35,7 @@
         </div>
         <p class="footer comment">
         <a class="author" href="{atom:author/atom:uri}"><xsl:value-of select="atom:author/atom:name"/></a>,
-        <span class="dateTime comment"><xsl:value-of select="atom:updated"/></span>
+        <span class="date comment"><xsl:value-of select="substring-before(atom:updated, 'T')"/></span>
         </p>
     </body>
     </html>
