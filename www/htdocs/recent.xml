@@ -6,6 +6,7 @@
 <title>Waterken News</title>
 <id>http://waterken.sourceforge.net/recent</id>
 <link href="recent.html"/>
+<link rel="self" href="recent.xml"/>
 <logo>site/icon.gif</logo>
 <icon>site/icon.gif</icon>
 <subtitle>Capability-based security on the Web</subtitle>

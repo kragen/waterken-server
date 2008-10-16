@@ -11,7 +11,7 @@
     <head>
         <meta name="GENERATOR" content="recent.xsl"/>
         <link rel="StyleSheet" type="text/css" href="site/style.css"/>
-        <link rel="alternate" type="application/atom+xml" title="Atom (recent update summaries)" href="recent.xml"/>
+        <link rel="alternate" type="application/atom+xml" title="Atom (recent update summaries)" href="{atom:link[@rel='self']/@href}"/>
         <link rel="icon" type="image/gif" href="{atom:icon}"/>
         <title><xsl:value-of select="atom:title"/>: <xsl:value-of select="atom:subtitle"/></title>
     </head>
