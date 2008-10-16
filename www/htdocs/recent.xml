@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="recent.xsl"?>
 <feed xmlns="http://www.w3.org/2005/Atom"
-      xml:base="http://waterken.sourceforge.net/recent.xml">
+      xml:base="http://waterken.sourceforge.net/">
 
-<title>Waterken Server</title>
+<title>Waterken News</title>
 <id>http://waterken.sourceforge.net/recent</id>
-<link href="/"/>
+<link href="recent.html"/>
 <logo>site/icon.gif</logo>
 <icon>site/icon.gif</icon>
-<subtitle>Capability-based security for the Web</subtitle>
+<subtitle>Capability-based security on the Web</subtitle>
 <updated>2008-10-16Z</updated>
 <author><name>Tyler Close</name></author>
 
-<entry xml:base="http://waterken.sourceforge.net/clickjacking/">
+<entry>
 <title>clickjacking: The Confused Deputy rides again!</title>
-<link href=""/>
+<link href="http://waterken.sourceforge.net/clickjacking/"/>
 <id>http://waterken.sourceforge.net/recent#7</id>
 <updated>2008-10-15Z</updated>
-<content type='xhtml'>
-<div xmlns='http://www.w3.org/1999/xhtml'>
-<p>The <a href="http://ha.ckers.org/blog/20080915/clickjacking/">announcement
-of the clickjacking research</a> ignited interest in a number of Web exploits,
-some of which seem new and others similar to known exploits. Already, there's
-lots of
+<content type="xhtml">
+<p xmlns="http://www.w3.org/1999/xhtml">The
+<a href="http://ha.ckers.org/blog/20080915/clickjacking/">announcement of the
+clickjacking research</a> ignited interest in a number of Web exploits, some of
+which seem new and others similar to known exploits. Already, there's lots of
 <a href="http://blog.whatwg.org/this-week-in-html-5-episode-7">discussion of
 possible workarounds</a>, mainly focused on changes to the application's user
 interface, or the browser's rendering logic. While the flexibility of the
@@ -33,7 +33,6 @@ clickjacking and there would be no need to reduce the flexibility of the
 browser's user interface languages. Web applications can be implemented to an
 explicit authorization model without any change to Web protocols or
 formats.</p>
-</div>
 </content>
 </entry>
 
@@ -42,11 +41,9 @@ formats.</p>
 <link href="https://addons.mozilla.org/en-US/firefox/addon/957"/>
 <id>http://waterken.sourceforge.net/recent#6</id>
 <updated>2008-09-25Z</updated>
-<content type='xhtml'>
-<div xmlns='http://www.w3.org/1999/xhtml'>
-<p>I've ported the Petname Tool to the new Places API for bookmarks in Firefox
-3.</p>
-</div>
+<content type="xhtml">
+<p xmlns="http://www.w3.org/1999/xhtml">I've ported the Petname Tool to the new
+Places API for bookmarks in Firefox 3.</p>
 </content>
 </entry>
 
@@ -55,11 +52,9 @@ formats.</p>
 <link href="http://usablesecurity.com/2008/07/24/testing-for-usable-security-what-relationship-if-any-does-it-have-to-product-design/"/>
 <id>http://waterken.sourceforge.net/recent#5</id>
 <updated>2008-07-24Z</updated>
-<content type='xhtml'>
-<div xmlns='http://www.w3.org/1999/xhtml'>
-<p>Richard Conlan blogs about a SOUPS 2008 panel that I participated in.</p>
-</div>
-</content>
+<content type="xhtml">
+<p xmlns="http://www.w3.org/1999/xhtml">Richard Conlan blogs about a SOUPS 2008
+panel that I participated in.</p> </content>
 </entry>
 
 <entry>
@@ -67,65 +62,60 @@ formats.</p>
 <link href="http://www.windley.com/archives/2008/04/tyler_close_using_promises_to_orchestrate_web_interactions.shtml"/>
 <id>http://waterken.sourceforge.net/recent#4</id>
 <updated>2008-04-25Z</updated>
-<content type='xhtml'>
-<div xmlns='http://www.w3.org/1999/xhtml'>
-<p>Phil Windley blogs about
+<content type="xhtml">
+<p xmlns="http://www.w3.org/1999/xhtml">Phil Windley blogs about
 <a href="http://www2008.org/program/program-DevTrack.html#seven">my WWW 2008
 presentation</a> of the <a href="bang/">ref_send library for
 Javascript</a>.</p>
-</div>
 </content>
 </entry>
 
-<entry xml:base="http://waterken.sourceforge.net/upgrade/">
+<entry>
 <title>upgrade: Live fast, die young and leave a good-looking corpse</title>
-<link href=""/>
+<link href="http://waterken.sourceforge.net/upgrade/"/>
 <id>http://waterken.sourceforge.net/recent#3</id>
 <updated>2008-03-22Z</updated>
-<content type='xhtml'>
-<div xmlns='http://www.w3.org/1999/xhtml'>
-<p>Any application that keeps state needs a plan for maintaining it as the
-application evolves. Successfully managing these upgrades is one of the more
-challenging aspects of application development. This document explains several
-patterns and techniques for managing upgrade in a Waterken application.</p>
-</div>
+<content type="xhtml">
+<p xmlns="http://www.w3.org/1999/xhtml">Any application that keeps state needs
+a plan for maintaining it as the application evolves. Successfully managing
+these upgrades is one of the more challenging aspects of application
+development. This document explains several patterns and techniques for
+managing upgrade in a Waterken application.</p>
 </content>
 </entry>
 
-<entry xml:base="http://www.w3.org/TR/wsc-usecases/">
+<entry>
 <title>W3C Note on browser security UI finishes Last Call</title>
-<link href=""/>
+<link href="http://www.w3.org/TR/wsc-usecases/"/>
 <id>http://waterken.sourceforge.net/recent#2</id>
 <updated>2008-03-06Z</updated>
-<content type='xhtml'>
-<div xmlns='http://www.w3.org/1999/xhtml'>
-<p>This publication completes my duties as editor for the W3C Web Security
-Context Working Group. I think the <a href="#problems">Problems with the status
+<content type="xhtml">
+<p xmlns="http://www.w3.org/1999/xhtml">This publication completes my duties as
+editor for the W3C Web Security Context Working Group. I think the <a
+href="http://www.w3.org/TR/wsc-usecases/#problems">Problems with the status
 quo</a> section provides a good summary of the challenges facing the group.</p>
-</div>
 </content>
 </entry>
 
-<entry xml:base="http://waterken.sourceforge.net/web-key/">
+<entry>
 <title>web-key: Mashing with Permission</title>
-<link href=""/>
+<link href="http://waterken.sourceforge.net/web-key/"/>
 <id>http://waterken.sourceforge.net/recent#1</id>
 <updated>2007-10-28Z</updated>
-<content type='xhtml'>
-<div xmlns='http://www.w3.org/1999/xhtml'>
-<p>Mashups, web applications that interact with other web applications, are
-receiving increasing developer interest and providing users with valuable new
-functionality. When one or more of the interacting applications have access
-control requirements, many design challenges arise. Failure to meet these
-challenges brings unnecessary risk to the user.  Addressing the challenges
-using a poorly suited technique can add significant complexity to both the
-application code and the user interface, all while not reducing risk to the
-user.  In addition to examining and explaining these failings, this paper
-introduces a solution, the web-key, an https URL convention for representing a
-transferable permission in a web application. Using web-keys, access control
-challenges can be effectively solved using existing development tools for web
-applications deployed to existing web browsers.</p>
-</div>
+<content type="xhtml">
+<p xmlns="http://www.w3.org/1999/xhtml">Mashups, web applications that interact
+with other web applications, are receiving increasing developer interest and
+providing users with valuable new functionality. When one or more of the
+interacting applications have access control requirements, many design
+challenges arise. Failure to meet these challenges brings unnecessary risk to
+the user.  Addressing the challenges using a poorly suited technique can add
+significant complexity to both the application code and the user interface, all
+while not reducing risk to the user.  In addition to examining and explaining
+these failings, this paper introduces a solution, the web-key, an https URL
+convention for representing a transferable permission in a web application.
+Using web-keys, access control challenges can be effectively solved using
+existing development tools for web applications deployed to existing web
+browsers.</p>
 </content>
 </entry>
 
