@@ -8,13 +8,13 @@
 <logo>site/icon.gif</logo>
 <icon>site/icon.gif</icon>
 <subtitle>Capability-based security for the Web</subtitle>
-<updated>2008-10-15Z</updated>
+<updated>2008-10-16Z</updated>
 <author><name>Tyler Close</name></author>
 
 <entry xml:base="http://waterken.sourceforge.net/clickjacking/">
 <title>clickjacking: The Confused Deputy rides again!</title>
 <link href=""/>
-<id>http://waterken.sourceforge.net/clickjacking/</id>
+<id>http://waterken.sourceforge.net/recent#7</id>
 <updated>2008-10-15Z</updated>
 <content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
@@ -40,7 +40,7 @@ formats.</p>
 <entry>
 <title>Petname Tool: updated for Firefox 3</title>
 <link href="https://addons.mozilla.org/en-US/firefox/addon/957"/>
-<id>https://addons.mozilla.org/en-US/firefox/addons/versions/957#version-1.6</id>
+<id>http://waterken.sourceforge.net/recent#6</id>
 <updated>2008-09-25Z</updated>
 <content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
@@ -53,7 +53,7 @@ formats.</p>
 <entry>
 <title>Can the evolution of programming languages inform usable security?</title>
 <link href="http://usablesecurity.com/2008/07/24/testing-for-usable-security-what-relationship-if-any-does-it-have-to-product-design/"/>
-<id>http://usablesecurity.com/2008/07/24/testing-for-usable-security-what-relationship-if-any-does-it-have-to-product-design/</id>
+<id>http://waterken.sourceforge.net/recent#5</id>
 <updated>2008-07-24Z</updated>
 <content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
@@ -65,7 +65,7 @@ formats.</p>
 <entry>
 <title>Using promises to orchestrate Web interactions</title>
 <link href="http://www.windley.com/archives/2008/04/tyler_close_using_promises_to_orchestrate_web_interactions.shtml"/>
-<id>http://www.windley.com/archives/2008/04/tyler_close_using_promises_to_orchestrate_web_interactions.shtml</id>
+<id>http://waterken.sourceforge.net/recent#4</id>
 <updated>2008-04-25Z</updated>
 <content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
@@ -80,7 +80,7 @@ Javascript</a>.</p>
 <entry xml:base="http://waterken.sourceforge.net/upgrade/">
 <title>upgrade: Live fast, die young and leave a good-looking corpse</title>
 <link href=""/>
-<id>http://waterken.sourceforge.net/upgrade/</id>
+<id>http://waterken.sourceforge.net/recent#3</id>
 <updated>2008-03-22Z</updated>
 <content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
@@ -95,7 +95,7 @@ patterns and techniques for managing upgrade in a Waterken application.</p>
 <entry xml:base="http://www.w3.org/TR/wsc-usecases/">
 <title>W3C Note on browser security UI finishes Last Call</title>
 <link href=""/>
-<id>http://www.w3.org/TR/wsc-usecases/</id>
+<id>http://waterken.sourceforge.net/recent#2</id>
 <updated>2008-03-06Z</updated>
 <content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
@@ -109,7 +109,7 @@ quo</a> section provides a good summary of the challenges facing the group.</p>
 <entry xml:base="http://waterken.sourceforge.net/web-key/">
 <title>web-key: Mashing with Permission</title>
 <link href=""/>
-<id>http://waterken.sourceforge.net/web-key/</id>
+<id>http://waterken.sourceforge.net/recent#1</id>
 <updated>2007-10-28Z</updated>
 <content type='xhtml'>
 <div xmlns='http://www.w3.org/1999/xhtml'>
