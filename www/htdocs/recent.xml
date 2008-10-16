@@ -3,8 +3,8 @@
 <feed xmlns="http://www.w3.org/2005/Atom"
       xml:base="http://waterken.sourceforge.net/">
 
-<title>Waterken News</title>
 <id>http://waterken.sourceforge.net/recent</id>
+<title>Waterken News</title>
 <link href="recent.html"/>
 <link rel="self" href="recent.xml"/>
 <logo>site/icon.gif</logo>
@@ -14,9 +14,9 @@
 <author><name>Tyler Close</name></author>
 
 <entry>
+<id>http://waterken.sourceforge.net/recent#7</id>
 <title>clickjacking: The Confused Deputy rides again!</title>
 <link href="http://waterken.sourceforge.net/clickjacking/"/>
-<id>http://waterken.sourceforge.net/recent#7</id>
 <updated>2008-10-15Z</updated>
 <content type="xhtml">
 <p xmlns="http://www.w3.org/1999/xhtml">The
@@ -38,9 +38,9 @@ formats.</p>
 </entry>
 
 <entry>
+<id>http://waterken.sourceforge.net/recent#6</id>
 <title>Petname Tool: updated for Firefox 3</title>
 <link href="https://addons.mozilla.org/en-US/firefox/addon/957"/>
-<id>http://waterken.sourceforge.net/recent#6</id>
 <updated>2008-09-25Z</updated>
 <content type="xhtml">
 <p xmlns="http://www.w3.org/1999/xhtml">I've ported the Petname Tool to the new
@@ -49,19 +49,20 @@ Places API for bookmarks in Firefox 3.</p>
 </entry>
 
 <entry>
+<id>http://waterken.sourceforge.net/recent#5</id>
 <title>Can the evolution of programming languages inform usable security?</title>
 <link href="http://usablesecurity.com/2008/07/24/testing-for-usable-security-what-relationship-if-any-does-it-have-to-product-design/"/>
-<id>http://waterken.sourceforge.net/recent#5</id>
 <updated>2008-07-24Z</updated>
 <content type="xhtml">
 <p xmlns="http://www.w3.org/1999/xhtml">Richard Conlan blogs about a SOUPS 2008
-panel that I participated in.</p> </content>
+panel that I participated in.</p>
+</content>
 </entry>
 
 <entry>
+<id>http://waterken.sourceforge.net/recent#4</id>
 <title>Using promises to orchestrate Web interactions</title>
 <link href="http://www.windley.com/archives/2008/04/tyler_close_using_promises_to_orchestrate_web_interactions.shtml"/>
-<id>http://waterken.sourceforge.net/recent#4</id>
 <updated>2008-04-25Z</updated>
 <content type="xhtml">
 <p xmlns="http://www.w3.org/1999/xhtml">Phil Windley blogs about
@@ -72,9 +73,9 @@ Javascript</a>.</p>
 </entry>
 
 <entry>
+<id>http://waterken.sourceforge.net/recent#3</id>
 <title>upgrade: Live fast, die young and leave a good-looking corpse</title>
 <link href="http://waterken.sourceforge.net/upgrade/"/>
-<id>http://waterken.sourceforge.net/recent#3</id>
 <updated>2008-03-22Z</updated>
 <content type="xhtml">
 <p xmlns="http://www.w3.org/1999/xhtml">Any application that keeps state needs
@@ -86,9 +87,9 @@ managing upgrade in a Waterken application.</p>
 </entry>
 
 <entry>
+<id>http://waterken.sourceforge.net/recent#2</id>
 <title>W3C Note on browser security UI finishes Last Call</title>
 <link href="http://www.w3.org/TR/wsc-usecases/"/>
-<id>http://waterken.sourceforge.net/recent#2</id>
 <updated>2008-03-06Z</updated>
 <content type="xhtml">
 <p xmlns="http://www.w3.org/1999/xhtml">This publication completes my duties as
@@ -99,9 +100,9 @@ quo</a> section provides a good summary of the challenges facing the group.</p>
 </entry>
 
 <entry>
+<id>http://waterken.sourceforge.net/recent#1</id>
 <title>web-key: Mashing with Permission</title>
 <link href="http://waterken.sourceforge.net/web-key/"/>
-<id>http://waterken.sourceforge.net/recent#1</id>
 <updated>2007-10-28Z</updated>
 <content type="xhtml">
 <p xmlns="http://www.w3.org/1999/xhtml">Mashups, web applications that interact
