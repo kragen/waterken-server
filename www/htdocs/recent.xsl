@@ -21,6 +21,7 @@
         &#x2192; <a class="heading" href=""><xsl:value-of select="atom:title"/></a>
         </div>
         <div class="main">
+        <a href="{atom:link[@rel='self']/@href}"><img alt="RSS" src="site/feed-icon-14x14.png" border="0"/></a>
         <h1><a name="subtitle" href="#subtitle"><xsl:value-of select="atom:subtitle"/></a></h1>
         <xsl:for-each select="atom:entry">
             <div class="entry">
