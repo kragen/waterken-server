@@ -25,7 +25,7 @@
         <h1><a name="subtitle" href="#subtitle"><xsl:value-of select="atom:subtitle"/></a></h1>
         <xsl:for-each select="atom:entry">
             <div class="entry">
-            <span class="dateTime comment"><xsl:value-of select="atom:updated"/></span>
+            <span class="dateTime comment"><xsl:value-of select="atom:published"/></span>
             <xsl:text> </xsl:text>
             <a class="heading" href="{atom:link/@href}"><xsl:value-of select="atom:title"/></a>
             <xsl:text> </xsl:text>

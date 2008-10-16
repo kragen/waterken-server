@@ -11,11 +11,14 @@
 <link rel="self" href="recent.xml"/>
 <logo>site/icon.gif</logo>
 <icon>site/icon.gif</icon>
-<author><name>Tyler Close</name></author>
+<author>
+    <name>Tyler Close</name>
+    <uri>http://waterken.sourceforge.net/recent.html</uri>
+</author>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#7</id>
-<updated>2008-10-15Z</updated>
+<published>2008-10-15Z</published>
 <title>clickjacking: The Confused Deputy rides again!</title>
 <link href="http://waterken.sourceforge.net/clickjacking/"/>
 <content type="xhtml">
@@ -39,7 +42,7 @@ formats.</p>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#6</id>
-<updated>2008-09-25Z</updated>
+<published>2008-09-25Z</published>
 <title>Petname Tool: updated for Firefox 3</title>
 <link href="https://addons.mozilla.org/en-US/firefox/addon/957"/>
 <content type="xhtml">
@@ -50,7 +53,7 @@ Places API for bookmarks in Firefox 3.</p>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#5</id>
-<updated>2008-07-24Z</updated>
+<published>2008-07-24Z</published>
 <title>Can the evolution of programming languages inform usable security?</title>
 <link href="http://usablesecurity.com/2008/07/24/testing-for-usable-security-what-relationship-if-any-does-it-have-to-product-design/"/>
 <content type="xhtml">
@@ -61,7 +64,7 @@ panel that I participated in.</p>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#4</id>
-<updated>2008-04-25Z</updated>
+<published>2008-04-25Z</published>
 <title>Using promises to orchestrate Web interactions</title>
 <link href="http://www.windley.com/archives/2008/04/tyler_close_using_promises_to_orchestrate_web_interactions.shtml"/>
 <content type="xhtml">
@@ -74,7 +77,7 @@ Javascript</a>.</p>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#3</id>
-<updated>2008-03-22Z</updated>
+<published>2008-03-22Z</published>
 <title>upgrade: Live fast, die young and leave a good-looking corpse</title>
 <link href="http://waterken.sourceforge.net/upgrade/"/>
 <content type="xhtml">
@@ -88,7 +91,7 @@ managing upgrade in a Waterken application.</p>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#2</id>
-<updated>2008-03-06Z</updated>
+<published>2008-03-06Z</published>
 <title>W3C Note on browser security UI finishes Last Call</title>
 <link href="http://www.w3.org/TR/wsc-usecases/"/>
 <content type="xhtml">
@@ -101,7 +104,7 @@ quo</a> section provides a good summary of the challenges facing the group.</p>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#1</id>
-<updated>2007-10-28Z</updated>
+<published>2007-10-28Z</published>
 <title>web-key: Mashing with Permission</title>
 <link href="http://waterken.sourceforge.net/web-key/"/>
 <content type="xhtml">
