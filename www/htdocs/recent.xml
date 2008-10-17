@@ -7,13 +7,13 @@
 <updated>2008-10-16T00:00:00Z</updated>
 <title>Waterken News</title>
 <subtitle>Capability-based security on the Web</subtitle>
-<link href="recent.html"/>
+<link href="recent.xhtml"/>
 <link rel="self" href="recent.xml"/>
 <logo>site/icon.gif</logo>
 <icon>site/icon.gif</icon>
 <author>
     <name>Tyler Close</name>
-    <uri>http://waterken.sourceforge.net/recent.html</uri>
+    <uri>http://waterken.sourceforge.net/recent.xhtml</uri>
 </author>
 
 <entry>

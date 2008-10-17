@@ -4,7 +4,12 @@
     xmlns:atom="http://www.w3.org/2005/Atom"
     xmlns="http://www.w3.org/1999/xhtml">
 
-<xsl:output method="html"/>
+<xsl:output
+    method="xml"
+    encoding="UTF-8"
+    media-type="application/xhtml+xml"
+    doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN"
+    doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"/>
 
 <xsl:template match="atom:feed">
     <html>
