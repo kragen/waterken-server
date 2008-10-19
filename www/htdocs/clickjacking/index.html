@@ -69,15 +69,15 @@ way to look at this problem.</p>
 <h2><a name="ambient" href="#ambient">Ambient authority</a></h2>
 <p>The buttons that the clickjacker directs clicks to are privileged buttons
 that require the user's authority to work. Typically, this authority is
-expressed in the form of cookies, derived from the user's password . Whenever
-the browser sends off an HTTP request, it includes all the corresponding
-cookies for the request target. This model for using authority is called
-<i>ambient</i> because the requestor doesn't explicitly specify what authority
-should be used. Instead, the execution environment automatically adds all
-possibly relevant authority to every request. From the programmer's
-perspective, things automatically provided by the execution environment, like
-CPU time and memory, seem to be part of the ambient environment in which they
-work, never explicitly mentioned, but there when you want them.</p>
+expressed in the form of cookies, derived from the user's password. Whenever the
+browser sends off an HTTP request, it includes all the corresponding cookies for
+the request target. This model for using authority is called <em>ambient</em>
+because the requestor doesn't explicitly specify what authority should be used.
+Instead, the execution environment automatically adds all possibly relevant
+authority to every request. From the programmer's perspective, things
+automatically provided by the execution environment, like CPU time and memory,
+seem to be part of the ambient environment in which they work, never explicitly
+mentioned, but there when you want them.</p>
 <h2><a name="confused-deputy" href="#confused-deputy">Confused Deputy</a></h2>
 <p>Over 20 years ago, Norm Hardy noticed that treating authority as part of the
 ambient environment of a program creates problems when that program is running
