@@ -13,7 +13,7 @@
 <icon>site/icon.gif</icon>
 <author>
     <name>Tyler Close</name>
-    <uri>http://waterken.sourceforge.net/recent.xhtml</uri>
+    <uri>http://waterken.sourceforge.net/recent.html</uri>
 </author>
 
 <entry>
@@ -115,7 +115,7 @@ quo</a> section provides a good summary of the challenges facing the group.</p>
 <entry>
 <id>http://waterken.sourceforge.net/recent#1</id>
 <updated>2007-10-28T00:00:00Z</updated>
-<title>web-key: Mashing with Permission</title>
+<title>web-key: Mashing with permission</title>
 <link href="http://waterken.sourceforge.net/web-key/"/>
 <content type="xhtml">
 <div xmlns="http://www.w3.org/1999/xhtml">
