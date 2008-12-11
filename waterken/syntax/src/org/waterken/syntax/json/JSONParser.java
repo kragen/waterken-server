@@ -345,7 +345,7 @@ JSONParser {
             }
         }
         Object value = Reflection.construct(make, argv);
-        if (value instanceof Rejected) {
+        if (Rejected.class == value.getClass()) {
             value = ((Rejected<?>)value)._(Typedef.raw(required));
         } else if (null != promised) {
             value = ref(value);

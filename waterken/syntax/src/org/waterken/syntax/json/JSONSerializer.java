@@ -3,7 +3,6 @@
 package org.waterken.syntax.json;
 
 import java.io.BufferedWriter;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.Writer;
 import java.lang.reflect.Field;
@@ -12,6 +11,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
 import org.joe_e.Struct;
+import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.UTF8;
@@ -41,10 +41,12 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
 
     // org.waterken.syntax.Serializer interface
 
-    public void
-    run(final Exporter export, final ConstArray<?> values,
-                               final OutputStream out) throws Exception {
-        write(export, values, new BufferedWriter(UTF8.output(out)));
+    public ByteArray
+    run(final Exporter export, final ConstArray<?> values) throws Exception {
+        final ByteArray.BuilderOutputStream buffer =
+            ByteArray.builder(512).asOutputStream();
+        write(export, values, new BufferedWriter(UTF8.output(buffer)));
+        return buffer.snapshot();
     }
     
     /**
@@ -78,7 +80,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             serialize(export, Object.class, value, aout.startElement());
         }
         aout.finish();
-        if (!top.isWritten()) { throw new Exception(); }
+        if (!top.isWritten()) { throw new RuntimeException(); }
         text.flush();
         text.close();
     }
@@ -124,16 +126,6 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.writeString(((Character)value).toString());
         } else if (Void.class == actual) {
             out.writeNull();
-        } else if (Class.class == actual) {
-            final Class<?> c = (Class<?>)value;
-            final JSONWriter.ObjectWriter oout = out.startObject();
-            if (Class.class != implicit) {
-                serialize(export, PowerlessArray.class,
-                          PowerlessArray.array(Java.name(Class.class)),
-                          oout.startMember("$"));
-            }
-            oout.startMember("name").writeString(Java.name(c));
-            oout.finish();
         } else if (Scope.class == actual) {
             final Scope scope = (Scope)value;
             // Application code cannot extend ConstArray, so iteration of the
@@ -174,7 +166,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 if (!Modifier.isStatic(f.getModifiers()) &&
                     Modifier.isPublic(f.getDeclaringClass().getModifiers())) {
                     if (!Modifier.isFinal(f.getModifiers())) {
-                        throw new Exception("field MUST be declared final: "+f);
+                        throw new IllegalAccessException("MUST be final: " + f);
                     }
                     final Object member = Reflection.get(f, value);
                     if (null != member) {

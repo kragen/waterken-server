@@ -2,9 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax;
 
-import java.io.OutputStream;
-
 import org.joe_e.Powerless;
+import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 
 /**
@@ -17,9 +16,8 @@ Serializer extends Powerless {
      * Serializes an argument list.
      * @param export    reference exporter
      * @param values    each argument to serialize
-     * @param out       serialized content output, will be flushed and closed
+     * @return serialized content
      */
-    void
-    run(Exporter export, ConstArray<?> values,
-        OutputStream out) throws Exception;
+    ByteArray
+    run(Exporter export, ConstArray<?> values) throws Exception;
 }

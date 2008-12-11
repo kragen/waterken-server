@@ -5,9 +5,11 @@ package org.waterken.syntax.config;
 import static org.ref_send.scope.Scope.Empty;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
+import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
@@ -70,18 +72,21 @@ Config {
         json
     );
 
-    private   final File root;
-    private   final ClassLoader code;
-    private   final Importer connect;
-    private   final Exporter export;
-    private   final PowerlessArray<Syntax> supported;
-    private   final String outputExt;
-    private         Scope cache;
+    private final File root;
+    private final ClassLoader code;
+    private final String baseURI;
+    private final Importer connect;
+    private final Exporter export;
+    private final PowerlessArray<Syntax> supported;
+    private final String outputExt;
+    
+    private         Scope cache;    // [ URI => value ]
     
     /**
      * Constructs an instance.
      * @param root      root folder for configuration files
      * @param code      class loader for serialized objects
+     * @param baseURI   base URI for all referenced objects
      * @param connect   remote reference importer, may be <code>null</code>
      * @param export    remote reference exporter, may be <code>null</code>
      * @param supported each supported serialization syntax
@@ -90,10 +95,11 @@ Config {
      */
     public
     Config(final File root, final ClassLoader code,
-           final Importer connect, final Exporter export, 
+           final String baseURI, final Importer connect, final Exporter export, 
            final PowerlessArray<Syntax> supported, final String outputExt) {
         this.root = root;
         this.code = code;
+        this.baseURI = baseURI;
         this.connect = connect;
         this.export = export;
         this.supported = supported;
@@ -106,13 +112,14 @@ Config {
      * Constructs an instance.
      * @param root      root folder for configuration files
      * @param code      class loader for serialized objects
+     * @param baseURI   base URI for all referenced objects
      * @param connect   remote reference importer, may be <code>null</code>
      * @param export    remote reference exporter, may be <code>null</code>
      */
     public
     Config(final File root, final ClassLoader code,
-           final Importer connect, final Exporter export) {
-        this(root, code, connect, export, known, json.ext);
+           final String baseURI, final Importer connect, final Exporter export){
+        this(root, code, baseURI, connect, export, known, json.ext);
     }
     
     /**
@@ -122,7 +129,7 @@ Config {
      */
     public
     Config(final File root, final ClassLoader code) {
-        this(root, code, null, null);
+        this(root, code, "file:///", null, null);
     }
     
     /**
@@ -162,28 +169,28 @@ Config {
      */
     public @SuppressWarnings("unchecked") <T> T
     readType(final String name, final Type type) throws Exception {
-        return (T)sub(root, "").run(name, "file:///", type);
+        return (T)sub(root, baseURI).run(name, baseURI, type);
     }
     
     private Importer
-    sub(final File root, final String prefix) {
+    sub(final File root, final String baseURI) {
         class ImporterX extends Struct implements Importer {
             public Object
             run(final String href, final String base,
                                    final Type type) throws Exception {
-                if (!"file:///".equals(base) || -1 != href.indexOf(':')) {
+                if (!baseURI.equals(base) || -1 != href.indexOf(':')) {
                     return connect.run(href, base, type);
                 }
                 
                 // check the cache
-                final String key = prefix + href; {
+                String path = baseURI.substring(0, baseURI.lastIndexOf('/')+1);
+                final String key = path + href; {
                     final int i = cache.meta.find(key);
                     if (-1 != i) { return cache.values.get(i); }
                 }
 
                 // descend to the named file
                 File folder = root;     // sub-folder containing file
-                String path = prefix;   // path to folder from config root
                 String name = href;     // filename
                 while (true) {
                     final int i = name.indexOf('/');
@@ -200,10 +207,12 @@ Config {
                 // deserialize the named object
                 Object r = null;
                 for (final Syntax syntax : supported) {
-                    final File file = Filesystem.file(folder, name+syntax.ext);
+                    final String filename = name + syntax.ext;
+                    final File file = Filesystem.file(folder, filename);
                     if (!file.isFile()) { continue; }
+                    final String subBaseURI = path + filename;
                     r = syntax.deserialize.run(
-                            "file:///", sub(folder, path),
+                            subBaseURI, sub(folder, subBaseURI),
                             ConstArray.array(type), code,
                             Filesystem.read(file)).get(0);
                     break;
@@ -230,9 +239,14 @@ Config {
                 break;
             }
         }
-        output.serialize.run(export, ConstArray.array(value),
-                Filesystem.writeNew(Filesystem.file(root, name + output.ext)));
-        cache = cache.with(name, value);
+        final ByteArray content =
+            output.serialize.run(export, ConstArray.array(value));
+        final OutputStream out =
+            Filesystem.writeNew(Filesystem.file(root, name + output.ext));
+        out.write(content.toByteArray());
+        out.flush();
+        out.close();
+        cache = cache.with(baseURI + name, value);
     }
     
     /**
@@ -243,6 +257,6 @@ Config {
     public void
     override(final String name, final Object value) {
         Filesystem.file(root, name);
-        cache = cache.with(name, value);
+        cache = cache.with(baseURI + name, value);
     }
 }
