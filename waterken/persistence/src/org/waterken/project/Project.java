@@ -8,7 +8,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import org.joe_e.file.Filesystem;
-import org.ref_send.promise.eventual.Loop;
 import org.waterken.cache.Cache;
 
 /**
@@ -18,27 +17,19 @@ public final class
 Project extends URLClassLoader {
     
     /**
-     * project name
-     */
-    public final String name;
-    
-    /**
      * timestamp of the newest class file
      */
     public final long timestamp;
 
     /**
      * Constructs an instance.
-     * @param name      project name
      * @param jar       class file folder
      * @param parent    parent class loader
      * @throws IOException  problem accessing classes
      */
     private
-    Project(final String name,
-            final File jar, final ClassLoader parent) throws IOException {
+    Project(final File jar, final ClassLoader parent) throws IOException {
         super(new URL[] { jar.toURI().toURL() }, parent);
-        this.name = name;
         timestamp = findNewest(0L, jar);
     }
     
@@ -62,17 +53,16 @@ Project extends URLClassLoader {
     static private final String bin;
     static {
         try {
-            home = new File(System.getProperty(
-                "waterken.home", "")).getCanonicalFile();
-            bins = new File(home, System.getProperty(
-                "waterken.code", "")).getCanonicalFile();
-            bin = System.getProperty(
-                "waterken.bin", File.separator + "bin" + File.separator);
+            home = new File(System.getProperty("waterken.home", "")
+                            ).getCanonicalFile();
+            bins = new File(home, System.getProperty("waterken.code", "")
+                            ).getCanonicalFile();
+            bin = System.getProperty("waterken.bin", "bin");
         } catch (final IOException e) { throw new Error(e); }
     }
 
     static private final Cache<String,ClassLoader> jars = Cache.make();
-    static private       ClassLoader shared = Loop.class.getClassLoader();
+    static private       ClassLoader shared = Project.class.getClassLoader();
     static {
         try {
             shared = connect("shared");
@@ -90,14 +80,10 @@ Project extends URLClassLoader {
         synchronized (jars) {
             ClassLoader r = jars.fetch(null, project);
             if (null == r) {
-                // assume a safe value has been configured for waterken.bin,
-                // and so only the project name need be vetted
-                Filesystem.checkName(project);
-
-                final File jar = new File(bins, project + ".jar");
-                r = new Project(project,
-                                jar.isFile() ? jar : new File(bins,project+bin),
-                                shared);
+                final File jar = Filesystem.file(bins, project + ".jar");
+                r = new Project(jar.isFile() ? jar
+                    : Filesystem.file(Filesystem.file(bins, project), bin),
+                    shared);
                 jars.put(project, r);
             }
             return r;

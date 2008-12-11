@@ -14,7 +14,7 @@ import java.math.BigInteger;
 import org.joe_e.JoeE;
 import org.joe_e.Selfless;
 import org.ref_send.promise.Fulfilled;
-import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Deferred;
 import org.waterken.vat.Root;
 
 /**
@@ -39,6 +39,7 @@ Slicer extends ObjectOutputStream {
     protected Object
     replaceObject(Object x) throws IOException {
         final Class<?> type = null != x ? x.getClass() : Void.class;
+        // BEGIN: persistence for non-Serializable types
         if (Field.class == type) {
             x = new FieldWrapper((Field)x);
         } else if (Method.class == type) {
@@ -49,18 +50,25 @@ Slicer extends ObjectOutputStream {
             x = new BigIntegerWrapper((BigInteger)x);
         } else if (BigDecimal.class == type) {
             x = new BigDecimalWrapper((BigDecimal)x);
+        // END: persistence for non-Serializable types
         } else if (value == x) {
+        // BEGIN: slicing of the object graph into trees
         } else if (Detachable == type) {
-            x = new Faulting(root,root.export(Fulfilled.near((Fulfilled<?>)x)));
+            x = new Faulting(root,
+                    root.export(Fulfilled.near((Fulfilled<?>)x), false));
+        } else if (Deferred.WeakPromise == type) {
+            x = new Faulting(root,
+                    root.export(Fulfilled.near((Fulfilled<?>)x), true));
         } else if (!inline(type)) {
             if (value instanceof Throwable &&
                 StackTraceElement.class == type.getComponentType()) {
-                // This must be the stack trace. Just let it
+                // This must be the contained stack trace array. Just let it
                 // go by, since it acts like it's selfless.
             } else {
-                x = new Splice(root.export(x));
+                x = new Splice(root.export(x, false));
             }
         }
+        // END: slicing of the object graph into trees
         return x;
     }
 
@@ -73,7 +81,7 @@ Slicer extends ObjectOutputStream {
     static protected boolean
     inline(final Class<?> type) {
         return type == Void.class || type == Class.class || 
-               (JoeE.isSubtypeOf(type, Selfless.class) &&
-                type != Eventual.class);
+               type == StackTraceElement.class ||
+               JoeE.isSubtypeOf(type, Selfless.class);
     }
 }

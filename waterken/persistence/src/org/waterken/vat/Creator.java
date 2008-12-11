@@ -2,30 +2,27 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.vat;
 
-import org.web_send.graph.Collision;
+import org.joe_e.Immutable;
+import org.joe_e.file.InvalidFilenameException;
+import org.ref_send.promise.Promise;
 
 /**
  * A {@link Vat} factory.
  */
 public interface
 Creator {
-    
-    /**
-     * Loads a project's class library.
-     * @param project   project name
-     * @return corresponding class library
-     */
-    ClassLoader
-    load(String project) throws Exception;
 
     /**
      * Creates a new {@link Vat}.
-     * @param initialize    first transaction to run on the new vat
-     * @param project       corresponding project name
-     * @param name          vat name, or <code>null</code> for generated name
-     * @throws Collision    <code>name</code> has already been used
+     * @param project   corresponding project name
+     * @param name      vat name, or <code>null</code> for generated name
+     * @param setup     initializes the new vat
+     * @return return from <code>setup</code>
+     * @throws InvalidFilenameException <code>name</code> not available
+     * @throws ProhibitedModification   in an {@link Vat#extend} transaction
      */
-    <R> R
-    create(Transaction<R> initialize,
-           String project, String name) throws Exception;
+    <R extends Immutable> Promise<R>
+    run(String project, String name,
+        Transaction<R> setup) throws InvalidFilenameException,
+                                     ProhibitedModification;
 }

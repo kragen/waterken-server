@@ -2,10 +2,9 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.thread;
 
-import java.io.Serializable;
+import java.util.LinkedList;
 
-import org.ref_send.list.List;
-import org.ref_send.promise.eventual.Loop;
+import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
 
 /**
@@ -22,27 +21,26 @@ Concurrent {
      * @param group thread group
      * @param name  thread name
      */
-    static public <T extends Task> Loop<T>
-    loop(final ThreadGroup group, final String name) {
+    static public <T extends Task<?>> Receiver<T>
+    make(final ThreadGroup group, final String name) {
         if (null == group) { throw new NullPointerException(); }
         if (null == name) { throw new NullPointerException(); }
-        
-        class LoopX implements Loop<T>, Serializable {
-            static private final long serialVersionUID = 1L;
 
-            private transient List<T> tasks;
-            private transient boolean running;
+        final LinkedList<T> tasks = new LinkedList<T>();        
+        class LoopX implements Receiver<T> {
+            private boolean running = false;
 
             public synchronized void
             run(final T task) {
-                if (null == tasks) { tasks = List.list(); }
-                tasks.append(task);
-
+                if (null == task) { throw new NullPointerException(); }
+                
+                tasks.add(task);
                 if (!running) {
                     new Thread(group, name) {
                         public void
                         run() {
-                            // System.err.println("Processing: " + name);
+                            final String id = group.getName() + "/" + name;
+                            System.err.println("Processing: " + id);
                             try {
                                 while (true) {
                                     final T todo;
@@ -58,12 +56,12 @@ Concurrent {
                                     } catch (final Exception e) {
                                         e.printStackTrace();
                                     }
-                                    yield();
+                                    Thread.yield();
                                 }
                             } catch (final Throwable e) {
                                 e.printStackTrace();
                             }
-                            // System.err.println("Idle: " + name);
+                            System.err.println("Idle: " + id);
                         }
                     }.start();
                     running = true;

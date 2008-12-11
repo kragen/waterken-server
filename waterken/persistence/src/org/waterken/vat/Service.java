@@ -8,4 +8,4 @@ import org.ref_send.promise.eventual.Task;
  * A transient {@link Vat#service}.
  */
 public interface
-Service extends Task {}
+Service extends Task<Void> {}

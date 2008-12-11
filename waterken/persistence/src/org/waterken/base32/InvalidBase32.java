@@ -3,19 +3,17 @@
 package org.waterken.base32;
 
 import org.joe_e.Powerless;
-import org.ref_send.Record;
-import org.ref_send.deserializer;
 
 /**
  * Signals an invalid base32 encoding.
  */
 public class
-InvalidBase32 extends RuntimeException implements Powerless, Record {
+InvalidBase32 extends RuntimeException implements Powerless {
     static private final long serialVersionUID = 1L;
 
     /**
      * Constructs an instance.
      */
-    public @deserializer
+    public
     InvalidBase32() {}
 }

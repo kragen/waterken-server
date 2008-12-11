@@ -4,57 +4,104 @@ package org.waterken.vat;
 
 import java.io.FileNotFoundException;
 
+import org.joe_e.Immutable;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.eventual.Loop;
-import org.web_send.graph.Framework;
+import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.eventual.Task;
 
 /**
  * A persistent object graph.
- * <p>
- * This class implements the abstraction described by a {@link Framework}.
- * </p>
  */
 public abstract class
-Vat {
+Vat<S> {
 
-    /**
-     * indicates a {@linkplain #enter transaction} may modify existing state
-     */
-    static public final boolean change = false;
-
-    /**
-     * indicates a {@linkplain #enter transaction} only queries existing state,
-     * and does not persist any new selfish objects
-     */
-    static public final boolean extend = true;
-
-    /**
-     * Schedules deferred {@linkplain #enter access} to this vat.
-     */
-    public final Loop<Service> service;
-
-    /**
-     * Constructs an instance.
-     * @param service   {@link #service}
-     */
-    protected
-    Vat(final Loop<Service> service) {
-        this.service = service;
-    }
+    // known root names
     
     /**
-     * Gets the corresponding project name
+     * {@link ClassLoader}, initialized by vat
      */
-    public abstract String
-    getProject() throws Exception;
+    static public final String code = ".code";
+    
+    /**
+     * {@link Creator}, initialized by vat
+     */
+    static public final String creator = ".creator";
+    
+    /**
+     * {@linkplain Receiver destructor}, initialized by vat
+     */
+    static public final String destruct = ".destruct";
+
+    /**
+     * {@link Effect} {@link Receiver output} processed only if the current
+     * {@link Vat#enter transaction} commits, initialized by vat
+     */
+    static public final String effect = ".effect";
+    
+    /**
+     * vat URI, initialized by vat
+     */
+    static public final String here = ".here";
+    
+    /**
+     * logger, initialized by vat
+     */
+    static public final String log = ".log";
+    
+    /**
+     * always bound to <code>null</code>, initialized by vat
+     */
+    static public final String nothing = "";
+
+    /**
+     * pseudo-random number generator, initialized by vat
+     */
+    static public final String prng = ".prng";
+    
+    /**
+     * project name, initialized by vat
+     */
+    static public final String project = ".project";
+    
+    /**
+     * {@link Task} to generate an HTTP entity-tag identifying all the state
+     * accessed by the current transaction, initialized by vat
+     */
+    static public final String tagger = ".tagger";
+
+    /**
+     * {@link Vat#extend} {@link Task} to run each time vat is loaded
+     */
+    static public final String wake = ".wake";
+
+    // org.waterken.vat.Vat interface
+    
+    /**
+     * session state shared across all vats
+     */
+    public final S session;
+    
+    /**
+     * pending tasks associated with this vat
+     */
+    public final Receiver<Service> service;
+    
+    /**
+     * Constructs an instance.
+     */
+    protected
+    Vat(final S session, final Receiver<Service> service) {
+        this.session = session;
+        this.service = service;
+    }
 
     /**
      * Processes a transaction within this vat.
      * <p>
-     * The implementation MUST ensure only one transaction is active in the
-     * vat at any time. An invocation from another thread MUST block until the
-     * vat becomes available. A recursive invocation from the same thread MUST
-     * throw an {@link Exception}.
+     * The implementation MUST ensure only one transaction is active in the vat
+     * at any time. An invocation from another thread MUST block until the vat
+     * becomes available. A recursive invocation from the same thread MUST throw
+     * an {@link Exception}.
      * </p>
      * <p>
      * If {@linkplain Transaction#run invocation} of the <code>body</code>
@@ -64,40 +111,37 @@ Vat {
      * transaction was never attempted.
      * </p>
      * <p>
-     * The implementation MUST NOT rely on the <code>extend</code> argument
-     * accurately describing the behavior of the <code>body</code> argument.
-     * If {@link #extend} is specified, the implementation MUST check that the
-     * constraints are met; if not, the transaction MUST be aborted.
-     * {@linkplain Root#link Linking} a new {@link Root root} value is
-     * considered a modification.
+     * The implementation MUST NOT rely on the {@link Transaction#isQuery}
+     * argument accurately describing the transaction's behavior. If
+     * {@link Transaction#query} is specified, the implementation MUST check
+     * that the constraints are met; if not, the transaction MUST be aborted.
      * </p>
      * <p>
      * The <code>body</code> MUST NOT retain references to any of the objects
-     * in the vat beyond completion of the transaction. The vat
-     * implementation can rely on the <code>body</code> being well-behaved in
-     * this respect. An identifier for an object in the vat may be retained
-     * across transactions by either {@linkplain Root#link linking}, or
+     * in the vat beyond completion of the transaction. The vat implementation
+     * can rely on the <code>body</code> being well-behaved in this respect.
+     * An identifier for an object in the vat may be retained across
+     * transactions by either {@linkplain Root#link linking}, or
      * {@linkplain Root#export exporting} it.
      * </p>
      * <p>
      * If invocation of this method returns normally, all modifications to
      * objects in the vat MUST be committed. Only if the current transaction
      * commits will the {@linkplain Root#effect enqueued} {@link Effect}s be
-     * {@linkplain Transaction#run executed}; otherwise, the implementation
-     * MUST discard them. The effects MUST be executed in the same order as
-     * they were enqueued. Effects from a subsequent transaction MUST NOT be
-     * executed until all effects from the current transaction have been
-     * executed. An {@link Effect} MUST NOT access objects in the vat, but may
-     * schedule additional effects.
+     * {@linkplain #enter executed}; otherwise, the implementation MUST discard
+     * them. The effects MUST be executed in the same order as they were
+     * enqueued. Effects from a subsequent transaction MUST NOT be executed
+     * until all effects from the current transaction have been executed. An
+     * {@link Effect} MUST NOT access objects in the vat, but may schedule
+     * additional effects.
      * </p>
      * @param <R> <code>body</code>'s return type
-     * @param extend either {@link #change} or {@link #extend}
      * @param body transaction body
      * @return promise for <code>body</code>'s return
-     * @throws FileNotFoundException vat no longer exists
-     * @throws Exception problem completing the transaction, which may or may
-     *                   not be committed
+     * @throws FileNotFoundException    vat no longer exists
+     * @throws Exception                problem completing the transaction,
+     *                                  which may or may not be committed
      */
-    public abstract <R> Promise<R>
-    enter(boolean extend, Transaction<R> body) throws Exception;
+    public abstract <R extends Immutable> Promise<R>
+    enter(Transaction<R> body) throws Exception;
 }

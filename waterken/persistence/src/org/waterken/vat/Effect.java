@@ -2,10 +2,11 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.vat;
 
-import org.ref_send.promise.eventual.Task;
+import org.joe_e.Immutable;
+import org.ref_send.promise.eventual.Receiver;
 
 /**
- * A transient side-effect of a {@link Vat#enter transaction}.
+ * A side-effect of an {@linkplain Transaction#update update} transaction.
  */
 public interface
-Effect extends Task {}
+Effect<S> extends Receiver<Vat<S>>, Immutable {}

@@ -5,12 +5,15 @@ package org.waterken.jos;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 
 import org.joe_e.file.Filesystem;
+import org.waterken.project.Project;
+import org.waterken.vat.Vat;
 
 /**
  * Produce a report on file usage by a persistence folder.
@@ -50,8 +53,9 @@ Report {
 
         final PrintStream out = System.out;
         final File topic = new File(args[0]);
-        final File folder = topic.isDirectory() ? topic : topic.getParentFile();
-        final ClassLoader code = JODB.application(folder);
+        final File dir = topic.isDirectory() ? topic : topic.getParentFile();
+        final String project = readSetting(Filesystem.file(dir, Vat.project));
+        final ClassLoader code = Project.connect(project);
         
         if (topic.isFile()) {
             if (topic.getName().endsWith(JODB.ext)) { log(out, code, topic); }
@@ -107,6 +111,14 @@ Report {
         out.println("files:\t" + files);
         out.println("bytes:\t" + bytes);
         out.println("types:\t" + sum.length);
+    }
+    
+    static private @SuppressWarnings("unchecked") <R> R
+    readSetting(final File file) throws Exception {
+        final ObjectInputStream in=new ObjectInputStream(Filesystem.read(file));
+        final Object r = in.readObject();
+        in.close();
+        return (R)((SymbolicLink)r).target;
     }
     
     static private String

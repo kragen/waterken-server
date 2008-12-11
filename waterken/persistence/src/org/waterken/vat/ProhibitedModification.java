@@ -3,13 +3,12 @@
 package org.waterken.vat;
 
 import org.joe_e.Powerless;
-import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * Signals an attempt to modify persistent state in an {@link Vat#extend}
+ * Signals an attempt to modify persistent state in a {@link Transaction#query}
  * {@link Vat#enter transaction}.
  */
 public class
@@ -17,17 +16,17 @@ ProhibitedModification extends RuntimeException implements Powerless, Record {
     static private final long serialVersionUID = 1L;
     
     /**
-     * modified object type
+     * modified class typename
      */
-    public final Class<?> type;
+    public final String typename;
     
     /**
      * Constructs an instance.
-     * @param type  {@link #type}
+     * @param typename  {@link #typename}
      */
     public @deserializer
-    ProhibitedModification(@name("type") final Class<?> type) {
-        super(Reflection.getName(type));
-        this.type = type;
+    ProhibitedModification(@name("typename") final String typename) {
+        super(typename);
+        this.typename = typename;
     }
 }

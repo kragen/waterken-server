@@ -2,116 +2,18 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.vat;
 
-import java.security.SecureRandom;
-
-import org.ref_send.log.Anchor;
-import org.ref_send.promise.eventual.Loop;
-import org.ref_send.promise.eventual.Receiver;
-import org.ref_send.promise.eventual.Task;
-import org.web_send.graph.Collision;
+import org.joe_e.file.InvalidFilenameException;
 
 /**
  * The roots of a persistent object graph.
  * <p>
- * A {@link Root} provides administrative authority over a {@link Vat}.
- * {@link Vat} infrastructure code can stash hidden state in this mapping
- * by prefixing the binding name with a '<code>.</code>' character.
+ * A {@link Root} provides administrative authority over a {@link Vat}. By
+ * convention, {@link Vat} infrastructure code keeps hidden state in this
+ * mapping by prefixing the binding name with a '<code>.</code>' character.
  * </p>
  */
 public interface
 Root {
-
-    // known names
-    
-    /**
-     * corresponding persistent {@link ClassLoader}
-     */
-    String code = ".code";
-    
-    /**
-     * corresponding {@link Creator}
-     */
-    String creator = ".creator";
-    
-    /**
-     * {@link Receiver deletes} the corresponding {@link Vat}
-     */
-    String destruct = ".destruct";
-
-    /**
-     * corresponding {@link Effect} {@link Loop loop} processed only if
-     * the current {@link Vat#enter transaction} commits
-     */
-    String effect = ".effect";
-    
-    /**
-     * corresponding persistent {@link Task event} {@link Loop loop}
-     */
-    String enqueue = ".enqueue";
-    
-    /**
-     * corresponding event receiver accessor
-     */
-    String events = ".events";
-
-    /**
-     * corresponding URL
-     */
-    String here = ".here";
-    
-    /**
-     * always bound to <code>null</code>
-     */
-    String nothing = "";
-
-    /**
-     * persistent {@link SecureRandom pseudo-random number generator}
-     */
-    String prng = ".prng";
-    
-    /**
-     * corresponding project name
-     */
-    String project = ".project";
-    
-    /**
-     * corresponding {@link Tracer} 
-     */
-    String tracer = ".tracer";
-
-    /**
-     * corresponding {@link Vat}
-     */
-    String vat = ".vat";
-
-    /**
-     * {@link Vat#extend} transaction to run each time vat is loaded
-     */
-    String wake = ".wake";
-
-    // org.waterken.vat.Root interface
-    
-    /**
-     * Gets the simple name of the containing vat.
-     */
-    String
-    getVatName();
-    
-    /**
-     * Creates a new log event identifier.
-     */
-    Anchor
-    anchor();
-    
-    /**
-     * Calculates a pipeline key.
-     * @param m session key
-     * @param w message window
-     * @param i intra-window message number
-     * @return return value key
-     */
-    String
-    pipeline(String m, long w, long i);
 
     /**
      * Retrieves a stored value.
@@ -123,27 +25,28 @@ Root {
     fetch(Object otherwise, String name);
 
     /**
-     * Assigns a chosen name to a given value.
+     * Creates a symbolic link to a given value.
+     * <p>
+     * A name assigned via this method does not affect the value returned
+     * by {@link #export export}().
+     * </p>
      * @param name  name to bind
      * @param value value to store
-     * @throws Collision    <code>name</code> is already bound
+     * @throws InvalidFilenameException <code>name</code> is already bound
+     * @throws ProhibitedModification   in a {@link Transaction#query}
      */
     void
-    link(String name, Object value) throws Collision;
+    link(String name, Object value) throws InvalidFilenameException,
+                                           ProhibitedModification;
     
     /**
      * Assigns a name to a given value.
-     * @param value value to store
+     * @param value     value to store
+     * @param isWeak    <code>false</code> if garbage collection of the
+     *                  <code>value</code> is prevented, else <code>true</code>
      * @return assigned name
+     * @throws ProhibitedCreation       in a {@link Transaction#query}
      */
     String
-    export(Object value);
-    
-    /**
-     * Creates an entity-tag identifying all the state accessed by the current
-     * transaction.
-     * @return corresponding HTTP entity-tag, or <code>null</code> if none
-     */
-    String
-    getTransactionTag();
+    export(Object value, boolean isWeak) throws ProhibitedCreation;
 }

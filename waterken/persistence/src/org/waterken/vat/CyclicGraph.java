@@ -16,16 +16,16 @@ CyclicGraph extends RuntimeException implements Powerless, Record {
     static private final long serialVersionUID = 1L;
 
     /**
-     * each class in the cycle
+     * each typename in the cycle
      */
-    public final PowerlessArray<Class<?>> cycle;
+    public final PowerlessArray<String> cycle;
     
     /**
      * Constructs an instance.
      * @param cycle {@link #cycle}
      */
     public @deserializer
-    CyclicGraph(@name("cycle") final PowerlessArray<Class<?>> cycle) {
+    CyclicGraph(@name("cycle") final PowerlessArray<String> cycle) {
         this.cycle = cycle;
     }
 }

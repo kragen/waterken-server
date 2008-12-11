@@ -3,31 +3,31 @@
 package org.waterken.vat;
 
 import org.joe_e.Powerless;
-import org.joe_e.reflect.Reflection;
+import org.joe_e.Selfless;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * Signals an attempt to create selfish state in an {@link Vat#extend}
- * {@link Vat#enter transaction}.
+ * Signals an attempt to persist non-{@link Selfless} state in a
+ * {@link Transaction#query} {@link Vat#enter transaction}.
  */
 public class
 ProhibitedCreation extends RuntimeException implements Powerless, Record {
     static private final long serialVersionUID = 1L;
     
     /**
-     * created object type
+     * created object typename
      */
-    public final Class<?> type;
+    public final String typename;
     
     /**
      * Constructs an instance.
-     * @param type  {@link #type}
+     * @param typename  {@link #typename}
      */
     public @deserializer
-    ProhibitedCreation(@name("type") final Class<?> type) {
-        super(Reflection.getName(type));
-        this.type = type;
+    ProhibitedCreation(@name("typename") final String typename) {
+        super(typename);
+        this.typename = typename;
     }
 }
