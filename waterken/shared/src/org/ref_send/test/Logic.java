@@ -3,7 +3,6 @@
 package org.ref_send.test;
 
 import static org.ref_send.promise.Fulfilled.ref;
-import static org.ref_send.var.Variable.var;
 
 import java.io.Serializable;
 
@@ -13,7 +12,6 @@ import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.var.Variable;
 
 /**
  * Test condition operations.
@@ -50,7 +48,7 @@ Logic {
     and(final Eventual _, final ConstArray<? extends Volatile<Boolean>> tests) {
         if (0 == tests.length()) { return ref(true); }
         final Channel<Boolean> answer = _.defer();
-        final Variable<Integer> todo = var(tests.length());
+        final int[] todo = { tests.length() };
         for (final Volatile<Boolean> test : tests) {
             class AND extends Do<Boolean,Void> implements Serializable {
                 static private final long serialVersionUID = 1L;
@@ -58,8 +56,7 @@ Logic {
                 public Void
                 fulfill(final Boolean value) {
                     if (value) {
-                        todo.set(todo.get() - 1);
-                        if (0 == todo.get()) {
+                        if (0 == --todo[0]) {
                             answer.resolver.run(true);
                         }
                     } else {
@@ -68,7 +65,10 @@ Logic {
                     return null;
                 }
                 public Void
-                reject(final Exception e) { return answer.resolver.reject(e); }
+                reject(final Exception e) {
+                    answer.resolver.reject(e);
+                    return null;
+                }
             }
             _.when(test, new AND());
         }

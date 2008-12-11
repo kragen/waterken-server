@@ -11,7 +11,8 @@ import java.io.Serializable;
 import org.joe_e.array.ArrayBuilder;
 import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Promise;
-import org.ref_send.var.Factory;
+import org.ref_send.promise.Rejected;
+import org.ref_send.promise.eventual.Task;
 import org.ref_send.var.Variable;
 
 /**
@@ -30,7 +31,7 @@ MenuMaker {
      * @param factory       menu entry factory
      */
     static public <T> Menu<T>
-    make(final int maxEntries, final Factory<Variable<T>> factory) {
+    make(final int maxEntries, final Task<Variable<T>> factory) {
         class MenuX implements Menu<T>, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -45,7 +46,12 @@ MenuMaker {
 
             public Promise<Variable<T>>
             grow() {
-                final Variable<T> r = factory.run();
+                final Variable<T> r;
+                try {
+                    r = factory.run();
+                } catch (final Exception e) {
+                    return new Rejected<Variable<T>>(e);
+                }
 
                 if (editors.length() == maxEntries) { throw new TooMany(); }
                 editors = editors.with(r);
