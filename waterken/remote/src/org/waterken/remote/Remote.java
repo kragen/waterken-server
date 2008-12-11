@@ -2,26 +2,18 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote;
 
-import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.Type;
 
-import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Deferred;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.type.Typedef;
-import org.waterken.remote.http.HTTP;
-import org.waterken.syntax.Exporter;
-import org.waterken.syntax.Importer;
-import org.waterken.uri.URI;
 import org.waterken.vat.Root;
+import org.waterken.vat.Vat;
 
 /**
  * A remote reference.
@@ -40,70 +32,18 @@ Remote extends Deferred<Object> implements Promise<Object> {
      */
     private final String URL;
 
-    private
-    Remote(final Root local, final String URL) {
-        super((Eventual)local.fetch(null, Remoting._),
-              (Token)local.fetch(null, Remoting.deferred));
-        if (null == URL) { throw new NullPointerException(); }
-        this.local = local;
-        this.URL = URL;
-    }
-    
     /**
      * Constructs an instance.
      * @param local local address space
-     * @param URL   reference URL
+     * @param URL   reference relative URL
      */
-    static public Remote
-    make(final Root local, final String URL) {
-        final String here = local.fetch(null, Root.here);
-        final String href = null == here ? URL : URI.relate(here, URL);
-        return new Remote(local, href);
-    }
-    
-    /**
-     * Constructs an importer.
-     * @param local local address space
-     */
-    static public Importer
-    use(final Root local) {
-        class ImporterX extends Struct implements Importer, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Object
-            run(final String href, final String base, final Type type) {
-                final String URL = null != base ? URI.resolve(base,href) : href;
-                return make(local, URL)._(Typedef.raw(type));
-            }
-        }
-        return new ImporterX();
-    }
-    
-    /**
-     * Constructs an exporter.
-     * @param local local address space
-     * @param next  next module to try
-     */
-    static public Exporter
-    bind(final Root local, final Exporter next) {
-        class ExporterX extends Struct implements Exporter, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public String
-            run(final Object object) {
-                final Object handler = object instanceof Proxy
-                    ? Proxies.getHandler((Proxy)object) : object;
-                if (handler instanceof Remote) {
-                    final Remote x = (Remote)handler;
-                    if ((Token)local.fetch(null, Remoting.deferred) ==
-                        (Token)x.local.fetch(null, Remoting.deferred)) {
-                        return x.URL;
-                    }
-                }
-                return next.run(object);
-            }
-        }
-        return new ExporterX();
+    public
+    Remote(final Root local, final String URL) {
+        super((Eventual)local.fetch(null, Vat._),
+              (Token)local.fetch(null, Vat.deferred));
+        if (null == URL) { throw new NullPointerException(); }
+        this.local = local;
+        this.URL = URL;
     }
     
     // java.lang.Object interface
@@ -149,9 +89,8 @@ Remote extends Deferred<Object> implements Promise<Object> {
             }
         }
         try {
-            final String here = local.fetch(null, Root.here);
-            final String target = null == here ? URL : URI.resolve(here, URL);
-            return message(target).invoke(target, proxy, method, arg);
+            final Messenger messenger = local.fetch(null, Vat.messenger);
+            return messenger.invoke(URL, proxy, method, arg);
         } catch (final Exception e) { throw new Error(e); }
     }
     
@@ -159,49 +98,47 @@ Remote extends Deferred<Object> implements Promise<Object> {
 
     protected <R> R
     when(final Class<?> R, final Do<Object,R> observer) {
-        final String here = local.fetch(null, Root.here);
-        final String target = null == here ? URL : URI.resolve(here, URL);
-        return message(target).when(target, R, observer);
-    }
-
-    private Messenger
-    message(final String target) {
-        final String scheme = URI.scheme("", target);
-        if ("https".equals(scheme)) { return new HTTP("https", 443, local); }
-        if ("http".equals(scheme)) { return new HTTP("http", 80, local); }
-        final Rejected<Object> answer =
-        	new Rejected<Object>(new UnknownScheme(scheme));
-        return new Messenger() {
-            
-            public <R> R
-            when(final String URL, final Class<?> R,
-                 final Do<Object,R> observer) { return when(answer, observer); }
-            
-            /**
-             * A trick to resolve a dispatch ambiguity in javac.
-             */
-            private <P,R> R
-            when(final Promise<P> value, final Do<P,R> observer) {
-                final Eventual _ = local.fetch(null, Remoting._);
-                return _.when(value, observer);
-            }
-            
-            public Object
-            invoke(final String URL, final Object proxy, 
-                   final Method method, final Object... arg) {
-                try {
-                    return answer.invoke(proxy, method, arg);
-                } catch (final Exception e) { throw new Error(e); }
-            }
-        };
+        final Messenger messenger = local.fetch(null, Vat.messenger);
+        return messenger.when(URL, R, observer);
     }
     
     // org.waterken.remote.Remote interface
     
     /**
-     * Creates a remote reference.
-     * @param type  referent type
+     * Accesses the wrapped URL.
+     * @param root  local address space
+     * @return the wrapped URL
      */
-    public Object
-    _(final Class<?> type) { return _.cast(type, this);  }
+    public String
+    export(final Root root) {
+        if (!local.equals(root)) { throw new ClassCastException(); }
+        return URL;
+    }
+
+    /**
+     * Is the given object pass-by-construction?
+     * @param object  candidate object
+     * @return <code>true</code> if pass-by-construction,
+     *         else <code>false</code>
+     */
+    static public boolean
+    isPBC(final Object object) {
+        final Class<?> type = null != object ? object.getClass() : Void.class;
+        return String.class == type ||
+            Integer.class == type ||
+            Long.class == type ||
+            Boolean.class == type ||
+            Byte.class == type ||
+            Short.class == type ||
+            Character.class == type ||
+            Double.class == type ||
+            Float.class == type ||
+            Void.class == type ||
+            java.math.BigInteger.class == type ||
+            java.math.BigDecimal.class == type ||
+            org.ref_send.Record.class.isAssignableFrom(type) ||
+            Throwable.class.isAssignableFrom(type) ||
+            org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
+            org.ref_send.promise.Volatile.class.isAssignableFrom(type);
+    }
 }

@@ -24,9 +24,7 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.TokenList;
 import org.waterken.io.snapshot.Snapshot;
-import org.waterken.remote.Exports;
 import org.waterken.remote.Messenger;
-import org.waterken.remote.Remoting;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
@@ -34,6 +32,7 @@ import org.waterken.uri.Authority;
 import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 import org.waterken.vat.Root;
+import org.waterken.vat.Vat;
 import org.web_send.Entity;
 import org.web_send.Failure;
 
@@ -51,7 +50,7 @@ Caller extends Struct implements Messenger, Serializable {
     
     Caller(final Pipeline msgs, final Root local) {
         this.msgs = msgs;
-        _ = local.fetch(null, Remoting._);
+        _ = local.fetch(null, Vat._);
         code = local.fetch(null, Root.code);
         exports = new Exports(local);
     }
@@ -160,9 +159,8 @@ Caller extends Struct implements Messenger, Serializable {
             reject(final Exception reason) { return resolver.reject(reason); }
         }
         msgs.enqueue(new GET());
-        final Class<?> R = Typedef.raw(
-            Typedef.bound(method.getGenericReturnType(), proxy.getClass()));
-        return void.class == R || Void.class == R ? null : _.cast(R, r.promise);
+        return _.cast(Typedef.raw(Typedef.bound(method.getGenericReturnType(),
+                                                proxy.getClass())), r.promise);
     }
     
     private Object

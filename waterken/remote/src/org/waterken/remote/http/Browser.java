@@ -25,14 +25,13 @@ import org.ref_send.promise.eventual.Task;
 import org.ref_send.scope.Scope;
 import org.waterken.http.Server;
 import org.waterken.remote.Remote;
-import org.waterken.remote.Remoting;
+import org.waterken.remote.mux.Remoting;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
 import org.waterken.vat.Root;
 import org.waterken.vat.Service;
 import org.waterken.vat.Transaction;
 import org.waterken.vat.Vat;
-import org.web_send.graph.Collision;
 
 /**
  * A transient, homeless client.
@@ -100,7 +99,7 @@ Browser extends Struct implements Record, Serializable {
             }
 
             public void
-            link(final String name, final Object value) throws Collision {
+            link(final String name, final Object value) {
                 bound = bound.with(name.toLowerCase(), value);
             }
 
@@ -141,19 +140,19 @@ Browser extends Struct implements Record, Serializable {
         };
         final Token deferred = new Token();
         final Eventual _ = new Eventual(deferred, enqueue, log);
-        local.link(Root.code, code);
-        local.link(Root.destruct, new Receiver<Object>() {
+        local.link(Vat.code, code);
+        local.link(Vat.destruct, new Receiver<Object>() {
             public void
             run(final Object ignored) { throw new Error(); }
         });
-        local.link(Root.effect, enqueue);
-        local.link(Root.enqueue, enqueue);
-        local.link(Root.vat, vat);
-        local.link(Root.nothing, null);
-        local.link(Root.prng, prng);
-        local.link(Remoting._, _);
+        local.link(Vat.effect, enqueue);
+        local.link(Vat.enqueue, enqueue);
+        local.link(Vat.vat, vat);
+        local.link(Vat.nothing, null);
+        local.link(Vat.prng, prng);
+        local.link(Vat._, _);
         local.link(Remoting.client, client);
-        local.link(Remoting.deferred, deferred);
+        local.link(Vat.deferred, deferred);
         local.link(AMP.outbound, new Outbound());
         return new Browser(_, Remote.use(local), Remote.bind(local, null));
     }

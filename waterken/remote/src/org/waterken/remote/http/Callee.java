@@ -20,16 +20,16 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Factory;
 import org.ref_send.scope.Layout;
 import org.ref_send.scope.Scope;
-import org.ref_send.var.Factory;
 import org.waterken.http.MediaType;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.http.TokenList;
 import org.waterken.io.snapshot.Snapshot;
-import org.waterken.remote.Exports;
+import org.waterken.remote.Remote;
 import org.waterken.syntax.json.BadSyntax;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
@@ -115,9 +115,8 @@ Callee extends Struct implements Server, Serializable {
             }
             if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
                 if ("*".equals(p)) {
-                    final Class<?> t = null!=value?value.getClass():Void.class;
-                    if (!Exports.isPBC(t)) {
-                        value = describe(t);
+                    if (!Remote.isPBC(value)) {
+                        value=describe(null!=value?value.getClass():Void.class);
                     }
                 }
                 respond.fulfill(serialize(request.method, "200", "OK",
@@ -140,16 +139,15 @@ Callee extends Struct implements Server, Serializable {
         final Object target = ((Fulfilled<?>)subject).cast();
         
         // prevent access to local implementation details
-        final Class<?> type = null != target ? target.getClass() : Void.class;
-        if (Exports.isPBC(type)) { throw Failure.notFound(); }
+        if (Remote.isPBC(target)) { throw Failure.notFound(); }
         
         // process the request
-        final Method lambda = Exports.dispatch(type, p);
+        final Method lambda = Exports.dispatch(target, p);
         if ("GET".equals(request.method) || "HEAD".equals(request.method)) {
             Object value;
             try {
                 if (null == lambda || null == Exports.property(lambda)) {
-                    throw new ClassCastException();
+                    throw new NullPointerException();
                 }
                 // AUDIT: call to untrusted application code
                 value = Reflection.invoke(Exports.bubble(lambda), target);
@@ -185,6 +183,7 @@ Callee extends Struct implements Server, Serializable {
                 }
                 raw = null;
             } else {
+                // TODO: use Promise<ByteArray> instead of Entity
                 raw = new Entity(contentType, ((Snapshot)request.body).content);
             }
             final Object value = exports.once(query, lambda,
@@ -193,7 +192,7 @@ Callee extends Struct implements Server, Serializable {
                 run() {
                     try {
                         if (null == lambda || null != Exports.property(lambda)){
-                            throw new ClassCastException();
+                            throw new NullPointerException();
                         }
                         final ConstArray<?> argv;
                         if (null != raw) {

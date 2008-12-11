@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import org.ref_send.promise.eventual.Do;
 
 /**
- * The remote messaging interface.
+ * The inter-vat messaging interface.
  */
 public interface
 Messenger {

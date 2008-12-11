@@ -2,6 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 
 /**
- * The remote reference interface.
+ * The inter-vat reference interface.
  */
 @org.joe_e.IsJoeE package org.waterken.remote;

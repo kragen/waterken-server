@@ -1,6 +1,6 @@
 // Copyright 2006-2007 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.remote;
+package org.waterken.remote.http;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
@@ -24,18 +24,20 @@ import org.ref_send.log.Trace;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Factory;
 import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Receiver;
-import org.ref_send.var.Factory;
 import org.waterken.base32.Base32;
-import org.waterken.remote.base.Base;
+import org.waterken.crypto.Encryptor;
+import org.waterken.remote.Remote;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
+import org.waterken.trace.Tracer;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
 import org.waterken.vat.Effect;
 import org.waterken.vat.Root;
-import org.waterken.vat.Tracer;
+import org.waterken.vat.Vat;
 
 /**
  * A web-key interface to a {@link Root}.
@@ -62,13 +64,21 @@ Exports extends Struct implements Serializable {
      * Gets the base URL for this namespace.
      */
     public String
-    getHere() { return local.fetch("x-browser:", Root.here); }
+    getHere() { return local.fetch("x-browser:", Vat.here); }
 
     /**
      * Calls {@link Root#getTransactionTag()}.
      */
     public String
-    getTransactionTag() { return local.getTransactionTag(); }
+    getTransactionTag() {
+        final Factory<String> tagger = local.fetch(null, Vat.tagger);
+        return null != tagger ? tagger.run() : null;
+    }
+    
+    public String
+    pipeline(final String m, final long w, final long i) {
+        final Encryptor encrypt = local.fetch(null, Vat.AES);
+    }
     
     /*
      * message identifiers
@@ -141,7 +151,7 @@ Exports extends Struct implements Serializable {
         
         // build the return value channel
         if (void.class == type || Void.class == type) { return null; }
-        final Eventual _ = local.fetch(null, Remoting._);        
+        final Eventual _ = local.fetch(null, Vat._);        
         final Channel<Object> r = _.defer();
         final String here = local.fetch(null, Root.here);
         if (null == here) { return r; }
@@ -226,7 +236,7 @@ Exports extends Struct implements Serializable {
      */
     public Exporter
     send(final String base) {
-        return Base.relative(base, Base.absolute(getHere(), export()));
+        return relative(base, export());
     }
     
     /**
@@ -246,7 +256,7 @@ Exports extends Struct implements Serializable {
             public String
             run(final Object object) {
                 return "#" + local.export(object) +
-                    (null == object || isPBC(object.getClass()) ||
+                    (Remote.isPBC(object) ||
                         !(Eventual.promised(object) instanceof Fulfilled)
                             ? "&src=" : ""); 
             }
@@ -260,11 +270,29 @@ Exports extends Struct implements Serializable {
     public String
     mid() {
         final byte[] secret = new byte[128 / Byte.SIZE];
-        final SecureRandom prng = local.fetch(null, Root.prng);
+        final SecureRandom prng = local.fetch(null, Vat.prng);
         prng.nextBytes(secret);
         return Base32.encode(secret);
     }
     
+    /**
+     * Constructs a relative URI exporter.
+     * @param base  base URI
+     * @param local local reference exporter
+     */
+    static private Exporter
+    relative(final String base, final Exporter local) {
+        class RelativeX extends Struct implements Exporter, Serializable {
+            static private final long serialVersionUID = 1L;
+    
+            public String
+            run(final Object target){
+                return URI.relate(base, local.run(target));
+            }
+        }
+        return new RelativeX();
+    }
+
     /**
      * Extracts the key from a web-key.
      * @param URL   web-key
@@ -331,35 +359,6 @@ Exports extends Struct implements Serializable {
     }
     
     /**
-     * Is the given type a pass-by-construction type?
-     * @param type  candidate type
-     * @return <code>true</code> if pass-by-construction,
-     *         else <code>false</code>
-     */
-    static public boolean
-    isPBC(final Class<?> type) {
-        return String.class == type ||
-            Void.class == type ||
-            Integer.class == type ||
-            Long.class == type ||
-            Boolean.class == type ||
-            java.math.BigInteger.class == type ||
-            Byte.class == type ||
-            Short.class == type ||
-            Character.class == type ||
-            Double.class == type ||
-            Float.class == type ||
-            java.math.BigDecimal.class == type ||
-            org.web_send.Entity.class == type ||
-            org.ref_send.Record.class.isAssignableFrom(type) ||
-            Throwable.class.isAssignableFrom(type) ||
-            org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
-            org.ref_send.promise.Volatile.class.isAssignableFrom(type) ||
-            java.lang.reflect.Type.class.isAssignableFrom(type) ||
-            java.lang.reflect.AnnotatedElement.class.isAssignableFrom(type);
-    }
-    
-    /**
      * Gets the corresponding property name.
      * <p>
      * This method implements the standard Java beans naming conventions.
@@ -403,17 +402,19 @@ Exports extends Struct implements Serializable {
     isSynthetic(final int flags) { return 0 != (flags & synthetic); }
 
     /**
-     * Finds a named instance member.
-     * @param type  class to search
-     * @param name  member name
-     * @return corresponding member, or <code>null</code> if not found
+     * Finds a named method.
+     * @param target    invocation target
+     * @param name      method name
+     * @return corresponding method, or <code>null</code> if not found
      */
     static public Method
-    dispatch(final Class<?> type, final String name) {
+    dispatch(final Object target, final String name) {
+        final Class<?> type = null != target ? target.getClass() : Void.class;
+        final boolean c = Class.class == type;
         Method r = null;
-        for (final Method m : Reflection.methods(type)) {
+        for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
             final int flags = m.getModifiers();
-            if (!isStatic(flags) && !isSynthetic(flags)) {
+            if (c == isStatic(flags) && !isSynthetic(flags)) {
                 String mn = property(m);
                 if (null == mn) {
                     mn = m.getName();
@@ -433,7 +434,9 @@ Exports extends Struct implements Serializable {
     static public Method
     bubble(final Method method) {
         final Class<?> declarer = method.getDeclaringClass();
+        if (Object.class == declarer || Struct.class == declarer) {return null;}
         if (isPublic(declarer.getModifiers())) { return method; }
+        if (isStatic(method.getModifiers())) { return null; }
         final String name = method.getName();
         final Class<?>[] param = method.getParameterTypes();
         for (final Class<?> i : declarer.getInterfaces()) {

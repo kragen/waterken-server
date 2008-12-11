@@ -20,13 +20,14 @@ import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.snapshot.Snapshot;
-import org.waterken.remote.Remoting;
+import org.waterken.remote.mux.Remoting;
 import org.waterken.vat.Effect;
 import org.waterken.vat.Root;
 import org.waterken.vat.Service;
 import org.waterken.vat.Transaction;
 import org.waterken.vat.Vat;
 import org.web_send.Failure;
+import org.web_send.Failure.maxContentSize;
 
 /**
  * Manages a pending request queue for a specific host.
@@ -198,10 +199,10 @@ Pipeline implements Serializable {
             if (null != r.body) {
                 try {
                     final int length = r.getContentLength();
-                    if (length > maxContentSize) { throw Failure.tooBig(); }
+                    if (length > Failure.maxEntitySize) { throw Failure.tooBig(); }
                     r = new Response(r.version, r.status, r.phrase, r.header,
                         Snapshot.snapshot(length < 0 ? 1024 : length,
-                            Limited.limit(maxContentSize, r.body)));
+                            Limited.limit(Failure.maxEntitySize, r.body)));
                 } catch (final Failure e) { return reject(e); }
             }
             return resolve(ref(r));

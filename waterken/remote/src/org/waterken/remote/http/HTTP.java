@@ -14,14 +14,13 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.type.Typedef;
-import org.waterken.remote.Exports;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
-import org.waterken.remote.Remoting;
 import org.waterken.uri.Authority;
 import org.waterken.uri.Location;
 import org.waterken.uri.URI;
 import org.waterken.vat.Root;
+import org.waterken.vat.Vat;
 
 /**
  * Dispatches to the corresponding peer specific messenger.
@@ -65,11 +64,11 @@ HTTP extends Struct implements Messenger, Serializable {
             } catch (final Exception e) {
                 p = new Rejected<Object>(e);
             }
-            final Eventual _ = local.fetch(null, Remoting._);
+            final Eventual _ = local.fetch(null, Vat._);
             return _.when(p, observer);
         }
         // already a resolved remote reference
-        final Eventual _ = local.fetch(null, Remoting._);
+        final Eventual _ = local.fetch(null, Vat._);
         final R r;
         final Do<Object,?> forwarder;
         if (void.class == R || Void.class == R) {
