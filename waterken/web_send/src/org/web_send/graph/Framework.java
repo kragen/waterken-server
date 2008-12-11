@@ -55,6 +55,9 @@ Framework extends Struct implements Record, Serializable {
      * <p>
      * All remote clients have read permission on this namespace.
      * </p>
+     * <p>
+     * This member will be <code>null</code> if no namespace is provided.
+     * </p>
      */
     public final Publisher publisher;
 
@@ -63,7 +66,7 @@ Framework extends Struct implements Record, Serializable {
      * @param _         {@link #_}
      * @param destruct  {@link #destruct}
      * @param spawn     {@link #spawn}
-     * @param publisher {@link #publisher}
+     * @param publisher optional {@link #publisher}
      */
     public @deserializer
     Framework(@name("_") final Eventual _,

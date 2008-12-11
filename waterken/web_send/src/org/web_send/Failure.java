@@ -13,6 +13,11 @@ import org.ref_send.name;
 public class
 Failure extends NullPointerException implements Powerless, Record {
     static private final long serialVersionUID = 1L;
+
+    /**
+     * entity size expected to trigger a <code>413</code> response: {@value}
+     */
+    static public final int maxEntitySize = 256 * 1024;
     
     /**
      * HTTP status code

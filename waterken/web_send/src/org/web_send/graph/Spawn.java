@@ -2,23 +2,30 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.web_send.graph;
 
+import org.joe_e.Struct;
+import org.ref_send.promise.Promise;
+
 /**
  * A vat maker.
  * @see org.web_send.graph.Publisher#spawn
  */
-public interface
-Spawn {
+public abstract class
+Spawn extends Struct {
     
     /**
      * Creates a vat.
      * <p>
-     * The <code>maker</code> MUST have a method with signature:</p>
-     * <p><code>static public T build({@link Framework} framework)</code>
+     * The <code>builder</code> MUST have a method with signature:
      * </p>
-     * @param <T> exported object type
-     * @param maker object maker
-     * @return promise for the object returned by the <code>maker</code>
+     * <pre>
+     * static public R
+     * build({@link Framework} framework<i>, &hellip;</i>)
+     * </pre>
+     * @param <R> return type, MUST be either an interface, or a {@link Promise}
+     * @param builder   object constructor class
+     * @param argv      more arguments for <code>builder</code>'s build method
+     * @return promise for the object returned by the <code>builder</code>
      */
-    <T> T
-    run(Class<?> maker);
+    public abstract <R> R
+    run(Class<?> builder, Object... argv);
 }

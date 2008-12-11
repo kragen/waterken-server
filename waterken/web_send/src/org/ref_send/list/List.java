@@ -10,7 +10,9 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.joe_e.Equatable;
+import org.joe_e.Struct;
 import org.ref_send.promise.Fulfilled;
+import org.ref_send.promise.eventual.Receiver;
 
 /**
  * A linked list.
@@ -154,5 +156,19 @@ List<T> implements Iterable<T>, Serializable {
             capacity += 1;
         }
         last = near(last.next);
+    }
+    
+    /**
+     * Constructs an {@linkplain #append appender}.
+     */
+    public Receiver<T>
+    appender() {
+        class Appender extends Struct implements Receiver<T>, Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public void
+            run(final T value) { append(value); }
+        }
+        return new Appender();
     }
 }
