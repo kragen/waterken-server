@@ -11,16 +11,13 @@ import java.io.Serializable;
 
 import org.joe_e.Equatable;
 import org.joe_e.Struct;
-import org.joe_e.Token;
 import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Receiver;
-import org.ref_send.promise.eventual.Sink;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.test.Test;
 import org.web_send.graph.Framework;
@@ -64,11 +61,8 @@ Main extends Struct implements Test, Serializable {
      */
     static public void
     main(final String[] args) throws Exception {
-        final List<Task> work = List.list();
-        final Eventual _ = new Eventual(new Token(), new Loop<Task>() {
-            public void
-            run(final Task task) { work.append(task); }
-        });
+        final List<Task<?>> work = List.list();
+        final Eventual _ = new Eventual(work.appender());
         final Test test = new Main(_);
         final Promise<Boolean> result = test.start();
         while (!work.isEmpty()) { work.pop().run(); }

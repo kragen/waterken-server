@@ -12,12 +12,10 @@ import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.test.Test;
-import org.ref_send.var.Variable;
 import org.waterken.bang.Bang;
 import org.waterken.bang.Drum;
 import org.waterken.bounce.Bounce;
 import org.waterken.bounce.Wall;
-import org.waterken.put.Put;
 import org.web_send.graph.Framework;
 
 /**
@@ -63,10 +61,6 @@ Main extends Struct implements Test, Serializable {
         _.log.comment("testing message pipelining");
         final Drum drum_ = framework.publisher.spawn("drum", Bang.class);
         r.append(new org.waterken.bang.Main(_).test(drum_, 0));
-        
-        _.log.comment("testing idempotent update");
-        final Promise<Variable<Boolean>> slot = framework.spawn.run(Put.class);
-        r.append(new org.waterken.put.Main(_).test(slot, false));
 
         return and(_, r.snapshot());
     }
