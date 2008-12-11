@@ -6,8 +6,10 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.Type;
 
+import org.joe_e.Equatable;
+import org.joe_e.Immutable;
+import org.joe_e.JoeE;
 import org.joe_e.Selfless;
 import org.joe_e.Token;
 import org.joe_e.array.ConstArray;
@@ -25,6 +27,11 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
+     * weak promise type
+     */
+    static public final Class<?> WeakPromise = WeakPromise.class;
+    
+    /**
      * corresponding eventual operator
      */
     protected final Eventual _;
@@ -36,7 +43,7 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
      */
     protected
     Deferred(final Eventual _, final Token deferred) {
-        // MUST ONLY allow construction by a caller who directly possesses the
+        // *MUST ONLY* allow construction by a caller who directly possesses the
         // corresponding deferred permission. The Eventual implementation relies
         // upon this check being done in this constructor.
         if (_.deferred != deferred) { throw new ClassCastException(); }
@@ -73,26 +80,69 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
             }
         }
         try {
-            final ConstArray<?> argv = null==arg ? null : ConstArray.array(arg);
-            class Invoke extends Do<T,Object> implements Serializable {
-                static private final long serialVersionUID = 1L;
-    
-				public @SuppressWarnings("unchecked") Object
-                fulfill(final T object) throws Exception {
-                    // AUDIT: call to untrusted application code
-                    return Reflection.invoke(method,
-                        object instanceof Deferred
-                            ? _.cast(method.getDeclaringClass(),
-                                     (Deferred<T>)object)
-                        : object, null == argv
-                            ? null
-                        : argv.toArray(new Object[argv.length()]));
-                }
-            }
-            final Type R = Typedef.bound(method.getGenericReturnType(),
-                                         proxy.getClass());
-            return when(Typedef.raw(R), new Invoke());
+            final Do<T,Object> observer =
+                curry(_, method, null == arg ? null : ConstArray.array(arg));
+            return when(Typedef.raw(Typedef.bound(method.getGenericReturnType(),
+                                                  proxy.getClass())), observer);
         } catch (final Exception e) { throw new Error(e); }
+    }
+    
+    static private <T> Do<T,Object>
+    curry(final Eventual _, final Method method, final ConstArray<?> argv) {
+        class Invoker extends Do<T,Object> implements Serializable {
+            static private final long serialVersionUID = 1L;
+            
+            public @SuppressWarnings("unchecked") Object
+            fulfill(final T object) throws Exception {
+                // AUDIT: call to untrusted application code
+                return Reflection.invoke(method,
+                    object instanceof Deferred
+                        ? _.cast(method.getDeclaringClass(),(Deferred<T>)object)
+                    : object, null == argv
+                        ? null
+                    : argv.toArray(new Object[argv.length()]));
+            }
+        }
+        return new Invoker();
+    }
+
+    /**
+     * Constructs a call return block.
+     * @param first     code block to execute
+     * @param second    code block's return resolver
+     */
+    static protected <A,B> Do<A,Void>
+    compose(final Do<A,B> first, final Resolver<B> second) {
+        class Compose extends Do<A,Void> implements Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public Void
+            fulfill(final A a) {
+                final B b;
+                try {
+                    b = first.fulfill(a);
+                } catch (final Exception e) {
+                    second.reject(e);
+                    return null;
+                }
+                second.run(b);
+                return null;
+            }
+
+            public Void
+            reject(final Exception reason) {
+                final B b;
+                try {
+                    b = first.reject(reason);
+                } catch (final Exception e) {
+                    second.reject(e);
+                    return null;
+                }
+                second.run(b);
+                return null;
+            }
+        }
+        return new Compose();
     }
 
     // org.ref_send.promise.Volatile interface
@@ -113,4 +163,66 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
      */
     protected abstract <R> R
     when(Class<?> R, Do<T,R> observer);
+    
+    /**
+     * Creates a remote reference.
+     * @param type  referent type
+     */
+    public Object
+    _(final Class<?> type) { return _.cast(type, this);  }
+    
+    /**
+     * Creates a remote reference that mimics the interface of a concrete type.
+     * @param concrete  type to mimic
+     */
+    public @SuppressWarnings("unchecked") T
+    mimic(final Class<?> concrete) {
+        // build the list of types to implement
+        Class<?>[] types = virtualize(concrete);
+        boolean selfless = false;
+        for (final Class<?> i : types) {
+            selfless = Selfless.class.isAssignableFrom(i);
+            if (selfless) { break; }
+        }
+        if (!selfless) {
+            final int n = types.length;
+            System.arraycopy(types, 0, types = new Class[n + 1], 0, n);
+            types[n] = Selfless.class;
+        }
+        return (T)Proxies.proxy(this, types);
+    }
+
+    /**
+     * Lists the allowed interfaces implemented by a type.
+     * @param base  base type
+     * @return allowed interfaces implemented by <code>base</code>
+     */
+    static private Class<?>[]
+    virtualize(final Class<?> base) {
+        Class<?>[] r = base.getInterfaces();
+        int i = r.length;
+        final Class<?> parent = base.getSuperclass();
+        if (null != parent && Object.class != parent) {
+            final Class<?>[] p = virtualize(parent);
+            if (0 != p.length) {
+                System.arraycopy(r, 0, r = new Class<?>[i + p.length], 0, i);
+                System.arraycopy(p, 0, r, i, p.length);
+            }
+        }
+        while (i-- != 0) {
+            final Class<?> type = r[i];
+            if (type == Serializable.class ||
+                    !Proxies.isImplementable(type) ||
+                    JoeE.isSubtypeOf(type, Immutable.class) ||
+                    JoeE.isSubtypeOf(type, Equatable.class)) {
+                final Class<?>[] x = virtualize(r[i]);
+                final Class<?>[] c = r;
+                r = new Class<?>[c.length - 1 + x.length];
+                System.arraycopy(c, 0, r, 0, i);
+                System.arraycopy(x, 0, r, i, x.length);
+                System.arraycopy(c, i + 1, r, i + x.length, c.length - (i+1));
+            }
+        }
+        return r;
+    }
 }

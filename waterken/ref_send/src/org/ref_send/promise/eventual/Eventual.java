@@ -9,12 +9,11 @@ import java.io.Serializable;
 import java.lang.reflect.Proxy;
 
 import org.joe_e.Equatable;
-import org.joe_e.Immutable;
-import org.joe_e.JoeE;
 import org.joe_e.Selfless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.reflect.Proxies;
+import org.joe_e.var.Milestone;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
@@ -23,10 +22,10 @@ import org.ref_send.type.Typedef;
 
 /**
  * The eventual operator.
- * <p>This class decorates an {@linkplain #enqueue event loop} with methods
- * implementing the core eventual control flow statements needed for defensive
- * programming. The primary aim of these new control flow statements is
- * preventing plan interference.</p>
+ * <p>This class decorates an event loop with methods implementing the core
+ * eventual control flow statements needed for defensive programming. The
+ * primary aim of these new control flow statements is preventing plan
+ * interference.</p>
  * <p>The implementation of a public method can be thought of as a plan in
  * which an object makes a series of state changes based on a list of
  * invocation arguments and the object's own current state. As part of
@@ -132,7 +131,7 @@ import org.ref_send.type.Typedef;
  *      Unified Approach to Access Control and Concurrency Control"</a>
  */
 public final class
-Eventual extends Struct implements Serializable {
+Eventual implements Receiver<Task<?>>, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -141,6 +140,56 @@ Eventual extends Struct implements Serializable {
     protected final Token deferred;
 
     /**
+     * raw {@link #run event loop}
+     */
+    private   final Receiver<Task<?>> enqueue;
+    
+    /**
+     * name of the event loop
+     */
+    private   final String name;
+    
+    /**
+     * debugging output
+     */
+    public    final Log log;
+
+    /**
+     * Constructs an instance.
+     * @param deferred  {@link Deferred} permission
+     * @param enqueue   raw {@link #run event loop}
+     * @param name      name of the event loop
+     * @param log       {@link #log}
+     */
+    public
+    Eventual(final Token deferred, final Receiver<Task<?>> enqueue,
+             final String name, final Log log) {
+        this.deferred = deferred;
+        this.enqueue = enqueue;
+        this.name = name;
+        this.log = log;
+    }
+
+    /**
+     * Constructs an instance.
+     * @param enqueue   raw {@link #run event loop}
+     */
+    public
+    Eventual(final Receiver<Task<?>> enqueue) {
+        this(new Token(), enqueue, "", new NOP());
+    }
+
+    // org.ref_send.promise.eventual.Loop interface
+
+    /**
+     * number of tasks {@link #run enqueued}
+     * <p>
+     * This variable is only incremented and should never be allowed to wrap.
+     * </p>
+     */
+    private long tasks;
+    
+    /**
      * Schedules a task for execution in a future turn.
      * <p>
      * The implementation preserves the <i>F</i>irst <i>I</i>n <i>F</i>irst
@@ -148,34 +197,26 @@ Eventual extends Struct implements Serializable {
      * {@linkplain Task#run executed} in the same order as they were enqueued.
      * </p>
      */
-    public final Loop<Task> enqueue;
-    
-    /**
-     * debugging output
-     */
-    public final Log log;
+    public void
+    run(final Task<?> task) {
+        final long id = ++tasks;
+        if (0 == id) { throw new AssertionError(); }
+        class TaskX extends Struct implements Task<Void>, Serializable {
+            static private final long serialVersionUID = 1L;
 
-    /**
-     * Constructs an instance.
-     * @param deferred  {@link Deferred} permission
-     * @param enqueue   {@link #enqueue}
-     * @param log       {@link #log}
-     */
-    public
-    Eventual(final Token deferred, final Loop<Task> enqueue, final Log log) {
-        this.deferred = deferred;
-        this.enqueue = enqueue;
-        this.log = null != log ? log : new Sink();
-    }
-
-    /**
-     * Constructs an instance.
-     * @param deferred  {@link Deferred} permission
-     * @param enqueue   {@link #enqueue}
-     */
-    public
-    Eventual(final Token deferred, final Loop<Task> enqueue) {
-        this (deferred, enqueue, null);
+            public Void
+            run() {
+                log.got(name + "t" + id);
+                try {
+                    task.run();
+                } catch (final Exception e) {
+                    log.problem(e);
+                }
+                return null;
+            }
+        }
+        enqueue.run(new TaskX());
+        log.sent(name + "t" + id);
     }
 
     // org.ref_send.promise.eventual.Eventual interface
@@ -184,7 +225,7 @@ Eventual extends Struct implements Serializable {
      * Registers an observer on a promise.
      * <p>
      * The <code>observer</code> will be notified of the <code>promise</code>'s
-     * state at most once, in a future {@linkplain #enqueue event loop} turn. If
+     * state at most once, in a future {@linkplain #run event loop} turn. If
      * there is no referent, the <code>observer</code>'s
      * {@link Do#reject reject} method will be called with the reason;
      * otherwise, the {@link Do#fulfill fulfill} method will be called with
@@ -228,7 +269,7 @@ Eventual extends Struct implements Serializable {
     when(final Volatile<T> promise, final Do<T,R> observer) {
         try {
             final Class<?> R =
-            	Typedef.raw(Typedef.value(Do.R,observer.getClass()));
+            	Typedef.raw(Typedef.value(Do.R, observer.getClass()));
             return trust(promise).when(R, observer);
         } catch (final Exception e) { throw new Error(e); }
     }
@@ -286,25 +327,26 @@ Eventual extends Struct implements Serializable {
                 r = _.cast(R, x.promise);
                 forwarder = compose(observer, x.resolver);
             }
-            class Sample extends Struct implements Task, Serializable {
+            class Sample extends Struct implements Task<Void>, Serializable {
                 static private final long serialVersionUID = 1L;
 
-                public void
+                public Void
                 run() throws Exception {
                     // AUDIT: call to untrusted application code
                     sample(untrusted, forwarder);
+                    return null;
                 }
             }
-            _.enqueue.run(new Sample());
+            _.run(new Sample());
             return r;
         }
     }
     
     static private <P,R> R
-    sample(final Volatile<P> p, final Do<P,R> observer) throws Exception {
+    sample(final Volatile<P> promise, final Do<P,R> observer) throws Exception {
         final P a;
         try {
-            a = Fulfilled.ref(p.cast()).cast();
+            a = Fulfilled.ref(promise.cast()).cast();
         } catch (final Exception reason) {
             return observer.reject(reason);
         }
@@ -312,41 +354,232 @@ Eventual extends Struct implements Serializable {
     }
 
     /**
-     * Constructs a call return block.
-     * @param first     code block to execute
-     * @param second    code block's return resolver
+     * A registered promise observer.
+     * @param <T> referent type
      */
-    static public <A,B> Do<A,Void>
-    compose(final Do<A,B> first, final Resolver<B> second) {
-        class Compose extends Do<A,Void> implements Serializable {
-            static private final long serialVersionUID = 1L;
+    static private final class
+    When<T> implements Equatable, Serializable {
+        static private final long serialVersionUID = 1L;
 
-            public Void
-            fulfill(final A a) {
-                final B b;
-                try {
-                    b = first.fulfill(a);
-                } catch (final Exception e) {
-                    return second.reject(e);
-                }
-                second.run(b);
+        long condition;             // id for the corresponding promise
+        long message;               // id for this when block
+        Do<T,?> observer;           // client's when block code
+        Fulfilled<When<T>> next;    // next when block registered on the promise
+    }
+    
+    /**
+     * number of deferred when blocks created
+     * <p>
+     * This variable is only incremented and should never be allowed to wrap.
+     * </p>
+     */
+    private long whens;
+    
+    /**
+     * pool of previously used when blocks
+     * <p>
+     * When blocks are recycled so that environments providing orthogonal
+     * persistence don't accumulate lots of dead objects.
+     * </p>
+     */
+    private Fulfilled<When<?>> whenPool;
+    
+    private @SuppressWarnings("unchecked") <T> Fulfilled<When<T>>
+    allocWhen(final long condition) {
+        final long message = ++whens;
+        if (0 == message) { throw new AssertionError(); }
+        
+        final Fulfilled<When<T>> r;
+        final When<T> block;
+        if (null == whenPool) {
+            block = new When<T>();
+            r = detach(block);
+        } else {
+            r = (Fulfilled)whenPool;
+            block = (When)Fulfilled.near(r);
+            whenPool = (Fulfilled)block.next;
+            block.next = null;
+        }
+        block.condition = condition;
+        block.message = message;
+        return r;
+    }
+    
+    private @SuppressWarnings("unchecked") void
+    freeWhen(final Fulfilled pBlock, final When block) {
+        block.condition = 0;
+        block.message = 0;
+        block.observer = null;
+        block.next = (Fulfilled)whenPool;
+        whenPool = pBlock;
+    }
+    
+    private final class
+    Forward<T> extends Struct implements Task<Void>, Serializable {
+        static private final long serialVersionUID = 1L;
+
+        private final long condition;           // id of corresponding promise
+        private final Volatile<T> value;        // resolved value of promise
+        private final Fulfilled<When<T>> next;  // when block to run
+        
+        Forward(final long condition, final Volatile<T> value,
+                final Fulfilled<When<T>> next) {
+            this.condition = condition;
+            this.value = value;
+            this.next = next;
+        }
+
+        /**
+         * Notifies the next observer of the resolved value.
+         */
+        public Void
+        run() {
+            final When<T> block;
+            try {
+                block = next.cast();
+            } catch (final Exception e) {
+                /*
+                 * There was a problem loading the saved when block. Ignore it
+                 * and all subsequent when blocks registered on this promise.
+                 */
+                log.problem(e);
                 return null;
             }
-
-            public Void
-            reject(final Exception reason) {
-                final B b;
-                try {
-                    b = first.reject(reason);
-                } catch (final Exception e) {
-                    return second.reject(e);
+            if (condition != block.condition) { return null; }  // already done
+            block.condition = 0;    // ensure block is not run again
+            
+            if (null != block.next) {
+                log.got(name + "w" + block.message);
+                if (trusted(value)) {
+                    ((Deferred<T>)value).when(Void.class, block.observer);
+                } else {
+                    try {
+                        // AUDIT: call to untrusted application code
+                        sample(value, block.observer);
+                    } catch (final Exception e) {
+                        log.problem(e);
+                    }
                 }
-                second.run(b);
-                return null;
+                enqueue.run(new Forward<T>(condition, value, block.next));
+            }
+            freeWhen(next, block);
+            return null;
+        }
+    }
+    
+    private final class
+    State<T> extends Milestone<Volatile<T>> {
+        static private final long serialVersionUID = 1L;
+        
+        private final long condition;       // id of this promise
+        private Fulfilled<When<T>> back;    // observer list sentinel
+        
+        State(final long condition, final Fulfilled<When<T>> back) {
+            this.condition = condition;
+            this.back = back;
+        }
+        
+        protected void
+        observe(final Do<T,?> observer) {
+            final When<T> block = Fulfilled.near(back);
+            if (condition == block.condition) {
+                log.sentIf(name + "w" + block.message,
+                           name + "p" + condition);
+                block.observer = observer;
+                back = block.next = allocWhen(condition);
+            } else {
+                /**
+                 * Promise is already resolved and all previously registered
+                 * when blocks run. Start a new when block chain and kick off a
+                 * new when block running task.
+                 */
+                back = allocWhen(condition);
+                enqueue.run(new Forward<T>(condition, get(), back));
+                observe(observer);
             }
         }
-        return new Compose();
     }
+    
+    static private final class
+    Tail<T> extends Deferred<T> implements Promise<T> {
+        static private final long serialVersionUID = 1L;
+
+        private final State<T> state;   // mutable store for promise's value
+
+        Tail(final Eventual _, final State<T> state) {
+            super(_, _.deferred);
+            this.state = state;
+        }
+
+        public int
+        hashCode() { return (int)state.condition + 0x3EFF7A11; }
+
+        public boolean
+        equals(final Object x) {
+            return x instanceof Tail && state.equals(((Tail<?>)x).state);
+        }
+
+        public T
+        cast() throws Exception { return state.get().cast(); }
+
+        public <R> R
+        when(final Class<?> R, final Do<T,R> observer) {
+            final R r;
+            final Do<T,?> forwarder;
+            if (void.class == R || Void.class == R) {
+                r = null;
+                forwarder = observer;
+            } else {
+                final Channel<R> x = _.defer();
+                r = _.cast(R, x.promise);
+                forwarder = compose(observer, x.resolver);
+            }
+            state.observe(forwarder);
+            return r;
+        }
+    }
+    
+    private final class
+    Head<T> extends Struct implements Resolver<T>, Serializable {
+        static private final long serialVersionUID = 1L;
+
+        private final long condition;           // id of corresponding promise
+        private final Volatile<State<T>> state; // promise's mutable state
+        private final Fulfilled<When<T>> front; // first when block to run
+        
+        Head(final long condition, final Volatile<State<T>> state,
+                final Fulfilled<When<T>> front) {
+            this.condition = condition;
+            this.state = state;
+            this.front = front;
+        }
+        
+        public void
+        run(final T referent) { chain(promised(referent)); }
+
+        public void
+        reject(final Exception reason) { chain(new Rejected<T>(reason)); }
+        
+        public void
+        resolve(final Volatile<T> p) {
+            chain(null != p ? p : new Rejected<T>(new NullPointerException()));
+        }
+        
+        private void
+        chain(final Volatile<T> promise) {
+            log.resolved(name + "p" + condition);
+            enqueue.run(new Forward<T>(condition, promise, front));
+            try { state.cast().mark(promise); } catch (final Exception e) {}
+        }
+    }
+    
+    /**
+     * number of deferred promises {@linkplain #defer created}
+     * <p>
+     * This variable is only incremented and should never be allowed to wrap.
+     * </p>
+     */
+    private long deferrals;
 
     /**
      * Creates a promise in the deferred state.
@@ -371,141 +604,22 @@ Eventual extends Struct implements Serializable {
      */
     public <T> Channel<T>
     defer() {
-        class State implements Equatable, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            /**
-             * current state of this promise
-             * <ul>
-             *  <li>deferred: <code>null</code></li>
-             *  <li>fulfilled: {@link Fulfilled}</li>
-             *  <li>rejected: {@link Rejected}</li>
-             *  <li>more resolved: {@link Volatile}</li>
-             * </ul>
-             */
-            Volatile<T> value;
-
-            // observer queue
-            Fulfilled<When<T>> front;
-            Fulfilled<When<T>> back;
-        }
-        final Fulfilled<State> state = detach(new State());
-        class Pop extends Struct implements GlueTask, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            /**
-             * Notifies the next observer of the resolved value.
-             */
-            public void
-            run() throws Exception {
-                final State m = state.cast();
-                final When<T> block = m.front.cast();
-                m.front = block.next;
-                if (null == m.front) {
-                    m.back = null;
-                } else {
-                    enqueue.run(this);
-                }
-                log.got(block);
-                final Do<T,?> observer = block.observer;
-                block.observer = null;
-                block.next = null;
-                if (trusted(m.value)) {
-                    ((Deferred<T>)m.value).when(Void.class, observer);
-                } else {
-                    // AUDIT: call to untrusted application code
-                    sample(m.value, observer);
-                }
-            }
-        }
-        class Head implements Resolver<T>, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public void
-            run(final T value) { resolve(promised(value)); }
-
-            public Void
-            reject(final Exception reason) {
-                resolve(new Rejected<T>(reason));
-                return null;
-            }
-            
-            public void
-            resolve(final Volatile<T> value) {
-                final State m = Fulfilled.near(state);
-                if (null == m.value) {
-                    log.resolved(m);
-                    m.value = null != value
-                        ? value
-                    : new Rejected<T>(new NullPointerException());
-                    if (null != m.front) { enqueue.run(new Pop()); }
-                }
-            }
-        }
-        class Tail extends Deferred<T> implements Promise<T> {
-            static private final long serialVersionUID = 1L;
-
-            Tail() { super(Eventual.this, deferred); }
-
-            public int
-            hashCode() { return state.hashCode() + 0x3EFF7A11; }
-
-            public boolean
-            equals(final Object x) {
-                return x instanceof Tail && state.equals(((Tail)x).state());
-            }
-
-            private Fulfilled<State>
-            state() { return state; }
-
-            public T
-            cast() throws Exception { return state.cast().value.cast(); }
-
-            public <R> R
-            when(final Class<?> R, final Do<T,R> observer) {
-                final R r;
-                final Do<T,?> forwarder;
-                if (void.class == R || Void.class == R) {
-                    r = null;
-                    forwarder = observer;
-                } else {
-                    final Channel<R> x = _.defer();
-                    r = _.cast(R, x.promise);
-                    forwarder = compose(observer, x.resolver);
-                }
-                final When<T> block = new When<T>(forwarder);
-
-                final State m = Fulfilled.near(state);
-                log.sentIf(block, m);
-                if (null == m.front) {
-                    m.front = detach(block);
-                    m.back = m.front;
-                    if (null != m.value) { enqueue.run(new Pop()); }
-                } else {
-                    final When<T> previous = Fulfilled.near(m.back);
-                    m.back = previous.next = detach(block);
-                }
-                
-                return r;
-            }
-        }
-        return new Channel<T>(new Tail(), new Head());
-    }
-
-    /**
-     * A registered promise observer.
-     * @param <T> referent type
-     */
-    static private final class
-    When<T> implements Equatable, Serializable {
-        static private final long serialVersionUID = 1L;
-
-        Do<T,?> observer;
-        Fulfilled<When<T>> next;
-        
-        When(final Do<T,?> observer) {
-            this.observer = observer;
-        }
+        final long condition = ++deferrals;
+        if (0 == condition) { throw new AssertionError(); }
+        final Fulfilled<When<T>> front = allocWhen(condition);
+        final State<T> state = new State<T>(condition, front);
+        return new Channel<T>(new Tail<T>(this, state),
+            new Head<T>(condition, new WeakPromise<State<T>>(state), front));
+        /**
+         * The resolver only holds a weak reference to the promise's mutable
+         * state, allowing it to be garbage collected even if the resolver is
+         * still held. This implementation takes advantage of a common pattern
+         * in which a when block is registered on a promise as soon as it is
+         * created, but no other reference to the promise is retained. Combined
+         * with the recycling of when blocks, this common pattern generates no
+         * dead objects. Much of the implementation's complexity is in service
+         * to this goal.
+         */
     }
 
     /**
@@ -548,22 +662,31 @@ Eventual extends Struct implements Serializable {
      * event loop turn.
      * </p>
      * @param <T> referent type to implement
-     * @param type      referent type to implement, MUST be an
-     *                  {@linkplain Proxies#isImplementable allowed} proxy type
+     * @param type      referent type to implement
      * @param promise   promise for the referent
-     * @return corresponding eventual reference
+     * @return corresponding eventual reference, or <code>null</code> if
+     *         <code>type</code> is not eventualizable
      */
 	public @SuppressWarnings("unchecked") <T> T
     cast(final Class<?> type, final Volatile<T> promise) {
         try {
-            return null == promise
+            return (T)(Void.class == type || void.class == type
+                ? null
+            : Float.class == type || float.class == type
+                ? Float.NaN
+            : Double.class == type || double.class == type
+                ? Double.NaN
+            : null == promise
                 ? new Rejected<T>(new NullPointerException())._(type)
             : Rejected.class == promise.getClass()
                 ? ((Rejected<T>)promise)._(type)
             : type.isAssignableFrom(Promise.class)
-                ? (T)promise
-            : (T)proxy(trust(promise), type, Selfless.class);
-        } catch (final Exception e) { throw new Error(e); }
+                ? promise
+            : proxy(trust(promise), type, Selfless.class));
+        } catch (final Exception e) {
+            try { log.problem(e); } catch (final Exception ee) {}
+            return null;
+        }
     }
 
     /**
@@ -632,7 +755,7 @@ Eventual extends Struct implements Serializable {
      * @throws Error    <code>null</code> <code>reference</code> or
      *                  <code>T</code> not an allowed proxy type
      */
-	public @SuppressWarnings("unchecked") <T> T
+	public <T> T
     _(final T reference) {
         if (reference instanceof Proxy) {
             try {
@@ -642,55 +765,9 @@ Eventual extends Struct implements Serializable {
             } catch (final Exception e) {}
         }
         try {
-            // Build the list of types to implement.
-            Class<?>[] types = virtualize(reference.getClass());
-            if (0 == types.length) { throw new ClassCastException(); }
-            boolean selfless = false;
-            for (final Class<?> i : types) {
-                selfless = Selfless.class.isAssignableFrom(i);
-                if (selfless) { break; }
-            }
-            if (!selfless) {
-                final int n = types.length;
-                System.arraycopy(types, 0, types = new Class[n + 1], 0, n);
-                types[n] = Selfless.class;
-            }
-            return (T)proxy(new Enqueue<T>(this, detach(reference)), types);
+            return new Enqueue<T>(this, detach(reference)).
+                mimic(reference.getClass());
         } catch (final Exception e) { throw new Error(e); }
-    }
-
-    /**
-     * Lists the allowed interfaces implemented by a type.
-     * @param base  base type
-     * @return allowed interfaces implemented by <code>base</code>
-     */
-    static private Class<?>[]
-    virtualize(final Class<?> base) {
-        Class<?>[] r = base.getInterfaces();
-        int i = r.length;
-        final Class<?> parent = base.getSuperclass();
-        if (null != parent && Object.class != parent) {
-            final Class<?>[] p = virtualize(parent);
-            if (0 != p.length) {
-                System.arraycopy(r, 0, r = new Class<?>[i + p.length], 0, i);
-                System.arraycopy(p, 0, r, i, p.length);
-            }
-        }
-        while (i-- != 0) {
-            final Class<?> type = r[i];
-            if (type == Serializable.class ||
-                    !Proxies.isImplementable(type) ||
-                    JoeE.isSubtypeOf(type, Immutable.class) ||
-                    JoeE.isSubtypeOf(type, Equatable.class)) {
-                final Class<?>[] x = virtualize(r[i]);
-                final Class<?>[] c = r;
-                r = new Class<?>[c.length - 1 + x.length];
-                System.arraycopy(c, 0, r, 0, i);
-                System.arraycopy(x, 0, r, i, x.length);
-                System.arraycopy(c, i + 1, r, i + x.length, c.length - (i+1));
-            }
-        }
-        return r;
     }
 
     /**

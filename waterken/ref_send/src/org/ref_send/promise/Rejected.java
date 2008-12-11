@@ -93,9 +93,8 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
             }
         }
         try {
-            final Class<?> R = Typedef.raw(Typedef.bound(
-                    method.getGenericReturnType(), proxy.getClass()));
-            return void.class == R || Void.class == R ? null : _(R);
+            return _(Typedef.raw(Typedef.bound(
+                    method.getGenericReturnType(), proxy.getClass())));
         } catch (final Exception e) { throw new Error(e); }
     }
     
@@ -103,18 +102,22 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
     
     /**
      * Creates a rejected reference.
-     * @param type  referent type, MUST be an
-     *              {@linkplain Proxies#isImplementable allowed} proxy type
-     * @throws RuntimeException     invalid <code>type</code> argument
+     * @param type  referent type
+     * @return corresponding eventual reference, or <code>null</code> if
+     *         <code>type</code> is not eventualizable
      */
 	public @SuppressWarnings("unchecked") T
-    _(final Class<?> type) throws RuntimeException {
-        return (T)(type.isAssignableFrom(Rejected.class)
-            ? this
-        : Float.class == type || float.class == type
-            ? Float.NaN
-        : Double.class == type || double.class == type
-            ? Double.NaN
-        : Proxies.proxy(this, type, Powerless.class, Selfless.class));
+    _(final Class<?> type) {
+	    try {
+            return (T)(Void.class == type || void.class == type
+                ? null
+            : Float.class == type || float.class == type
+                ? Float.NaN
+            : Double.class == type || double.class == type
+                ? Double.NaN
+            : type.isAssignableFrom(Rejected.class)
+                ? this
+            : Proxies.proxy(this, type, Powerless.class, Selfless.class));
+	    } catch (final Exception e) { return null; }
     }
 }

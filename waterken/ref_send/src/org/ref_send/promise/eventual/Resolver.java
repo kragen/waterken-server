@@ -36,7 +36,7 @@ Resolver<T> extends Receiver<T> {
      * </pre>
      * @param reason    reason the corresponding promise will not be fulfilled
      */
-    Void
+    void
     reject(Exception reason);
     
     /**

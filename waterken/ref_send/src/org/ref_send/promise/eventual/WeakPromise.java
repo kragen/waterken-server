@@ -1,13 +1,16 @@
 // Copyright 2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.ref_send.promise;
+package org.ref_send.promise.eventual;
+
+import org.joe_e.Equatable;
+import org.joe_e.Struct;
+import org.ref_send.promise.Volatile;
 
 /**
- * A promise whose referent should be left on disk until needed. 
+ * A promise that may allow the referent to be garbage collected.
  */
 /* package */ final class
-Detachable<T> extends Fulfilled<T> {
-    static private final long serialVersionUID = 1L;
+WeakPromise<T extends Equatable> extends Struct implements Volatile<T> {
 
     /**
      * referent
@@ -19,7 +22,7 @@ Detachable<T> extends Fulfilled<T> {
      * @param value {@link #cast value}
      */
     protected
-    Detachable(final T value) {
+    WeakPromise(final T value) {
         this.value = value;
     }
 

@@ -2,8 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.promise.eventual;
 
-import org.joe_e.Equatable;
-
 /**
  * A log interface.
  */
@@ -16,6 +14,27 @@ Log {
      */
     void
     comment(String text);
+    
+    /**
+     * Logs an exception.
+     * @param reason    problem reason
+     */
+    void
+    problem(Exception reason);
+    
+    /**
+     * Logs receipt of a message.
+     * @param message   message identifier
+     */
+    void
+    got(String message);
+    
+    /**
+     * Logs a message send.
+     * @param message   message identifier
+     */
+    void
+    sent(String message);
 
     /**
      * Logs a conditional message send.
@@ -23,19 +42,12 @@ Log {
      * @param condition condition identifier
      */
     void
-    sentIf(Equatable message, Equatable condition);
+    sentIf(String message, String condition);
     
     /**
      * Logs resolution of a condition.
      * @param condition condition identifier
      */
     void
-    resolved(Equatable condition);
-    
-    /**
-     * Logs receipt of a message.
-     * @param message   message identifier
-     */
-    void
-    got(Equatable message);
+    resolved(String condition);
 }

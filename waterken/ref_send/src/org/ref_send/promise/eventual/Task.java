@@ -3,15 +3,16 @@
 package org.ref_send.promise.eventual;
 
 /**
- * An {@linkplain Loop event loop} task.
+ * A delayed task.
  */
 public interface
-Task {
+Task<R> {
 
     /**
      * Executes the task.
+     * @return  task output
      * @throws Exception    any problem
      */
-    void
+    R
     run() throws Exception;
 }

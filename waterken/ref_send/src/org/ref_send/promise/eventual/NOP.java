@@ -6,20 +6,19 @@ import java.io.Serializable;
 
 import org.joe_e.Equatable;
 import org.joe_e.Powerless;
-import org.joe_e.Struct;
 
 /**
  * A log that discards all events.
  */
 public final class
-Sink extends Struct implements Log, Powerless, Serializable {
+NOP implements Log, Powerless, Equatable, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
      * Constructs an instance.
      */
     public
-    Sink() {}
+    NOP() {}
     
     // org.ref_send.promise.eventual.Log interface
     
@@ -28,22 +27,34 @@ Sink extends Struct implements Log, Powerless, Serializable {
      */
     public void
     comment(final String text) {}
+    
+    /**
+     * NOP
+     */
+    public void
+    problem(final Exception reason) {}
 
     /**
      * NOP
      */
     public void
-    got(final Equatable message) {}
+    got(final String message) {}
 
     /**
      * NOP
      */
     public void
-    resolved(final Equatable condition) {}
+    sent(final String message) {}
 
     /**
      * NOP
      */
     public void
-    sentIf(final Equatable message, final Equatable condition) {}
+    sentIf(final String message, final String condition) {}
+
+    /**
+     * NOP
+     */
+    public void
+    resolved(final String condition) {}
 }
