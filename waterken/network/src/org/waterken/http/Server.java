@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.http;
 
-import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 
 /**
@@ -24,11 +23,11 @@ Server {
     /**
      * Eventually process a request.
      * @param resource  absolute resource identifier
-     * @param request   request promise
+     * @param request   request
      * @param respond   corresponding response processor
-     * @throws Exception    any problem
+     * @throws Exception    any problem which should terminate the connection
      */
     void
-    serve(String resource, Volatile<Request> request,
-          Do<Response,?> respond) throws Exception;
+    serve(String resource, Request request,
+                           Do<Response,?> respond) throws Exception;
 }

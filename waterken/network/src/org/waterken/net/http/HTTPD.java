@@ -5,20 +5,19 @@ package org.waterken.net.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Iterator;
 
+import org.joe_e.inert;
 import org.joe_e.array.PowerlessArray;
+import org.joe_e.var.Milestone;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Server;
 import org.waterken.http.TokenList;
 import org.waterken.io.bounded.Bounded;
-import org.waterken.net.Execution;
 import org.waterken.net.TCPDaemon;
 import org.waterken.uri.Header;
-import org.web_send.Failure;
 
 /**
  * HTTP service daemon.
@@ -31,6 +30,10 @@ HTTPD extends TCPDaemon {
      * connection socket timeout
      */
     public final int soTimeout;
+    
+    /**
+     * request server
+     */
     protected final Server server;
     
     /**
@@ -54,34 +57,40 @@ HTTPD extends TCPDaemon {
     
     // org.waterken.net.Daemon interface
 
-    public Task
-    accept(final Execution exe, final String hostname, final Socket socket) {
+    public Task<Void>
+    accept(final Receiver<Void> yield,
+           final String hostname, final Socket socket) {
         final String scheme = SSL ? "https" : "http";
         final String origin = SSL
             ? (port == 443 ? hostname : hostname + ":" + port)
         : (port == 80 ? hostname : hostname + ":" + port);
-        return new Session(this, exe, scheme, origin, socket);
+        return new Session(this, yield, scheme, origin, socket);
     }
 
 	/**
 	 * Reads HTTP message headers.
-	 * @param header    header list to fill
-	 * @param hin       header input stream
+	 * @param hin header input stream
+     * @return header list
 	 * @throws IOException  any I/O problem
+     * @throws Exception    any syntax problem
 	 */
-	static protected void
-	readHeaders(final ArrayList<Header> header,
-	            final LineInput hin) throws IOException {
+	static protected PowerlessArray<Header>
+	readHeaders(final LineInput hin) throws Exception {
+	    PowerlessArray<Header> r = PowerlessArray.array();
 	    String line = hin.readln();
 	    while (!"".equals(line)) {
 	        final int len = line.length();
 	
 	        // parse the header name
-	        final int endName = line.indexOf(':');
+            final int endName = TokenList.skip(
+                TokenList.token, TokenList.nothing, line, 0, len);
+            if (':' != line.charAt(endName)) { throw new Exception(); }
 	        final String name = line.substring(0, endName);
 	
 	        // parse the header value
-	        final int beginValue = TokenList.skip(" \t", line, endName+1, len);
+	        final int beginValue =
+	            TokenList.skip(TokenList.whitespace, TokenList.nothing,
+	                           line, endName + 1, len);
 	        String value = line.substring(beginValue);
 	
 	        // check for continuations
@@ -95,87 +104,93 @@ HTTPD extends TCPDaemon {
 	            } while (line.startsWith(" ") || line.startsWith("\t"));
 	            value = buffer.toString();
 	        }
-	
-	        header.add(new Header(name, value));
+
+	        TokenList.vet(TokenList.text, "\r\n", value);
+	        r = r.with(new Header(name, value));
 	    }
+	    return r;
 	}
 
 	/**
-	 * Creates the input stream for reading a message body from either a request
-	 * or a response.
-	 * @param header    message headers
-	 * @param cin       connection input stream
+	 * Creates the input stream for reading a message body.
+	 * @param headers      message headers
+	 * @param connection   connection input stream
 	 * @return message body input stream, or <code>null</code> if none
-	 * @throws Failure  indicates a stream format problem
+	 * @throws Exception   indicates a stream format problem
 	 */
 	static protected InputStream
-	body(final ArrayList<Header> header, final InputStream cin) throws Failure {
+	input(final PowerlessArray<Header> headers,
+	      @inert final InputStream connection) throws Exception {
 	    final StringBuilder encodingList = new StringBuilder();
-	    for (Iterator<Header> i = header.iterator(); i.hasNext();) {
-	        final Header h = i.next();
-	        if ("Transfer-Encoding".equalsIgnoreCase(h.name)) {
+	    for (final Header header : headers) {
+	        if (TokenList.equivalent("Transfer-Encoding", header.name)) {
 	            if (0 != encodingList.length()) { encodingList.append(", "); }
-	            encodingList.append(h.value);
-	            i.remove();
+	            encodingList.append(header.value);
 	        }
 	    }
-	    InputStream entity = null;
+	    @inert InputStream r = null;
 	    final PowerlessArray<String> encoding =
 	    	TokenList.decode(encodingList.toString());
 	    for (int i = encoding.length(); i-- != 0;) {
-	        if ("chunked".equalsIgnoreCase(encoding.get(i))) {
+	        if (TokenList.equivalent("chunked", encoding.get(i))) {
 	            if (i != encoding.length() - 1) {
-	                throw new Failure("400", "Bad Transfer-Encoding");
+	                throw new Exception("Bad Transfer-Encoding");
 	            }
-	            entity = new ChunkedInputStream(cin);
+	            r = new ChunkedInputStream(connection);
 	        } else if ("identity".equalsIgnoreCase(encoding.get(i))) {
-	        } else {
-	            throw new Failure("501", "Encoding Not Implemented");
-	        }
+	        } else { throw new Exception("Encoding Not Implemented"); }
 	    }
-	    if (null == entity) {
+	    if (null == r) {
 	        final String contentLength =
-	            Header.find(null, header, "Content-Length");
+	            TokenList.find(null, "Content-Length", headers);
 	        if (null != contentLength) {
 	            final int length = Integer.parseInt(contentLength);
-	            entity = Bounded.input(length, cin);
+	            r = Bounded.input(length, connection);
 	        } else if (0 != encoding.length()) {
 	            // identity encoding
-	            entity = cin;
+	            r = connection;
 	        }
 	    }
-	    return entity;
+	    return r;
 	}
 
 	/**
-	 * Is a persistent connection indicated?
-	 * @param version   HTTP version
-	 * @param header    message headers
-	 * @return <code>true</code> if persistent, else <code>false</code>
+	 * Creates a message header with no connection headers.
+	 * @param version  HTTP version
+	 * @param headers  message headers
+	 * @param closing  Should the connection be closed?
+	 * @return general and entity headers
 	 */
-	static protected boolean
-	persist(final String version, final ArrayList<Header> header) {
+	static protected PowerlessArray<Header>
+	forward(final String version, final PowerlessArray<Header> headers,
+	        final Milestone<Boolean> closing) {
+	    PowerlessArray<Header> r = PowerlessArray.array();
 	    final StringBuilder connectionList = new StringBuilder();
-	    for (final Iterator<Header> i = header.iterator(); i.hasNext();) {
-	        final Header h = i.next();
-	        if ("Connection".equalsIgnoreCase(h.name)) {
+	    for (final Header header : headers) {
+	        if (TokenList.equivalent("Connection", header.name)) {
 	            if (0 != connectionList.length()) {connectionList.append(", ");}
-	            connectionList.append(h.value);
-	            i.remove();
+	            connectionList.append(header.value);
+	        } else if (TokenList.equivalent("Transfer-Encoding", header.name)) {
+	            // already handled by call to body()
+	        } else {
+	            r = r.with(header);
 	        }
 	    }
-	    boolean close = false;
 	    boolean keepAlive = false;
 	    for (final String token : TokenList.decode(connectionList.toString())) {
-	        if ("close".equalsIgnoreCase(token)) {
-	            close = true;
-	        } else if ("keep-alive".equalsIgnoreCase(token)) {
+	        if (TokenList.equivalent("close", token)) {
+	            closing.mark(true);
+	        } else if (TokenList.equivalent("keep-alive", token)) {
 	            keepAlive = true;
 	        }
-	        for (Iterator<Header> i = header.iterator(); i.hasNext();) {
-	            if (i.next().name.equalsIgnoreCase(token)) { i.remove(); }
+	        for (int i = r.length(); 0 != i--;) {
+	            if (TokenList.equivalent(token, r.get(i).name)) {
+	                r = r.without(i);
+	            }
 	        }
 	    }
-	    return !close && (keepAlive || "HTTP/1.1".equals(version));
+	    if (!version.startsWith("HTTP/1.")) { closing.mark(true); }
+	    if (!keepAlive && "HTTP/1.0".equals(version)) { closing.mark(true); }
+	    return r;
 	}
 }

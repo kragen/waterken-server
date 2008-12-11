@@ -25,8 +25,8 @@ FileType implements Powerless, Selfless, Record, Serializable {
     /**
      * <code>application/octet-stream</code> MIME type
      */
-    static public final FileType binary =
-        new FileType("",           "application/octet-stream",         null);
+    static public final FileType unknown =
+        new FileType("",           "application/do-not-execute",       null);
     
     /**
      * <code>text/uri-list</code> MIME type

@@ -3,9 +3,11 @@
 package org.waterken.uri;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.joe_e.array.ConstArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
@@ -93,30 +95,39 @@ Path {
     }
 
     /**
-     * Walk the folder segments in a path.
-     * @param folder    folder path
+     * Walk the segments in a path.
+     * @param path  canonicalized path
      * @return unescaped path segment sequence
      */
     static public Iterable<String>
-    walk(final String folder) {
+    walk(final String path) {
         return new Iterable<String>() {
 
             public Iterator<String>
             iterator() {
                 return new Iterator<String> () {
 
-                    private int i = 0;
-                    private int j = folder.indexOf('/');
+                    private int i = 0 == path.length() ? -1 : 0;
+                    private int j = path.indexOf('/');
 
                     public boolean
-                    hasNext() { return -1 != j; }
+                    hasNext() { return -1 != i; }
 
                     public String
                     next() {
-                        if (-1 == j) { throw new NoSuchElementException(); }
-                        final String segment = folder.substring(i, j);
-                        i = j + 1;
-                        j = folder.indexOf('/', i);
+                        if (-1 == i) { throw new NoSuchElementException(); }
+                        final String segment;
+                        if (-1 == j) {
+                            segment = path.substring(i);
+                            i = -1;
+                        } else {
+                            segment = path.substring(i, j);
+                            i = j + 1;
+                            j = path.indexOf('/', i);
+                            if (-1 == j && i == path.length()) {
+                                i = -1;
+                            }
+                        }
                         return URLEncoding.decode(segment);
                     }
 
@@ -130,7 +141,7 @@ Path {
     /**
      * Walks down a file path.
      * @param root  root folder
-     * @param path  path to walk
+     * @param path  canonicalized path to walk
      * @return named file
      * @throws InvalidFilenameException invalid name in <code>path</code> 
      */
@@ -142,5 +153,22 @@ Path {
             r = Filesystem.file(r, segment);
         }
         return r;
+    }
+    
+    /**
+     * Lists the non-hidden contents of a directory.
+     * @param dir   directory to list
+     * @return non-hidden directory entries, sorted alphabetically
+     * @throws IOException <code>dir</code> is not a directory, or an I/O error
+     */
+    static public ConstArray<File>
+    list(final File dir) throws IOException {
+        final ConstArray.Builder<File> r = ConstArray.builder();
+        for (final File file : Filesystem.list(dir)) {
+            if (!file.getName().startsWith(".")) {
+                r.append(file);
+            }
+        }
+        return r.snapshot();
     }
 }

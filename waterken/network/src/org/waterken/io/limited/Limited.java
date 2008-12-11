@@ -2,14 +2,12 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.io.limited;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 
-import org.joe_e.Struct;
-import org.waterken.io.Content;
-import org.web_send.Failure;
+import org.joe_e.inert;
 
 /**
  * A stream that is not allowed to be longer than a preset limit.
@@ -26,7 +24,7 @@ Limited {
      * @param in    underlying stream
      */
     static public InputStream
-    input(final long max, final InputStream in) {
+    input(final long max, @inert final InputStream in) {
         if (0 > max) { throw new RuntimeException(); }
         return new InputStream() {
             private long remaining = max;   // number of bytes remaining 
@@ -34,7 +32,7 @@ Limited {
 
             public int
             read() throws IOException {
-                if (0L == remaining) { throw Failure.tooBig(); }
+                if (0L == remaining) { throw new EOFException(); }
                 final int r = in.read();
                 if (r != -1) { --remaining; }
                 return r;
@@ -42,7 +40,7 @@ Limited {
 
             public int
             read(final byte[] b,final int off,final int len) throws IOException{
-                if (0L == remaining) { throw Failure.tooBig(); }
+                if (0L == remaining) { throw new EOFException(); }
                 final int n = in.read(b, off, (int)Math.min(remaining, len));
                 if (n != -1) { remaining -= n; }
                 return n;
@@ -86,28 +84,28 @@ Limited {
      * @param out   underlying output stream
      */
     static public OutputStream
-    output(final long max, final OutputStream out) {
+    output(final long max, @inert final OutputStream out) {
         if (0 > max) { throw new RuntimeException(); }
         return new OutputStream() {
             private long remaining = max;   // number of bytes remaining 
             
             public void
             write(final int b) throws IOException {
-                if (0 == remaining) { throw Failure.tooBig(); }
+                if (0 == remaining) { throw new EOFException(); }
                 out.write(b);
                 --remaining;
             }
 
             public void
             write(final byte[] b) throws IOException {
-                if (b.length > remaining) { throw Failure.tooBig(); }
+                if (b.length > remaining) { throw new EOFException(); }
                 out.write(b);
                 remaining -= b.length;
             }
 
             public void
             write(final byte[] b,final int off,final int len)throws IOException{
-                if (len > remaining) { throw Failure.tooBig(); }
+                if (len > remaining) { throw new EOFException(); }
                 out.write(b, off, len);
                 remaining -= len;
             }
@@ -118,23 +116,5 @@ Limited {
             public void
             close() throws IOException { out.close(); }
         };
-    }
-    
-    /**
-     * Limits a content source.
-     * @param max       maximum number of bytes allowed
-     * @param untrusted content source
-     */
-    static public Content
-    limit(final long max, final Content untrusted) {
-        class ContentX extends Struct implements Content, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public void
-            writeTo(final OutputStream out) throws Exception {
-                untrusted.writeTo(output(max, out));
-            }
-        }
-        return new ContentX();
     }
 }

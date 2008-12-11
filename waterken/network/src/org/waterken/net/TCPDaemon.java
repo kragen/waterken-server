@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.net.Socket;
 
 import org.joe_e.Struct;
+import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
 
 /**
@@ -42,9 +43,10 @@ TCPDaemon extends Struct implements Serializable {
      * <p>
      * The caller is responsible for closing the socket.
      * </p>
+     * @param yield     yield to other threads
      * @param hostname  server's hostname
      * @param socket    incoming TCP connection
      */
-    public abstract Task
-    accept(Execution exe, String hostname, Socket socket);
+    public abstract Task<Void>
+    accept(Receiver<Void> yield, String hostname, Socket socket);
 }

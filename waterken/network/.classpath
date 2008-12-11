@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry path="src" kind="src"/>
-	<classpathentry path="org.eclipse.jdt.launching.JRE_CONTAINER" kind="con"/>
-	<classpathentry path="/joe-e" combineaccessrules="false" kind="src"/>
-	<classpathentry path="/ref_send" combineaccessrules="false" kind="src"/>
-	<classpathentry path="/web_send" combineaccessrules="false" kind="src"/>
-	<classpathentry path="bin" kind="output"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joe-e"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/ref_send"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>

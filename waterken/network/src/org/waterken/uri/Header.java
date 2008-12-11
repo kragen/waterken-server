@@ -62,22 +62,4 @@ Header implements Powerless, Selfless, Record, Serializable {
         return (null != name ? name.hashCode() : 0) +
                (null != value ? value.hashCode() : 0);
     }
-    
-    // org.waterken.uri.Header interface
-
-    /**
-     * Finds the first instance of the named header.
-     * @param otherwise default value
-     * @param headers   each header
-     * @param name      searched for header name
-     * @return found header value, or the <code>otherwise</code> if not found
-     */
-    static public String
-    find(final String otherwise,
-         final Iterable<Header> headers, final String name) {
-        for (final Header h : headers) {
-            if (name.equalsIgnoreCase(h.name)) { return h.value; }
-        }
-        return otherwise;
-    }
 }

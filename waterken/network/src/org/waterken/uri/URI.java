@@ -232,16 +232,12 @@ URI {
         if (tail.startsWith("?")) {
             final int queryLast = -1 == hash ? tail.length() : hash;
             for (int i = queryLast; 1 != i--;) {
-                final char c = tail.charAt(i);
-                if (!(URI.pchar(c) ||
-                      "/?".indexOf(c) != -1)) { throw new InvalidURI(); }
+                if (!qchar(tail.charAt(i))) { throw new InvalidURI(); }
             }
         }
         if (-1 != hash) {
             for (int i = tail.length(); hash != --i;) {
-                final char c = tail.charAt(i);
-                if (!(URI.pchar(c) ||
-                      "/?".indexOf(c) != -1)) { throw new InvalidURI(); }
+                if (!qchar(tail.charAt(i))) { throw new InvalidURI(); }
             }
         }
         return hierarchy + tail;
@@ -302,12 +298,15 @@ URI {
     }
     
     static boolean
+    qchar(final char c) { return pchar(c) || '/' == c || '?' == c; }
+    
+    static boolean
     pchar(char c) { return unreserved(c)||subdelim(c)||"%:@".indexOf(c) != -1; }
     
     static boolean
     unreserved(char c) {return alpha(c) || digit(c) || "-._~".indexOf(c) != -1;}
     
-    static boolean
+    public static boolean
     alpha(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
     
     static boolean

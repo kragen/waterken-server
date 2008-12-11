@@ -6,7 +6,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * A stream that cannot be closed or flushed.
+ * A stream that cannot be {@linkplain OutputStream#close closed} or
+ * {@linkplain OutputStream#flush flushed}.
  */
 public final class
 Open {

@@ -2,14 +2,16 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.http;
 
+import java.io.InputStream;
 import java.io.Serializable;
 
+import org.joe_e.Powerless;
 import org.joe_e.Struct;
+import org.joe_e.inert;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.waterken.io.Content;
 import org.waterken.uri.Header;
 
 /**
@@ -18,78 +20,95 @@ import org.waterken.uri.Header;
 public final class
 Response extends Struct implements Record, Serializable {
     static private final long serialVersionUID = 1L;
+    
+    /**
+     * Status-Line and headers.
+     */
+    static public final class
+    Head extends Struct implements Powerless, Record, Serializable {
+        static private final long serialVersionUID = 1L;
+    
+        /**
+         * <code>HTTP-Version</code>
+         */
+        public final String version;
+    
+        /**
+         * <code>Status-Code</code>
+         */
+        public final String status;
+    
+        /**
+         * <code>Reason-Phrase</code>
+         */
+        public final String phrase;
+    
+        /**
+         * each header: [ name =&gt; line ]
+         */
+        public final PowerlessArray<Header> headers;
+
+        /**
+         * Constructs an instance.
+         * @param version   {@link #version}
+         * @param status    {@link #status}
+         * @param phrase    {@link #phrase}
+         * @param headers   {@link #headers}
+         */
+        public @deserializer
+        Head(@name("version") final String version,
+             @name("status") final String status,
+             @name("phrase") final String phrase,
+             @name("headers") final PowerlessArray<Header> headers) {
+            this.version = version;
+            this.status = status;
+            this.phrase = phrase;
+            this.headers = headers;
+        }
+        
+        // org.waterken.http.Response.Head interface
+
+        /**
+         * Gets the <code>Content-Type</code>.
+         * @return specified Media-Type, or <code>null</code> if unspecified
+         */
+        public String
+        getContentType() {return TokenList.find(null, "Content-Type", headers);}
+
+        /**
+         * Gets the <code>Content-Length</code>.
+         * @return number of bytes expected, or <code>-1</code> if unspecified
+         */
+        public int
+        getContentLength() {
+            final String sSize= TokenList.find(null, "Content-Length", headers);
+            if (null == sSize) { return -1; }
+            final int nSize = Integer.parseInt(sSize);
+            if (nSize < 0) { throw new NumberFormatException(); }
+            return nSize;
+        }
+    }
+    
+    
+    /**
+     * Status-Line and headers
+     */
+    public final Head head;
 
     /**
-     * <code>HTTP-Version</code>
+     * message-body, or <code>null</code> if none
      */
-    public final String version;
-
-    /**
-     * <code>Status-Code</code>
-     */
-    public final String status;
-
-    /**
-     * <code>Reason-Phrase</code>
-     */
-    public final String phrase;
-
-    /**
-     * each header: [ name =&gt; line ]
-     */
-    public final PowerlessArray<Header> header;
-
-    /**
-     * entity body
-     */
-    public final Content body;
+    public final InputStream body;
 
     /**
      * Constructs an instance.
-     * @param version   {@link #version}
-     * @param status    {@link #status}
-     * @param phrase    {@link #phrase}
-     * @param header    {@link #header}
-     * @param body      {@link #body}
+     * @param head  {@link #head}
+     * @param body  {@link #body}
      */
     public @deserializer
-    Response(@name("version") final String version,
-             @name("status") final String status,
-             @name("phrase") final String phrase,
-             @name("header") final PowerlessArray<Header> header,
-             @name("body") final Content body) {
-        this.version = version;
-        this.status = status;
-        this.phrase = phrase;
-        this.header = header;
+    Response(@name("head") final Head head,
+             @name("body") @inert final InputStream body) {
+        this.head = head;
         this.body = body;
-    }
-
-    // org.waterken.http.Response interface
-
-    /**
-     * Gets the <code>Content-Type</code>.
-     */
-    public String
-    getContentType() { return Header.find(null, header, "Content-Type"); }
-
-    /**
-     * Gets the <code>Content-Length</code>.
-     * @return number of bytes expected in {@link #body}, or -1 if unknown
-     */
-    public int
-    getContentLength() {
-        return Integer.parseInt(Header.find("-1", header, "Content-Length"));
-    }
-    
-    /**
-     * Creates a response with an additional header.
-     * @param name  header name
-     * @param value header value
-     */
-    public Response
-    with(final String name, final String value) {
-        return new Response(version, status, phrase,
-                            header.with(new Header(name, value)), body);
     }
 }

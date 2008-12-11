@@ -43,7 +43,7 @@ Query {
     /**
      * Parses a query string.
      * @param query query string
-     * @return list of ( name, value ) pairs
+     * @return ( name, value ) pair sequence
      */
     static public Iterable<Header>
     parse(final String query) {

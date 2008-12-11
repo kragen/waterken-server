@@ -32,24 +32,6 @@ TokenList {
         }
         return r.toString();
     }
-    
-    static protected String
-    encode(final Iterable<Header> parameters) {
-        final StringBuilder r = new StringBuilder();
-        for (final Header h : parameters) {
-        	r.append("; ");
-        	r.append(h.name);
-        	r.append('=');
-        	r.append('\"');
-        	for (int i = 0; i != h.value.length(); ++i) {
-        		final char c = h.value.charAt(i);
-        		if (!qdtext(c)) { r.append('\\'); }
-        		r.append(c);
-        	}
-        	r.append('\"');
-        }
-        return r.toString();
-    }
 
     /**
      * Decodes a <code>token</code> list.
@@ -62,7 +44,7 @@ TokenList {
         final int end = list.length();
         int i = 0;
         while (true) {
-        	i = skip(whitespace, list, i, end);
+        	i = skip(whitespace, nothing, list, i, end);
             if (i == end) { break; }
             if (',' == list.charAt(i)) {
             	++i;
@@ -71,7 +53,7 @@ TokenList {
 
             // parse the token
             final int beginToken = i;
-            i = skip(token, list, i, end);
+            i = skip(token, nothing, list, i, end);
             final int endToken = i;
             if (beginToken == endToken) { throw new RuntimeException(); }
             r.append(list.substring(beginToken, endToken));
@@ -95,25 +77,25 @@ TokenList {
     parseParameters(final String list, int i, final int end,
     				final ArrayBuilder<Header> out) {
         while (true) {
-        	i = skip(whitespace, list, i, end);
+        	i = skip(whitespace, nothing, list, i, end);
 
             // check for token delimiter
             if (i == end || ',' == list.charAt(i)) { break; }
 
             // start parameter
             if (';' != list.charAt(i++)) { throw new RuntimeException(); }
-        	i = skip(whitespace, list, i, end);
+        	i = skip(whitespace, nothing, list, i, end);
 
             // parse the name
             final int beginName = i;
-            i = skip(token, list, i, end);
+            i = skip(token, nothing, list, i, end);
             final int endName = i;
             final String name = list.substring(beginName, endName);
 
             // start the value
-        	i = skip(whitespace, list, i, end);
+        	i = skip(whitespace, nothing, list, i, end);
             if ('=' != list.charAt(i++)) { throw new RuntimeException(); }
-        	i = skip(whitespace, list, i, end);
+        	i = skip(whitespace, nothing, list, i, end);
 
             // parse the value
             final int beginValue;
@@ -134,7 +116,7 @@ TokenList {
                 if ('\"' != list.charAt(i++)) { throw new RuntimeException(); }
             } else {						// token value
             	beginValue = i;
-            	i = skip(token, list, i, end);
+            	i = skip(token, nothing, list, i, end);
                 endValue = i;
             }
             final String value = list.substring(beginValue, endValue);
@@ -143,7 +125,8 @@ TokenList {
     	return i;
     }
     
-    static private   final String whitespace = " \t\r\n";
+    static public    final String nothing = "";
+    static public    final String whitespace = " \t\r\n";
     static public    final String digit = "1234567890";
     static private   final String separator = "()<>@,;:\\\"/[]?={} \t";
     static public    final String token;
@@ -156,6 +139,13 @@ TokenList {
     	}
     	token = buffer.toString();
     }
+    static public    final String text;
+    static {
+        final StringBuilder buffer = new StringBuilder(127);
+        for (char c = 33; c != 127; ++c) { buffer.append(c); }
+        buffer.append(whitespace);
+        text = buffer.toString();
+    }
     
     static private boolean
     ctl(final char c) { return c <= 31 || c >= 127; }
@@ -165,22 +155,68 @@ TokenList {
 
     /**
      * Finds the first non-matching character.
-     * @param match	matching character set
-     * @param text  text string to search
-     * @param i     initial search position in <code>text</code>
-     * @param end   maximum search position in <code>text</code>
+     * @param allowed       allowed character set
+     * @param disallowed    disallowed character set
+     * @param text          text string to search
+     * @param i             initial search position in <code>text</code>
+     * @param end           maximum search position in <code>text</code>
      * @return index of the first non-matching character, or <code>end</code>
      */
     static public int
-    skip(final String match, final String text, int i, final int end) {
-        while (i != end && match.indexOf(text.charAt(i)) != -1) { ++i; }
+    skip(final String allowed, final String disallowed,
+         final String text, int i, final int end) {
+        while (i != end &&
+               allowed.indexOf(text.charAt(i)) != -1 &&
+               disallowed.indexOf(text.charAt(i)) == -1) { ++i; }
         return i;
     }
     
+    /**
+     * Vets a text string.
+     * @param allowed       allowed character set
+     * @param disallowed    disallowed character set
+     * @param text          text string to search
+     * @throws Exception    <code>text</code> is not allowed
+     */
     static public void
-    vet(final String match, final String value) throws Exception {
-    	final int end = value.length();
-    	if (end != skip(match, value, 0, end)) { throw new Exception(); }
+    vet(final String allowed, final String disallowed,
+                              final String text) throws Exception {
+    	final int end = text.length();
+    	if (end != skip(allowed,disallowed,text,0,end)) {throw new Exception();}
+    }
+
+    /**
+     * Finds the first instance of a named header.
+     * @param otherwise default value
+     * @param name      searched for header name
+     * @param headers   each header
+     * @return found header value, or the <code>otherwise</code> if not found
+     */
+    static public String
+    find(final String otherwise, final String name,
+                                 final Iterable<Header> headers) {
+        for (final Header header : headers) {
+            if (equivalent(name, header.name)) { return header.value; }
+        }
+        return otherwise;
+    }
+    
+    /**
+     * Lists all values of a named header.
+     * @param name      searched for header name
+     * @param headers   each header
+     * @return comma separated list of corresponding values
+     */
+    static public String
+    list(final String name, final Iterable<Header> headers) {
+        final StringBuilder buffer = new StringBuilder();
+        for (final Header header : headers) {
+            if (equivalent(name, header.name)) {
+                if (buffer.length() != 0) { buffer.append(","); }
+                buffer.append(header.value);
+            }
+        }
+        return buffer.toString();
     }
     
     /**

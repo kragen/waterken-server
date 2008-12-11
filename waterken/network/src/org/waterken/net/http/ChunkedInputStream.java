@@ -6,6 +6,8 @@ import java.io.EOFException;
 import java.io.InputStream;
 import java.io.IOException;
 
+import org.joe_e.inert;
+
 /**
  * A <code>chunked</code> input stream.
  */
@@ -13,9 +15,11 @@ final class
 ChunkedInputStream extends InputStream {
 
     private final InputStream in;   // underlying stream
+    
     private boolean started;        // Has the first chunk been read?
     private long chunkSize;         // remaining bytes in the current chunk
     private boolean done;           // Has the last chunk been read?
+    
     private boolean markedStarted;  // marked started indicator
     private long markedChunkSize;   // marked position
     private boolean markedDone;     // marked done indicator
@@ -24,7 +28,7 @@ ChunkedInputStream extends InputStream {
      * Constructs an instance.
      * @param in    underlying stream
      */
-    ChunkedInputStream(final InputStream in) {
+    ChunkedInputStream(@inert final InputStream in) {
         this.in = in;
     }
 
