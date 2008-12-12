@@ -143,13 +143,27 @@ JODB<S> extends Vat<S> {
 
     // org.waterken.vat.Vat interface
     
+    private String project;
+    
+    public synchronized String
+    getProject() throws Exception {
+        wake();
+        return project;
+    }
+
+    public synchronized <R extends Immutable> Promise<R>
+    enter(Transaction<R> body) throws Exception {
+        wake();
+        return process(body);
+    }
+    
     /**
      * Has the {@link #wake wake} {@link Task} been run?
      */
     private final Milestone<Boolean> awake = Milestone.plan();
-
-    public synchronized <R extends Immutable> Promise<R>
-    enter(Transaction<R> body) throws Exception {
+    
+    private void
+    wake() throws Exception {
         if (!awake.is()) {
             process(new Transaction<Immutable>(Transaction.query) {
                 public Immutable
@@ -161,7 +175,6 @@ JODB<S> extends Vat<S> {
             });
             awake.mark(true);
         }
-        return process(body);
     }
 
     /**
@@ -248,11 +261,11 @@ JODB<S> extends Vat<S> {
                 }
 
                 final String filename = filename(name);
+                final boolean exists;
                 try {
-                    if (null != load(filename)) { throw new Exception(); }
-                } catch (final Exception e) {
-                    throw new InvalidFilenameException();
-                }
+                    exists=f2b.containsKey(filename)||update.includes(filename);
+                } catch (final Exception e) { throw new Error(e); }
+                if (exists) { throw new InvalidFilenameException(); }
                 f2b.put(filename,new Bucket(true,new SymbolicLink(value),null));
                 xxx.add(filename);
             }
@@ -543,10 +556,14 @@ JODB<S> extends Vat<S> {
                     final byte[] bits = new byte[128 / Byte.SIZE];
                     prng.nextBytes(bits);
                     final ByteArray secretBits = ByteArray.array(bits);
-                    final JODB<S> sub = new JODB<S>(null, null, null, subStore);
-                    sub.code = Project.connect(project);
-                    sub.process(new Transaction<Immutable>(Transaction.update) {
-                        public Immutable
+                    final JODB<S> sub = new JODB<S>(null, null, null == stderr
+                        ? new Receiver<Event>() {
+                            public void
+                            run(final Event event) {}
+                        } : stderr, subStore);
+                    sub.project = project;
+                    return sub.process(new Transaction<X>(Transaction.update) {
+                        public X
                         run(final Root local) throws Exception {
                             local.link(Vat.project, project);
                             local.link(Vat.here, here);
@@ -563,11 +580,9 @@ JODB<S> extends Vat<S> {
                                 makeDestructor(effect),txerr,turn.mark,tracer));
                             local.link(Vat.log,
                                 EventSender.makeLog(txerr, turn.mark, tracer));
-                            return null;
+                            return setup.run(local);
                         }
                     });
-                    return new JODB<S>(null, null, stderr, subStore).
-                                                                process(setup);
                 } catch (final Exception e) { throw new Error(e); }
             }
         };
@@ -582,13 +597,12 @@ JODB<S> extends Vat<S> {
             // finish Vat initialization, which was delayed to avoid doing
             // anything intensive while holding the global "live" lock
             if (null == prng) { prng = new SecureRandom(); }
-            if (null == code) {
-                code = Project.connect("");
+            if (null == project) {
                 try {
-                    final String project = root.fetch(null, Vat.project);
-                    code = Project.connect(project);
+                    project = root.fetch(null, Vat.project);
                 } catch (final Exception e) { throw new Error(e); }
             }
+            if (null == code) { code = Project.connect(project); }
     
             // setup the pseudo-persistent objects
             f2b.put(filename(Vat.code),     new Bucket(code));
@@ -664,7 +678,7 @@ JODB<S> extends Vat<S> {
             while (!events.isEmpty()) { stderr.run(events.pop()); }
         }
         
-        // schedule any effects
+        // schedule any services
         if (null != service) {
             while (!services.isEmpty()) { service.run(services.pop()); }
         }

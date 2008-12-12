@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 
 import org.joe_e.Immutable;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
 
@@ -44,7 +45,7 @@ Vat<S> {
     static public final String here = ".here";
     
     /**
-     * logger, initialized by vat
+     * {@linkplain Log logger}, initialized by vat
      */
     static public final String log = ".log";
     
@@ -94,6 +95,12 @@ Vat<S> {
         this.session = session;
         this.service = service;
     }
+    
+    /**
+     * Gets the project name for this vat.
+     */
+    public abstract String
+    getProject() throws Exception;
 
     /**
      * Processes a transaction within this vat.
