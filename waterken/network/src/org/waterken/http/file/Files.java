@@ -15,7 +15,7 @@ import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.promise.eventual.Do;
+import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -55,14 +55,8 @@ Files extends Struct implements Server, Serializable {
     }
     
     public void
-    serve(final String resource, final Request request,
-                                 final Do<Response,?> respond) throws Exception{        
-        
-        // reached the final message processor, so bounce a trace
-        if ("TRACE".equals(request.head.method)) {
-            respond.fulfill(request.trace());
-            return;
-        }
+    serve(final String resource, final Request head, final InputStream body,
+                                 final Client client) throws Exception {        
 
         // determine the request target
         FileType contentType = FileType.unknown;
@@ -82,12 +76,12 @@ Files extends Struct implements Server, Serializable {
                     }
                 }
             } else if (exact.isDirectory()) {
-                respond.fulfill(request.head.response(
+                client.receive(new Response(
                     "HTTP/1.1", "307", "Temporary Redirect",
                     PowerlessArray.array(
                         new Header("Location", resource + "/"),
                         new Header("Content-Length", "0")
-                    ), null));
+                    )), null);
                 return;
             } else if ("".equals(ext)) {
                 File negotiated = null;
@@ -109,18 +103,16 @@ Files extends Struct implements Server, Serializable {
                 contentType = FileType.uri;
             }
         } catch (final FileNotFoundException e) {
-            respond.reject(e);
+            client.failed(e);
             return;
         } catch (final InvalidFilenameException e) {
-            respond.reject(new FileNotFoundException());
+            client.failed(new FileNotFoundException());
             return;
         }
 
         // obey any request restrictions
-        final String etag = tag.run(file);        
-        if (!request.allow(etag, respond, "GET", "HEAD", "OPTIONS", "TRACE")) {
-            return;
-        }
+        final String etag = tag.run(file); 
+        if (!head.respond(etag,client,"GET","HEAD","OPTIONS","TRACE")) {return;}
         
         // special case for a non-information resource
         if (FileType.uri.equals(contentType)) {
@@ -142,15 +134,15 @@ Files extends Struct implements Server, Serializable {
             }
             in.close();
             if (null == location) {
-                respond.reject(new FileNotFoundException());
+                client.failed(new FileNotFoundException());
                 return;
             }
-            respond.fulfill(request.head.response(
+            client.receive(new Response(
                 "HTTP/1.1", "303", "See Other",
                 PowerlessArray.array(
                     new Header("Location", location),
                     new Header("Content-Length", "0")
-                ), null));
+                )), null);
             return;
         }
 
@@ -171,8 +163,8 @@ Files extends Struct implements Server, Serializable {
                 header = header.with(
                     new Header("Content-Encoding", contentType.encoding));
             }
-            respond.fulfill(request.head.response(
-                "HTTP/1.1", "200", "OK", header, in));
+            client.receive(new Response(
+                "HTTP/1.1", "200", "OK", header), in);
         } catch (final Exception e) {
             try { in.close(); } catch (final Exception e2) {}
             throw e;

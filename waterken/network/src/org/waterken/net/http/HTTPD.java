@@ -64,7 +64,7 @@ HTTPD extends TCPDaemon {
         final String origin = SSL
             ? (port == 443 ? hostname : hostname + ":" + port)
         : (port == 80 ? hostname : hostname + ":" + port);
-        return new Session(this, yield, scheme, origin, socket);
+        return new ServerSide(this, yield, scheme, origin, socket);
     }
 
 	/**

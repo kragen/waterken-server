@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.joe_e.array.ByteArray;
+
 /**
  * Stream content.
  */
@@ -35,4 +37,17 @@ Stream {
             out.write(buffer, 0, n);
         }
     }
-}
+
+    /**
+     * Creates a snapshot of binary content.
+     * @param estimate  estimated content length
+     * @param stream    binary content to copy
+     * @throws IOException  any I/O problem
+     */
+    static public ByteArray
+    snapshot(final int estimate, final InputStream stream) throws IOException {
+        final ByteArray.BuilderOutputStream out =
+            new ByteArray.BuilderOutputStream(estimate);
+        copy(stream, out);
+        return out.snapshot();
+    }}

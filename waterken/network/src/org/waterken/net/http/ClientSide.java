@@ -14,13 +14,14 @@ import java.net.SocketAddress;
 import java.util.LinkedList;
 
 import org.joe_e.Powerless;
+import org.joe_e.Struct;
 import org.joe_e.inert;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.ASCII;
 import org.joe_e.var.Milestone;
-import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
+import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -33,7 +34,7 @@ import org.waterken.net.Locator;
 import org.waterken.uri.Header;
 
 /**
- * An HTTP protocol client session.
+ * The client side of the HTTP protocol.
  * <p>
  * The connection to the remote server will be automatically retried until a non
  * 5xx HTTP response is received for each pending HTTP request. The responses
@@ -41,7 +42,7 @@ import org.waterken.uri.Header;
  * </p>
  */
 public final class
-Client implements Server {
+ClientSide implements Server {
     
     /**
      * The minimum milliseconds to wait before retrying a connection.
@@ -93,8 +94,9 @@ Client implements Server {
     private final Receiver<Inbound> receiver;
 
     private
-    Client(final String host, final Locator locator, final Receiver<Long> sleep,
-           final Receiver<Outbound> sender, final Receiver<Inbound> receiver) {
+    ClientSide(final String host, final Locator locator,
+               final Receiver<Long> sleep, final Receiver<Outbound> sender,
+               final Receiver<Inbound> receiver) {
         this.host = host;
         this.locator = locator;
         this.sleep = sleep;
@@ -177,31 +179,32 @@ Client implements Server {
             socket = null;
         }
     }
-    class Exchange extends Do<Response,Void> {
-        protected final Request request;
-        private   final Do<Response,?> respond;
+    class Exchange extends Struct implements Client {
+        protected final Request head;
+        protected final InputStream body;
+        private   final Client client;
         private   final Outbound pop;
         
-        Exchange(@inert final Request request,
-                 @inert final Do<Response,?> respond,
+        Exchange(@inert final Request head,
+                 @inert final InputStream body,
+                 @inert final Client client,
                  @inert final Outbound pop) {
-            this.request = request;
-            this.respond = respond;
+            this.head = head;
+            this.body = body;
+            this.client = client;
             this.pop = pop;
         }
         
-        public Void
-        fulfill(final Response value) throws Exception {
-            respond.fulfill(value); // don't pop if an I/O error is encountered
+        public void
+        receive(final Response head, final InputStream body) throws Exception {
+            client.receive(head, body); // don't pop if there is an I/O error
             sender.run(pop);
-            return null;
         }
         
-        public Void
-        reject(final Exception reason) throws Exception {
-            respond.reject(reason);
+        public void
+        failed(final Exception reason) throws Exception {
+            client.failed(reason);
             sender.run(pop);
-            return null;
         }
     }
     class Receive implements Inbound {
@@ -220,10 +223,10 @@ Client implements Server {
             // failure is responsible for scheduling the connection retry.
             if (null == on.in) { return null; }
             try {
-                if (null == x.request) {
-                    x.reject(new NullPointerException());
+                if (null == x.head) {
+                    x.failed(new NullPointerException());
                 } else {
-                    if (receive(x.request.head.method, on.in, x)) {on.retry();}
+                    if (receive(x.head.method, on.in, x)) {on.retry();}
                 }
             } catch (final Exception e) {
                 if (e instanceof Nap) {
@@ -252,12 +255,12 @@ Client implements Server {
         
         public Void
         run() {
-            if (null == x.request) {
+            if (null == x.head) {
                 // nothing to send since request failed to render
                 receiver.run(new Receive(on, x));
             } else {
                 try {
-                    send(x.request, on.out);
+                    send(x.head, x.body, on.out);
                 } catch (final Exception e) {
                     final OutputStream tmp = on.out;
                     on.out = null;
@@ -291,12 +294,12 @@ Client implements Server {
         }
         
         void
-        enqueue(final Request request, final Do<Response,?> respond) {
-            if (null != request && null != request.body) {
+        enqueue(final Request head,final InputStream body, final Client client){
+            if (null != body) {
                 // ensure request body can be replayed
-                request.body.mark(Integer.MAX_VALUE);
+                body.mark(Integer.MAX_VALUE);
             }
-            final Exchange x = new Exchange(request, respond, new Outbound() {
+            final Exchange x = new Exchange(head, body, client, new Outbound() {
                 public Void
                 run() {
                     pending.pop();
@@ -336,14 +339,14 @@ Client implements Server {
     static public Server
     make(final String host, final Locator locator, final Receiver<Long> sleep,
          final Receiver<Outbound> sender, final Receiver<Inbound> receiver) {
-        final Client r = new Client(host, locator, sleep, sender, receiver);
+        final ClientSide r = new ClientSide(host,locator,sleep,sender,receiver);
         r.start();
         return r;
     }
 
     public void
-    serve(final String resource, final Request request,
-          final Do<Response,?> respond) { entry.enqueue(request, respond); }
+    serve(final String resource, final Request head, final InputStream body,
+          final Client client) { entry.enqueue(head, body, client); }
     
     /**
      * Sends an HTTP request.
@@ -352,26 +355,27 @@ Client implements Server {
      * @throws Exception    any problem sending the request
      */
     static public void
-    send(final Request request, final OutputStream connection) throws Exception{
+    send(final Request head, final InputStream body,
+         final OutputStream connection) throws Exception{
         final OutputStream out = new BufferedOutputStream(connection,
                 chunkSize - "0\r\n\r\n".length());
 
         // Output the Request-Line.
-        TokenList.vet(TokenList.token, TokenList.nothing, request.head.method);
-        TokenList.vet(TokenList.text, TokenList.whitespace, request.head.URI);
+        TokenList.vet(TokenList.token, TokenList.nothing, head.method);
+        TokenList.vet(TokenList.text, TokenList.whitespace, head.URI);
         
         final Writer hout = ASCII.output(Open.output(out));
-        hout.write(request.head.method);
+        hout.write(head.method);
         hout.write(" ");
-        hout.write(request.head.URI);
+        hout.write(head.URI);
         hout.write(" HTTP/1.1\r\n");
 
         // Output the header.
         final Milestone<Boolean> selfDelimiting = Milestone.plan();
-        if (null == request.body) { selfDelimiting.mark(true); }
+        if (null == body) { selfDelimiting.mark(true); }
         final Milestone<Boolean> contentLengthSpecified = Milestone.plan();
         long contentLength = 0;
-        for (final Header header : request.head.headers) {
+        for (final Header header : head.headers) {
             if (!contentLengthSpecified.is() &&
                     TokenList.equivalent("Content-Length", header.name)) {
                 contentLengthSpecified.mark(true);
@@ -406,9 +410,9 @@ Client implements Server {
             hout.close();
 
             final OutputStream bout = Bounded.output(contentLength, out);
-            if (null != request.body) {
-                request.body.reset();
-                Stream.copy(request.body, bout);
+            if (null != body) {
+                body.reset();
+                Stream.copy(body, bout);
             }
             bout.close();
         } else {
@@ -418,8 +422,8 @@ Client implements Server {
             hout.close();
 
             final OutputStream bout = new ChunkedOutputStream(chunkSize, out);
-            request.body.reset();
-            Stream.copy(request.body, bout);
+            body.reset();
+            Stream.copy(body, bout);
             bout.close();
         }
         out.flush();
@@ -429,13 +433,13 @@ Client implements Server {
      * Receives an HTTP response.
      * @param method    HTTP request method
      * @param cin       input stream
-     * @param respond   response block
+     * @param client    corresponding response processor
      * @return should the connection be closed?
      * @throws Exception    any problem reading the response
      */
     static public boolean
     receive(final String method, final InputStream cin,
-            final Do<Response,Void> respond) throws Exception {
+            final Client client) throws Exception {
         final LineInput hin = new LineInput(Limited.input(32 * 1024, cin));
 
         // read the Status-Line
@@ -467,7 +471,7 @@ Client implements Server {
         // check for informational response
         // RFC 2616, section 10.1:
         // Unexpected 1xx status responses MAY be ignored by a user agent.
-        if (status.startsWith("1")) { return receive(method, cin, respond); }
+        if (status.startsWith("1")) { return receive(method, cin, client); }
 
         // build the response
         final Milestone<Boolean> closing = Milestone.plan();
@@ -488,8 +492,7 @@ Client implements Server {
             final InputStream explicit = HTTPD.input(headers, cin);
             entity = null != explicit ? explicit : cin;
         }
-        respond.fulfill(new Response(
-            new Response.Head(version, status, phrase, headers), entity));
+        client.receive(new Response(version, status, phrase, headers), entity);
         
         // ensure this response has been fully read out of the
         // response stream before reading in the next response

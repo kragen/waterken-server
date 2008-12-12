@@ -3,11 +3,9 @@
 package org.waterken.uri;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.joe_e.array.ConstArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
@@ -153,22 +151,5 @@ Path {
             r = Filesystem.file(r, segment);
         }
         return r;
-    }
-    
-    /**
-     * Lists the non-hidden contents of a directory.
-     * @param dir   directory to list
-     * @return non-hidden directory entries, sorted alphabetically
-     * @throws IOException <code>dir</code> is not a directory, or an I/O error
-     */
-    static public ConstArray<File>
-    list(final File dir) throws IOException {
-        final ConstArray.Builder<File> r = ConstArray.builder();
-        for (final File file : Filesystem.list(dir)) {
-            if (!file.getName().startsWith(".")) {
-                r.append(file);
-            }
-        }
-        return r.snapshot();
     }
 }

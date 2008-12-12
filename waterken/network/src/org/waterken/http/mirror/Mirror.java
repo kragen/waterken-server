@@ -3,6 +3,7 @@
 package org.waterken.http.mirror;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
@@ -10,9 +11,8 @@ import org.joe_e.inert;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.promise.eventual.Do;
+import org.waterken.http.Client;
 import org.waterken.http.Request;
-import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.http.file.Files;
 import org.waterken.http.file.Tag;
@@ -49,15 +49,15 @@ Mirror extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
     
     public void
-    serve(final String resource, final Request request,
-                                 final Do<Response,?> respond) throws Exception{        
+    serve(final String resource, final Request head, final InputStream body,
+                                 final Client client) throws Exception {        
         final File folder;
         try {
             folder = Path.descend(root, Path.folder(URI.path(resource)));
         } catch (final InvalidFilenameException e) {
-            respond.reject(e);
+            client.failed(e);
             return;
         }
-        new Files(folder, tag, formats).serve(resource, request, respond);
+        new Files(folder, tag, formats).serve(resource, head, body, client);
     }
 }

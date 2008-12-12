@@ -2,12 +2,14 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.http.trace;
 
+import java.io.InputStream;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.promise.eventual.Do;
+import org.waterken.http.Client;
+import org.waterken.http.Message;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -38,26 +40,19 @@ Trace extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
 
     public void
-    serve(final String resource, final Request request,
-                                 final Do<Response,?> respond) throws Exception{        
+    serve(final String resource, final Request head, final InputStream body,
+                                 final Client client) throws Exception {        
     
         // further dispatch the request
         if (!URI.path(resource).startsWith(prefix)) {
-            next.serve(resource, request, respond);
-            return;
-        }
-        
-        // reached the final message processor, so bounce a trace
-        if ("TRACE".equals(request.head.method)) {
-            respond.fulfill(request.trace());
+            next.serve(resource, head, body, client);
             return;
         }
 
         // obey any request restrictions
-        if (!request.allow(null, respond, "GET", "HEAD", "OPTIONS", "TRACE")) {
-            return;
-        }
+        if (!head.respond(null,client,"GET","HEAD","OPTIONS","TRACE")) {return;}
         
-        respond.fulfill(request.trace());
+        final Message<Response> r = head.trace();
+        client.receive(r.head, r.body.asInputStream());
     }
 }

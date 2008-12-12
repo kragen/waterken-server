@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.http;
 
-import org.ref_send.promise.eventual.Do;
+import java.io.InputStream;
 
 /**
  * An HTTP server.
@@ -23,11 +23,11 @@ Server {
     /**
      * Eventually process a request.
      * @param resource  absolute resource identifier
-     * @param request   request
-     * @param respond   corresponding response processor
+     * @param head      request head
+     * @param body      request body, or <code>null</code> if none
+     * @param client    corresponding response processor
      * @throws Exception    any problem which should terminate the connection
      */
-    void
-    serve(String resource, Request request,
-                           Do<Response,?> respond) throws Exception;
+    void serve(String resource, Request head, InputStream body,
+               Client client) throws Exception;
 }

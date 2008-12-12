@@ -5,6 +5,7 @@ package org.waterken.http.dump;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 
@@ -13,7 +14,7 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.promise.eventual.Do;
+import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -62,17 +63,11 @@ Dump extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
     
     public void
-    serve(final String resource, final Request request,
-                                 final Do<Response,?> respond) throws Exception{        
+    serve(final String resource, final Request head, final InputStream body,
+                                 final Client client) throws Exception {        
         // further dispatch the request
         if (!URI.path(resource).equals(path)) {
-            next.serve(resource, request, respond);
-            return;
-        }
-        
-        // reached the final message processor, so bounce a trace
-        if ("TRACE".equals(request.head.method)) {
-            respond.fulfill(request.trace());
+            next.serve(resource, head, body, client);
             return;
         }
 
@@ -82,12 +77,12 @@ Dump extends Struct implements Server, Serializable {
         final String p = Query.arg(null, query, "p");
         final String m = Query.arg(null, query, "m");
         if (!s.equals(key) || !p.equals("run") || null == m) {
-            respond.reject(new FileNotFoundException());
+            client.failed(new FileNotFoundException());
             return;
         }
         
         // determine the request Media Type
-        final String contentTypeSpec = request.head.getContentType();
+        final String contentTypeSpec = head.getContentType();
         FileType contentType = null;
         for (final FileType format : supported.known) {
             if (TokenList.equivalent(format.name, contentTypeSpec)) {
@@ -96,23 +91,23 @@ Dump extends Struct implements Server, Serializable {
             }
         }
         if (null == contentType) {
-            respond.fulfill(request.head.response(
+            client.receive(new Response(
                 "HTTP/1.1", "415", "Unsupported Media Type",
                 PowerlessArray.array(
                     new Header("Content-Length", "0")
-                ), null));
+                )), null);
             return;
         }
 
         // obey any request restrictions
-        if (!request.allow(null, respond, "POST", "OPTIONS", "TRACE")) {return;}
+        if (!head.respond(null, client, "POST", "OPTIONS", "TRACE")) { return; }
 
         // write out the request entity
         final String filename = m + contentType.ext;
         final File incoming = Filesystem.file(folder, ".incoming");
         final File tmp = Filesystem.file(incoming, filename);
         final OutputStream out = Filesystem.writeNew(tmp);
-        Stream.copy(request.body, out);
+        Stream.copy(body, out);
         out.flush();
         out.close();
         final File committed = Filesystem.file(folder, filename);
@@ -120,8 +115,7 @@ Dump extends Struct implements Server, Serializable {
         if (!tmp.renameTo(committed)) { throw new IOException(); }
         
         // acknowledge the request
-        respond.fulfill(request.head.response(
-            "HTTP/1.1", "204", "OK",
-            PowerlessArray.array(new Header[] {}), null));
+        client.receive(new Response("HTTP/1.1", "204", "OK",
+            PowerlessArray.array(new Header[] {})), null);
     }
 }

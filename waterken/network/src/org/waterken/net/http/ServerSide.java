@@ -6,9 +6,9 @@ import java.io.InputStream;
 import java.net.Socket;
 
 import org.joe_e.array.PowerlessArray;
-import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
+import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.TokenList;
@@ -17,10 +17,10 @@ import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 
 /**
- * An HTTP protocol server session.
+ * The server side of the HTTP protocol.
  */
 final class
-Session implements Task<Void> {
+ServerSide implements Task<Void> {
 
     private final HTTPD config;
     private final Receiver<Void> yield;
@@ -43,8 +43,8 @@ Session implements Task<Void> {
      * @param socket    connection socket, trusted to behave like a socket, but
      *                  not trusted to be connected to a trusted HTTP client
      */
-    Session(final HTTPD config, final Receiver<Void> yield, 
-            final String scheme, final String origin, final Socket socket) {
+    ServerSide(final HTTPD config, final Receiver<Void> yield, 
+               final String scheme, final String origin, final Socket socket) {
         this.config = config;
         this.yield = yield;
         this.scheme = scheme;
@@ -92,7 +92,7 @@ Session implements Task<Void> {
             : requestLine.substring(endRequestURI + 1);
 
             final Responder next = new Responder(config.server);
-            final Do<Response,?> respond = current.respond(version,method,next);
+            final Client client = current.respond(version, method, next);
             final InputStream body;
             try {
                 // parse the request based on the protocol version
@@ -138,15 +138,15 @@ Session implements Task<Void> {
                 : URI.resolve(scheme + "://" + origin + "/", requestURI);
 
                 // process the request
-                config.server.serve(resource, new Request(new Request.Head(
-                    version, method, requestURI, headers), body), respond);
+                config.server.serve(resource, new Request(
+                    version, method, requestURI, headers), body, client);
             } catch (final Exception e) {
                 current.closing.mark(true);
-                respond.fulfill(new Response(new Response.Head(
+                client.receive(new Response(
                     "HTTP/1.1", "503", "Service Unavailable",
                     PowerlessArray.array(
                         new Header("Content-Length", "0")
-                    )), null));
+                    )), null);
                 throw e;
             }
 
