@@ -4,18 +4,12 @@ package org.waterken.remote.mux;
 
 import org.waterken.http.Server;
 import org.waterken.vat.Vat;
-import org.waterken.vat.Root;
 
 /**
  * A remoting protocol.
  */
 public interface
-Remoting {
-    
-    /**
-     * {@link Root} name for the outbound request {@link Server}
-     */
-    String client = ".client";
+Remoting<S> {
     
     /**
      * Wrap a network interface around a vat.
@@ -25,5 +19,5 @@ Remoting {
      * @return network interface
      */
     Server
-    remote(Server bootstrap, String scheme, Vat vat);
+    remote(Server bootstrap, String scheme, Vat<S> vat);
 }

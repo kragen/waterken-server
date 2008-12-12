@@ -5,12 +5,14 @@ package org.waterken.remote.http;
 import static org.ref_send.promise.Fulfilled.ref;
 import static org.web_send.Failure.maxEntitySize;
 
+import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.array.ByteArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.deserializer;
@@ -21,16 +23,15 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Factory;
-import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
-import org.waterken.http.MediaType;
+import org.waterken.http.Client;
+import org.waterken.http.Message;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
+import org.waterken.io.Stream;
 import org.waterken.io.limited.Limited;
-import org.waterken.io.snapshot.Snapshot;
 import org.waterken.remote.mux.Remoting;
 import org.waterken.trace.EventSender;
 import org.waterken.trace.Tracer;
@@ -52,14 +53,8 @@ import org.web_send.graph.Spawn;
  * HTTP web-AMP implementation
  */
 public final class
-AMP extends Struct implements Remoting, Powerless, Serializable {
+AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
     static private final long serialVersionUID = 1L;
-    
-    /**
-     * MIME Media-Type for marshalled arguments
-     */
-    static protected final MediaType mime =
-    	new MediaType("application", "jsonrequest");
     
     /**
      * Constructs an instance.
@@ -67,15 +62,14 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
     public @deserializer
     AMP() {}
     
-    // org.waterken.remote.Remoting interface
+    // org.waterken.remote.mux.Remoting interface
 
     public Server
-    remote(final Server bootstrap, final String scheme, final Vat vat) {
+    remote(final Server bootstrap, final String scheme, final Vat<Server> vat) {
         return new Server() {
             public void
-            serve(final String resource,
-                  final Volatile<Request> requestor,
-                  final Do<Response,?> respond) throws Exception {
+            serve(final String resource, final Request head,
+                  final InputStream body, final Client client) throws Exception{
 
                 // check for web browser bootstrap request
                 final String query = URI.query(null, resource);
@@ -83,60 +77,38 @@ AMP extends Struct implements Remoting, Powerless, Serializable {
                     bootstrap.serve("file:///site/" +
                             URLEncoding.encode(vat.getProject()) + "/" +
                             URLEncoding.encode(Path.name(URI.path(resource))),
-                        requestor, respond);
+                        head, body, client);
                     return;
                 }
 
-                final Request buffered; {
-                    Request q = requestor.cast();
-                    if (null != q.body) {
-                        final Integer length = q.getContentLength();
-                        if (null != length && length > maxEntitySize) {
-                        	throw Failure.tooBig();
-                        }
-                        if (!q.expectContinue(respond)) { return; }
-                        q = new Request(q.version, q.method, q.URL, q.header,
-                            Snapshot.snapshot(null != length ? length : 1024,
-                                Limited.limit(maxEntitySize, q.body)));
-                    } else {
-                        if (!q.expectContinue(respond)) { return; }
-                    }
-                    buffered = q;
+                final int length = head.getContentLength();
+                if (length > maxEntitySize) { throw Failure.tooBig(); }
+                if (!head.expect(client,"GET","HEAD","POST","OPTIONS","TRACE")){
+                    return;
                 }
-                final Promise<Response> respondor =
-                        vat.enter(new Transaction<Response>(
-                                          "GET".equals(buffered.method) ||
-                                          "HEAD".equals(buffered.method) ||
-                                          "OPTIONS".equals(buffered.method) ||
-                                          "TRACE".equals(buffered.method)) {
-                    public Response
+                final ByteArray buffered = null == body
+                    ? null
+                : Stream.snapshot(length >= 0 ? length : 1024,
+                                  Limited.input(maxEntitySize, body));
+                final Promise<Message<Response>> respondor =
+                        vat.enter(new Transaction<Message<Response>>(
+                                  "GET".equals(head.method) ||
+                                  "HEAD".equals(head.method) ||
+                                  "OPTIONS".equals(head.method) ||
+                                  "TRACE".equals(head.method)) {
+                    public Message<Response>
                     run(final Root local) throws Exception {
-                        final Response[] response = { null };
-                        new Callee(local).serve(resource, ref(buffered),
-                                                new Do<Response,Void>() {
-                            public Void
-                            fulfill(Response r) throws Exception {
-                                if (null != r.body &&
-                                    !(r.body instanceof Snapshot)) {
-                                    r= new Response(r.version,r.status,r.phrase,
-                                        r.header, Snapshot.snapshot(
-                                            r.getContentLength(), r.body));
-                                }
-                                response[0] = r;
-                                return null;
-                            }
-                        });
-                        return response[0];
+                        return new Callee(local).run(resource, head, buffered);
                     }
                 });
-                final Response response;
+                final Message<Response> response;
                 try {
                     response = respondor.cast();
                 } catch (final Exception e) {
-                    respond.reject(e);
+                    client.failed(e);
                     return;
                 }
-                respond.fulfill(response);
+                client.receive(response.head, response.body.asInputStream());
             }
         };
     }

@@ -12,8 +12,6 @@ import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Deferred;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
-import org.waterken.vat.Root;
-import org.waterken.vat.Vat;
 
 /**
  * A remote reference.
@@ -23,26 +21,28 @@ Remote extends Deferred<Object> implements Promise<Object> {
     static private final long serialVersionUID = 1L;
 
     /**
-     * local address space
+     * network message sender
      */
-    private final Root local;
+    private final Messenger messenger;
 
     /**
-     * reference relative URL
+     * relative URL for message target
      */
     private final String URL;
 
     /**
      * Constructs an instance.
-     * @param local local address space
-     * @param URL   reference relative URL
+     * @param _         corresponding eventual operator
+     * @param deferred  {@link Deferred} permission
+     * @param messenger network message sender
+     * @param URL       relative URL for message target
      */
     public
-    Remote(final Root local, final String URL) {
-        super((Eventual)local.fetch(null, Vat._),
-              (Token)local.fetch(null, Vat.deferred));
+    Remote(final Eventual _, final Token deferred,
+           final Messenger messenger, final String URL) {
+        super(_, deferred);
         if (null == URL) { throw new NullPointerException(); }
-        this.local = local;
+        this.messenger = messenger;
         this.URL = URL;
     }
     
@@ -55,9 +55,10 @@ Remote extends Deferred<Object> implements Promise<Object> {
      */
     public boolean
     equals(final Object x) {
-        return x instanceof Remote && _.equals(((Remote)x)._) &&
+        return x instanceof Remote &&
                URL.equals(((Remote)x).URL) &&
-               local.equals(((Remote)x).local);
+               messenger.equals(((Remote)x).messenger) &&
+               _.equals(((Remote)x)._);
     }
     
     /**
@@ -89,7 +90,6 @@ Remote extends Deferred<Object> implements Promise<Object> {
             }
         }
         try {
-            final Messenger messenger = local.fetch(null, Vat.messenger);
             return messenger.invoke(URL, proxy, method, arg);
         } catch (final Exception e) { throw new Error(e); }
     }
@@ -98,20 +98,19 @@ Remote extends Deferred<Object> implements Promise<Object> {
 
     protected <R> R
     when(final Class<?> R, final Do<Object,R> observer) {
-        final Messenger messenger = local.fetch(null, Vat.messenger);
         return messenger.when(URL, R, observer);
     }
     
     // org.waterken.remote.Remote interface
     
     /**
-     * Accesses the wrapped URL.
-     * @param root  local address space
-     * @return the wrapped URL
+     * Accesses the message target URL.
+     * @param messenger network message sender
+     * @return relative URL for message target
      */
     public String
-    export(final Root root) {
-        if (!local.equals(root)) { throw new ClassCastException(); }
+    export(final Messenger messenger) {
+        if (!this.messenger.equals(messenger)) {throw new ClassCastException();}
         return URL;
     }
 
@@ -126,8 +125,8 @@ Remote extends Deferred<Object> implements Promise<Object> {
         final Class<?> type = null != object ? object.getClass() : Void.class;
         return String.class == type ||
             Integer.class == type ||
-            Long.class == type ||
             Boolean.class == type ||
+            Long.class == type ||
             Byte.class == type ||
             Short.class == type ||
             Character.class == type ||

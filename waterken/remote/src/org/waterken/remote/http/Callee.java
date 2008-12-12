@@ -59,12 +59,11 @@ Callee extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
 
     public void
-    serve(final String resource, final Volatile<Request> requestor,
+    serve(final String resource, final Request request,
           final Do<Response,?> respond) throws Exception {
 
         // made it to the final processor, so bounce a TRACE
-        final Request request = requestor.cast();
-        if ("TRACE".equals(request.method)) {
+        if ("TRACE".equals(request.head.method)) {
             respond.fulfill(request.trace());
             return;
         }

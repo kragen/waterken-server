@@ -24,9 +24,8 @@ import org.ref_send.log.Trace;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Factory;
-import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.eventual.Task;
 import org.waterken.base32.Base32;
 import org.waterken.crypto.Encryptor;
 import org.waterken.remote.Remote;
@@ -71,8 +70,12 @@ Exports extends Struct implements Serializable {
      */
     public String
     getTransactionTag() {
-        final Factory<String> tagger = local.fetch(null, Vat.tagger);
-        return null != tagger ? tagger.run() : null;
+        final Task<String> tagger = local.fetch(null, Vat.tagger);
+        try {
+            return tagger.run();
+        } catch (final Exception e) {
+            return null;
+        }
     }
     
     public String
