@@ -16,23 +16,24 @@ import org.ref_send.name;
 public class
 FileType implements Powerless, Selfless, Record, Serializable {
     static private final long serialVersionUID = 1L;
-    
-    /**
-     * GZIP {@link #encoding} name 
-     */
-    static public final String gzip = "gzip";
 
     /**
      * <code>application/octet-stream</code> MIME type
      */
     static public final FileType unknown =
-        new FileType("",           "application/do-not-execute",       null);
+        new FileType("",           "application/do-not-execute",        null);
     
     /**
      * <code>text/uri-list</code> MIME type
      */
     static public final FileType uri =
-        new FileType(".uri",       "text/uri-list; charset=US-ASCII",  null);
+        new FileType(".uri",       "text/uri-list; charset=US-ASCII",   null);
+    
+    /**
+     * <code>application/json</code> MIME type
+     */
+    static public final FileType json =
+        new FileType("",           "application/json",                  null);
 
     /**
      * filename extension

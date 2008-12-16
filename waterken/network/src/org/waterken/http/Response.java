@@ -78,4 +78,15 @@ Response extends Struct implements Powerless, Record, Serializable {
         if (nSize < 0) { throw new NumberFormatException(); }
         return nSize;
     }
+    
+    /**
+     * Constructs a response with an additional header.
+     * @param name  header name
+     * @param value header value
+     */
+    public Response
+    with(final String name, final String value) {
+        return new Response(version, status, phrase,
+                            headers.with(new Header(name, value)));
+    }
 }

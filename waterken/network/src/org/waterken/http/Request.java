@@ -129,7 +129,10 @@ Request extends Struct implements Powerless, Record, Serializable {
     public @inert boolean
     respond(final String etag, final Client client,
             final String... allow) throws Exception {
-        return expect(client, allow) && allow(etag, client, allow);
+        if (!expect(client, allow)) { return false; }
+        Message<Response> r = allow(etag, allow);
+        if (null != r) { client.receive(r.head, r.body.asInputStream()); }
+        return null == r;
     }
     
     /**
@@ -142,7 +145,7 @@ Request extends Struct implements Powerless, Record, Serializable {
      * The implementation handles any <code>Expect</code> header.
      * </p>
      * @param respond   corresponding response processor
-     * @param allow     allowed HTTP methods
+     * @param allow     each allowed HTTP method
      * @return <code>true</code> if processing should continue,
      *         else <code>false</code>
      * @throws Exception    any problem
@@ -159,7 +162,8 @@ Request extends Struct implements Powerless, Record, Serializable {
             }
         }
         if (!allowed) {
-            client.receive(notAllowed(allow), null);
+            final Message<Response> r = notAllowed(allow);
+            client.receive(r.head, r.body.asInputStream());
             return false;
         }
         
@@ -188,59 +192,43 @@ Request extends Struct implements Powerless, Record, Serializable {
      * Handles preconditions on access to a particular resource.
      * @param etag      corresponding response entity tag,
      *                  or <code>null</code> if no current entity exists
-     * @param respond   corresponding response processor
-     * @param allow     allowed HTTP methods
-     * @return <code>true</code> if processing should continue,
-     *         else <code>false</code>
-     * @throws Exception    any problem
+     * @param allow     each allowed HTTP method
+     * @return <code>null</code> if request is allowed, else response message
      */
-    public @inert boolean
-    allow(final String etag, final Client client,
-          final String... allow) throws Exception {
-        // check that no conditions prevent the supported method from executing
+    public @inert Message<Response>
+    allow(final String etag, final String... allow) {
         if (null != etag) {
             final String ifNoneMatch = TokenList.list("If-None-Match", headers);
             if ("*".equals(ifNoneMatch) || -1 != ifNoneMatch.indexOf(etag)) {
                 if ("GET".equals(method) || "HEAD".equals(method)) {
-                    client.receive(new Response(
+                    return new Message<Response>(new Response(
                         "HTTP/1.1", "304", "Not Modified",
                         PowerlessArray.array(
                             new Header("ETag", etag)
                         )), null);
                 } else {
-                    client.receive(new Response(
+                    return new Message<Response>(new Response(
                         "HTTP/1.1", "412", "Precondition Failed",
                         PowerlessArray.array(
                             new Header("Content-Length", "0")
                         )), null);
                 }
-                return false;
             }
         }
         final String ifMatch = TokenList.list("If-Match", headers);
         if (!"".equals(ifMatch)) {
             if (null == etag || (-1 == ifMatch.indexOf(etag) &&
                                  !"*".equals(ifMatch))) {
-                client.receive(new Response(
+                return new Message<Response>(new Response(
                     "HTTP/1.1", "412", "Precondition Failed",
                     PowerlessArray.array(
                         new Header("Content-Length", "0")
                     )), null);
-                return false;
             }
         }
-        
-        // proceed with any positive acknowledgments
-        if ("TRACE".equals(method)) {
-            final Message<Response> r = trace();
-            client.receive(r.head, r.body.asInputStream());
-            return false;
-        }
-        if ("OPTIONS".equals(method)) {
-            client.receive(options(allow), null);
-            return false;
-        }
-        return true;
+        if ("TRACE".equals(method)) { return trace(); }
+        if ("OPTIONS".equals(method)) { return options(allow); }
+        return null;
     }
     
     /**
@@ -266,26 +254,26 @@ Request extends Struct implements Powerless, Record, Serializable {
      * Constructs an <code>OPTIONS</code> response.
      * @param allow supported HTTP methods
      */
-    static public Response
+    static public @inert Message<Response>
     options(final String... allow) {
-        return new Response(
+        return new Message<Response>(new Response(
             "HTTP/1.1", "204", "OK",
             PowerlessArray.array(
                 new Header("Allow", TokenList.encode(allow))
-            ));
+            )), null);
     }
     
     /**
      * Constructs a 405 Method Not Allowed response.
      * @param allow supported HTTP methods
      */
-    static public Response
+    static public @inert Message<Response>
     notAllowed(final String... allow) {
-        return new Response(
+        return new Message<Response>(new Response(
             "HTTP/1.1", "405", "Method Not Allowed",
             PowerlessArray.array(
                 new Header("Allow", TokenList.encode(allow)),
                 new Header("Content-Length", "0")
-            ));
+            )), null);
     }
 }
