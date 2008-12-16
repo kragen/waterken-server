@@ -3,9 +3,12 @@
 package org.waterken.trace;
 
 import java.io.Serializable;
+import java.lang.reflect.Member;
 
 import org.joe_e.Equatable;
 import org.joe_e.Struct;
+import org.joe_e.array.PowerlessArray;
+import org.ref_send.log.CallSite;
 import org.ref_send.log.Comment;
 import org.ref_send.log.Death;
 import org.ref_send.log.Event;
@@ -14,6 +17,7 @@ import org.ref_send.log.Problem;
 import org.ref_send.log.Resolved;
 import org.ref_send.log.Sent;
 import org.ref_send.log.SentIf;
+import org.ref_send.log.Trace;
 import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Receiver;
 
@@ -72,8 +76,10 @@ EventSender {
             }
 
             public void
-            got(final String message) {
-                stderr.run(new Got(mark.run(), tracer.traceHere(), message));
+            got(final String message, final Member member) {
+                stderr.run(new Got(mark.run(), null != member
+                    ? tracer.traceMember(member)
+                : new Trace(PowerlessArray.array(new CallSite[] {})), message));
             }
 
             public void

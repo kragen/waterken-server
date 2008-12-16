@@ -37,16 +37,16 @@ ProjectTracer {
 
             public Trace
             traceException(final Throwable e) {return trace(e.getStackTrace());}
-
-            public Trace
-            traceHere() {return trace(Thread.currentThread().getStackTrace());}
             
             public Trace
-            dummy(final Member lambda) {
+            traceMember(final Member lambda) {
                 return trace(new StackTraceElement(
                     lambda.getDeclaringClass().getName(), lambda.getName(),
                     null, -1));
             }
+
+            public Trace
+            traceHere() {return trace(Thread.currentThread().getStackTrace());}
             
             private Trace
             trace(final StackTraceElement... frames) {

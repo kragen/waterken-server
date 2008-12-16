@@ -25,17 +25,17 @@ Tracer {
      */
     Trace
     traceException(Throwable e);
-
-    /**
-     * Gets the current stack trace.
-     */
-    Trace
-    traceHere();
     
     /**
      * Produces a dummy stack trace for a method.
      * @param lambda    sole member of the dummy stack trace
      */
     Trace
-    dummy(Member lambda);
+    traceMember(Member lambda);
+
+    /**
+     * Gets the current stack trace.
+     */
+    Trace
+    traceHere();
 }
