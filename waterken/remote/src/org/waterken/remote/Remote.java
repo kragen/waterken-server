@@ -2,9 +2,12 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
 
+import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
@@ -12,6 +15,10 @@ import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Deferred;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.type.Typedef;
+import org.waterken.syntax.Exporter;
+import org.waterken.syntax.Importer;
+import org.waterken.uri.URI;
 
 /**
  * A remote reference.
@@ -30,20 +37,60 @@ Remote extends Deferred<Object> implements Promise<Object> {
      */
     private final String URL;
 
-    /**
-     * Constructs an instance.
-     * @param _         corresponding eventual operator
-     * @param deferred  {@link Deferred} permission
-     * @param messenger network message sender
-     * @param URL       relative URL for message target
-     */
-    public
+    private
     Remote(final Eventual _, final Token deferred,
            final Messenger messenger, final String URL) {
         super(_, deferred);
         if (null == URL) { throw new NullPointerException(); }
         this.messenger = messenger;
         this.URL = URL;
+    }
+    
+    /**
+     * Constructs a remote reference importer.
+     * @param _         corresponding eventual operator
+     * @param deferred  {@link Deferred} permission
+     * @param messenger network message sender
+     * @param here      URL for local vat
+     */
+    static public Importer
+    connect(final Eventual _, final Token deferred,
+            final Messenger messenger, final String here) {
+        class ImporterX extends Struct implements Importer, Serializable {
+            static private final long serialVersionUID = 1L;
+            
+            public Object
+            run(final String href, final String base, final Type type) {
+                final String URL = null!=base ? URI.resolve(base, href) : href;
+                return _.cast(Typedef.raw(type),
+                    new Remote(_, deferred, messenger, URI.relate(here, URL)));
+            }
+        }
+        return new ImporterX();
+    }
+    
+    /**
+     * Constructs a remote reference exporter.
+     * @param to    messenger to export for
+     * @param next  next exporter to try
+     */
+    static public Exporter
+    export(final Messenger to, final Exporter next) {
+        class ExporterX extends Struct implements Exporter, Serializable {
+            static private final long serialVersionUID = 1L;
+            
+            public String
+            run(final Object target) {
+                final Object handler = target instanceof Proxy
+                    ? Proxies.getHandler((Proxy)target) : target;
+                if (handler instanceof Remote) {
+                    final Remote x = (Remote)handler;
+                    if (x.messenger.equals(to)) { return x.URL; }
+                }
+                return next.run(target);
+            }
+        }
+        return new ExporterX();
     }
     
     // java.lang.Object interface
@@ -102,17 +149,6 @@ Remote extends Deferred<Object> implements Promise<Object> {
     }
     
     // org.waterken.remote.Remote interface
-    
-    /**
-     * Accesses the message target URL.
-     * @param messenger network message sender
-     * @return relative URL for message target
-     */
-    public String
-    export(final Messenger messenger) {
-        if (!this.messenger.equals(messenger)) {throw new ClassCastException();}
-        return URL;
-    }
 
     /**
      * Is the given object pass-by-construction?

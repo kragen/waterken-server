@@ -9,32 +9,21 @@ import java.io.Serializable;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.security.SecureRandom;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
-import org.joe_e.array.PowerlessArray;
-import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.log.CallSite;
-import org.ref_send.log.Event;
-import org.ref_send.log.Got;
-import org.ref_send.log.Sent;
-import org.ref_send.log.Trace;
 import org.ref_send.promise.Fulfilled;
-import org.ref_send.promise.eventual.Channel;
+import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
-import org.waterken.base32.Base32;
-import org.waterken.crypto.Encryptor;
+import org.waterken.http.TokenList;
+import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
-import org.waterken.trace.Tracer;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
-import org.waterken.vat.Effect;
 import org.waterken.vat.Root;
 import org.waterken.vat.Vat;
 
@@ -43,8 +32,8 @@ import org.waterken.vat.Vat;
  */
 public final class
 Exports extends Struct implements Serializable {
-    static private final long serialVersionUID = 1L;
-
+    static private final long serialVersionUID = 1L;    
+    
     /**
      * vat root
      */
@@ -59,6 +48,8 @@ Exports extends Struct implements Serializable {
         this.local = local;
     }
     
+    // org.waterken.remote.http.Exports interface
+    
     /**
      * Gets the base URL for this namespace.
      */
@@ -71,142 +62,96 @@ Exports extends Struct implements Serializable {
     public String
     getTransactionTag() {
         final Task<String> tagger = local.fetch(null, Vat.tagger);
-        try {
-            return tagger.run();
-        } catch (final Exception e) {
-            return null;
-        }
-    }
-    
-    public String
-    pipeline(final String m, final long w, final long i) {
-        final Encryptor encrypt = local.fetch(null, Vat.AES);
+        try { return tagger.run(); } catch (final Exception e) { return ""; }
     }
     
     /*
-     * message identifiers
-     * mid:                     message session key
-     * pipe: hash(mid,w,i)      read key for a particular return value
-     * qid:  hash(pipe)         POST request identifier
-     * rid:  hash(qid)          POST response identifier
+     * web-key parameters
+     * x:   message session secret
+     * w:   message window number
+     * m:   intra-window message number
+     * i:   message target index
+     * k:   message target key
+     * q:   message operation identifier, typically the method name
+     * o:   present if web-key is a promise
      */
     
     /**
-     * Does an operation at most once.
-     * @param query     message query arguments
-     * @param member    member to invoke, or <code>null</code> if unspecified
+     * Constructs a web-key.
+     * @param key       target object key
+     * @param isPromise Is the target object a promise?
+     */
+    static private String
+    href(final String key, final boolean isPromise) {
+        return "#" + (isPromise ? "o=&" : "") + "k=" + key;
+    }
+
+    /**
+     * Extracts the key from a web-key.
+     * @param q web-key argument string
+     * @return corresponding key
+     */
+    static private String
+    key(final String q) { return Query.arg(null, q, "k"); }
+    
+    /**
+     * Is the given web-key a promise web-key?
+     * @param q web-key argument string
+     * @return <code>true</code> if a promise, else <code>false</code>
+     */
+    static public boolean
+    isPromise(final String q) { return null != Query.arg(null, q, "o"); }
+    
+    static public String
+    query(final String q) { return Query.arg(null, q, "q"); }
+    
+    /**
+     * Extracts the session identifier.
+     * @param q web-key argument string
+     * @return corresponding session identifier
+     */
+    static private String
+    session(final String q) { return Query.arg(null, q, "x"); }
+    
+    static private long
+    window(final String q) { return Long.parseLong(Query.arg(null, q, "w")); }
+    
+    static private int
+    message(final String q) { return Integer.parseInt(Query.arg("0", q, "m")); }
+    
+    static private int
+    index(final String q) { return Integer.parseInt(Query.arg("0", q, "i")); }
+    
+    /**
+     * Receives an operation.
+     * @param query     request query string
+     * @param member    corresponding operation
      * @param op        operation to run
      * @return <code>invoke</code> return value
      */
     public Object
-    once(final String query, final Member member, final Factory<Object> op) {
-        final String mid = Query.arg(null, query, "m");
-        if (null == mid) { return op.run(); }
-        
-        final String pipe = local.pipeline(mid,
-                Long.parseLong(Query.arg("0", query, "w")),
-                Long.parseLong(Query.arg("0", query, "i")));
-        final Token pumpkin = new Token();
-        Object r = local.fetch(pumpkin, pipe);
-        if (pumpkin == r) {
-            final Receiver<Event> er = events();
-            if (null != er) {
-                final Tracer tracer = local.fetch(null, Root.tracer);
-                final Trace trace = null != tracer && null != member
-                    ? tracer.dummy(member)
-                : new Trace(PowerlessArray.array(new CallSite[] {}));
-                final String qid = local.pipeline(pipe, 0, 0);
-                log(er, new Got(local.anchor(), trace, qid));
-                
-                r = op.run();
-                
-                log(er, new Sent(local.anchor(), trace,
-                                 local.pipeline(qid, 0, 0)));
-            } else {
-                r = op.run();
-            }
-            local.link(pipe, r);
+    execute(final String query, final Member member, final Task<Object> op) {
+        final String x = session(query);
+        if (null == x) {
+            try {
+                return op.run();
+            } catch (final Exception e) { return new Rejected<Object>(e); }
         }
-        return r;
+        final Session session = local.fetch(null, x);
+        return session.once(window(query), message(query), member, op);
     }
     
     /**
-     * Produces a remote request channel.
-     * @param type  return type
-     * @param URL   target URL
-     * @param mid   message session key
-     * @param w     message window number
-     * @param i     intra-window message number
-     * @return return value channel, or <code>null</code> if none
-     */
-    public Channel<Object>
-    request(final Class<?> type, final String URL,
-            final String mid, final long w, final long i) {
-        final String pipe = local.pipeline(mid, w, i);
-        
-        // log the request
-        final Receiver<Event> er = events();
-        if (null != er) {
-            log(er, new Sent(local.anchor(),
-                             new Trace(PowerlessArray.array(new CallSite[] {})),
-                             local.pipeline(pipe, 0, 0))); 
-        }
-        
-        // build the return value channel
-        if (void.class == type || Void.class == type) { return null; }
-        final Eventual _ = local.fetch(null, Vat._);        
-        final Channel<Object> r = _.defer();
-        final String here = local.fetch(null, Root.here);
-        if (null == here) { return r; }
-        local.link(pipe, r.promise);
-        final String base = URI.resolve(URL, ".");
-        return new Channel<Object>(
-            Remote.make(local, URI.resolve(base,
-                "#"+pipe+"&src="+URLEncoding.encode(URI.relate(base, here)))),
-            r.resolver);
-    }
-    
-    /**
-     * Logs receipt of a remote request response.
-     * @param mid   message session key
-     * @param w     message window number
-     * @param i     intra-window message number
-     */
-    public void
-    response(final String mid, long w, long i) {
-        final Receiver<Event> er = events();
-        if (null == er) { return; }
-        log(er, new Got(local.anchor(),
-                        new Trace(PowerlessArray.array(new CallSite[] {})),
-                        local.pipeline(local.pipeline(local.pipeline(mid, w, i),
-                                                      0, 0), 0, 0))); 
-    }
-    
-    private Receiver<Event>
-    events() {
-        final Factory<Receiver<Event>> erf = local.fetch(null, Root.events);
-        return null != erf ? erf.run() : null;
-    }
-    
-    private void
-    log(final Receiver<Event> er, final Event e) {
-        final Loop<Effect> effect = local.fetch(null, Root.effect); 
-        effect.run(new Effect() { public void run() { er.run(e); } });
-    }
-    
-    /**
-     * Fetches an exported reference.
-     * @param name  name to lookup
-     * @return bound value
-     * @throws NullPointerException <code>name</code> is not bound
+     * Fetches a message target.
+     * @param query request query string
+     * @return target reference
      */
     public Object
-    use(final String name) throws NullPointerException {
-        if (name.startsWith(".")) { throw new NullPointerException(); }
-        final Token pumpkin = new Token();
-        final Object r = local.fetch(pumpkin, name);
-        if (pumpkin == r) { throw new NullPointerException(); }
-        return r;
+    target(final String query) {
+        final String k = key(query);
+        if (null != k) {return k.startsWith(".") ? null : local.fetch(null, k);}
+        final Session session = local.fetch(null, session(query));
+        return session.get(window(query), index(query));
     }
     
     /**
@@ -214,7 +159,11 @@ Exports extends Struct implements Serializable {
      */
     public Importer
     connect() {
-        final Importer next = Remote.use(local);
+        final Eventual _ = local.fetch(null, "._");
+        final Token deferred = local.fetch(null, ".deferred");
+        final Messenger messenger = local.fetch(null, ".messenger");
+        final String here = getHere();
+        final Importer next = Remote.connect(_, deferred, messenger, here);
         class ImporterX extends Struct implements Importer, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -222,24 +171,12 @@ Exports extends Struct implements Serializable {
             run(final String href, final String base,
                                    final Type type) throws Exception {
                 final String URL = null != base ? URI.resolve(base,href) : href;
-                try {
-                    if (URI.resolve(URL, ".").equalsIgnoreCase(getHere())) {
-                        return use(key(URL));
-                    }
-                } catch (final Exception e) {}
-                return next.run(URL, null, type);
+                return TokenList.equivalent(URI.resolve(URL, "."), here)
+                    ? target(URI.query(URI.fragment("", URL), URL))
+                : next.run(URL, null, type);
             }
         }
         return new ImporterX();
-    }
-    
-    /**
-     * Constructs an invocation argument exporter.
-     * @param base  base URL of the recipient
-     */
-    public Exporter
-    send(final String base) {
-        return relative(base, export());
     }
     
     /**
@@ -258,107 +195,12 @@ Exports extends Struct implements Serializable {
 
             public String
             run(final Object object) {
-                return "#" + local.export(object) +
-                    (Remote.isPBC(object) ||
-                        !(Eventual.promised(object) instanceof Fulfilled)
-                            ? "&src=" : ""); 
+                return href(local.export(object, false), Remote.isPBC(object) ||
+                    !(Eventual.promised(object) instanceof Fulfilled));
             }
         }
-        return Remote.bind(local, new ExporterX());
-    }
-
-    /**
-     * Generates a message identifier.
-     */
-    public String
-    mid() {
-        final byte[] secret = new byte[128 / Byte.SIZE];
-        final SecureRandom prng = local.fetch(null, Vat.prng);
-        prng.nextBytes(secret);
-        return Base32.encode(secret);
-    }
-    
-    /**
-     * Constructs a relative URI exporter.
-     * @param base  base URI
-     * @param local local reference exporter
-     */
-    static private Exporter
-    relative(final String base, final Exporter local) {
-        class RelativeX extends Struct implements Exporter, Serializable {
-            static private final long serialVersionUID = 1L;
-    
-            public String
-            run(final Object target){
-                return URI.relate(base, local.run(target));
-            }
-        }
-        return new RelativeX();
-    }
-
-    /**
-     * Extracts the key from a web-key.
-     * @param URL   web-key
-     * @return corresponding key
-     */
-    static public String
-    key(final String URL) {
-        final String fragment = URI.fragment("", URL);
-        final int iArgs = fragment.indexOf('&');
-        return iArgs != -1 ? fragment.substring(0, iArgs) : fragment;
-    }
-    
-    /**
-     * Is the given web-key a promise web-key?
-     * @param URL   web-key
-     * @return <code>true</code> if a promise, else <code>false</code>
-     */
-    static public boolean
-    isPromise(final String URL) { return null != arg(URL, "src"); }
-    
-    /**
-     * Converts a web-key to a promise web-key.
-     * @param URL   web-key
-     * @return promise version of the <code>URL</code>
-     */
-    static public String
-    asPromise(final String URL) {
-        return isPromise(URL)
-            ? URL
-        : URL + (null != URI.fragment(null, URL) ? "" : "#") + "&src=";
-    }
-    
-    /**
-     * Extracts the source vat URL from a promise web-key.
-     * @param URL   web-key
-     * @return source vat URL, or <code>null</code> if <code>URL</code> is not
-     *         a promise web-key
-     */
-    static public String
-    src(final String URL) {
-        final String src = arg(URL, "src");
-        return null == src ? null : URI.resolve(URL, src);
-    }
-
-    /**
-     * Extracts a web-key argument.
-     * @param URL   web-key
-     * @param name  parameter name
-     * @return argument value, or <code>null</code> if not specified
-     */
-    static private String
-    arg(final String URL, final String name) {
-        return Query.arg(null, URI.fragment("", URL), name);
-    }
-    
-    /**
-     * Constructs a web-key.
-     * @param dst   target vat URL
-     * @param key   key
-     */
-    static public String
-    href(final String dst, final String key) {
-        return "".equals(key) ? dst : URI.resolve(dst, "#" + key);
+        final Messenger to = local.fetch(null, ".messenger");
+        return Remote.export(to, new ExporterX());
     }
     
     /**

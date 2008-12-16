@@ -98,7 +98,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                                   "TRACE".equals(head.method)) {
                     public Message<Response>
                     run(final Root local) throws Exception {
-                        return new Callee(local).run(resource, head, buffered);
+                        return new Callee(local).run(query, head, buffered);
                     }
                 });
                 final Message<Response> response;
