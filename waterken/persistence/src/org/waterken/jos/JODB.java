@@ -609,7 +609,6 @@ JODB<S> extends Vat<S> {
             f2b.put(filename(Vat.creator),  new Bucket(creator));
             f2b.put(filename(Vat.effect),   new Bucket(effect));
             f2b.put(filename(Vat.nothing),  new Bucket(null));
-            f2b.put(filename(Vat.prng),     new Bucket(prng));
             f2b.put(filename(Vat.tagger),   new Bucket(tagger));
             f2b.put(filename(JODB.txerr),   new Bucket(txerr));
             f2b.put(filename(".root"),      new Bucket(root));

@@ -53,11 +53,6 @@ Vat<S> {
      * always bound to <code>null</code>, initialized by vat
      */
     static public final String nothing = "";
-
-    /**
-     * pseudo-random number generator, initialized by vat
-     */
-    static public final String prng = ".prng";
     
     /**
      * project name, initialized by vat
