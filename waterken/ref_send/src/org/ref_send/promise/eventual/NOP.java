@@ -3,15 +3,15 @@
 package org.ref_send.promise.eventual;
 
 import java.io.Serializable;
+import java.lang.reflect.Member;
 
 import org.joe_e.Equatable;
-import org.joe_e.Powerless;
 
 /**
  * A log that discards all events.
  */
 public final class
-NOP implements Log, Powerless, Equatable, Serializable {
+NOP implements Log, Equatable, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -38,7 +38,7 @@ NOP implements Log, Powerless, Equatable, Serializable {
      * NOP
      */
     public void
-    got(final String message) {}
+    got(final String message, final Member member) {}
 
     /**
      * NOP

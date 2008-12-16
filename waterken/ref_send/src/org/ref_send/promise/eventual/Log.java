@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.promise.eventual;
 
+import java.lang.reflect.Member;
+
 /**
  * A log interface.
  */
@@ -25,9 +27,10 @@ Log {
     /**
      * Logs receipt of a message.
      * @param message   message identifier
+     * @param member    corresponding operation
      */
     void
-    got(String message);
+    got(String message, Member member);
     
     /**
      * Logs a message send.
