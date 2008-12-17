@@ -26,7 +26,6 @@ import org.waterken.http.Message;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
-import org.waterken.http.TokenList;
 import org.waterken.io.FileType;
 import org.waterken.remote.Remote;
 import org.waterken.syntax.json.BadSyntax;
@@ -59,11 +58,11 @@ Callee extends Struct implements Serializable {
         final Request head, final ByteArray body) throws Exception {
         
         // determine the request subject
-        Volatile<?> subject = Eventual.promised(exports.target(query));
+        Volatile<?> subject = Eventual.promised(exports.reference(query));
         
         // determine the request type
-        final String q = Exports.query(query);
-        if (null == q || ".".equals(q)) {   // introspection or when block
+        final String p = Exports.predicate(query);
+        if (null == p || ".".equals(p)) {   // introspection or when block
             Object value;
             try {
                 // AUDIT: call to untrusted application code
@@ -77,7 +76,7 @@ Callee extends Struct implements Serializable {
             final Message<Response> notAllowed =
                 head.allow("", "TRACE", "OPTIONS", "GET", "HEAD");
             if (null != notAllowed) { return notAllowed; }
-            if (null == q && !Remote.isPBC(value)) {
+            if (null == p && !Remote.isPBC(value)) {
                 value = describe(value.getClass());
             }
             return serialize(head.method, "200", "OK", Server.forever, value);
@@ -93,7 +92,7 @@ Callee extends Struct implements Serializable {
         if (Remote.isPBC(target)) { throw Failure.notFound(); }
         
         // process the request
-        final Method lambda = Exports.dispatch(target, q);
+        final Method lambda = Exports.dispatch(target, p);
         if ("GET".equals(head.method) || "HEAD".equals(head.method)) {
             Object value;
             try {
@@ -105,8 +104,7 @@ Callee extends Struct implements Serializable {
             } catch (final Exception e) {
                 value = new Rejected<Object>(e);
             }
-            final boolean constant =
-                null == lambda || "getClass".equals(lambda.getName());
+            final boolean constant = "getClass".equals(lambda.getName());
             final int maxAge = constant ? Server.forever : Server.ephemeral; 
             final String etag = constant ? "" : exports.getTransactionTag();
             final Message<Response> notAllowed = head.allow(etag);
@@ -122,39 +120,35 @@ Callee extends Struct implements Serializable {
         if (null != notAllowed) { return notAllowed; }
         final Object value = exports.execute(query, lambda, new Task<Object>() {
             @Override public Object
-            run() {
-                try {
-                    if (null == lambda || null != Exports.property(lambda)) {
-                        throw new NullPointerException();
-                    }
-                    final ConstArray<?> argv;
-                    if (TokenList.equivalent(FileType.unknown.name,
-                                             head.getContentType())) {
-                        argv = ConstArray.array(body);
-                    } else {
-                        /*
-                         * SECURITY CLAIM: deserialize inside the once block to
-                         * ensure application code cannot detect request replay
-                         * by causing failed deserialization
-                         */ 
-                        try {
-                            argv = deserialize(body, ConstArray.array(
-                                    lambda.getGenericParameterTypes()));
-                        } catch (final BadSyntax e) {
-                            /*
-                             * strip out the parsing information to avoid
-                             * leaking information to the application layer
-                             */ 
-                            throw (Exception)e.getCause();
-                        }
-                    }
-
-                    // AUDIT: call to untrusted application code
-                    return Reflection.invoke(Exports.bubble(lambda), target,
-                            argv.toArray(new Object[argv.length()]));
-                } catch (final Exception e) {
-                    return new Rejected<Object>(e);
+            run() throws Exception {
+                if (null == lambda || null != Exports.property(lambda)) {
+                    throw new NullPointerException();
                 }
+                final ConstArray<?> argv;
+                if (Header.equivalent(FileType.unknown.name,
+                                         head.getContentType())) {
+                    argv = ConstArray.array(body);
+                } else {
+                    /*
+                     * SECURITY CLAIM: deserialize inside the once block to
+                     * ensure application code cannot detect request replay by
+                     * causing failed deserialization
+                     */ 
+                    try {
+                        argv = deserialize(body, ConstArray.array(
+                                lambda.getGenericParameterTypes()));
+                    } catch (final BadSyntax e) {
+                        /*
+                         * strip out the parsing information to avoid leaking
+                         * information to the application layer
+                         */ 
+                        throw (Exception)e.getCause();
+                    }
+                }
+
+                // AUDIT: call to untrusted application code
+                return Reflection.invoke(Exports.bubble(lambda), target,
+                        argv.toArray(new Object[argv.length()]));
             }
         });
         return serialize(head.method, "200", "OK", Server.ephemeral, value);

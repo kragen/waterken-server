@@ -9,10 +9,13 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
+import org.joe_e.Immutable;
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
+import org.joe_e.array.ConstArray;
+import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.deserializer;
@@ -21,8 +24,10 @@ import org.ref_send.log.Event;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
+import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.http.Client;
@@ -72,8 +77,8 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                   final InputStream body, final Client client) throws Exception{
 
                 // check for web browser bootstrap request
-                final String query = URI.query(null, resource);
-                if (null == query) {
+                final String q = URI.query(null, resource);
+                if (null == q) {
                     bootstrap.serve("file:///site/" +
                             URLEncoding.encode(vat.getProject()) + "/" +
                             URLEncoding.encode(Path.name(URI.path(resource))),
@@ -98,17 +103,17 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                                   "TRACE".equals(head.method)) {
                     public Message<Response>
                     run(final Root local) throws Exception {
-                        return new Callee(local).run(query, head, buffered);
+                        return new Callee(local).run(q, head, buffered);
                     }
                 });
-                final Message<Response> response;
+                final Message<Response> r;
                 try {
-                    response = respondor.cast();
+                    r = respondor.cast();
                 } catch (final Exception e) {
                     client.failed(e);
                     return;
                 }
-                client.receive(response.head, response.body.asInputStream());
+                client.receive(r.head,null!=r.body?r.body.asInputStream():null);
             }
         };
     }
@@ -121,8 +126,8 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
             static private final long serialVersionUID = 1L;
             
 			public <R> R
-            run(final Class<?> maker, final Object... argv) {
-			    return publisher.spawn(null, maker, argv);
+            run(final Class<?> builder, final Object... argv) {
+			    return publisher.spawn(null, builder, argv);
 			}
         }
         return new SpawnX();
@@ -150,47 +155,49 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
 			    final Class<?> R = build.getReturnType();
                 try {
                     if (null != name) { vet(name); }
-                    final Tracer tracer = mother.fetch(null, AMP.tracer);
                     final String project = mother.fetch(null, Vat.project);
                     final Creator creator = mother.fetch(null, Vat.creator);
-                    return creator.run(project, name, new Transaction<R>() {
-                        public R
+                    final PowerlessArray<String> keys= creator.run(project,name,
+                            new Transaction<PowerlessArray<String>>(
+                                    Transaction.update) {
+                        public PowerlessArray<String>
                         run(final Root local) throws Exception {
-                            local.link(AMP.tracer, tracer);
-                            final List<Task> tasks = List.list();
+                            final List<Task<?>> tasks = List.list();
                             local.link(AMP.tasks, tasks);
                             final Token deferred = new Token();
-                            local.link(Vat.deferred, deferred);
                             final String here = local.fetch(null, Vat.here);
-                            final TurnCounter counter = TurnCounter.make(here);
-                            local.link(Vat.flip, counter.flip);
-                            final ClassLoader code= local.fetch(null, Vat.code);
-                            final Vat vat = local.fetch(null, Vat.vat);
-                            final Loop<Effect> effect =
+                            final Receiver<Effect<Server>> effect =
                                 local.fetch(null, Vat.effect);
+                            final Log log = local.fetch(null, Vat.log);
                             final Eventual _ = new Eventual(deferred,
-                                EventSender.makeLoop(counter.mark, code, tracer,
-                                    dst, enqueue(vat, effect, tasks)),
-                                EventSender.makeLog(counter.mark, code, tracer,
-                                    dst, name));
-                            local.link(Vat._, _);
+                                enqueue(effect, tasks), here, log);
                             local.link(outbound, new Outbound());
                             local.link(Vat.wake, new Wake());
                             final Receiver<?> destruct =
                                 local.fetch(null, Vat.destruct);
                             final Publisher publisher = publish(local);
                             final Framework framework = new Framework(
-                                _,
-                                EventSender.makeDestructor(counter.mark,
-                                                           code, tracer,
-                                                           dst, destruct),
-                                AMP.spawn(publisher),
+                                _, destruct, AMP.spawn(publisher),
                                 null != name ? publisher : null
                             );
+                            final Channel<R> r = _.defer();
+                            class Build extends Struct implements
+                                    Receiver<ConstArray<?>>, Serializable {
+                                static private final long serialVersionUID = 1L;
+                                
+                                public void
+                                run(final ConstArray<?> argv) {
+                                    final R v;
+                                    try {
+                                        v = build.invoke(null, framework, argv)
+                                    }
+                                }
+                            }
                             // export the maker and the framework,
                             // then send an eventual invocation.
                         }
                     }).cast();
+                    
                 } catch (final Exception e) {
                     return new Rejected<R>(e)._(R);
                 }
@@ -209,37 +216,15 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
         return new PublisherX();
     }
     
-    static private Factory<Receiver<Event>>
-    dst(final Loop<Effect> effect, final Receiver<Event> send) {
-        class Send extends Struct implements Receiver<Event>, Serializable {
+    static private Receiver<Task<?>>
+    enqueue(final Receiver<Effect<Server>> effect, final List<Task<?>> tasks) {
+        class Enqueue extends Struct implements Receiver<Task<?>>, Serializable{
             static private final long serialVersionUID = 1L;
 
             public void
-            run(final Event value) {
-                effect.run(new Effect() {
-                    public void
-                    run() { send.run(value); }
-                });
-            }
-        }
-        class Dst extends Factory<Receiver<Event>> implements Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Receiver<Event>
-            run() { return null != send ? new Send() : null; }
-        }
-        return new Dst();
-    }
-    
-    static private Loop<Task>
-    enqueue(final Vat vat, final Loop<Effect> effect, final List<Task> tasks) {
-        class Enqueue extends Struct implements Loop<Task>, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public void
-            run(final Task task) {
+            run(final Task<?> task) {
                 if (tasks.isEmpty()) {
-                    effect.run(runTask(vat));
+                    effect.run(runTask());
                 }
                 tasks.append(task);
             }
@@ -248,16 +233,18 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
     }
 
     static private final class
-    Wake extends Struct implements Transaction<Void>, Powerless, Serializable {
+    Wake extends Transaction<Immutable> implements Serializable {
         static private final long serialVersionUID = 1L;
 
-        public Void
+        Wake() { super(Transaction.query); }
+        
+        public Immutable
         run(final Root local) throws Exception {
-            final List<Task> tasks = local.fetch(null, AMP.tasks);
+            final List<Task<?>> tasks = local.fetch(null, AMP.tasks);
             if (!tasks.isEmpty()) {
-                final Loop<Effect> effect = local.fetch(null, Vat.effect);
-                final Vat vat = local.fetch(null, Vat.vat);
-                effect.run(runTask(vat));
+                final Receiver<Effect<Server>> effect =
+                    local.fetch(null, Vat.effect);
+                effect.run(runTask());
             }
             final Outbound outbound = local.fetch(null, AMP.outbound);
             for (final Outbound.Entry x : outbound.getPending()) {
@@ -267,29 +254,23 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
         }
     }
     
-    static private Effect
-    runTask(final Vat vat) {
-        return new Effect() {
+    static private Effect<Server>
+    runTask() {
+        return new Effect<Server>() {
             public void
-            run() {
-                vat.service.run(new Service() {
-                    public void
-                    run() throws Exception {
-                        vat.enter(Vat.change, new Transaction<Void>() {
-                            public Void
-                            run(final Root local) throws Exception {
-                                final List<Task> tasks =
-                                    local.fetch(null, AMP.tasks);
-                                final Task task = tasks.pop();
-                                if (!tasks.isEmpty()) {
-                                    final Loop<Effect> effect =
-                                        local.fetch(null, Vat.effect);
-                                    effect.run(runTask(vat));
-                                }
-                                task.run();
-                                return null;
-                            }
-                        });
+            run(final Vat<Server> vat) throws Exception {
+                vat.enter(new Transaction<Immutable>(Transaction.update) {
+                    public Immutable
+                    run(final Root local) throws Exception {
+                        final List<Task<?>> tasks= local.fetch(null, AMP.tasks);
+                        final Task<?> task = tasks.pop();
+                        if (!tasks.isEmpty()) {
+                            final Receiver<Effect<Server>> effect =
+                                local.fetch(null, Vat.effect);
+                            effect.run(runTask());
+                        }
+                        task.run();
+                        return null;
                     }
                 });
             }

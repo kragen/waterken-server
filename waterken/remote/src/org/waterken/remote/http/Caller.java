@@ -22,7 +22,6 @@ import org.ref_send.type.Typedef;
 import org.waterken.http.MediaType;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
-import org.waterken.http.TokenList;
 import org.waterken.io.snapshot.Snapshot;
 import org.waterken.remote.Messenger;
 import org.waterken.syntax.Importer;
@@ -284,7 +283,7 @@ Caller extends Struct implements Messenger, Serializable {
             if (!AMP.mime.contains(mediaType)) {
                 return new Entity(contentType, content);
             }
-            if (!TokenList.equivalent("UTF-8",
+            if (!Header.equivalent("UTF-8",
                                       mediaType.get("charset", "UTF-8"))) {
                 throw new Exception("charset MUST be UTF-8");
             }

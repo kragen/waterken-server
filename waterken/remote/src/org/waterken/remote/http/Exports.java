@@ -17,11 +17,11 @@ import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
-import org.waterken.http.TokenList;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
+import org.waterken.uri.Header;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
 import org.waterken.vat.Root;
@@ -30,7 +30,7 @@ import org.waterken.vat.Vat;
 /**
  * A web-key interface to a {@link Root}.
  */
-public final class
+/* package */ final class
 Exports extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;    
     
@@ -43,7 +43,7 @@ Exports extends Struct implements Serializable {
      * Constructs an instance.
      * @param local vat root
      */
-    public
+    protected
     Exports(final Root local) {
         this.local = local;
     }
@@ -53,13 +53,13 @@ Exports extends Struct implements Serializable {
     /**
      * Gets the base URL for this namespace.
      */
-    public String
+    protected String
     getHere() { return local.fetch("x-browser:", Vat.here); }
 
     /**
      * Calls {@link Root#getTransactionTag()}.
      */
-    public String
+    protected String
     getTransactionTag() {
         final Task<String> tagger = local.fetch(null, Vat.tagger);
         try { return tagger.run(); } catch (final Exception e) { return ""; }
@@ -71,39 +71,44 @@ Exports extends Struct implements Serializable {
      * w:   message window number
      * m:   intra-window message number
      * i:   message target index
-     * k:   message target key
+     * s:   message target key
      * q:   message operation identifier, typically the method name
      * o:   present if web-key is a promise
      */
     
     /**
      * Constructs a web-key.
-     * @param key       target object key
+     * @param subject   target object key
      * @param isPromise Is the target object a promise?
      */
     static private String
-    href(final String key, final boolean isPromise) {
-        return "#" + (isPromise ? "o=&" : "") + "k=" + key;
+    href(final String subject, final boolean isPromise) {
+        return "#" + (isPromise ? "o=&" : "") + "s=" + subject;
     }
 
     /**
-     * Extracts the key from a web-key.
+     * Extracts the subject key from a web-key.
      * @param q web-key argument string
-     * @return corresponding key
+     * @return corresponding subject key
      */
     static private String
-    key(final String q) { return Query.arg(null, q, "k"); }
+    subject(final String q) { return Query.arg(null, q, "s"); }
+    
+    /**
+     * Extracts the predicate string from a web-key.
+     * @param q web-key argument string
+     * @return corresponding predicate string
+     */
+    static protected String
+    predicate(final String q) { return Query.arg(null, q, "q"); }
     
     /**
      * Is the given web-key a promise web-key?
      * @param q web-key argument string
      * @return <code>true</code> if a promise, else <code>false</code>
      */
-    static public boolean
+    static protected boolean
     isPromise(final String q) { return null != Query.arg(null, q, "o"); }
-    
-    static public String
-    query(final String q) { return Query.arg(null, q, "q"); }
     
     /**
      * Extracts the session identifier.
@@ -129,7 +134,7 @@ Exports extends Struct implements Serializable {
      * @param op        operation to run
      * @return <code>invoke</code> return value
      */
-    public Object
+    protected Object
     execute(final String query, final Member member, final Task<Object> op) {
         final String x = session(query);
         if (null == x) {
@@ -137,27 +142,27 @@ Exports extends Struct implements Serializable {
                 return op.run();
             } catch (final Exception e) { return new Rejected<Object>(e); }
         }
-        final Session session = local.fetch(null, x);
+        final ServerSideSession session = local.fetch(null, x);
         return session.once(window(query), message(query), member, op);
     }
     
     /**
      * Fetches a message target.
-     * @param query request query string
+     * @param query web-key argument string
      * @return target reference
      */
-    public Object
-    target(final String query) {
-        final String k = key(query);
-        if (null != k) {return k.startsWith(".") ? null : local.fetch(null, k);}
-        final Session session = local.fetch(null, session(query));
+    protected Object
+    reference(final String query) {
+        final String s = subject(query);
+        if (null != s) {return s.startsWith(".") ? null : local.fetch(null, s);}
+        final ServerSideSession session = local.fetch(null, session(query));
         return session.get(window(query), index(query));
     }
     
     /**
      * Constructs a reference importer.
      */
-    public Importer
+    protected Importer
     connect() {
         final Eventual _ = local.fetch(null, "._");
         final Token deferred = local.fetch(null, ".deferred");
@@ -171,8 +176,8 @@ Exports extends Struct implements Serializable {
             run(final String href, final String base,
                                    final Type type) throws Exception {
                 final String URL = null != base ? URI.resolve(base,href) : href;
-                return TokenList.equivalent(URI.resolve(URL, "."), here)
-                    ? target(URI.query(URI.fragment("", URL), URL))
+                return Header.equivalent(URI.resolve(URL, "."), here)
+                    ? reference(URI.query(URI.fragment("", URL), URL))
                 : next.run(URL, null, type);
             }
         }
@@ -182,7 +187,7 @@ Exports extends Struct implements Serializable {
     /**
      * Constructs a return argument exporter.
      */
-    public Exporter
+    protected Exporter
     reply() { return export(); }
 
     /**
@@ -211,7 +216,7 @@ Exports extends Struct implements Serializable {
      * @param method    candidate method
      * @return name, or null if the method is not a property accessor
      */
-    static public String
+    static protected String
     property(final Method method) {
         final String name = method.getName();
         String r =
@@ -252,7 +257,7 @@ Exports extends Struct implements Serializable {
      * @param name      method name
      * @return corresponding method, or <code>null</code> if not found
      */
-    static public Method
+    static protected Method
     dispatch(final Object target, final String name) {
         final Class<?> type = null != target ? target.getClass() : Void.class;
         final boolean c = Class.class == type;
@@ -276,7 +281,7 @@ Exports extends Struct implements Serializable {
     /**
      * Finds the first invocable declaration of a public method.
      */
-    static public Method
+    static protected Method
     bubble(final Method method) {
         final Class<?> declarer = method.getDeclaringClass();
         if (Object.class == declarer || Struct.class == declarer) {return null;}
