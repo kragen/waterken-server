@@ -19,7 +19,6 @@ import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
-import org.waterken.http.TokenList;
 import org.waterken.io.FileType;
 import org.waterken.io.MIME;
 import org.waterken.uri.Filename;
@@ -70,7 +69,7 @@ Files extends Struct implements Server, Serializable {
             if (exact.isFile()) {
                 file = exact;
                 for (final FileType format : formats.known) {
-                    if (TokenList.equivalent(format.ext, ext)) {
+                    if (Header.equivalent(format.ext, ext)) {
                         contentType = format;
                         break;
                     }

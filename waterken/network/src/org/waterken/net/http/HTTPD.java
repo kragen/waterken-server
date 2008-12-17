@@ -123,7 +123,7 @@ HTTPD extends TCPDaemon {
 	      @inert final InputStream connection) throws Exception {
 	    final StringBuilder encodingList = new StringBuilder();
 	    for (final Header header : headers) {
-	        if (TokenList.equivalent("Transfer-Encoding", header.name)) {
+	        if (Header.equivalent("Transfer-Encoding", header.name)) {
 	            if (0 != encodingList.length()) { encodingList.append(", "); }
 	            encodingList.append(header.value);
 	        }
@@ -132,7 +132,7 @@ HTTPD extends TCPDaemon {
 	    final PowerlessArray<String> encoding =
 	    	TokenList.decode(encodingList.toString());
 	    for (int i = encoding.length(); i-- != 0;) {
-	        if (TokenList.equivalent("chunked", encoding.get(i))) {
+	        if (Header.equivalent("chunked", encoding.get(i))) {
 	            if (i != encoding.length() - 1) {
 	                throw new Exception("Bad Transfer-Encoding");
 	            }
@@ -167,10 +167,10 @@ HTTPD extends TCPDaemon {
 	    PowerlessArray<Header> r = PowerlessArray.array();
 	    final StringBuilder connectionList = new StringBuilder();
 	    for (final Header header : headers) {
-	        if (TokenList.equivalent("Connection", header.name)) {
+	        if (Header.equivalent("Connection", header.name)) {
 	            if (0 != connectionList.length()) {connectionList.append(", ");}
 	            connectionList.append(header.value);
-	        } else if (TokenList.equivalent("Transfer-Encoding", header.name)) {
+	        } else if (Header.equivalent("Transfer-Encoding", header.name)) {
 	            // already handled by call to body()
 	        } else {
 	            r = r.with(header);
@@ -178,13 +178,13 @@ HTTPD extends TCPDaemon {
 	    }
 	    boolean keepAlive = false;
 	    for (final String token : TokenList.decode(connectionList.toString())) {
-	        if (TokenList.equivalent("close", token)) {
+	        if (Header.equivalent("close", token)) {
 	            closing.mark(true);
-	        } else if (TokenList.equivalent("keep-alive", token)) {
+	        } else if (Header.equivalent("keep-alive", token)) {
 	            keepAlive = true;
 	        }
 	        for (int i = r.length(); 0 != i--;) {
-	            if (TokenList.equivalent(token, r.get(i).name)) {
+	            if (Header.equivalent(token, r.get(i).name)) {
 	                r = r.without(i);
 	            }
 	        }

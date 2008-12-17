@@ -196,7 +196,7 @@ TokenList {
     find(final String otherwise, final String name,
                                  final Iterable<Header> headers) {
         for (final Header header : headers) {
-            if (equivalent(name, header.name)) { return header.value; }
+            if (Header.equivalent(name, header.name)) { return header.value; }
         }
         return otherwise;
     }
@@ -211,31 +211,11 @@ TokenList {
     list(final String name, final Iterable<Header> headers) {
         final StringBuilder buffer = new StringBuilder();
         for (final Header header : headers) {
-            if (equivalent(name, header.name)) {
+            if (Header.equivalent(name, header.name)) {
                 if (buffer.length() != 0) { buffer.append(","); }
                 buffer.append(header.value);
             }
         }
         return buffer.toString();
-    }
-    
-    /**
-     * Compares two tokens.
-     * @param a	first token
-     * @param b	second token
-     * @return <code>true</code> if equivalent, else <code>false</code>
-     */
-    static public boolean
-    equivalent(final String a, final String b) {
-    	boolean r = a.length() == b.length();
-    	for (int i = a.length(); r && 0 != i--;) {
-    		r = toLower(a.charAt(i)) == toLower(b.charAt(i));
-    	}
-    	return r;
-    }
-    
-    static private char
-    toLower(final char c) {
-    	return c >= 'A' && c <= 'Z' ? (char)('a' + (c - 'A')) : c;
     }
 }

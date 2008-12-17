@@ -18,22 +18,22 @@ FileType implements Powerless, Selfless, Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * <code>application/octet-stream</code> MIME type
+     * <code>application/do-not-execute</code> MIME type
      */
     static public final FileType unknown =
-        new FileType("",           "application/do-not-execute",        null);
+        new FileType("",        "application/do-not-execute",           null);
     
     /**
-     * <code>text/uri-list</code> MIME type
+     * <code>text/uri-list; charset=US-ASCII</code> MIME type
      */
     static public final FileType uri =
-        new FileType(".uri",       "text/uri-list; charset=US-ASCII",   null);
+        new FileType(".uri",    "text/uri-list; charset=US-ASCII",      null);
     
     /**
      * <code>application/json</code> MIME type
      */
     static public final FileType json =
-        new FileType("",           "application/json",                  null);
+        new FileType(".json",   "application/json",                     null);
 
     /**
      * filename extension

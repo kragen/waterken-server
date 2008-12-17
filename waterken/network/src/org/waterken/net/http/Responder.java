@@ -158,7 +158,7 @@ Responder {
         long contentLength = 0;
         for (final Header header : head.headers) {
             if (!contentLengthSpecified.is() &&
-                    TokenList.equivalent("Content-Length", header.name)) {
+                    Header.equivalent("Content-Length", header.name)) {
                 contentLengthSpecified.mark(true);
                 if (!"HEAD".equals(method)) {
                     contentLength = Long.parseLong(header.value);
@@ -172,7 +172,7 @@ Responder {
                                                         "TE",
                                                         "Trailer",
                                                         "Upgrade" }) {
-                    if (TokenList.equivalent(name, header.name)) {
+                    if (Header.equivalent(name, header.name)) {
                         throw new Exception("Illegal response header");
                     }
                 }

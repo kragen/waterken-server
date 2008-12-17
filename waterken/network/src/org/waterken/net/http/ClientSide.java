@@ -377,7 +377,7 @@ ClientSide implements Server {
         long contentLength = 0;
         for (final Header header : head.headers) {
             if (!contentLengthSpecified.is() &&
-                    TokenList.equivalent("Content-Length", header.name)) {
+                    Header.equivalent("Content-Length", header.name)) {
                 contentLengthSpecified.mark(true);
                 contentLength = Long.parseLong(header.value);
                 if (0 > contentLength) { throw new Exception("Bad Length"); }
@@ -389,7 +389,7 @@ ClientSide implements Server {
                                                         "TE",
                                                         "Trailer",
                                                         "Upgrade" }) {
-                    if (TokenList.equivalent(name, header.name)) {
+                    if (Header.equivalent(name, header.name)) {
                         throw new Exception("Illegal request header");
                     }
                 }

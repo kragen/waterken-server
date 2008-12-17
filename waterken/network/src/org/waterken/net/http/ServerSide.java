@@ -128,7 +128,7 @@ ServerSide implements Task<Void> {
                     }
                     host = "localhost";
                 }
-                if (!TokenList.equivalent(origin, host)) {
+                if (!Header.equivalent(origin, host)) {
                     // client is hosting this server under the wrong origin
                     // this could lead to a browser side scripting attack
                     throw new Exception("wrong origin");

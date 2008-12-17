@@ -20,25 +20,25 @@ URI {
     static public String
     scheme(final String otherwise, final String uri) {
         final int last = schemeLast(uri);
-        return -1 != last ? uri.substring(0, last).toLowerCase() : otherwise;
+        return -1!=last ? Header.toLowerCase(uri.substring(0,last)) : otherwise;
     }
 
     static private int
     schemeLast(final String uri) {
         final int len = uri.length();
-        if (0 == len || !isStartSymbol(uri.charAt(0))) { return -1; }
+        if (0 == len || !isSchemeStartSymbol(uri.charAt(0))) { return -1; }
         int last = 1;
-        while (len != last && isComponentSymbol(uri.charAt(last))) { ++last; }
+        while (len!=last && isSchemeComponentSymbol(uri.charAt(last))) {++last;}
         return last == len || ':' != uri.charAt(last) ? -1 : last;
     }
 
     static private boolean
-    isStartSymbol(final char c) {
+    isSchemeStartSymbol(final char c) {
         return ('a' <= c && 'z' >= c) || ('A' <= c && 'Z' >= c);
     }
 
     static private boolean
-    isComponentSymbol(final char c) {
+    isSchemeComponentSymbol(final char c) {
         return ('a' <= c && 'z' >= c) || ('A' <= c && 'Z' >= c) ||
                ('0' <= c && '9' >= c) || '+' == c || '.' == c || '-' == c;
     }
@@ -297,27 +297,21 @@ URI {
             ? target.substring(f) : target.substring(last);
     }
     
-    static boolean
+    static private boolean
     qchar(final char c) { return pchar(c) || '/' == c || '?' == c; }
     
-    static boolean
+    static protected boolean
     pchar(char c) { return unreserved(c)||subdelim(c)||"%:@".indexOf(c) != -1; }
     
-    static boolean
+    static private boolean
     unreserved(char c) {return alpha(c) || digit(c) || "-._~".indexOf(c) != -1;}
     
-    public static boolean
+    static private boolean
     alpha(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
     
-    static boolean
+    static private boolean
     digit(final char c) { return c >= '0' && c <= '9'; } 
     
-    static boolean
-    reserved(final char c) { return gendelim(c) || subdelim(c); }
-    
-    static boolean
+    static private boolean
     subdelim(final char c) { return "!$&'()*+,;=".indexOf(c) != -1; }
-    
-    static boolean
-    gendelim(final char c) { return ":/?#[]@".indexOf(c) != -1; }
 }

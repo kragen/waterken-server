@@ -131,7 +131,9 @@ Request extends Struct implements Powerless, Record, Serializable {
             final String... allow) throws Exception {
         if (!expect(client, allow)) { return false; }
         Message<Response> r = allow(etag, allow);
-        if (null != r) { client.receive(r.head, r.body.asInputStream()); }
+        if (null != r) {
+            client.receive(r.head,null!=r.body ? r.body.asInputStream() : null);
+        }
         return null == r;
     }
     
@@ -163,14 +165,14 @@ Request extends Struct implements Powerless, Record, Serializable {
         }
         if (!allowed) {
             final Message<Response> r = notAllowed(allow);
-            client.receive(r.head, r.body.asInputStream());
+            client.receive(r.head,null!=r.body ? r.body.asInputStream() : null);
             return false;
         }
         
         // process any Expect header
         for (final Header header : headers) {
-            if (TokenList.equivalent("Expect", header.name)) {
-                if (TokenList.equivalent("100-continue", header.value) &&
+            if (Header.equivalent("Expect", header.name)) {
+                if (Header.equivalent("100-continue", header.value) &&
                     !(version.equals("HTTP/1.0") ||
                       version.startsWith("HTTP/0."))) {
                     client.receive(new Response("HTTP/1.1", "100", "Continue",

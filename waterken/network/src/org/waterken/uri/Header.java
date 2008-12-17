@@ -6,9 +6,9 @@ import java.io.Serializable;
 
 import org.joe_e.Powerless;
 import org.joe_e.Selfless;
+import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.Record;
 
 /**
  * A named string parameter.
@@ -61,5 +61,47 @@ Header implements Powerless, Selfless, Record, Serializable {
     hashCode() {
         return (null != name ? name.hashCode() : 0) +
                (null != value ? value.hashCode() : 0);
+    }
+    
+    // org.waterken.uri.Header interface
+
+    /**
+     * Compares two tokens.
+     * @param a	first token
+     * @param b	second token
+     * @return <code>true</code> if equivalent, else <code>false</code>
+     */
+    static public boolean
+    equivalent(final String a, final String b) {
+    	boolean r = a.length() == b.length();
+    	for (int i = a.length(); r && 0 != i--;) {
+    		r = toLower(a.charAt(i)) == toLower(b.charAt(i));
+    	}
+    	return r;
+    }
+    
+    static private char
+    toLower(final char c) {
+        return c >= 'A' && c <= 'Z' ? (char)('a' + (c - 'A')) : c;
+    }
+    
+    /**
+     * Converts ASCII characters to lower case.
+     * @param name  header name
+     * @return lower case header name
+     */
+    static public String
+    toLowerCase(final String name) {
+        final int len = name.length();
+        for (int i = 0; true; ++i) {
+            if (len == i) { return name; }
+            final char c = name.charAt(i);
+            if (c != toLower(c)) { break; }
+        }
+        final StringBuilder buffer = new StringBuilder(len);
+        for (int i = 0; i != len; ++i) {
+            buffer.append(toLower(name.charAt(i)));
+        }
+        return buffer.toString();
     }
 }

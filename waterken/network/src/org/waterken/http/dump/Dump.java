@@ -18,7 +18,6 @@ import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
-import org.waterken.http.TokenList;
 import org.waterken.io.FileType;
 import org.waterken.io.MIME;
 import org.waterken.io.Stream;
@@ -85,7 +84,7 @@ Dump extends Struct implements Server, Serializable {
         final String contentTypeSpec = head.getContentType();
         FileType contentType = null;
         for (final FileType format : supported.known) {
-            if (TokenList.equivalent(format.name, contentTypeSpec)) {
+            if (Header.equivalent(format.name, contentTypeSpec)) {
                 contentType = format;
                 break;
             }
