@@ -513,7 +513,7 @@ JODB<S> extends Vat<S> {
 
                 services.add(new Service() {
                     public Void
-                    run() {
+                    run() throws Exception {
                         task.run(JODB.this);
                         return null;
                     }

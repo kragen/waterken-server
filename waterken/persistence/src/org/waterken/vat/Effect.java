@@ -3,10 +3,18 @@
 package org.waterken.vat;
 
 import org.joe_e.Immutable;
-import org.ref_send.promise.eventual.Receiver;
 
 /**
  * A side-effect of an {@linkplain Transaction#update update} transaction.
  */
 public interface
-Effect<S> extends Receiver<Vat<S>>, Immutable {}
+Effect<S> extends Immutable {
+
+    /**
+     * Performs a side-effect operation.
+     * @param value any additional details about the notification
+     * @throws Exception    any problem
+     */
+    void
+    run(Vat<S> value) throws Exception;    
+}
