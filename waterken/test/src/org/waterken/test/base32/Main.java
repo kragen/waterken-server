@@ -6,7 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
 import org.waterken.base32.Base32;
-import org.waterken.io.stream.Stream;
+import org.waterken.io.Stream;
 
 /**
  * Tests the {@link Base32} class.

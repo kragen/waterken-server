@@ -23,71 +23,181 @@ Main {
                 System.out.println(URI.resolve(base, args[i]));
             }
         }
-        
+
+        testAuthority();
+        testPath();
         testStandard();
     }
     
     static private void
+    test(final String calculated, final String expected) {
+        if (!calculated.equals(expected)) {
+            throw new RuntimeException(calculated + " != " + expected);
+        }
+    }
+    
+    static private void
+    testAuthority() {
+        test(URI.authority("http://a/"),    "a");
+        test(URI.authority("http://a"),     "a");
+        test(URI.authority("http://a?q"),   "a");
+        test(URI.authority("http://a#f"),   "a");
+        test(URI.authority("http://a?q#f"), "a");
+        test(URI.authority("http://a?q/"),  "a");
+        test(URI.authority("http://a#f/"),  "a");
+
+        test(URI.authority("//a/"),         "a");
+        test(URI.authority("//a"),          "a");
+        test(URI.authority("//a?q"),        "a");
+        test(URI.authority("//a#f"),        "a");
+        test(URI.authority("//a?q#f"),      "a");
+        test(URI.authority("//a?q/"),       "a");
+        test(URI.authority("//a#f/"),       "a");
+
+        test(URI.authority("mailto:p"),     "");
+        test(URI.authority("mailto:p?q"),   "");
+        test(URI.authority("mailto:p#f"),   "");
+        test(URI.authority("mailto:p?q#f"), "");
+        test(URI.authority("mailto:p?q/"),  "");
+        test(URI.authority("mailto:p#f/"),  "");
+
+        test(URI.authority("p"),            "");
+        test(URI.authority("p?q"),          "");
+        test(URI.authority("p#f"),          "");
+        test(URI.authority("p?q#f"),        "");
+        test(URI.authority("p?q/"),         "");
+        test(URI.authority("p#f/"),         "");
+
+        test(URI.authority("/p"),           "");
+        test(URI.authority("./p"),          "");
+        test(URI.authority("../p"),         "");
+        test(URI.authority("?p"),           "");
+        test(URI.authority("#p"),           "");
+    }
+    
+    static private void
+    testPath() {
+        test(URI.path("http://a"),          "");
+        test(URI.path("http://a?q"),        "");
+        test(URI.path("http://a#f"),        "");
+        test(URI.path("http://a?q#f"),      "");
+        test(URI.path("http://a?q/"),       "");
+        test(URI.path("http://a#f/"),       "");
+        test(URI.path("http://a/"),         "");
+        test(URI.path("http://a/?q"),       "");
+        test(URI.path("http://a/#f"),       "");
+        test(URI.path("http://a/?q#f"),     "");
+        test(URI.path("http://a/?q/"),      "");
+        test(URI.path("http://a/#f/"),      "");
+
+        test(URI.path("//a"),               "");
+        test(URI.path("//a?q"),             "");
+        test(URI.path("//a#f"),             "");
+        test(URI.path("//a?q#f"),           "");
+        test(URI.path("//a?q/"),            "");
+        test(URI.path("//a#f/"),            "");
+        test(URI.path("//a/"),              "");
+        test(URI.path("//a/?q"),            "");
+        test(URI.path("//a/#f"),            "");
+        test(URI.path("//a/?q#f"),          "");
+        test(URI.path("//a/?q/"),           "");
+        test(URI.path("//a/#f/"),           "");
+        
+        test(URI.path("http://a/p"),        "p");
+        test(URI.path("http://a/p?q"),      "p");
+        test(URI.path("http://a/p#f"),      "p");
+        test(URI.path("http://a/p?q#f"),    "p");
+        test(URI.path("http://a/p?q/"),     "p");
+        test(URI.path("http://a/p#f/"),     "p");
+
+        test(URI.path("//a/p"),             "p");
+        test(URI.path("//a/p?q"),           "p");
+        test(URI.path("//a/p#f"),           "p");
+        test(URI.path("//a/p?q#f"),         "p");
+        test(URI.path("//a/p?q/"),          "p");
+        test(URI.path("//a/p#f/"),          "p");
+
+        test(URI.path("mailto:"),           "");
+        test(URI.path("mailto:?q"),         "");
+        test(URI.path("mailto:#f"),         "");
+        test(URI.path("mailto:?q#f"),       "");
+        test(URI.path("mailto:?q/"),        "");
+        test(URI.path("mailto:#f/"),        "");
+
+        test(URI.path("mailto:p"),          "p");
+        test(URI.path("mailto:p?q"),        "p");
+        test(URI.path("mailto:p#f"),        "p");
+        test(URI.path("mailto:p?q#f"),      "p");
+        test(URI.path("mailto:p?q/"),       "p");
+        test(URI.path("mailto:p#f/"),       "p");
+
+        test(URI.path("p"),                 "p");
+        test(URI.path("p?q"),               "p");
+        test(URI.path("p#f"),               "p");
+        test(URI.path("p?q#f"),             "p");
+        test(URI.path("p?q/"),              "p");
+        test(URI.path("p#f/"),              "p");
+
+        test(URI.path("/p"),                "p");
+        test(URI.path("./p"),               "./p");
+        test(URI.path("../p"),              "../p");
+        test(URI.path("?a"),                "");
+        test(URI.path("#a"),                "");
+    }
+    
+    static private void
     testStandard() {
-        final String base = "http://a/b/c/d;p?q";
+        final String base = "http://a/b/c/d;p?q#f";
 
         // normal examples
-        is(base, "g:h", "g:h");
-        is(base, "g", "http://a/b/c/g");
-        is(base, "./g", "http://a/b/c/g");
-        is(base, "g/", "http://a/b/c/g/");
-        is(base, "/g", "http://a/g");
-        is(base, "//g", "http://g");
-        is(base, "?y", "http://a/b/c/d;p?y");
-        is(base, "?y#s", "http://a/b/c/d;p?y#s");
-        is(base, "g?y", "http://a/b/c/g?y");
-        is(base, "#s", "http://a/b/c/d;p?q#s");
-        is(base, "g#s", "http://a/b/c/g#s");
-        is(base, "g?y#s", "http://a/b/c/g?y#s");
-        is(base, ";x", "http://a/b/c/;x");
-        is(base, "g;x", "http://a/b/c/g;x");
-        is(base, "g;x?y#s", "http://a/b/c/g;x?y#s");
-        is(base, "", "http://a/b/c/d;p?q");
-        is(base, ".", "http://a/b/c/");
-        is(base, "./", "http://a/b/c/");
-        is(base, "..", "http://a/b/");
-        is(base, "../", "http://a/b/");
-        is(base, "../g", "http://a/b/g");
-        is(base, "../..", "http://a/");
-        is(base, "../../", "http://a/");
-        is(base, "../../g", "http://a/g");
+        test(URI.resolve(base, "g:h"),      "g:h");
+        test(URI.resolve(base, "g"),        "http://a/b/c/g");
+        test(URI.resolve(base, "./g"),      "http://a/b/c/g");
+        test(URI.resolve(base, "g/"),       "http://a/b/c/g/");
+        test(URI.resolve(base, "/g"),       "http://a/g");
+        test(URI.resolve(base, "//g"),      "http://g");
+        test(URI.resolve(base, "?y"),       "http://a/b/c/d;p?y");
+        test(URI.resolve(base, "?y#s"),     "http://a/b/c/d;p?y#s");
+        test(URI.resolve(base, "g?y"),      "http://a/b/c/g?y");
+        test(URI.resolve(base, "#s"),       "http://a/b/c/d;p?q#s");
+        test(URI.resolve(base, "g#s"),      "http://a/b/c/g#s");
+        test(URI.resolve(base, "g?y#s"),    "http://a/b/c/g?y#s");
+        test(URI.resolve(base, ";x"),       "http://a/b/c/;x");
+        test(URI.resolve(base, "g;x"),      "http://a/b/c/g;x");
+        test(URI.resolve(base, "g;x?y#s"),  "http://a/b/c/g;x?y#s");
+        test(URI.resolve(base, ""),         "http://a/b/c/d;p?q");
+        test(URI.resolve(base, "."),        "http://a/b/c/");
+        test(URI.resolve(base, "./"),       "http://a/b/c/");
+        test(URI.resolve(base, ".."),       "http://a/b/");
+        test(URI.resolve(base, "../"),      "http://a/b/");
+        test(URI.resolve(base, "../g"),     "http://a/b/g");
+        test(URI.resolve(base, "../.."),    "http://a/");
+        test(URI.resolve(base, "../../"),   "http://a/");
+        test(URI.resolve(base, "../../g"),  "http://a/g");
 
         // abnormal examples
-        is(base, "../../..", "http://a/");
-        is(base, "../../../", "http://a/");
-        is(base, "../../../..", "http://a/");
-        is(base, "../../../../", "http://a/");
-        is(base, "../../../../.", "http://a/");
-        is(base, "../../../g", "http://a/g");
-        is(base, "../../../../g", "http://a/g");
-        is(base, "/./g", "http://a/g");
-        is(base, "/../g", "http://a/g");
-        is(base, "g.", "http://a/b/c/g.");
-        is(base, ".g", "http://a/b/c/.g");
-        is(base, "g..", "http://a/b/c/g..");
-        is(base, "..g", "http://a/b/c/..g");
-        is(base, "./../g", "http://a/b/g");
-        is(base, "./g/.", "http://a/b/c/g/");
-        is(base, "g/./h", "http://a/b/c/g/h");
-        is(base, "g/../h", "http://a/b/c/h");
-        is(base, "g;x=1/./y", "http://a/b/c/g;x=1/y");
-        is(base, "g;x=1/../y", "http://a/b/c/y");
-        is(base, "g?y/./x", "http://a/b/c/g?y/./x");
-        is(base, "g?y/../x", "http://a/b/c/g?y/../x");
-        is(base, "g#s/./x", "http://a/b/c/g#s/./x");
-        is(base, "g#s/../x", "http://a/b/c/g#s/../x");
-    }
-
-    static private void
-    is(final String base, final String relative, final String absolute) {
-        final String resolved = URI.resolve(base, relative);
-        if (!resolved.equals(absolute)) {
-            throw new RuntimeException(resolved + " != " + absolute);
-        }
+        test(URI.resolve(base, "../../.."),         "http://a/");
+        test(URI.resolve(base, "../../../"),        "http://a/");
+        test(URI.resolve(base, "../../../.."),      "http://a/");
+        test(URI.resolve(base, "../../../../"),     "http://a/");
+        test(URI.resolve(base, "../../../../."),    "http://a/");
+        test(URI.resolve(base, "../../../g"),       "http://a/g");
+        test(URI.resolve(base, "../../../../g"),    "http://a/g");
+        test(URI.resolve(base, "/./g"),             "http://a/g");
+        test(URI.resolve(base, "/../g"),            "http://a/g");
+        test(URI.resolve(base, "g."),               "http://a/b/c/g.");
+        test(URI.resolve(base, ".g"),               "http://a/b/c/.g");
+        test(URI.resolve(base, "g.."),              "http://a/b/c/g..");
+        test(URI.resolve(base, "..g"),              "http://a/b/c/..g");
+        test(URI.resolve(base, "./../g"),           "http://a/b/g");
+        test(URI.resolve(base, "./g/."),            "http://a/b/c/g/");
+        test(URI.resolve(base, "g/./h"),            "http://a/b/c/g/h");
+        test(URI.resolve(base, "g/../h"),           "http://a/b/c/h");
+        test(URI.resolve(base, "g;x=1/./y"),        "http://a/b/c/g;x=1/y");
+        test(URI.resolve(base, "g;x=1/../y"),       "http://a/b/c/y");
+        test(URI.resolve(base, "g?y/./x"),          "http://a/b/c/g?y/./x");
+        test(URI.resolve(base, "g?y/../x"),         "http://a/b/c/g?y/../x");
+        test(URI.resolve(base, "g#s/./x"),          "http://a/b/c/g#s/./x");
+        test(URI.resolve(base, "g#s/../x"),         "http://a/b/c/g#s/../x");
     }
 }
