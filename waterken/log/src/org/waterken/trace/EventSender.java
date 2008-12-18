@@ -33,7 +33,7 @@ EventSender {
     /**
      * Constructs a loop destructor that outputs a log event.
      * @param destruct  raw event loop destructor
-     * @param stderr    log event output factory
+     * @param stderr    log event output
      * @param mark      event counter
      * @param tracer    stack tracer
      */
