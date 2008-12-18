@@ -15,6 +15,7 @@ import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Loop;
+import org.ref_send.promise.eventual.Receiver;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
@@ -50,8 +51,7 @@ Pipeline implements Serializable {
     }
     
     private final String peer;
-    private final Loop<Effect> effect;
-    private final Vat model;
+    private final Receiver<Effect<Server>> effect;
     private final Fulfilled<Outbound> outbound;
     
     private final List<Entry> pending = List.list();
@@ -59,11 +59,12 @@ Pipeline implements Serializable {
     private       int halts = 0;    // number of pending pipeline flushes
     private       int queries = 0;  // number of queries after the last flush
     
-    Pipeline(final String peer, final Root local) {
+    Pipeline(final String peer,
+             final Receiver<Effect<Server>> effect,
+             final Fulfilled<Outbound> outbound) {
         this.peer = peer;
-        effect = local.fetch(null, Root.effect);
-        model = local.fetch(null, Root.vat);
-        outbound = Fulfilled.detach((Outbound)local.fetch(null, AMP.outbound));
+        this.effect = effect;
+        this.outbound = outbound;
     }
 
     void

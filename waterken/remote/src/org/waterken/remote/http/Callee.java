@@ -32,12 +32,10 @@ import org.waterken.syntax.json.BadSyntax;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.uri.Header;
-import org.waterken.vat.Root;
-import org.waterken.vat.Vat;
 import org.web_send.Failure;
 
 /**
- * Server-side of the HTTP web-amp protocol.
+ * Server-side of the web-key protocol.
  */
 /* package */ final class
 Callee extends Struct implements Serializable {
@@ -46,9 +44,9 @@ Callee extends Struct implements Serializable {
     private final ClassLoader code;
     private final Exports exports;
 
-    Callee(final Root local) {
-        code = local.fetch(null, Vat.code);
-        exports = new Exports(local);
+    Callee(final ClassLoader code, final Exports exports) {
+        this.code = code;
+        this.exports = exports;
     }
 
     // org.waterken.http.Server interface

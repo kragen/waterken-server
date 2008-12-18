@@ -33,17 +33,18 @@ Remote extends Deferred<Object> implements Promise<Object> {
     private final Messenger messenger;
 
     /**
-     * relative URL for message target
+     * relative URL string for message target
      */
-    private final String URL;
+    private final String href;
 
     private
     Remote(final Eventual _, final Token deferred,
-           final Messenger messenger, final String URL) {
+           final Messenger messenger, final String href) {
         super(_, deferred);
-        if (null == URL) { throw new NullPointerException(); }
+        if (null == messenger) { throw new NullPointerException(); }
+        if (null == href) { throw new NullPointerException(); }
         this.messenger = messenger;
-        this.URL = URL;
+        this.href = href;
     }
     
     /**
@@ -61,9 +62,9 @@ Remote extends Deferred<Object> implements Promise<Object> {
             
             public Object
             run(final String href, final String base, final Type type) {
-                final String URL = null!=base ? URI.resolve(base, href) : href;
+                final String url = null!=base ? URI.resolve(base, href) : href;
                 return _.cast(Typedef.raw(type),
-                    new Remote(_, deferred, messenger, URI.relate(here, URL)));
+                    new Remote(_, deferred, messenger, URI.relate(here, url)));
             }
         }
         return new ImporterX();
@@ -85,7 +86,7 @@ Remote extends Deferred<Object> implements Promise<Object> {
                     ? Proxies.getHandler((Proxy)target) : target;
                 if (handler instanceof Remote) {
                     final Remote x = (Remote)handler;
-                    if (x.messenger.equals(to)) { return x.URL; }
+                    if (x.messenger.equals(to)) { return x.href; }
                 }
                 return next.run(target);
             }
@@ -103,7 +104,7 @@ Remote extends Deferred<Object> implements Promise<Object> {
     public boolean
     equals(final Object x) {
         return x instanceof Remote &&
-               URL.equals(((Remote)x).URL) &&
+               href.equals(((Remote)x).href) &&
                messenger.equals(((Remote)x).messenger) &&
                _.equals(((Remote)x)._);
     }
@@ -137,7 +138,7 @@ Remote extends Deferred<Object> implements Promise<Object> {
             }
         }
         try {
-            return messenger.invoke(URL, proxy, method, arg);
+            return messenger.invoke(href, proxy, method, arg);
         } catch (final Exception e) { throw new Error(e); }
     }
     
@@ -145,7 +146,7 @@ Remote extends Deferred<Object> implements Promise<Object> {
 
     protected <R> R
     when(final Class<?> R, final Do<Object,R> observer) {
-        return messenger.when(URL, R, observer);
+        return messenger.when(href, R, observer);
     }
     
     // org.waterken.remote.Remote interface

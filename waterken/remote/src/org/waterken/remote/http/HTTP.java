@@ -25,7 +25,7 @@ import org.waterken.vat.Vat;
 /**
  * Dispatches to the corresponding peer specific messenger.
  */
-public final class
+/* package */ final class
 HTTP extends Struct implements Messenger, Serializable {
     static private final long serialVersionUID = 1L;
 
@@ -33,7 +33,7 @@ HTTP extends Struct implements Messenger, Serializable {
     private final int standardPort;
     private final Root local;
     
-    public
+    protected
     HTTP(final String scheme, final int standardPort, final Root local) {
         this.scheme = scheme;
         this.standardPort = standardPort;
@@ -118,7 +118,7 @@ HTTP extends Struct implements Messenger, Serializable {
         final int port = Location.port(standardPort, location);
         final String peer = scheme + "://" + hostname +
                             (standardPort == port ? "" : ":" + port);
-        final String peerKey = ".-" + URLEncoding.encode(peer);
+        final String peerKey = ".to-" + URLEncoding.encode(peer);
         Pipeline msgs = local.fetch(null, peerKey);
         if (null == msgs) {
             msgs = new Pipeline(peer, local);

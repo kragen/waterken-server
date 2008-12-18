@@ -81,7 +81,7 @@ Exports extends Struct implements Serializable {
      * @param subject   target object key
      * @param isPromise Is the target object a promise?
      */
-    static private String
+    static protected String
     href(final String subject, final boolean isPromise) {
         return "#" + (isPromise ? "o=&" : "") + "s=" + subject;
     }

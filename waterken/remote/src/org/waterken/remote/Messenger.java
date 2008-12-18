@@ -15,21 +15,21 @@ Messenger {
     /**
      * Settles a remote promise.
      * @param <R> observer's return type
-     * @param URL       reference identifier
+     * @param href      target URL string
      * @param R         observer's return type
      * @param observer  promise observer
      */
     <R> R
-    when(String URL, Class<?> R, Do<Object,R> observer);
+    when(String href, Class<?> R, Do<Object,R> observer);
     
     /**
      * Invokes a remote object.
-     * @param URL       reference identifier
+     * @param href      target URL string
      * @param proxy     target object
      * @param method    method to invoke
      * @param arg       each argument
      * @return return reference
      */
     Object
-    invoke(String URL, Object proxy, Method method, Object... arg);
+    invoke(String href, Object proxy, Method method, Object... arg);
 }

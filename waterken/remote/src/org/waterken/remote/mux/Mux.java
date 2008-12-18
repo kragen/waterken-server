@@ -64,7 +64,7 @@ Mux<S> extends Struct implements Server, Serializable {
             final String vatPath = path.substring(vatURIPathPrefix.length());
             try {
                 final File folder = Path.descend(vatRoot, vatPath);
-                server = remoting.remote(next, URI.scheme(null, resource),
+                server = remoting.remote(next, URI.scheme(resource),
                                          vats.connect(folder));
             } catch (final InvalidFilenameException e) {
                 client.failed(Failure.gone());
