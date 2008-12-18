@@ -18,8 +18,8 @@ Location {
      */
     static public String
     hostname(final String location) {
-        final int last = location.indexOf(':');
-        return Header.toLowerCase(-1==last?location:location.substring(0,last));
+        final int c = location.indexOf(':');
+        return Header.toLowerCase(-1 == c ? location : location.substring(0,c));
     }
 
     /**
@@ -30,9 +30,9 @@ Location {
      */
     static public int
     port(final int standard, final String location) {
-        final int end_host = location.indexOf(':');
-        return -1 == end_host || location.length() == end_host + 1
+        final int c = location.indexOf(':');
+        return -1 == c || location.length() == c + 1
             ? standard
-            : Integer.parseInt(location.substring(end_host + 1));
+        : Integer.parseInt(location.substring(c + 1));
     }
 }

@@ -1,4 +1,4 @@
-// Copyright 2004-2007 Waterken Inc. under the terms of the MIT X license
+// Copyright 2004-2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.uri;
 
@@ -13,23 +13,22 @@ URI {
 
     /**
      * Extracts the <code>scheme</code> component.
-     * @param otherwise default value
-     * @param uri       absolute URI
-     * @return <code>scheme</code>
+     * @param href   URI
+     * @return <code>scheme</code>, or <code>""</code> if unspecified
      */
     static public String
-    scheme(final String otherwise, final String uri) {
-        final int last = schemeLast(uri);
-        return -1!=last ? Header.toLowerCase(uri.substring(0,last)) : otherwise;
+    scheme(final String href) {
+        final int last = schemeLast(href);
+        return -1 != last ? Header.toLowerCase(href.substring(0, last)) : "";
     }
 
     static private int
-    schemeLast(final String uri) {
-        final int len = uri.length();
-        if (0 == len || !isSchemeStartSymbol(uri.charAt(0))) { return -1; }
+    schemeLast(final String href) {
+        final int len = href.length();
+        if (0 == len || !isSchemeStartSymbol(href.charAt(0))) { return -1; }
         int last = 1;
-        while (len!=last && isSchemeComponentSymbol(uri.charAt(last))) {++last;}
-        return last == len || ':' != uri.charAt(last) ? -1 : last;
+        while (len!=last && isSchemeComponentSymbol(href.charAt(last))){++last;}
+        return last == len || ':' != href.charAt(last) ? -1 : last;
     }
 
     static private boolean
@@ -45,122 +44,114 @@ URI {
 
     /**
      * Extracts the <code>authority</code> component.
-     * @param uri   absolute URI
-     * @return <code>authority</code>
+     * @param href   URI
+     * @return <code>authority</code>, or <code>""</code> if unspecified
      */
     static public String
-    authority(final String uri) {
-        final int first = authorityFirst(uri, schemeLast(uri));
-        final int last = authorityLast(uri, first);
-        return uri.substring(first, last);
+    authority(final String href) {
+        final int first = schemeLast(href) + 1;
+        final int last = authorityLast(href, first);
+        return first != last ? href.substring(first + 2, last) : "";
     }
 
     static private int
-    authorityFirst(final String uri, int first) {
-        ++first;    // Skip past the ':' separator.
-        if (uri.startsWith("//", first)) {
-            first += 2;
-        }
-        return first;
+    authorityLast(final String href, final int first) {
+        if (!href.startsWith("//", first)) { return first; }
+        final int slash = href.indexOf('/', first + 2);
+        final int last = hierarchyLast(href, first + 2);
+        return -1 != slash && slash < last ? slash : last;
     }
 
     static private int
-    authorityLast(final String uri, final int first) {
-        final int last = uri.indexOf('/', first);
-        return -1 != last ? last : hierarchyLast(uri, first);
-    }
-
-    static private int
-    hierarchyLast(final String uri, final int first) {
-        final int query = uri.indexOf('?', first);
-        final int fragment = uri.indexOf('#', first);
-        return -1 == query
-            ? (-1 == fragment ? uri.length() : fragment)
-        : (-1 == fragment
-            ? query
-        : (query < fragment ? query : fragment));
+    hierarchyLast(final String href, final int first) {
+        final int question = href.indexOf('?', first);
+        final int hash = href.indexOf('#', first);
+        return -1 == question
+            ? (-1 == hash ? href.length() : hash)
+        : (-1 == hash ? question : (question < hash ? question : hash));
     }
 
     /**
      * Extracts the rootless <code>path</code> component.
-     * @param uri   absolute URI
+     * @param href   URI
      * @return rootless <code>path</code>
      */
     static public String
-    path(final String uri) {
-        final int first = serviceLast(uri);
-        final int last = hierarchyLast(uri, first);
-        return last != first ? uri.substring(first + 1, last) : "";
+    path(final String href) {
+        final int slash = serviceLast(href);
+        final int first = href.startsWith("/", slash) ? slash + 1 : slash;
+        final int last = hierarchyLast(href, first);
+        return href.substring(first, last);
     }
 
     static private int
-    serviceLast(final String uri) {
-        return authorityLast(uri, authorityFirst(uri, schemeLast(uri)));
+    serviceLast(final String href) {
+        return authorityLast(href, schemeLast(href) + 1);
     }
 
     /**
      * Extracts the <code>query</code> component.
      * @param otherwise default value
-     * @param uri       absolute URI
+     * @param href       URI
      * @return <code>query</code>
      */
     static public String
-    query(final String otherwise, final String uri) {
-        final int start = uri.indexOf('?');
-        if (-1 == start) { return otherwise; }
-        final int end = uri.indexOf('#');
-        return -1 == end
-            ? uri.substring(start + 1)
-        : (start < end ? uri.substring(start + 1, end) : otherwise);
+    query(final String otherwise, final String href) {
+        final int question = href.indexOf('?');
+        if (-1 == question) { return otherwise; }
+        final int hash = href.indexOf('#');
+        return -1 == hash
+            ? href.substring(question + 1)
+        : (question < hash ? href.substring(question + 1, hash) : otherwise);
     }
 
     /**
      * Extracts the <code>fragment</code> component.
      * @param otherwise default value
-     * @param uri       absolute URI
+     * @param href       URI
      * @return <code>fragment</code>
      */
     static public String
-    fragment(final String otherwise, final String uri) {
-        final int start = uri.indexOf('#');
-        return -1 != start ? uri.substring(start + 1) : otherwise;
+    fragment(final String otherwise, final String href) {
+        final int hash = href.indexOf('#');
+        return -1 != hash ? href.substring(hash + 1) : otherwise;
     }
 
     /**
      * Extracts the proxy request URI.
-     * @param uri   absolute URI
-     * @return <code>uri</code>, stripped of any <code>fragment</code>
+     * @param href   URI
+     * @return <code>href</code>, stripped of any <code>fragment</code>
      */
     static public String
-    proxy(final String uri) {
-        final int fragmentStart = uri.indexOf('#');
-        return -1 == fragmentStart ? uri : uri.substring(0, fragmentStart);
+    proxy(final String href) {
+        final int hash = href.indexOf('#');
+        return -1 == hash ? href : href.substring(0, hash);
     }
 
     /**
      * Extracts the remote service identifier.
-     * @param uri   absolute URI
+     * @param href   URI
      * @return <code>scheme</code> and <code>authority</code>
      */
     static public String
-    service(final String uri) { return uri.substring(0, serviceLast(uri)); }
+    service(final String href) { return href.substring(0, serviceLast(href)); }
 
     /**
      * Extracts the request URI.
-     * @param uri   absolute URI
+     * @param href   URI
      * @return <code>path</code> and <code>query</code>
      */
     static public String
-    request(final String uri) {
-        final int first = serviceLast(uri);
-        final int last = uri.indexOf('#', first);
-        return -1 == last ? uri.substring(first) : uri.substring(first, last);
+    request(final String href) {
+        final int first = serviceLast(href);
+        final int last = href.indexOf('#', first);
+        return -1 == last ? href.substring(first) : href.substring(first, last);
     }
 
     /**
      * Resolves a relative URI string.
-     * @param base      trusted absolute URI
-     * @param relative  untrusted relative URI string
+     * @param base      trusted URI
+     * @param relative  untrusted URI
      * @return resolved and trusted absolute URI
      * @throws InvalidURI   rejected <code>relative</code>
      */
@@ -200,7 +191,7 @@ URI {
                 }
                 relativePathFirst = relative.startsWith("/", authorityLast)
                     ? authorityLast + 1 : authorityLast;
-                root = base.substring(0, base.indexOf(':') + 1) +
+                root = base.substring(0, schemeLast(base) + 1) +
                        relative.substring(0, relativePathFirst);
                 folder = "";
             } else if (relative.startsWith("/")) {
@@ -245,8 +236,8 @@ URI {
 
     /**
      * Encodes an absolute URI relative to a base URI.
-     * @param base      absolute base URI
-     * @param target    absolute target URI
+     * @param base      base URI
+     * @param target    target URI
      * @return relative URI string from base to target
      */
     static public String
