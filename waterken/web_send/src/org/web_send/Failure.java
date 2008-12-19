@@ -41,30 +41,4 @@ Failure extends NullPointerException implements Powerless, Record {
         this.status = status;
         this.phrase = phrase;
     }
-    
-    // org.web_send.Failure interface
-    
-    /**
-     * 404 Not Found
-     */
-    static public Failure
-    notFound() { return new Failure("404", "Not Found"); }
-
-    /**
-     * 410 Gone
-     */
-    static public Failure
-    gone() { return new Failure("410", "Gone"); }
-    
-    /**
-     * 413 Request Entity Too Large
-     */
-    static public Failure
-    tooBig() { return new Failure("413", "Request Entity Too Large"); }
-    
-    /**
-     * 415 Unsupported Media Type
-     */
-    static public Failure
-    notSupported() { return new Failure("415", "Unsupported Media Type"); }
 }
