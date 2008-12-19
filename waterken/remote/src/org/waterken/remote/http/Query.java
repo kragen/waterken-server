@@ -3,8 +3,8 @@
 package org.waterken.remote.http;
 
 /**
- * An idempotent {@link Message} whose return may be affected by a subsequent
+ * An idempotent {@link Operation} whose return may be affected by a subsequent
  * {@link Update}.
  */
-interface
+/* package */ interface
 Query {}

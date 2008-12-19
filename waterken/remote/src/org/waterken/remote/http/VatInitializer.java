@@ -201,6 +201,6 @@ VatInitializer<R> extends Transaction<PowerlessArray<String>> {
         };
     }
     
-    static private final String outbound = ".outbound";
+    static protected final String outbound = ".outbound";
     static private final String tasks = ".tasks";
 }

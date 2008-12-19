@@ -28,11 +28,10 @@ import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.FileType;
 import org.waterken.remote.Remote;
-import org.waterken.syntax.json.BadSyntax;
+import org.waterken.syntax.BadSyntax;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.uri.Header;
-import org.web_send.Failure;
 
 /**
  * Server-side of the web-key protocol.
@@ -52,51 +51,76 @@ Callee extends Struct implements Serializable {
     // org.waterken.http.Server interface
 
     protected Message<Response>
-    run(final String query,
-        final Request head, final ByteArray body) throws Exception {
+    run(final String query, final Message<Request> m) throws Exception {
         
-        // determine the request subject
-        Volatile<?> subject = Eventual.promised(exports.reference(query));
-        
-        // determine the request type
+        // further dispatch the request based on the accessed member
         final String p = Exports.predicate(query);
-        if (null == p || ".".equals(p)) {   // introspection or when block
+        if (null == p || ".".equals(p)) {       // introspection or when block
+            if ("OPTIONS".equals(m.head.method)) {
+                return new Message<Response>(
+                    Response.options("TRACE","OPTIONS","GET","HEAD"), null);
+            }
+            if (!("GET".equals(m.head.method) || "HEAD".equals(m.head.method))){
+                return new Message<Response>(
+                    Response.notAllowed("TRACE","OPTIONS","GET","HEAD"), null);
+            }
             Object value;
             try {
                 // AUDIT: call to untrusted application code
-                value = subject.cast();
+                value = Eventual.promised(exports.reference(query)).cast();
             } catch (final NullPointerException e) {
-                return serialize(head.method, "404", "not yet",
+                return serialize(m.head.method, "404", "not yet",
                                  Server.ephemeral, new Rejected<Object>(e));
             } catch (final Exception e) {
                 value = new Rejected<Object>(e);
             }
-            final Message<Response> notAllowed =
-                head.allow("", "TRACE", "OPTIONS", "GET", "HEAD");
-            if (null != notAllowed) { return notAllowed; }
             if (null == p && !Remote.isPBC(value)) {
                 value = describe(value.getClass());
             }
-            return serialize(head.method, "200", "OK", Server.forever, value);
-        }                                   // member access
+            final Response failed = m.head.allow("");
+            if (null != failed) { return new Message<Response>(failed, null); }
+            return serialize(m.head.method, "200", "OK", Server.forever, value);
+        }                                       // member access
 
-        // to preserve message order, force settling of a promise
-        if (!(subject instanceof Fulfilled)) { throw Failure.notFound(); }
+        // determine the target object
+        final Object target;
+        try {
+            final Volatile<?> subject =
+                Eventual.promised(exports.reference(query));
+            // to preserve message order, only access members on a fulfilled ref
+            // AUDIT: call to untrusted application code
+            target = ((Fulfilled<?>)subject).cast();
+        } catch (final Exception e) {
+            return serialize(m.head.method, "404", "never", Server.forever,
+                             new Rejected<Object>(e));
+        }       
+        if (Remote.isPBC(target)) {
+            // prevent access to local implementation details
+            return new Message<Response>(Response.notFound(), null);
+        }
         
-        // AUDIT: call to untrusted application code
-        final Object target = ((Fulfilled<?>)subject).cast();
-        
-        // prevent access to local implementation details
-        if (Remote.isPBC(target)) { throw Failure.notFound(); }
-        
-        // process the request
+        // determine the type of accessed member
         final Method lambda = Exports.dispatch(target, p);
-        if ("GET".equals(head.method) || "HEAD".equals(head.method)) {
+        if (null == lambda) {                   // no such member
+            if ("OPTIONS".equals(m.head.method)) {
+                return new Message<Response>(
+                    Response.options("TRACE", "OPTIONS"), null);
+            }
+            return new Message<Response>(
+                    Response.notAllowed("TRACE", "OPTIONS"), null);
+        }
+        
+        if (null != Exports.property(lambda)) { // property access
+            if ("OPTIONS".equals(m.head.method)) {
+                return new Message<Response>(
+                    Response.options("TRACE","OPTIONS","GET","HEAD"), null);
+            }
+            if (!("GET".equals(m.head.method) || "HEAD".equals(m.head.method))){
+                return new Message<Response>(
+                    Response.notAllowed("TRACE","OPTIONS","GET","HEAD"), null);
+            }
             Object value;
             try {
-                if (null == lambda || null == Exports.property(lambda)) {
-                    throw new NullPointerException();
-                }
                 // AUDIT: call to untrusted application code
                 value = Reflection.invoke(Exports.bubble(lambda), target);
             } catch (final Exception e) {
@@ -105,43 +129,44 @@ Callee extends Struct implements Serializable {
             final boolean constant = "getClass".equals(lambda.getName());
             final int maxAge = constant ? Server.forever : Server.ephemeral; 
             final String etag = constant ? "" : exports.getTransactionTag();
-            final Message<Response> notAllowed = head.allow(etag);
-            if (null != notAllowed) { return notAllowed; }
-            Message<Response> r= serialize(head.method,"200","OK",maxAge,value);
+            final Response failed = m.head.allow(etag);
+            if (null != failed) { return new Message<Response>(failed, null); }
+            Message<Response> r =
+                serialize(m.head.method, "200", "OK", maxAge, value);
             if (!"".equals(etag)) {
                 r = new Message<Response>(r.head.with("ETag", etag), r.body);
             }
             return r;
         }
-        final Message<Response> notAllowed =
-            head.allow(null, "TRACE", "OPTIONS", "GET", "HEAD", "POST");
-        if (null != notAllowed) { return notAllowed; }
+        
+        if ("OPTIONS".equals(m.head.method)) {    // method invocation
+            return new Message<Response>(
+                Response.options("TRACE", "OPTIONS", "POST"), null);
+        }
+        if (!"POST".equals(m.head.method)) {
+            return new Message<Response>(
+                Response.notAllowed("TRACE", "OPTIONS", "POST"), null);
+        }
+        final Response failed = m.head.allow(null);
+        if (null != failed) { return new Message<Response>(failed, null); }
         final Object value = exports.execute(query, lambda, new Task<Object>() {
             @Override public Object
             run() throws Exception {
-                if (null == lambda || null != Exports.property(lambda)) {
-                    throw new NullPointerException();
-                }
+                /*
+                 * SECURITY CLAIM: deserialize inside the once block to ensure
+                 * application code cannot detect request replay by causing
+                 * failed deserialization
+                 */ 
                 final ConstArray<?> argv;
-                if (Header.equivalent(FileType.unknown.name,
-                                         head.getContentType())) {
-                    argv = ConstArray.array(body);
-                } else {
+                try {
+                    argv = deserialize(m,
+                        ConstArray.array(lambda.getGenericParameterTypes()));
+                } catch (final BadSyntax e) {
                     /*
-                     * SECURITY CLAIM: deserialize inside the once block to
-                     * ensure application code cannot detect request replay by
-                     * causing failed deserialization
+                     * strip out the parsing information to avoid leaking
+                     * information to the application layer
                      */ 
-                    try {
-                        argv = deserialize(body, ConstArray.array(
-                                lambda.getGenericParameterTypes()));
-                    } catch (final BadSyntax e) {
-                        /*
-                         * strip out the parsing information to avoid leaking
-                         * information to the application layer
-                         */ 
-                        throw (Exception)e.getCause();
-                    }
+                    throw (Exception)e.getCause();
                 }
 
                 // AUDIT: call to untrusted application code
@@ -149,7 +174,7 @@ Callee extends Struct implements Serializable {
                         argv.toArray(new Object[argv.length()]));
             }
         });
-        return serialize(head.method, "200", "OK", Server.ephemeral, value);
+        return serialize(m.head.method, "200", "OK", Server.ephemeral, value);
     }
     
     private Message<Response>
@@ -179,10 +204,13 @@ Callee extends Struct implements Serializable {
     }
     
     private ConstArray<?>
-    deserialize(final ByteArray body,
+    deserialize(final Message<Request> m,
                 final ConstArray<Type> parameters) throws Exception {
+        if (Header.equivalent(FileType.unknown.name, m.head.getContentType())) {
+            return ConstArray.array(m.body);
+        }
         return new JSONDeserializer().run(exports.getHere(), exports.connect(),
-                parameters, code, body.asInputStream());
+                parameters, code, m.body.asInputStream());
     }
     
     static private Scope

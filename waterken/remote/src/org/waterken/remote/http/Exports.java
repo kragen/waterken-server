@@ -12,6 +12,7 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Rejected;
@@ -77,13 +78,30 @@ Exports extends Struct implements Serializable {
      */
     
     /**
+     * Constructs a live web-key for a GET request.
+     * @param href      web-key
+     * @param predicate predicate string, or <code>null</code> if none
+     */
+    static protected String
+    get(final String href, final String predicate) {
+        String query = URI.fragment("", href);
+        if ("".equals(query)) {
+            query += "s=";
+        }
+        if (null != predicate) {
+            query += "&q=" + URLEncoding.encode(predicate);
+        }
+        return URI.resolve(href, "./?" + query);
+    }
+    
+    /**
      * Constructs a web-key.
      * @param subject   target object key
      * @param isPromise Is the target object a promise?
      */
     static protected String
     href(final String subject, final boolean isPromise) {
-        return "#" + (isPromise ? "o=&" : "") + "s=" + subject;
+        return "#"+ (isPromise ? "o=&" : "") + "s="+URLEncoding.encode(subject);
     }
 
     /**

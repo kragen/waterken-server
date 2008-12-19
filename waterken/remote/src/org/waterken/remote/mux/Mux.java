@@ -13,11 +13,11 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.waterken.http.Client;
 import org.waterken.http.Request;
+import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.uri.Path;
 import org.waterken.uri.URI;
 import org.waterken.vat.VatManager;
-import org.web_send.Failure;
 
 /**
  * Puts the persistent databases into the URI hierarchy.
@@ -67,10 +67,10 @@ Mux<S> extends Struct implements Server, Serializable {
                 server = remoting.remote(next, URI.scheme(resource),
                                          vats.connect(folder));
             } catch (final InvalidFilenameException e) {
-                client.failed(Failure.gone());
+                client.run(Response.gone(), null);
                 return;
             } catch (final FileNotFoundException e) {
-                client.failed(Failure.gone());
+                client.run(Response.gone(), null);
                 return;
             }
         } else {

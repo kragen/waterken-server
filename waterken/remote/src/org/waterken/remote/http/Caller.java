@@ -19,10 +19,10 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Resolver;
 import org.ref_send.type.Typedef;
-import org.waterken.http.MediaType;
+import org.waterken.http.Message;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
-import org.waterken.io.snapshot.Snapshot;
+import org.waterken.io.FileType;
 import org.waterken.remote.Messenger;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
@@ -32,14 +32,14 @@ import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 import org.waterken.vat.Root;
 import org.waterken.vat.Vat;
-import org.web_send.Entity;
 import org.web_send.Failure;
+import org.web_send.session.Session;
 
 /**
  * Client-side of the HTTP web-amp protocol.
  */
 final class
-Caller extends Struct implements Messenger, Serializable {
+Caller implements Messenger, Serializable {
     static private final long serialVersionUID = 1L;
 
     private final Pipeline msgs;
@@ -47,11 +47,16 @@ Caller extends Struct implements Messenger, Serializable {
     private final ClassLoader code;
     private final Exports exports;
     
-    Caller(final Pipeline msgs, final Root local) {
+    private       long window = 0;  // last messaging window identifier
+    private       int message = 0;  // number of POSTs in the last window
+    private       Session session = null;   // messaging session configuration
+    
+    Caller(final Pipeline msgs, final Eventual _,
+           final ClassLoader code, final Exports exports) {
         this.msgs = msgs;
-        _ = local.fetch(null, Vat._);
-        code = local.fetch(null, Root.code);
-        exports = new Exports(local);
+        this._ = _;
+        this.code = code;
+        this.exports = exports;
     }
 
     // org.waterken.remote.Messenger interface
@@ -62,7 +67,7 @@ Caller extends Struct implements Messenger, Serializable {
     static private final TypeVariable<?> P = Typedef.var(Do.class, "P");
 
     public <R> R
-    when(final String URL, final Class<?> R, final Do<Object,R> observer) {
+    when(final String href, final Class<?> R, final Do<Object,R> observer) {
         final R r_;
         final Resolver<R> resolver;
         if (void.class == R || Void.class == R) {
@@ -73,26 +78,27 @@ Caller extends Struct implements Messenger, Serializable {
             r_ = _.cast(R, x.promise);
             resolver = x.resolver;
         }
-        class When extends Message {
+        class When extends Operation {
             static private final long serialVersionUID = 1L;
 
-            Request
-            send() throws Exception {
-                final String target = URI.resolve(URL, "?s="+Exports.key(URL));
+            protected Message<Request>
+            render() throws Exception {
+                final String target = Exports.get(href, ".");
                 final String authority = URI.authority(target);
                 final String location = Authority.location(authority);
-                return new Request("HTTP/1.1", "GET", URI.request(target),
+                return new Message<Request>(new Request(
+                    "HTTP/1.1", "GET", URI.request(target),
                     PowerlessArray.array(
                         new Header("Host", location)
-                    ), null);
+                    )), null);
             }
 
             public Void
-            fulfill(final Response response) {
+            fulfill(final Message<Response> response) {
                 Volatile<Object> value;
                 try {
                     final Type p = Typedef.value(P, observer.getClass());
-                    value = Eventual.promised(deserialize(URL, response, p));
+                    value = Eventual.promised(deserialize(href, response, p));
                 } catch (final Exception e) {
                     value = new Rejected<Object>(e);
                 }
@@ -134,7 +140,7 @@ Caller extends Struct implements Messenger, Serializable {
         final Method method, final ConstArray<?> argv) {
         final Channel<Object> r = _.defer();
         final Resolver<Object> resolver = r.resolver;
-        class GET extends Message implements Query {
+        class GET extends Operation implements Query {
             static private final long serialVersionUID = 1L;
 
             Request
@@ -174,7 +180,7 @@ Caller extends Struct implements Messenger, Serializable {
         final Resolver<Object> resolver = null != r ? r.resolver : null;
         
         // schedule the message
-        class POST extends Message implements Update {
+        class POST extends Operation implements Update {
             static private final long serialVersionUID = 1L;
             
             Request
@@ -244,62 +250,55 @@ Caller extends Struct implements Messenger, Serializable {
         return null;
     }
     
-    private Request
+    private Message<Request>
     serialize(final String target, final ConstArray<?> argv) throws Exception {
         final String authority = URI.authority(target);
         final String location = Authority.location(authority);
-        if (argv.length() == 1 && argv.get(0) instanceof Entity) {
-            final Entity x = (Entity)argv.get(0);
-            return new Request("HTTP/1.1", "POST", URI.request(target),
+        if (argv.length() == 1 && argv.get(0) instanceof ByteArray) {
+            final ByteArray body = (ByteArray)argv.get(0);
+            return new Message<Request>(new Request(
+                "HTTP/1.1", "POST", URI.request(target),
                 PowerlessArray.array(
                     new Header("Host", location),
-                    new Header("Content-Type", x.type),
-                    new Header("Content-Length", "" + x.content.length())
-                ), new Snapshot(x.content));        
+                    new Header("Content-Type", FileType.unknown.name),
+                    new Header("Content-Length", "" + body.length())
+                )), body);        
         }
         final String base = URI.resolve(target, "."); 
-        final ByteArray.BuilderOutputStream out =
-            ByteArray.builder(1024).asOutputStream();
-        new JSONSerializer().run(exports.send(base), argv, out);
-        final Snapshot body = new Snapshot(out.snapshot());          
-        return new Request("HTTP/1.1", "POST", URI.request(target),
+        final ByteArray body =
+            new JSONSerializer().run(exports.render(base), argv);  
+        return new Message<Request>(new Request(
+            "HTTP/1.1", "POST", URI.request(target),
             PowerlessArray.array(
                 new Header("Host", location),
-                new Header("Content-Type", AMP.mime.toString()),
-                new Header("Content-Length", "" + body.content.length())
-            ), body);        
+                new Header("Content-Type", FileType.json.name),
+                new Header("Content-Length", "" + body.length())
+            )), body);        
     }
     
     private Object
-    deserialize(final String target, final Response response,
-                final Type R) throws Exception {
+    deserialize(final String href,
+                final Message<Response> m, final Type R) throws Exception {
         final Importer connect = exports.connect();
-        if ("200".equals(response.status) || "201".equals(response.status) ||
-            "202".equals(response.status) || "203".equals(response.status)) {
-            final ByteArray content = ((Snapshot)response.body).content;
-            final String contentType = response.getContentType();
-            final MediaType mediaType = 
-            	null != contentType ? MediaType.decode(contentType) : AMP.mime;
-            if (!AMP.mime.contains(mediaType)) {
-                return new Entity(contentType, content);
+        if ("200".equals(m.head.status) || "201".equals(m.head.status) ||
+            "202".equals(m.head.status) || "203".equals(m.head.status)) {
+            if (Header.equivalent(FileType.unknown.name,
+                                  m.head.getContentType())) {
+                return ConstArray.array(m.body);
             }
-            if (!Header.equivalent("UTF-8",
-                                      mediaType.get("charset", "UTF-8"))) {
-                throw new Exception("charset MUST be UTF-8");
-            }
-            return new JSONDeserializer().run(URI.resolve(target, "."), connect,
-                ConstArray.array(R), code, content.asInputStream()).get(0);
+            return new JSONDeserializer().run(URI.resolve(href, "."), connect,
+                ConstArray.array(R), code, m.body.asInputStream()).get(0);
         } 
-        if ("204".equals(response.status) ||
-            "205".equals(response.status)) { return null; }
-        if ("303".equals(response.status)) {
-            for (final Header h : response.header) {
-                if ("Location".equalsIgnoreCase(h.name)) {
+        if ("204".equals(m.head.status) ||
+            "205".equals(m.head.status)) { return null; }
+        if ("303".equals(m.head.status)) {
+            for (final Header h : m.head.headers) {
+                if (Header.equivalent("Location", h.name)) {
                     return connect.run(h.value, null, R);
                 }
             }
             return null;    // request accepted, but no response provided
         } 
-        throw new Failure(response.status, response.phrase);
+        throw new Failure(m.head.status, m.head.phrase);
     }
 }

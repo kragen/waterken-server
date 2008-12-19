@@ -3,32 +3,29 @@
 package org.waterken.remote.http;
 
 import static org.ref_send.promise.Fulfilled.near;
-import static org.ref_send.promise.Fulfilled.ref;
-import static org.web_send.Entity.maxContentSize;
+import static org.web_send.Failure.maxEntitySize;
 
+import java.io.InputStream;
 import java.io.Serializable;
 
+import org.joe_e.Immutable;
 import org.joe_e.Struct;
 import org.ref_send.list.List;
 import org.ref_send.promise.Fulfilled;
-import org.ref_send.promise.Promise;
-import org.ref_send.promise.Rejected;
-import org.ref_send.promise.eventual.Do;
-import org.ref_send.promise.eventual.Loop;
 import org.ref_send.promise.eventual.Receiver;
+import org.waterken.http.Client;
+import org.waterken.http.Message;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
+import org.waterken.io.Stream;
 import org.waterken.io.limited.Limited;
-import org.waterken.io.snapshot.Snapshot;
-import org.waterken.remote.mux.Remoting;
+import org.waterken.io.limited.TooBig;
 import org.waterken.vat.Effect;
 import org.waterken.vat.Root;
 import org.waterken.vat.Service;
 import org.waterken.vat.Transaction;
 import org.waterken.vat.Vat;
-import org.web_send.Failure;
-import org.web_send.Failure.maxContentSize;
 
 /**
  * Manages a pending request queue for a specific host.
@@ -41,12 +38,12 @@ Pipeline implements Serializable {
     Entry extends Struct implements Serializable {
         static private final long serialVersionUID = 1L;
 
-        final int id;       // serial number
-        final Message msg;  // pending message
+        final int id;           // serial number
+        final Operation op;     // pending request
         
-        Entry(final int id, final Message msg) {
+        Entry(final int id, final Operation op) {
             this.id = id;
-            this.msg = msg;
+            this.op = op;
         }
     }
     
@@ -55,7 +52,7 @@ Pipeline implements Serializable {
     private final Fulfilled<Outbound> outbound;
     
     private final List<Entry> pending = List.list();
-    private       int serialMID = 0;
+    private       int serialMID = 0;// serial number for next enqueued operation
     private       int halts = 0;    // number of pending pipeline flushes
     private       int queries = 0;  // number of queries after the last flush
     
@@ -68,7 +65,7 @@ Pipeline implements Serializable {
     }
 
     void
-    resend() { effect.run(restart(model, peer, pending.getSize(), false, 0)); }
+    resend() { effect.run(restart(peer, pending.getSize(), false, 0)); }
     
     /*
      * Message sending is halted before an Update that follows a Query. Sending
@@ -76,7 +73,7 @@ Pipeline implements Serializable {
      */
     
     void
-    enqueue(final Message message) {
+    enqueue(final Operation message) {
         if (pending.isEmpty()) {
             near(outbound).add(peer, this);
         }
@@ -89,10 +86,10 @@ Pipeline implements Serializable {
             }
         }
         if (message instanceof Query) { ++queries; }
-        if (0 == halts) { effect.run(restart(model, peer, 1, true, mid)); }
+        if (0 == halts) { effect.run(restart(peer, 1, true, mid)); }
     }
     
-    private Message
+    private Operation
     dequeue(final int mid) {
         if (pending.getFront().id != mid) { throw new RuntimeException(); }
         
@@ -100,144 +97,166 @@ Pipeline implements Serializable {
         if (pending.isEmpty()) {
             near(outbound).remove(peer);
         }
-        if (front.msg instanceof Query) {
+        if (front.op instanceof Query) {
             if (0 == halts) {
                 --queries;
             } else {
                 int max = pending.getSize();
                 for (final Entry x : pending) {
-                    if (x.msg instanceof Update) {
+                    if (x.op instanceof Update) {
                         --halts;
-                        effect.run(restart(model, peer, max, true, x.id));
+                        effect.run(restart(peer, max, true, x.id));
                         break;
                     }
-                    if (x.msg instanceof Query) { break; }
+                    if (x.op instanceof Query) { break; }
                     --max;
                 }
             }
         }
-        return front.msg;
+        return front.op;
     }
     
-    static private Effect
-    restart(final Vat vat, final String peer,
-            final int max, final boolean skipTo, final int mid) {
-        // Create a transaction effect that will schedule a new extend
-        // transaction that actually puts the messages on the wire.
-        return new Effect() {
+    static private Effect<Server>
+    restart(final String peer, final int max,
+            final boolean skipTo, final int mid) {
+        return new Effect<Server>() {
            public void
-           run() throws Exception {
-               vat.service.run(new Service() {
-                   public void
-                   run() throws Exception {
-                       vat.enter(Vat.extend, new Transaction<Void>() {
-                           public Void
-                           run(final Root local) throws Exception {
-                               final Server client =
-                                   local.fetch(null, Remoting.client);
-                               final Loop<Effect> effect =
-                                   local.fetch(null, Root.effect);
-                               final Outbound outbound =
-                                   local.fetch(null, AMP.outbound);
-                               boolean found = !skipTo;
-                               boolean q = false;
-                               int n = max;
-                               for (final Entry x: outbound.find(peer).pending){
-                                   if (!found) {
-                                       if (mid == x.id) {
-                                           found = true;
-                                       } else {
-                                           continue;
-                                       }
-                                   }
-                                   if (0 == n--) { break; }
-                                   if (q && x.msg instanceof Update) { break; }
-                                   if (x.msg instanceof Query) { q = true; }
-                                   effect.run(send(vat, client, peer, x));
+           run(final Vat<Server> vat) throws Exception {
+               vat.enter(new Transaction<Immutable>(Transaction.query) {
+                   public Immutable
+                   run(final Root local) throws Exception {
+                       final Receiver<Effect<Server>> effect =
+                           local.fetch(null, Vat.effect);
+                       final Outbound outbound =
+                           local.fetch(null, VatInitializer.outbound);
+                       boolean found = !skipTo;
+                       boolean q = false;
+                       int n = max;
+                       for (final Entry x: outbound.find(peer).pending){
+                           if (!found) {
+                               if (mid == x.id) {
+                                   found = true;
+                               } else {
+                                   continue;
                                }
-                               return null;
                            }
-                       });
+                           if (0 == n--) { break; }
+                           if (q && x.op instanceof Update) { break; }
+                           if (x.op instanceof Query) { q = true; }
+                           effect.run(send(peer, x.id, x.op));
+                       }
+                       return null;
                    }
                });
            }
         };
     }
     
-    static private Effect
-    send(final Vat vat, final Server client, final String peer, final Entry x) {
-        Promise<Request> rendered;
+    static private Effect<Server>
+    send(final String peer, final int mid, final Operation op) {
         try {
-            rendered = ref(x.msg.send());
+            final Message<Request> m = op.render();
+            return new Effect<Server>() {
+                public void
+                run(final Vat<Server> vat) throws Exception {
+                    vat.session.serve(peer, m.head,
+                        null != m.body ? m.body.asInputStream() : null,
+                        new Fulfill(vat, peer, mid));
+                }
+            };
         } catch (final Exception reason) {
-            rendered = new Rejected<Request>(reason);
+            return new Effect<Server>() {
+                public void
+                run(final Vat<Server> vat) throws Exception {
+                    vat.session.serve(peer, null, null,
+                                      new Reject(vat, peer, mid, reason));
+                }
+            };
         }
-        final Promise<Request> request = rendered;
-        final int mid = x.id;
-        return new Effect() {
-           public void
-           run() throws Exception {
-               client.serve(peer, request, new Receive(vat, peer, mid));
-           }
-        };
     }
     
     static private final class
-    Receive extends Do<Response,Void> {
+    Reject extends Struct implements Client {
         
-        private final Vat vat;
+        private final Vat<Server> vat;
+        private final String peer;
+        private final int mid;
+        private final Exception reason;
+        
+        protected
+        Reject(final Vat<Server> vat, final String peer,
+               final int mid, final Exception reason) {
+            this.vat = vat;
+            this.peer = peer;
+            this.mid = mid;
+            this.reason = reason;
+        }
+        
+        public void
+        run(final Response head, final InputStream body) throws Exception {
+            vat.service.run(new Service() {
+                public Void
+                run() throws Exception {
+                    vat.enter(new Transaction<Immutable>(Transaction.update) {
+                        public Immutable
+                        run(final Root local) throws Exception {
+                            final Outbound outbound =
+                                local.fetch(null, VatInitializer.outbound);
+                            outbound.find(peer).dequeue(mid).reject(reason);
+                            return null;
+                        }
+                    });
+                    return null;
+                }
+            });
+        }
+    }
+    
+    static private final class
+    Fulfill extends Struct implements Client {
+        
+        private final Vat<Server> vat;
         private final String peer;
         private final int mid;
         
-        Receive(final Vat vat, final String peer, final int mid) {
+        Fulfill(final Vat<Server> vat, final String peer, final int mid) {
             this.vat = vat;
             this.peer = peer;
             this.mid = mid;
         }
 
-        public Void
-        fulfill(Response r) throws Exception {
-            if (null != r.body) {
+        public void
+        run(final Response head, final InputStream body) throws Exception {
+            Message<Response> r;
+            if (null != body) {
                 try {
-                    final int length = r.getContentLength();
-                    if (length > Failure.maxEntitySize) { throw Failure.tooBig(); }
-                    r = new Response(r.version, r.status, r.phrase, r.header,
-                        Snapshot.snapshot(length < 0 ? 1024 : length,
-                            Limited.limit(Failure.maxEntitySize, r.body)));
-                } catch (final Failure e) { return reject(e); }
+                    final int length = head.getContentLength();
+                    if (length > maxEntitySize) { throw new TooBig(); }
+                    r = new Message<Response>(head,
+                            Stream.snapshot(length >= 0 ? length : 1024,
+                                            Limited.input(maxEntitySize,body)));
+                } catch (final TooBig e) {
+                    r = new Message<Response>(Response.tooBig(), null);
+                }
+            } else {
+                r = new Message<Response>(head, null);
             }
-            return resolve(ref(r));
-        }
-        
-        public Void
-        reject(final Exception reason) {
-            return resolve(new Rejected<Response>(reason));
-        }
-        
-        private Void
-        resolve(final Promise<Response> response) {
+            final Message<Response> response = r;
             vat.service.run(new Service() {
-                public void
+                public Void
                 run() throws Exception {
-                    vat.enter(Vat.change, new Transaction<Void>() {
-                        public Void
+                    vat.enter(new Transaction<Immutable>(Transaction.update) {
+                        public Immutable
                         run(final Root local) throws Exception {
                             final Outbound outbound =
-                            	local.fetch(null, AMP.outbound);
-                            final Pipeline msgs = outbound.find(peer);
-                            final Message respond = msgs.dequeue(mid);
-                            Response value;
-                            try {
-                                value = response.cast();
-                            } catch (final Exception reason) {
-                                return respond.reject(reason);
-                            }
-                            return respond.fulfill(value);
+                                local.fetch(null, VatInitializer.outbound);
+                            outbound.find(peer).dequeue(mid).fulfill(response);
+                            return null;
                         }
                     });
+                    return null;
                 }
             });
-            return null;
         }
     }
 }

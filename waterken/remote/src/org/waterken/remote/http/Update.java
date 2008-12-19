@@ -3,7 +3,7 @@
 package org.waterken.remote.http;
 
 /**
- * A {@link Message} with side-effects.
+ * A {@link Operation} with side-effects.
  */
-interface
+/* package */ interface
 Update {}
