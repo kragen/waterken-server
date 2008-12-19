@@ -12,9 +12,9 @@ Effect<S> extends Immutable {
 
     /**
      * Performs a side-effect operation.
-     * @param value any additional details about the notification
+     * @param origin    vat that produced this side-effect
      * @throws Exception    any problem
      */
     void
-    run(Vat<S> value) throws Exception;    
+    run(Vat<S> origin) throws Exception;    
 }
