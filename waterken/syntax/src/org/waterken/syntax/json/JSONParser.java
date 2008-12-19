@@ -32,6 +32,7 @@ import org.ref_send.promise.Volatile;
 import org.ref_send.scope.Layout;
 import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
+import org.waterken.syntax.BadSyntax;
 import org.waterken.syntax.Importer;
 
 /**

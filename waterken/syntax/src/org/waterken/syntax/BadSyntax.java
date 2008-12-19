@@ -1,6 +1,6 @@
 // Copyright 2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.syntax.json;
+package org.waterken.syntax;
 
 import org.joe_e.Powerless;
 import org.ref_send.Record;
@@ -8,7 +8,7 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * Signals invalid JSON text.
+ * Signals invalid syntax.
  */
 public class
 BadSyntax extends Exception implements Powerless, Record {

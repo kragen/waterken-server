@@ -13,6 +13,7 @@ import org.joe_e.array.ConstArray;
 import org.joe_e.charset.UTF8;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
+import org.waterken.syntax.BadSyntax;
 import org.waterken.syntax.Deserializer;
 import org.waterken.syntax.Importer;
 
