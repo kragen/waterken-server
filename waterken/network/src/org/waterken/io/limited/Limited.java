@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.io.limited;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,7 +31,7 @@ Limited {
 
             public int
             read() throws IOException {
-                if (0L == remaining) { throw new EOFException(); }
+                if (0L == remaining) { throw new TooBig(); }
                 final int r = in.read();
                 if (r != -1) { --remaining; }
                 return r;
@@ -40,7 +39,7 @@ Limited {
 
             public int
             read(final byte[] b,final int off,final int len) throws IOException{
-                if (0L == remaining) { throw new EOFException(); }
+                if (0L == remaining) { throw new TooBig(); }
                 final int n = in.read(b, off, (int)Math.min(remaining, len));
                 if (n != -1) { remaining -= n; }
                 return n;
@@ -91,21 +90,21 @@ Limited {
             
             public void
             write(final int b) throws IOException {
-                if (0 == remaining) { throw new EOFException(); }
+                if (0 == remaining) { throw new TooBig(); }
                 out.write(b);
                 --remaining;
             }
 
             public void
             write(final byte[] b) throws IOException {
-                if (b.length > remaining) { throw new EOFException(); }
+                if (b.length > remaining) { throw new TooBig(); }
                 out.write(b);
                 remaining -= b.length;
             }
 
             public void
             write(final byte[] b,final int off,final int len)throws IOException{
-                if (len > remaining) { throw new EOFException(); }
+                if (len > remaining) { throw new TooBig(); }
                 out.write(b, off, len);
                 remaining -= len;
             }

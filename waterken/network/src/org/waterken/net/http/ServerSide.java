@@ -142,7 +142,7 @@ ServerSide implements Task<Void> {
                     version, method, requestURI, headers), body, client);
             } catch (final Exception e) {
                 current.closing.mark(true);
-                client.receive(new Response(
+                client.run(new Response(
                     "HTTP/1.1", "503", "Service Unavailable",
                     PowerlessArray.array(
                         new Header("Content-Length", "0")

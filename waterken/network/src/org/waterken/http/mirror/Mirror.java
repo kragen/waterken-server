@@ -13,6 +13,7 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.waterken.http.Client;
 import org.waterken.http.Request;
+import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.http.file.Files;
 import org.waterken.http.file.Tag;
@@ -55,7 +56,7 @@ Mirror extends Struct implements Server, Serializable {
         try {
             folder = Path.descend(root, Path.folder(URI.path(resource)));
         } catch (final InvalidFilenameException e) {
-            client.failed(e);
+            client.run(Response.gone(), null);
             return;
         }
         new Files(folder, tag, formats).serve(resource, head, body, client);

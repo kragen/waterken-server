@@ -196,14 +196,8 @@ ClientSide implements Server {
         }
         
         public void
-        receive(final Response head, final InputStream body) throws Exception {
-            client.receive(head, body); // don't pop if there is an I/O error
-            sender.run(pop);
-        }
-        
-        public void
-        failed(final Exception reason) throws Exception {
-            client.failed(reason);
+        run(final Response head, final InputStream body) throws Exception {
+            client.run(head, body); // don't pop if there is an I/O error
             sender.run(pop);
         }
     }
@@ -224,7 +218,7 @@ ClientSide implements Server {
             if (null == on.in) { return null; }
             try {
                 if (null == x.head) {
-                    x.failed(new NullPointerException());
+                    x.run(Response.badRequest(), null);
                 } else {
                     if (receive(x.head.method, on.in, x)) {on.retry();}
                 }
@@ -492,7 +486,7 @@ ClientSide implements Server {
             final InputStream explicit = HTTPD.input(headers, cin);
             entity = null != explicit ? explicit : cin;
         }
-        client.receive(new Response(version, status, phrase, headers), entity);
+        client.run(new Response(version, status, phrase, headers), entity);
         
         // ensure this response has been fully read out of the
         // response stream before reading in the next response

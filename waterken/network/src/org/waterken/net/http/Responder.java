@@ -6,13 +6,12 @@ import static org.joe_e.array.PowerlessArray.array;
 import static org.waterken.io.Stream.chunkSize;
 
 import java.io.BufferedOutputStream;
-import java.io.EOFException;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 
+import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.ASCII;
 import org.joe_e.var.Milestone;
 import org.waterken.http.Client;
@@ -24,7 +23,6 @@ import org.waterken.io.Stream;
 import org.waterken.io.bounded.Bounded;
 import org.waterken.io.open.Open;
 import org.waterken.uri.Header;
-import org.waterken.uri.URI;
 
 /**
  * Outputs a {@link Response}.  
@@ -51,8 +49,33 @@ Responder {
         return new Client() {
 
             public void
-            receive(final Response head,final InputStream body)throws Exception{
-                if (null == connection) { throw new Exception(); }
+            run(final Response head, final InputStream body) throws Exception{
+                if (null == body && head.status.startsWith("4")) {
+                    // use the configured response body
+                    final String resource = "file:///site/" + head.status;
+                    server.serve(resource, new Request(version, "GET", resource,
+                            array(new Header[] {})), null, new Client() {
+                       public void
+                       run(final Response bodyHead,
+                           final InputStream body) throws Exception {
+                           PowerlessArray<Header> headers = bodyHead.headers;
+                           for (final Header i : head.headers) {
+                               if (null==TokenList.find(null, i.name, headers)){
+                                   headers = headers.with(i);
+                               }
+                           }
+                           output(new Response(head.version, head.status,
+                                               head.phrase, headers), body);
+                       }
+                    });
+                } else {
+                    output(head, body);
+                }
+            }
+            
+            private void
+            output(final Response head, final InputStream body)throws Exception{
+                if (null == connection) { return; }
                 final OutputStream out = connection;
                 connection = null;
                 try {
@@ -72,40 +95,6 @@ Responder {
                         next.connection = out;
                     }
                 }
-            }
-
-            public void
-            failed(final Exception reason) throws Exception {
-                final String status;
-                final String phrase;
-                if (reason instanceof FileNotFoundException) {
-                    status = "404";
-                    phrase = "Not Found";
-                } else if (reason instanceof EOFException) {
-                    status = "413";
-                    phrase = "Request Entity Too Large";
-                } else {
-                    status = "400";
-                    phrase = "Bad Request";
-                }
-                final Client m = this;
-                final String resource = URI.resolve("file:///site/", status); 
-                server.serve(resource, new Request(
-                                 version, "GET", resource,
-                                 array(new Header[] {})), null, new Client() {
-                    public void
-                    receive(final Response head,
-                            final InputStream body) throws Exception {
-                        m.receive(new Response(head.version, status, phrase,
-                                               head.headers), body);
-                    }
-
-                    public void
-                    failed(final Exception reason) throws Exception {
-                        m.receive(new Response("HTTP/1.1", status, phrase,
-                            array(new Header("Content-Length", "0"))), null);
-                    }
-                });
             }
         };
     }

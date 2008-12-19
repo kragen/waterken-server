@@ -3,7 +3,6 @@
 package org.waterken.http.dump;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -76,7 +75,7 @@ Dump extends Struct implements Server, Serializable {
         final String p = Query.arg(null, query, "p");
         final String m = Query.arg(null, query, "m");
         if (!s.equals(key) || !p.equals("run") || null == m) {
-            client.failed(new FileNotFoundException());
+            client.run(Response.notFound(), null);
             return;
         }
         
@@ -90,7 +89,7 @@ Dump extends Struct implements Server, Serializable {
             }
         }
         if (null == contentType) {
-            client.receive(new Response(
+            client.run(new Response(
                 "HTTP/1.1", "415", "Unsupported Media Type",
                 PowerlessArray.array(
                     new Header("Content-Length", "0")
@@ -114,7 +113,7 @@ Dump extends Struct implements Server, Serializable {
         if (!tmp.renameTo(committed)) { throw new IOException(); }
         
         // acknowledge the request
-        client.receive(new Response("HTTP/1.1", "204", "OK",
+        client.run(new Response("HTTP/1.1", "204", "OK",
             PowerlessArray.array(new Header[] {})), null);
     }
 }

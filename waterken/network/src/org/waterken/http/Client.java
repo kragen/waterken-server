@@ -5,7 +5,7 @@ package org.waterken.http;
 import java.io.InputStream;
 
 /**
- * The processor for a pending HTTP {@linkplain Server#serve request}.
+ * The response processor for a pending HTTP {@linkplain Server#serve request}.
  */
 public interface
 Client {
@@ -15,11 +15,5 @@ Client {
      * @param head  response head
      * @param body  response body, or <code>null</code> if none
      */
-    void receive(Response head, InputStream body) throws Exception;
-    
-    /**
-     * No response will be provided.
-     * @param reason    reason the request failed
-     */
-    void failed(Exception reason) throws Exception;
+    void run(Response head, InputStream body) throws Exception;
 }

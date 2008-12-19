@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
+import org.joe_e.inert;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
@@ -55,6 +56,75 @@ Response extends Struct implements Powerless, Record, Serializable {
         this.status = status;
         this.phrase = phrase;
         this.headers = headers;
+    }
+
+    /**
+     * Constructs an <code>OPTIONS</code> response.
+     * @param allow supported HTTP methods
+     */
+    static public @inert Response
+    options(final String... allow) {
+        return new Response("HTTP/1.1", "204", "OK",
+                            PowerlessArray.array(
+                                new Header("Allow", TokenList.encode(allow))
+                            ));
+    }
+    
+    /**
+     * Constructs a <code>400</code> Bad Request response.
+     */
+    static public Response
+    badRequest() {
+        return new Response("HTTP/1.1", "400", "Bad Request",
+                            PowerlessArray.array(
+                                new Header("Content-Length", "0")
+                            ));
+    }
+    
+    /**
+     * Constructs a <code>404</code> Not Found response.
+     */
+    static public Response
+    notFound() {
+        return new Response("HTTP/1.1", "404", "Not Found",
+                            PowerlessArray.array(
+                                new Header("Content-Length", "0")
+                            ));
+    }
+    
+    /**
+     * Constructs a <code>405</code> Method Not Allowed response.
+     * @param each supported HTTP method
+     */
+    static public @inert Response
+    notAllowed(final String... allow) {
+        return new Response("HTTP/1.1", "405", "Method Not Allowed",
+                            PowerlessArray.array(
+                                new Header("Allow", TokenList.encode(allow)),
+                                new Header("Content-Length", "0")
+                            ));
+    }
+    
+    /**
+     * Constructs a <code>410</code> Gone response.
+     */
+    static public Response
+    gone() {
+        return new Response("HTTP/1.1", "410", "Gone",
+                            PowerlessArray.array(
+                                new Header("Content-Length", "0")
+                            ));
+    }
+    
+    /**
+     * Constructs a <code>413</code> Request Entity Too Large response.
+     */
+    static public Response
+    tooBig() {
+        return new Response("HTTP/1.1", "413", "Request Entity Too Large",
+                            PowerlessArray.array(
+                                new Header("Content-Length", "0")
+                            ));
     }
     
     // org.waterken.http.Response interface
