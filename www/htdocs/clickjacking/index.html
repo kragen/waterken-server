@@ -30,7 +30,7 @@ clickjacking and there would be no need to reduce the flexibility of the
 browser's user interface languages. Web applications can be implemented to an
 explicit authorization model without any change to Web protocols or
 formats.</p>
-<h2><a name="clickjacking" href="#clickjacking">Clickjacking</a></h2>
+<h3><a name="clickjacking" href="#clickjacking">Clickjacking</a></h3>
 <p>As a Web user, you may have the ability to initiate privileged actions that
 others cannot. For example, you can delete all the email from your web-mail
 account, or liquidate your stock portfolio, or start recording video from your
@@ -44,7 +44,7 @@ victim web page that contains privileged buttons. Underneath this transparent
 IFRAME, the attacker puts content, like a game, that entices the user to click.
 Although the user only sees the game, the mouse clicks are delivered to the
 transparent buttons, since they are on top of the game.</p>
-<h2><a name="reaction" href="#reaction">The reaction</a></h2>
+<h3><a name="reaction" href="#reaction">The reaction</a></h3>
 <p>Specific information about the clickjacking research is still
 <a href="http://ha.ckers.org/blog/20081007/clickjacking-details/">coming
 out</a>, but it looks like the researchers have found a number of compelling
@@ -66,7 +66,7 @@ transparency settings, just a simple page navigation. If the solution to this
 problem is restricting the features of the Web's user interface languages, then
 much of the Web sits on the chopping block. Perhaps there's another, better,
 way to look at this problem.</p>
-<h2><a name="ambient" href="#ambient">Ambient authority</a></h2>
+<h3><a name="ambient" href="#ambient">Ambient authority</a></h3>
 <p>The buttons that the clickjacker directs clicks to are privileged buttons
 that require the user's authority to work. Typically, this authority is
 expressed in the form of cookies, derived from the user's password. Whenever the
@@ -78,7 +78,7 @@ authority to every request. From the programmer's perspective, things
 automatically provided by the execution environment, like CPU time and memory,
 seem to be part of the ambient environment in which they work, never explicitly
 mentioned, but there when you want them.</p>
-<h2><a name="confused-deputy" href="#confused-deputy">Confused Deputy</a></h2>
+<h3><a name="confused-deputy" href="#confused-deputy">Confused Deputy</a></h3>
 <p>Over 20 years ago, Norm Hardy noticed that treating authority as part of the
 ambient environment of a program creates problems when that program is running
 on behalf of distinct parties. To illustrate the problem, Norm wrote a paper,
@@ -108,7 +108,7 @@ request to a victim site, under the user's authority. In a CSRF attack, the
 payoff to the attacker comes from the side-effects of the POST request. In a
 clickjacking attack, the payoff comes from the on-screen positioning of private
 controls.</p>
-<h2><a name="explicit" href="#explicit">Explicit authority</a></h2>
+<h3><a name="explicit" href="#explicit">Explicit authority</a></h3>
 <p>The most popular counter-measure for CSRF is to embed an unguessable secret
 in the legitimate HTML FORM element. Since the attacker doesn't know the
 secret, he is unable to create a FORM that generates a POST request the server
@@ -123,7 +123,7 @@ the page. Similarly, the attacker would also be unable to navigate the web
 browser to that page at an unexpected moment. By taking away the attacker's
 authority to display the privileged buttons, we take away the opportunity to
 play tricks with the timing and positioning of their display.</p>
-<h2><a name="saving-the-web" href="#saving-the-web">Saving the Web</a></h2>
+<h3><a name="saving-the-web" href="#saving-the-web">Saving the Web</a></h3>
 <p>In an explicit authority model, the rendering tricks used in the
 clickjacking attacks are not dangerous and so need not be restricted. For
 example, there's no need to place restrictions on the use of IFRAMEs or opacity
@@ -139,7 +139,7 @@ restricting the features of the Web's GUI languages would severely handicap the
 Web. Even basic functionality such as linking would be negatively affected. A
 much better solution is to continue the progression towards explicit
 authorization models that began with defense against CSRF.</p>
-<h2><a name="web-key" href="#web-key">Web-key</a></h2>
+<h3><a name="web-key" href="#web-key">Web-key</a></h3>
 <p>A surprising number of the security problems with today's Web are directly
 attributable to the use of ambient authority. The
 <a href="../web-key/">web-key</a> paper explains many of these problems and
