@@ -6,7 +6,9 @@ import static org.joe_e.reflect.Proxies.proxy;
 import static org.ref_send.promise.Fulfilled.detach;
 
 import java.io.Serializable;
+import java.lang.reflect.Member;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.TypeVariable;
 
 import org.joe_e.Equatable;
 import org.joe_e.Selfless;
@@ -219,6 +221,11 @@ Eventual implements Receiver<Task<?>>, Serializable {
     // org.ref_send.promise.eventual.Eventual interface
 
     /**
+     * Do block return type
+     */
+    static private final TypeVariable<?> DoR = Typedef.var(Do.class, "R");
+
+    /**
      * Registers an observer on a promise.
      * <p>
      * The <code>observer</code> will be notified of the <code>promise</code>'s
@@ -265,9 +272,8 @@ Eventual implements Receiver<Task<?>>, Serializable {
     public <T,R> R
     when(final Volatile<T> promise, final Do<T,R> observer) {
         try {
-            final Class<?> R =
-            	Typedef.raw(Typedef.value(Do.R, observer.getClass()));
-            return trust(promise).when(R, observer);
+            return trust(promise).when(
+                Typedef.raw(Typedef.value(DoR, observer.getClass())), observer);
         } catch (final Exception e) { throw new Error(e); }
     }
 
@@ -314,7 +320,6 @@ Eventual implements Receiver<Task<?>>, Serializable {
 
         public <R> R
         when(final Class<?> R, final Do<T,R> observer) {
-            final Class<?> type=null!=observer ?observer.getClass() :Void.class;
             final R r;
             final Do<T,?> forwarder;
             if (void.class == R || Void.class == R) {
@@ -323,7 +328,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
             } else {
                 final Channel<R> x = _.defer();
                 r = _.cast(R, x.promise);
-                forwarder = compose(observer, x.resolver);
+                forwarder = new Compose<T,R>(observer, x.resolver);
             }
             final long id = ++_.tasks;
             if (0 == id) { throw new AssertionError(); }
@@ -333,26 +338,27 @@ Eventual implements Receiver<Task<?>>, Serializable {
                 public Void
                 run() throws Exception {
                     // AUDIT: call to untrusted application code
-                    _.sample(untrusted, forwarder, _.name + "t" + id, type);
+                    sample(untrusted, forwarder, _.log, _.name + "t" + id);
                     return null;
                 }
             }
             _.enqueue.run(new Sample());
+            _.log.sent(_.name + "t" + id);
             return r;
         }
     }
     
-    private <P,R> R
+    static private <P,R> R
     sample(final Volatile<P> promise, final Do<P,R> observer,
-           final String message, final Class<?> type) throws Exception {
+           final Log log, final String message) throws Exception {
         final P a;
         try {
             a = Fulfilled.ref(promise.cast()).cast();
         } catch (final Exception reason) {
-            log.got(message, Reflection.method(type,"reject",Exception.class));
+            log.got(message, Compose.rejecter(observer));
             return observer.reject(reason);
         }
-        log.got(message, Reflection.method(type, "fulfill", Object.class));
+        log.got(message, Compose.fulfiller(a.getClass(), observer));
         return observer.fulfill(a);
     }
 
@@ -366,7 +372,6 @@ Eventual implements Receiver<Task<?>>, Serializable {
 
         long condition;             // id for the corresponding promise
         long message;               // id for this when block
-        Class<?> type;              // type of wrapped observer
         Do<T,?> observer;           // client's when block code
         Fulfilled<When<T>> next;    // next when block registered on the promise
     }
@@ -413,10 +418,34 @@ Eventual implements Receiver<Task<?>>, Serializable {
     freeWhen(final Fulfilled pBlock, final When block) {
         block.condition = 0;
         block.message = 0;
-        block.type = null;
         block.observer = null;
         block.next = (Fulfilled)whenPool;
         whenPool = pBlock;
+    }
+    
+    /**
+     * Delivers and logs receipt of a remote message.
+     * @param <P>       message return type
+     * @param value     received return value
+     * @param observer  message recipient
+     * @param message   message identifier
+     */
+    public <P> void
+    got(final Volatile<P> value, final Do<P,?> observer, final String message) {
+        if (trusted(value)) {
+            final Member member;
+            try {
+                member = Reflection.method(value.getClass(), "when",
+                                           Class.class, Do.class);
+            } catch (final Exception e) { throw new Error(e); }
+            log.got(message, member);
+            ((Deferred<P>)value).when(Void.class, observer);
+        } else {
+            try {
+                // AUDIT: call to untrusted application code
+                sample(value, observer, log, message);
+            } catch (final Exception e) { log.problem(e); }
+        }
     }
     
     private final class
@@ -454,17 +483,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
             block.condition = 0;    // ensure block is not run again
             
             if (null != block.next) {
-                if (trusted(value)) {
-                    log.got(name + "w" + block.message, Reflection.method(
-                        value.getClass(), "when", Class.class, Do.class));
-                    ((Deferred<T>)value).when(Void.class, block.observer);
-                } else {
-                    try {
-                        // AUDIT: call to untrusted application code
-                        sample(value, block.observer,
-                               name + "w" + block.message, block.type);
-                    } catch (final Exception e) { log.problem(e); }
-                }
+                got(value, block.observer, name + "w" + block.message);
                 enqueue.run(new Forward<T>(condition, value, block.next));
             }
             freeWhen(next, block);
@@ -485,11 +504,10 @@ Eventual implements Receiver<Task<?>>, Serializable {
         }
         
         protected void
-        observe(final Do<T,?> observer, final Class<?> type) {
+        observe(final Do<T,?> observer) {
             final When<T> block = Fulfilled.near(back);
             if (condition == block.condition) {
                 log.sentIf(name + "w" + block.message, name + "p" + condition);
-                block.type = type;
                 block.observer = observer;
                 back = block.next = allocWhen(condition);
             } else {
@@ -500,7 +518,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
                  */
                 back = allocWhen(condition);
                 enqueue.run(new Forward<T>(condition, get(), back));
-                observe(observer, type);
+                observe(observer);
             }
         }
     }
@@ -529,7 +547,6 @@ Eventual implements Receiver<Task<?>>, Serializable {
 
         public <R> R
         when(final Class<?> R, final Do<T,R> observer) {
-            final Class<?> type=null!=observer ?observer.getClass() :Void.class;
             final R r;
             final Do<T,?> forwarder;
             if (void.class == R || Void.class == R) {
@@ -538,9 +555,9 @@ Eventual implements Receiver<Task<?>>, Serializable {
             } else {
                 final Channel<R> x = _.defer();
                 r = _.cast(R, x.promise);
-                forwarder = compose(observer, x.resolver);
+                forwarder = new Compose<T,R>(observer, x.resolver);
             }
-            state.observe(forwarder, type);
+            state.observe(forwarder);
             return r;
         }
     }

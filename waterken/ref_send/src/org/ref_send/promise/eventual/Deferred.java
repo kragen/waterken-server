@@ -80,69 +80,10 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
             }
         }
         try {
-            final Do<T,Object> observer =
-                curry(_, method, null == arg ? null : ConstArray.array(arg));
             return when(Typedef.raw(Typedef.bound(method.getGenericReturnType(),
-                                                  proxy.getClass())), observer);
+                                                  proxy.getClass())),
+                new Invoke<T>(method,null==arg ? null : ConstArray.array(arg)));
         } catch (final Exception e) { throw new Error(e); }
-    }
-    
-    static private <T> Do<T,Object>
-    curry(final Eventual _, final Method method, final ConstArray<?> argv) {
-        class Invoker extends Do<T,Object> implements Serializable {
-            static private final long serialVersionUID = 1L;
-            
-            public @SuppressWarnings("unchecked") Object
-            fulfill(final T object) throws Exception {
-                // AUDIT: call to untrusted application code
-                return Reflection.invoke(method,
-                    object instanceof Deferred
-                        ? _.cast(method.getDeclaringClass(),(Deferred<T>)object)
-                    : object, null == argv
-                        ? null
-                    : argv.toArray(new Object[argv.length()]));
-            }
-        }
-        return new Invoker();
-    }
-
-    /**
-     * Constructs a call return block.
-     * @param first     code block to execute
-     * @param second    code block's return resolver
-     */
-    static protected <A,B> Do<A,Void>
-    compose(final Do<A,B> first, final Resolver<B> second) {
-        class Compose extends Do<A,Void> implements Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Void
-            fulfill(final A a) {
-                final B b;
-                try {
-                    b = first.fulfill(a);
-                } catch (final Exception e) {
-                    second.reject(e);
-                    return null;
-                }
-                second.run(b);
-                return null;
-            }
-
-            public Void
-            reject(final Exception reason) {
-                final B b;
-                try {
-                    b = first.reject(reason);
-                } catch (final Exception e) {
-                    second.reject(e);
-                    return null;
-                }
-                second.run(b);
-                return null;
-            }
-        }
-        return new Compose();
     }
 
     // org.ref_send.promise.Volatile interface

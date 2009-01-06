@@ -2,10 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.promise.eventual;
 
-import java.lang.reflect.TypeVariable;
-
 import org.joe_e.Struct;
-import org.ref_send.type.Typedef;
 
 /**
  * A deferred code block.
@@ -14,12 +11,10 @@ import org.ref_send.type.Typedef;
  */
 public abstract class
 Do<P,R> extends Struct {
-
-    /**
-     * return type
-     */
-    static protected final TypeVariable<?> R = Typedef.var(Do.class, "R");
     
+    /**
+     * Constructs an instance.
+     */
     protected
     Do() {}
 
