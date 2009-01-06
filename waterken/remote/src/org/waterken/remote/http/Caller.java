@@ -70,7 +70,6 @@ Caller implements Messenger, Serializable {
             r_ = _.cast(R, x.promise);
             forwarder = new Compose<Object,R>(observer, x.resolver);
         }
-        final String message = name + "-" + window + "-" + posts + "-" + gets++;
         class When extends Operation {
             static private final long serialVersionUID = 1L;
 
@@ -105,8 +104,8 @@ Caller implements Messenger, Serializable {
                 return null;
             }
         }
-        msgs.enqueue(new When());
-        _.log.sent(message);
+        final long mid = msgs.enqueue(new When());
+        _.log.sent(name + "-" + mid);
         return r_;
     }
    
@@ -124,7 +123,6 @@ Caller implements Messenger, Serializable {
         final Method method, final ConstArray<?> argv) {
         final Channel<Object> r = _.defer();
         final Resolver<Object> resolver = r.resolver;
-        final String message = name + "-" + window + "-" + posts + "-" + gets++;
         class GET extends Operation implements Query {
             static private final long serialVersionUID = 1L;
 
@@ -153,8 +151,8 @@ Caller implements Messenger, Serializable {
                 return null;
             }
         }
-        msgs.enqueue(new GET());
-        _.log.sent(message);
+        final long mid = msgs.enqueue(new GET());
+        _.log.sent(name + "-" + mid);
         return _.cast(Typedef.raw(Typedef.bound(method.getGenericReturnType(),
                                                 type)), r.promise);
     }
