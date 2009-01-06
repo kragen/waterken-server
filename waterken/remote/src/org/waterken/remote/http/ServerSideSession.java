@@ -33,9 +33,9 @@ ServerSideSession implements Serializable {
     }
     
     protected Object
-    get(final long window, final int message) {
+    get(final long window, final int index) {
         if (window != current) { throw new IndexOutOfBoundsException(); }
-        return returns.get(message);
+        return returns.get(index);
     }
     
     protected Object

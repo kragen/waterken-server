@@ -55,6 +55,7 @@ VatInitializer<R> extends Transaction<PowerlessArray<String>> {
         final Log log = local.fetch(null, Vat.log);
         final Receiver<?> destruct = local.fetch(null, Vat.destruct);
         
+        local.link(sessions, new SessionMaker(local));
         local.link(outbound, new Outbound());
         local.link(Vat.wake, new Wake());
         final List<Task<?>> tasks = List.list();
@@ -203,4 +204,9 @@ VatInitializer<R> extends Transaction<PowerlessArray<String>> {
     
     static protected final String outbound = ".outbound";
     static private final String tasks = ".tasks";
+
+    /**
+     * key bound to the session maker in all vats
+     */
+    static protected final String sessions = "sessions";
 }

@@ -38,10 +38,10 @@ Pipeline implements Serializable {
     Entry extends Struct implements Serializable {
         static private final long serialVersionUID = 1L;
 
-        final int id;           // serial number
+        final long id;          // serial number
         final Operation op;     // pending request
         
-        Entry(final int id, final Operation op) {
+        Entry(final long id, final Operation op) {
             this.id = id;
             this.op = op;
         }
@@ -51,11 +51,18 @@ Pipeline implements Serializable {
     private final Receiver<Effect<Server>> effect;
     private final Fulfilled<Outbound> outbound;
     
+    private       long windows = 0; // number of enqueued operation windows
+    private       long ops = 0;     // number of enqueued operations
     private final List<Entry> pending = List.list();
-    private       int serialMID = 0;// serial number for next enqueued operation
     private       int halts = 0;    // number of pending pipeline flushes
     private       int queries = 0;  // number of queries after the last flush
     
+    /*
+     * Message sending is halted before an Update that follows a Query. Sending
+     * resumes once the response to the Query has been received.
+     */
+
+    protected
     Pipeline(final String peer,
              final Receiver<Effect<Server>> effect,
              final Fulfilled<Outbound> outbound) {
@@ -67,30 +74,27 @@ Pipeline implements Serializable {
     void
     resend() { effect.run(restart(peer, pending.getSize(), false, 0)); }
     
-    /*
-     * Message sending is halted before an Update that follows a Query. Sending
-     * resumes once the response to the Query has been received.
-     */
-    
-    void
+    long
     enqueue(final Operation message) {
         if (pending.isEmpty()) {
             near(outbound).add(peer, this);
         }
-        final int mid = serialMID++;
-        pending.append(new Entry(mid, message));
+        final long mid = ops++;
         if (message instanceof Update) {
             if (0 != queries) {
+                ++windows;
                 ++halts;
                 queries = 0;
             }
         }
         if (message instanceof Query) { ++queries; }
         if (0 == halts) { effect.run(restart(peer, 1, true, mid)); }
+        pending.append(new Entry(mid, message));
+        return mid;
     }
     
     private Operation
-    dequeue(final int mid) {
+    dequeue(final long mid) {
         if (pending.getFront().id != mid) { throw new RuntimeException(); }
         
         final Entry front = pending.pop();
@@ -101,6 +105,10 @@ Pipeline implements Serializable {
             if (0 == halts) {
                 --queries;
             } else {
+                /*
+                 * restart message sending if this was the last query we were
+                 * waiting on in the halted pipeline
+                 */
                 int max = pending.getSize();
                 for (final Entry x : pending) {
                     if (x.op instanceof Update) {
@@ -116,9 +124,17 @@ Pipeline implements Serializable {
         return front.op;
     }
     
+    /**
+     * Serializes requests and enqueues them on the transient HTTP connection.
+     * @param peer      id for the pipeline to service
+     * @param max       maximum number of requests to enqueue
+     * @param skipTo    Must requests be skipped to find the first one to send?
+     * @param mid       if <code>skipTo</code> is <code>true</code>:
+     *                  id of the first request to send, else ignored
+     */
     static private Effect<Server>
     restart(final String peer, final int max,
-            final boolean skipTo, final int mid) {
+            final boolean skipTo, final long mid) {
         return new Effect<Server>() {
            public void
            run(final Vat<Server> vat) throws Exception {
@@ -130,9 +146,9 @@ Pipeline implements Serializable {
                        final Outbound outbound =
                            local.fetch(null, VatInitializer.outbound);
                        boolean found = !skipTo;
-                       boolean q = false;
+                       boolean queried = false;
                        int n = max;
-                       for (final Entry x: outbound.find(peer).pending){
+                       for (final Entry x: outbound.find(peer).pending) {
                            if (!found) {
                                if (mid == x.id) {
                                    found = true;
@@ -141,8 +157,8 @@ Pipeline implements Serializable {
                                }
                            }
                            if (0 == n--) { break; }
-                           if (q && x.op instanceof Update) { break; }
-                           if (x.op instanceof Query) { q = true; }
+                           if (queried && x.op instanceof Update) { break; }
+                           if (x.op instanceof Query) { queried = true; }
                            effect.run(send(peer, x.id, x.op));
                        }
                        return null;
@@ -153,7 +169,7 @@ Pipeline implements Serializable {
     }
     
     static private Effect<Server>
-    send(final String peer, final int mid, final Operation op) {
+    send(final String peer, final long mid, final Operation op) {
         try {
             final Message<Request> m = op.render();
             return new Effect<Server>() {
@@ -180,12 +196,12 @@ Pipeline implements Serializable {
         
         private final Vat<Server> vat;
         private final String peer;
-        private final int mid;
+        private final long mid;
         private final Exception reason;
         
         protected
         Reject(final Vat<Server> vat, final String peer,
-               final int mid, final Exception reason) {
+               final long mid, final Exception reason) {
             this.vat = vat;
             this.peer = peer;
             this.mid = mid;
@@ -217,9 +233,9 @@ Pipeline implements Serializable {
         
         private final Vat<Server> vat;
         private final String peer;
-        private final int mid;
+        private final long mid;
         
-        Fulfill(final Vat<Server> vat, final String peer, final int mid) {
+        Fulfill(final Vat<Server> vat, final String peer, final long mid) {
             this.vat = vat;
             this.peer = peer;
             this.mid = mid;

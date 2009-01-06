@@ -4,11 +4,9 @@ package org.waterken.remote.http;
 
 import java.io.Serializable;
 
-import org.joe_e.Token;
 import org.ref_send.promise.eventual.Log;
 import org.waterken.vat.Root;
 import org.waterken.vat.Vat;
-import org.web_send.session.Session;
 
 /**
  * A {@link Session} maker.
@@ -26,11 +24,9 @@ SessionMaker implements Serializable {
     
     // org.waterken.remote.http.SessionMaker interface
     
-    public Session
-    create() {
+    public String
+    create(final String name) {
         final Log log = local.fetch(null, Vat.log);
-        final String name = local.export(new Token(), false);
-        final String key = local.export(new ServerSideSession(name,log), false);
-        return new Session(name, key);
+        return local.export(new ServerSideSession(name, log), false);
     }
 }

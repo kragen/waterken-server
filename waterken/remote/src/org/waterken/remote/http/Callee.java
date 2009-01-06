@@ -91,12 +91,12 @@ Callee extends Struct implements Serializable {
             // AUDIT: call to untrusted application code
             target = ((Fulfilled<?>)subject).cast();
         } catch (final Exception e) {
-            return serialize(m.head.method, "404", "never", Server.forever,
+            return serialize(m.head.method, "410", "never", Server.forever,
                              new Rejected<Object>(e));
         }       
         if (Remote.isPBC(target)) {
             // prevent access to local implementation details
-            return new Message<Response>(Response.notFound(), null);
+            return new Message<Response>(Response.gone(), null);
         }
         
         // determine the type of accessed member

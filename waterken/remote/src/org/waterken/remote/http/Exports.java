@@ -86,11 +86,35 @@ Exports extends Struct implements Serializable {
     get(final String href, final String predicate) {
         String query = URI.fragment("", href);
         if ("".equals(query)) {
-            query += "s=";
+            query = "s=";
         }
         if (null != predicate) {
             query += "&q=" + URLEncoding.encode(predicate);
         }
+        return URI.resolve(href, "./?" + query);
+    }
+    
+    /**
+     * Constructs a live web-key for a POST request.
+     * @param href      web-key
+     * @param predicate predicate string, or <code>null</code> if none
+     * @param session   message session key
+     * @param window    message window number
+     * @param message   intra-window message number
+     */
+    static protected String
+    post(final String href, final String predicate,
+         final String session, final long window, final int message) {
+        String query = URI.fragment("", href);
+        if ("".equals(query)) {
+            query = "s=";
+        }
+        if (null != predicate) {
+            query += "&q=" + URLEncoding.encode(predicate);
+        }
+        query += "&x=" + URLEncoding.encode(session);
+        query += "&w=" + window;
+        query += "&m=" + message;
         return URI.resolve(href, "./?" + query);
     }
     
@@ -150,7 +174,7 @@ Exports extends Struct implements Serializable {
      * @param query     request query string
      * @param member    corresponding operation
      * @param op        operation to run
-     * @return <code>invoke</code> return value
+     * @return <code>op</code> return value
      */
     protected Object
     execute(final String query, final Member member, final Task<Object> op) {
