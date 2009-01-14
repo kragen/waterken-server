@@ -143,7 +143,7 @@ ServerSide implements Task<Void> {
             } catch (final Exception e) {
                 current.closing.mark(true);
                 client.run(new Response(
-                    "HTTP/1.1", "503", "Service Unavailable",
+                    "HTTP/1.1", "500", "Internal Server Error",
                     PowerlessArray.array(
                         new Header("Content-Length", "0")
                     )), null);
