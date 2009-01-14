@@ -37,7 +37,6 @@ Failure extends NullPointerException implements Powerless, Record {
     public @deserializer
     Failure(@name("status") final String status,
             @name("phrase") final String phrase) {
-        super(phrase);
         this.status = status;
         this.phrase = phrase;
     }
