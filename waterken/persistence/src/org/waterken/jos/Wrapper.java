@@ -5,7 +5,7 @@ package org.waterken.jos;
 import java.io.IOException;
 import java.io.Serializable;
 
-import org.waterken.vat.Root;
+import org.waterken.db.Root;
 
 /**
  * A serialization wrapper object. 

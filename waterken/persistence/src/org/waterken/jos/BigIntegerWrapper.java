@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import org.joe_e.Powerless;
-import org.waterken.vat.Root;
+import org.waterken.db.Root;
 
 /**
  * Hides the mutable state inside a {@link BigInteger}.

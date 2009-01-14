@@ -38,6 +38,16 @@ import org.ref_send.promise.eventual.NOP;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.base32.Base32;
+import org.waterken.db.Creator;
+import org.waterken.db.CyclicGraph;
+import org.waterken.db.Effect;
+import org.waterken.db.ProhibitedCreation;
+import org.waterken.db.ProhibitedModification;
+import org.waterken.db.Root;
+import org.waterken.db.Service;
+import org.waterken.db.Transaction;
+import org.waterken.db.UnknownClass;
+import org.waterken.db.Vat;
 import org.waterken.project.Project;
 import org.waterken.store.Sink;
 import org.waterken.store.Store;
@@ -46,21 +56,11 @@ import org.waterken.trace.EventSender;
 import org.waterken.trace.Tracer;
 import org.waterken.trace.TurnCounter;
 import org.waterken.trace.project.ProjectTracer;
-import org.waterken.vat.Creator;
-import org.waterken.vat.CyclicGraph;
-import org.waterken.vat.Effect;
-import org.waterken.vat.ProhibitedCreation;
-import org.waterken.vat.ProhibitedModification;
-import org.waterken.vat.Root;
-import org.waterken.vat.Service;
-import org.waterken.vat.Transaction;
-import org.waterken.vat.UnknownClass;
-import org.waterken.vat.Vat;
 
 /**
  * An object graph stored as a set of Java Object Serialization files.
  */
-public final class
+/* package */ final class
 JODB<S> extends Vat<S> {
     
     /**

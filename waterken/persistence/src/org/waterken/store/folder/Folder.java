@@ -14,6 +14,7 @@ import org.joe_e.Struct;
 import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.joe_e.var.Milestone;
+import org.ref_send.deserializer;
 import org.ref_send.promise.eventual.Receiver;
 import org.waterken.store.Store;
 import org.waterken.store.StoreMaker;
@@ -25,6 +26,14 @@ import org.waterken.store.Update;
 public final class
 Folder extends Struct implements StoreMaker, Serializable {
     static private final long serialVersionUID = 1L;
+    
+    /**
+     * Constructs an instance.
+     */
+    public @deserializer
+    Folder() {}
+    
+    // org.waterken.store.StoreMaker interface
     
     public Store
     run(final Receiver<Long> sleep, final File parent, final File dir) {

@@ -4,14 +4,16 @@ package org.waterken.jos;
 
 import java.io.File;
 
+import org.ref_send.deserializer;
+import org.ref_send.name;
 import org.ref_send.log.Event;
 import org.ref_send.promise.eventual.Receiver;
 import org.waterken.cache.Cache;
+import org.waterken.db.Service;
+import org.waterken.db.VatManager;
 import org.waterken.store.StoreMaker;
 import org.waterken.thread.Concurrent;
 import org.waterken.thread.Sleep;
-import org.waterken.vat.Service;
-import org.waterken.vat.VatManager;
 
 /**
  * A cache of live vats.
@@ -23,9 +25,9 @@ JODBManager<S> implements VatManager<S> {
     private final Cache<File,JODB<S>> live = Cache.make();
     private final Sleep sleep = new Sleep();
 
+    private final StoreMaker layout;
     private final S session;
     private final Receiver<Event> stderr;
-    private final StoreMaker layout;
     
     /**
      * Constructs an instance.
@@ -33,12 +35,13 @@ JODBManager<S> implements VatManager<S> {
      * @param stderr    standard error output for all vats
      * @param layout    store maker
      */
-    public
-    JODBManager(final S session, final Receiver<Event> stderr, 
-                final StoreMaker layout) {
+    public @deserializer
+    JODBManager(@name("layout") final StoreMaker layout,
+                @name("session") final S session,
+                @name("stderr") final Receiver<Event> stderr) {
+        this.layout = layout;
         this.session = session;
         this.stderr = stderr;
-        this.layout = layout;
     }
 
     public JODB<S>

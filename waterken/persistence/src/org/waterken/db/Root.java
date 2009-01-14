@@ -1,6 +1,6 @@
 // Copyright 2002-2006 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.vat;
+package org.waterken.db;
 
 import org.joe_e.file.InvalidFilenameException;
 

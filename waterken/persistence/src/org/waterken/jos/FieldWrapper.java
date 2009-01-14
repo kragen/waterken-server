@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 
 import org.joe_e.Powerless;
-import org.waterken.vat.Root;
+import org.waterken.db.Root;
 
 /**
  * A persistent field.

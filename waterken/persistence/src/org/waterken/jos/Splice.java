@@ -4,7 +4,7 @@ package org.waterken.jos;
 
 import org.joe_e.Powerless;
 import org.joe_e.Selfless;
-import org.waterken.vat.Root;
+import org.waterken.db.Root;
 
 /**
  * An object graph splice.

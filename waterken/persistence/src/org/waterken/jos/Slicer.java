@@ -15,7 +15,7 @@ import org.joe_e.JoeE;
 import org.joe_e.Selfless;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.eventual.Deferred;
-import org.waterken.vat.Root;
+import org.waterken.db.Root;
 
 /**
  * Slices an object graph at selfish object references.

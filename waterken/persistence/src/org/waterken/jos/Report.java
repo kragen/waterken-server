@@ -12,8 +12,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import org.joe_e.file.Filesystem;
+import org.waterken.db.Vat;
 import org.waterken.project.Project;
-import org.waterken.vat.Vat;
 
 /**
  * Produce a report on file usage by a persistence folder.
