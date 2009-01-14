@@ -80,7 +80,7 @@ Config {
     private final PowerlessArray<Syntax> supported;
     private final String outputExt;
     
-    private         Scope cache;    // [ URI => value ]
+    private       Scope cache;      // [ URI => value ]
     
     /**
      * Constructs an instance.
