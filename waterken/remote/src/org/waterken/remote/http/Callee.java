@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
+import static java.lang.reflect.Modifier.isPublic;
+import static java.lang.reflect.Modifier.isStatic;
 import static org.joe_e.array.PowerlessArray.builder;
 
 import java.io.Serializable;
@@ -27,7 +29,6 @@ import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.FileType;
-import org.waterken.remote.Remote;
 import org.waterken.syntax.BadSyntax;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
@@ -40,11 +41,10 @@ import org.waterken.uri.Header;
 Callee extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
     
-    private final ClassLoader code;
     private final Exports exports;
 
-    Callee(final ClassLoader code, final Exports exports) {
-        this.code = code;
+    protected
+    Callee(final Exports exports) {
         this.exports = exports;
     }
 
@@ -74,7 +74,7 @@ Callee extends Struct implements Serializable {
             } catch (final Exception e) {
                 value = new Rejected<Object>(e);
             }
-            if (null == p && !Remote.isPBC(value)) {
+            if (null == p && !Exports.isPBC(value)) {
                 value = describe(value.getClass());
             }
             final Response failed = m.head.allow("");
@@ -91,16 +91,16 @@ Callee extends Struct implements Serializable {
             // AUDIT: call to untrusted application code
             target = ((Fulfilled<?>)subject).cast();
         } catch (final Exception e) {
-            return serialize(m.head.method, "410", "never", Server.forever,
+            return serialize(m.head.method, "404", "never", Server.forever,
                              new Rejected<Object>(e));
         }       
-        if (Remote.isPBC(target)) {
+        if (Exports.isPBC(target)) {
             // prevent access to local implementation details
             return new Message<Response>(Response.gone(), null);
         }
         
         // determine the type of accessed member
-        final Method lambda = Exports.dispatch(target, p);
+        final Method lambda = dispatch(target, p);
         if (null == lambda) {                   // no such member
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
@@ -122,7 +122,7 @@ Callee extends Struct implements Serializable {
             Object value;
             try {
                 // AUDIT: call to untrusted application code
-                value = Reflection.invoke(Exports.bubble(lambda), target);
+                value = Reflection.invoke(bubble(lambda), target);
             } catch (final Exception e) {
                 value = new Rejected<Object>(e);
             }
@@ -170,7 +170,7 @@ Callee extends Struct implements Serializable {
                 }
 
                 // AUDIT: call to untrusted application code
-                return Reflection.invoke(Exports.bubble(lambda), target,
+                return Reflection.invoke(bubble(lambda), target,
                         argv.toArray(new Object[argv.length()]));
             }
         });
@@ -192,7 +192,7 @@ Callee extends Struct implements Serializable {
                 "HEAD".equals(method) ? null : content);
         }
         final ByteArray content =
-            new JSONSerializer().run(exports.reply(), ConstArray.array(value));
+            new JSONSerializer().run(exports.export(), ConstArray.array(value));
         return new Message<Response>(new Response(
             "HTTP/1.1", status, phrase,
             PowerlessArray.array(
@@ -210,7 +210,74 @@ Callee extends Struct implements Serializable {
             return ConstArray.array(m.body);
         }
         return new JSONDeserializer().run(exports.getHere(), exports.connect(),
-                parameters, code, m.body.asInputStream());
+                parameters, exports.code, m.body.asInputStream());
+    }
+
+    /**
+     * Finds the first invocable declaration of a public method.
+     */
+    static private Method
+    bubble(final Method method) {
+        final Class<?> declarer = method.getDeclaringClass();
+        if (Object.class == declarer || Struct.class == declarer) {return null;}
+        if (isPublic(declarer.getModifiers())) { return method; }
+        if (isStatic(method.getModifiers())) { return null; }
+        final String name = method.getName();
+        final Class<?>[] param = method.getParameterTypes();
+        for (final Class<?> i : declarer.getInterfaces()) {
+            try {
+                final Method r = bubble(Reflection.method(i, name, param));
+                if (null != r) { return r; }
+            } catch (final NoSuchMethodException e) {}
+        }
+        final Class<?> parent = declarer.getSuperclass();
+        if (null != parent) {
+            try {
+                final Method r = bubble(Reflection.method(parent, name, param));
+                if (null != r) { return r; }
+            } catch (final NoSuchMethodException e) {}
+        }
+        return null;
+    }
+    
+    /**
+     * synthetic modifier
+     */
+    static private final int synthetic = 0x1000;
+    
+    /**
+     * Is the synthetic flag set?
+     * @param flags Java modifiers
+     * @return <code>true</code> if synthetic, else <code>false</code>
+     */
+    static private boolean
+    isSynthetic(final int flags) { return 0 != (flags & synthetic); }
+
+    /**
+     * Finds a named method.
+     * @param target    invocation target
+     * @param name      method name
+     * @return corresponding method, or <code>null</code> if not found
+     */
+    static protected Method
+    dispatch(final Object target, final String name) {
+        final Class<?> type = null != target ? target.getClass() : Void.class;
+        final boolean c = Class.class == type;
+        Method r = null;
+        for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
+            final int flags = m.getModifiers();
+            if (c == isStatic(flags) && !isSynthetic(flags)) {
+                String mn = Exports.property(m);
+                if (null == mn) {
+                    mn = m.getName();
+                }
+                if (name.equals(mn)) {
+                    if (null != r) { return null; }
+                    r = m;
+                }
+            }
+        }
+        return r;
     }
     
     static private Scope

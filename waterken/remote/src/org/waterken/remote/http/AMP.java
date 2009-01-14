@@ -4,6 +4,7 @@ package org.waterken.remote.http;
 
 import static org.web_send.Failure.maxEntitySize;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.Serializable;
 
@@ -11,6 +12,9 @@ import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.charset.URLEncoding;
 import org.ref_send.deserializer;
+import org.waterken.db.Root;
+import org.waterken.db.Transaction;
+import org.waterken.db.Vat;
 import org.waterken.http.Client;
 import org.waterken.http.Message;
 import org.waterken.http.Request;
@@ -22,12 +26,9 @@ import org.waterken.io.limited.TooBig;
 import org.waterken.remote.mux.Remoting;
 import org.waterken.uri.Path;
 import org.waterken.uri.URI;
-import org.waterken.vat.Root;
-import org.waterken.vat.Transaction;
-import org.waterken.vat.Vat;
 
 /**
- * web-key implementation
+ * Factory for the server-side of the web-key protocol.
  */
 public final class
 AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
@@ -69,19 +70,22 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                 final Message<Request> m = new Message<Request>(head,
                     null==body ? null : Stream.snapshot(length>=0 ?length :1024,
                                            Limited.input(maxEntitySize, body)));
-                final Message<Response> r = vat.enter(
-                        new Transaction<Message<Response>>(
-                              "GET".equals(head.method) ||
-                              "HEAD".equals(head.method) ||
-                              "OPTIONS".equals(head.method) ||
-                              "TRACE".equals(head.method)) {
-                    public Message<Response>
-                    run(final Root local) throws Exception {
-                        final ClassLoader code = local.fetch(null, Vat.code);
-                        final Exports exports = new Exports(local); 
-                        return new Callee(code, exports).run(q, m);
-                    }
-                }).cast();
+                final Message<Response> r;
+                try {
+                    r = vat.enter(new Transaction<Message<Response>>(
+                            "GET".equals(head.method) ||
+                            "HEAD".equals(head.method) ||
+                            "OPTIONS".equals(head.method) ||
+                            "TRACE".equals(head.method)) {
+                        public Message<Response>
+                        run(final Root local) throws Exception {
+                            return new Callee(new Exports(local)).run(q, m);
+                        }
+                    }).cast();
+                } catch (final FileNotFoundException e) {
+                    client.run(Response.gone(), null);
+                    return;
+                } 
                 client.run(r.head, null!=r.body ?r.body.asInputStream() :null);
             }
         };

@@ -7,8 +7,8 @@ import java.lang.reflect.Method;
 
 import org.joe_e.Struct;
 import org.ref_send.promise.eventual.Do;
+import org.waterken.db.Root;
 import org.waterken.uri.URI;
-import org.waterken.vat.Root;
 
 /**
  * A URI scheme based {@link Messenger} dispatcher.
@@ -32,16 +32,17 @@ MessengerSchemeDispatcher extends Struct implements Messenger, Serializable {
     }
     
     // org.waterken.remote.Messenger interface
+
+    public <R> R
+    when(final String href, final Remote proxy,
+         final Class<?> R, final Do<Object,R> observer) {
+        return dispatch(href).when(href, proxy, R, observer);
+    }
     
     public Object
     invoke(final String href, final Object proxy,
            final Method method, final Object... arg) {
         return dispatch(href).invoke(href, proxy, method, arg);
-    }
-
-    public <R> R
-    when(final String href, final Class<?> R, final Do<Object,R> observer) {
-        return dispatch(href).when(href, R, observer);
     }
     
     /**

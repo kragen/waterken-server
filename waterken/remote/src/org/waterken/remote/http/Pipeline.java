@@ -9,10 +9,14 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import org.joe_e.Immutable;
-import org.joe_e.Struct;
 import org.ref_send.list.List;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.eventual.Receiver;
+import org.waterken.db.Effect;
+import org.waterken.db.Root;
+import org.waterken.db.Service;
+import org.waterken.db.Transaction;
+import org.waterken.db.Vat;
 import org.waterken.http.Client;
 import org.waterken.http.Message;
 import org.waterken.http.Request;
@@ -21,193 +25,193 @@ import org.waterken.http.Server;
 import org.waterken.io.Stream;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.limited.TooBig;
-import org.waterken.vat.Effect;
-import org.waterken.vat.Root;
-import org.waterken.vat.Service;
-import org.waterken.vat.Transaction;
-import org.waterken.vat.Vat;
 
 /**
- * Manages a pending request queue for a specific host.
+ * Manages a pending request queue for a peer vat.
  */
-final class
+/* package */ final class
 Pipeline implements Serializable {
     static private final long serialVersionUID = 1L;
-
-    static private final class
-    Entry extends Struct implements Serializable {
-        static private final long serialVersionUID = 1L;
-
-        final long id;          // serial number
-        final Operation op;     // pending request
-        
-        Entry(final long id, final Operation op) {
-            this.id = id;
-            this.op = op;
-        }
-    }
     
-    private final String peer;
-    private final Receiver<Effect<Server>> effect;
-    private final Fulfilled<Outbound> outbound;
+    private   final String name;                    // messaging session name
+    protected final String peer;                    // URI of peer vat
+    private   final Receiver<Effect<Server>> effect;
+    private   final Fulfilled<Outbound> outbound;
+   
+    private         long activeWindow = 1;  // id of on-the-air window
+    private         int  activeIndex = -1;  // last acknowledged window index
+    private         long acknowledged = 0;  // total acknowledged operations 
     
-    private       long windows = 0; // number of enqueued operation windows
-    private       long ops = 0;     // number of enqueued operations
-    private final List<Entry> pending = List.list();
-    private       int halts = 0;    // number of pending pipeline flushes
-    private       int queries = 0;  // number of queries after the last flush
+    private   final List<Operation> pending = List.list();
+    private         int halts = 0;      // number of pending pipeline flushes
+    private         int queries = 0;    // number of queries after last flush
+    private         int updates = 0;    // number of updates after last flush
     
     /*
      * Message sending is halted before an Update that follows a Query. Sending
      * resumes once the response to the Query has been received.
      */
+    
+    private         String key = "";    // messaging session key
 
     protected
-    Pipeline(final String peer,
+    Pipeline(final String name, final String peer,
              final Receiver<Effect<Server>> effect,
              final Fulfilled<Outbound> outbound) {
+        this.name = name;
         this.peer = peer;
         this.effect = effect;
         this.outbound = outbound;
     }
 
-    void
-    resend() { effect.run(restart(peer, pending.getSize(), false, 0)); }
+    protected void
+    resend() { effect.run(restart(peer, pending.getSize(), acknowledged + 1)); }
     
-    long
-    enqueue(final Operation message) {
+    /**
+     * Enqueue an operation.
+     * @param operation operation to enqueue
+     * @return GUID assigned to request
+     */
+    protected String
+    enqueue(final Operation operation) {
         if (pending.isEmpty()) {
-            near(outbound).add(peer, this);
+            near(outbound).add(this);
         }
-        final long mid = ops++;
-        if (message instanceof Update) {
+        pending.append(operation);
+        final long mid = acknowledged + pending.getSize();
+        final String guid;
+        if (operation instanceof Update) {
+            // TODO: initialize session key
             if (0 != queries) {
-                ++windows;
-                ++halts;
+                halts += 1;
                 queries = 0;
+                updates = 0;
             }
+            guid = name + "-" + (activeWindow + halts) + "-" + updates;
+            updates += 1;
+        } else {
+            guid = name + "-0-" + mid;
         }
-        if (message instanceof Query) { ++queries; }
-        if (0 == halts) { effect.run(restart(peer, 1, true, mid)); }
-        pending.append(new Entry(mid, message));
-        return mid;
+        if (operation instanceof Query) {
+            queries += 1;
+        }
+        if (0 == halts) { effect.run(restart(peer, 1, mid)); }
+        return guid;
     }
     
     private Operation
     dequeue(final long mid) {
-        if (pending.getFront().id != mid) { throw new RuntimeException(); }
+        if (mid != acknowledged + 1) { throw new RuntimeException(); }
         
-        final Entry front = pending.pop();
+        final Operation front = pending.pop();
         if (pending.isEmpty()) {
             near(outbound).remove(peer);
         }
-        if (front.op instanceof Query) {
+        acknowledged += 1;
+        if (front instanceof Update) {
+            activeIndex += 1;
+        }
+        if (front instanceof Query) {
             if (0 == halts) {
-                --queries;
+                queries -= 1;
             } else {
                 /*
                  * restart message sending if this was the last query we were
                  * waiting on in the halted pipeline
                  */
                 int max = pending.getSize();
-                for (final Entry x : pending) {
-                    if (x.op instanceof Update) {
-                        --halts;
-                        effect.run(restart(peer, max, true, x.id));
+                long skipTo = acknowledged;
+                for (final Operation x : pending) {
+                    ++skipTo;
+                    if (x instanceof Update) {
+                        halts -= 1;
+                        activeWindow += 1;
+                        activeIndex = -1;
+                        effect.run(restart(peer, max, skipTo));
                         break;
                     }
-                    if (x.op instanceof Query) { break; }
+                    if (x instanceof Query) { break; }
                     --max;
                 }
             }
         }
-        return front.op;
+        return front;
     }
     
     /**
      * Serializes requests and enqueues them on the transient HTTP connection.
      * @param peer      id for the pipeline to service
      * @param max       maximum number of requests to enqueue
-     * @param skipTo    Must requests be skipped to find the first one to send?
-     * @param mid       if <code>skipTo</code> is <code>true</code>:
-     *                  id of the first request to send, else ignored
+     * @param skipTo    id of first request to send
      */
     static private Effect<Server>
-    restart(final String peer, final int max,
-            final boolean skipTo, final long mid) {
-        return new Effect<Server>() {
-           public void
-           run(final Vat<Server> vat) throws Exception {
-               vat.enter(new Transaction<Immutable>(Transaction.query) {
-                   public Immutable
-                   run(final Root local) throws Exception {
-                       final Receiver<Effect<Server>> effect =
-                           local.fetch(null, Vat.effect);
-                       final Outbound outbound =
-                           local.fetch(null, VatInitializer.outbound);
-                       boolean found = !skipTo;
-                       boolean queried = false;
-                       int n = max;
-                       for (final Entry x: outbound.find(peer).pending) {
-                           if (!found) {
-                               if (mid == x.id) {
-                                   found = true;
-                               } else {
-                                   continue;
-                               }
-                           }
-                           if (0 == n--) { break; }
-                           if (queried && x.op instanceof Update) { break; }
-                           if (x.op instanceof Query) { queried = true; }
-                           effect.run(send(peer, x.id, x.op));
-                       }
-                       return null;
-                   }
-               });
-           }
-        };
-    }
-    
-    static private Effect<Server>
-    send(final String peer, final long mid, final Operation op) {
-        try {
-            final Message<Request> m = op.render();
-            return new Effect<Server>() {
-                public void
-                run(final Vat<Server> vat) throws Exception {
-                    vat.session.serve(peer, m.head,
-                        null != m.body ? m.body.asInputStream() : null,
-                        new Fulfill(vat, peer, mid));
+    restart(final String peer, final int max, final long skipTo
+           ) { return new Effect<Server>() {
+        public void
+        run(final Vat<Server> vat) throws Exception {
+            vat.enter(new Transaction<Immutable>(Transaction.query) {
+                public Immutable
+                run(final Root local) throws Exception {
+                    final Receiver<Effect<Server>> effect =
+                        local.fetch(null, Vat.effect);
+                    final Outbound outbound =
+                        local.fetch(null, VatInitializer.outbound);
+                    final Pipeline m = outbound.find(peer);
+                    final long window = m.activeWindow;
+                    int index = m.activeIndex;
+                    boolean queried = false;
+                    long sent = m.acknowledged;
+                    boolean found = false;
+                    int n = max;
+                    for (final Operation x : m.pending) {
+                        if (x instanceof Update) {
+                            if (queried) { break; }
+                            index += 1;
+                        }
+                        if (x instanceof Query) { queried = true; }
+                        sent += 1;
+                        found = found || skipTo == sent;
+                        if (!found) { continue; }
+                        if (0 == n--) { break; }
+                       
+                        final long mid = sent;
+                        final String guid;
+                        if (x instanceof Update) {
+                            guid = m.name + "-" + window + "-" + index;
+                        } else {
+                            guid = m.name + "!" + mid;
+                        }
+                        try {
+                            final Message<Request> q =
+                                x.render(m.key, window, index);
+                            effect.run(new Effect<Server>() {
+                                public void
+                                run(final Vat<Server> vat) throws Exception {
+                                    vat.session.serve(peer, q.head,
+                                      null!=q.body?q.body.asInputStream():null,
+                                      fulfill(vat, peer, guid, mid));
+                                }
+                            });
+                        } catch (final Exception reason) {
+                            effect.run(new Effect<Server>() {
+                                public void
+                                run(final Vat<Server> vat) throws Exception {
+                                    vat.session.serve(peer, null, null,
+                                        reject(vat, peer, guid, mid, reason));
+                                }
+                            });
+                        }
+                    }
+                    return null;
                 }
-            };
-        } catch (final Exception reason) {
-            return new Effect<Server>() {
-                public void
-                run(final Vat<Server> vat) throws Exception {
-                    vat.session.serve(peer, null, null,
-                                      new Reject(vat, peer, mid, reason));
-                }
-            };
+            });
         }
-    }
+    }; }
     
-    static private final class
-    Reject extends Struct implements Client {
-        
-        private final Vat<Server> vat;
-        private final String peer;
-        private final long mid;
-        private final Exception reason;
-        
-        protected
-        Reject(final Vat<Server> vat, final String peer,
-               final long mid, final Exception reason) {
-            this.vat = vat;
-            this.peer = peer;
-            this.mid = mid;
-            this.reason = reason;
-        }
-        
+    static private Client
+    reject(final Vat<Server> vat, final String peer,
+           final String request, final long mid, final Exception reason
+          ) { return new Client() {
         public void
         run(final Response head, final InputStream body) throws Exception {
             vat.service.run(new Service() {
@@ -218,7 +222,8 @@ Pipeline implements Serializable {
                         run(final Root local) throws Exception {
                             final Outbound outbound =
                                 local.fetch(null, VatInitializer.outbound);
-                            outbound.find(peer).dequeue(mid).reject(reason);
+                            outbound.find(peer).dequeue(mid).
+                                reject(request, reason);
                             return null;
                         }
                     });
@@ -226,21 +231,11 @@ Pipeline implements Serializable {
                 }
             });
         }
-    }
+    }; }
     
-    static private final class
-    Fulfill extends Struct implements Client {
-        
-        private final Vat<Server> vat;
-        private final String peer;
-        private final long mid;
-        
-        Fulfill(final Vat<Server> vat, final String peer, final long mid) {
-            this.vat = vat;
-            this.peer = peer;
-            this.mid = mid;
-        }
-
+    static private Client
+    fulfill(final Vat<Server> vat, final String peer, 
+            final String request, final long mid) { return new Client() {
         public void
         run(final Response head, final InputStream body) throws Exception {
             Message<Response> r;
@@ -266,7 +261,8 @@ Pipeline implements Serializable {
                         run(final Root local) throws Exception {
                             final Outbound outbound =
                                 local.fetch(null, VatInitializer.outbound);
-                            outbound.find(peer).dequeue(mid).fulfill(response);
+                            outbound.find(peer).dequeue(mid).
+                                fulfill(request, response);
                             return null;
                         }
                     });
@@ -274,5 +270,5 @@ Pipeline implements Serializable {
                 }
             });
         }
-    }
+    }; }
 }

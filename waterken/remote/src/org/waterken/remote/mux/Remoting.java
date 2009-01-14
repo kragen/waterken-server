@@ -2,8 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.mux;
 
+import org.waterken.db.Vat;
 import org.waterken.http.Server;
-import org.waterken.vat.Vat;
 
 /**
  * A remoting protocol.

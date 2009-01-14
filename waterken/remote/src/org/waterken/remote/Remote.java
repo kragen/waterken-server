@@ -12,9 +12,12 @@ import org.joe_e.Token;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.eventual.Channel;
+import org.ref_send.promise.eventual.Compose;
 import org.ref_send.promise.eventual.Deferred;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Task;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
@@ -146,35 +149,39 @@ Remote extends Deferred<Object> implements Promise<Object> {
 
     protected <R> R
     when(final Class<?> R, final Do<Object,R> observer) {
-        return messenger.when(href, R, observer);
+        return messenger.when(href, this, R, observer);
     }
     
     // org.waterken.remote.Remote interface
-
+    
     /**
-     * Is the given object pass-by-construction?
-     * @param object  candidate object
-     * @return <code>true</code> if pass-by-construction,
-     *         else <code>false</code>
+     * A {@linkplain #when when block} implementation for a fulfilled reference.
      */
-    static public boolean
-    isPBC(final Object object) {
-        final Class<?> type = null != object ? object.getClass() : Void.class;
-        return String.class == type ||
-            Integer.class == type ||
-            Boolean.class == type ||
-            Long.class == type ||
-            Byte.class == type ||
-            Short.class == type ||
-            Character.class == type ||
-            Double.class == type ||
-            Float.class == type ||
-            Void.class == type ||
-            java.math.BigInteger.class == type ||
-            java.math.BigDecimal.class == type ||
-            org.ref_send.Record.class.isAssignableFrom(type) ||
-            Throwable.class.isAssignableFrom(type) ||
-            org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
-            org.ref_send.promise.Volatile.class.isAssignableFrom(type);
+    public <R> R
+    fulfill(final Class<?> R, final Do<Object,R> observer) {
+        final R r;
+        final Do<Object,?> forwarder;
+        if (void.class == R || Void.class == R) {
+            r = null;
+            forwarder = observer;
+        } else {
+            final Channel<R> x = _.defer();
+            r = _.cast(R, x.promise);
+            forwarder = new Compose<Object,R>(observer, x.resolver);
+        }
+        class Fulfill extends Struct implements Task<Void>, Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public Void
+            run() throws Exception {
+                // AUDIT: call to untrusted application code
+                forwarder.fulfill(_.cast(
+                    Typedef.raw(Compose.parameter(forwarder)), Remote.this));
+                // TODO: the logging here could be better
+                return null;
+            }
+        }
+        _.run(new Fulfill());
+        return r;
     }
 }

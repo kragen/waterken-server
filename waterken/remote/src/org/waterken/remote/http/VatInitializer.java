@@ -2,12 +2,16 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
+import static org.ref_send.promise.Fulfilled.detach;
+
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 import org.joe_e.Immutable;
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.InvalidFilenameException;
@@ -18,16 +22,17 @@ import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
+import org.waterken.db.Creator;
+import org.waterken.db.Effect;
+import org.waterken.db.Root;
+import org.waterken.db.Transaction;
+import org.waterken.db.Vat;
 import org.waterken.http.Server;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.MessengerSchemeDispatcher;
 import org.waterken.remote.Remote;
 import org.waterken.syntax.Importer;
-import org.waterken.vat.Creator;
-import org.waterken.vat.Effect;
-import org.waterken.vat.Root;
-import org.waterken.vat.Transaction;
-import org.waterken.vat.Vat;
+import org.waterken.syntax.json.JSONDeserializer;
 import org.web_send.graph.Framework;
 import org.web_send.graph.Publisher;
 import org.web_send.graph.Spawn;
@@ -36,19 +41,22 @@ import org.web_send.graph.Spawn;
  * The vat initialization transaction.
  */
 /* package */ final class
-VatInitializer<R> extends Transaction<PowerlessArray<String>> {
+VatInitializer<R> extends Transaction<ByteArray> {
 
     private final boolean anonymous;
     private final Method build;
+    private final ByteArray argv;   // JSON serialized arguments
     
     private
-    VatInitializer(final boolean anonymous, final Method build) {
+    VatInitializer(final boolean anonymous,
+                   final Method build, final ByteArray argv) {
         super(Transaction.update);
         this.anonymous = anonymous;
         this.build = build;
+        this.argv = argv;
     }
     
-    public PowerlessArray<String>
+    public ByteArray
     run(final Root local) throws Exception {
         final String here = local.fetch(null, Vat.here);
         final Receiver<Effect<Server>> effect = local.fetch(null, Vat.effect);
@@ -56,23 +64,38 @@ VatInitializer<R> extends Transaction<PowerlessArray<String>> {
         final Receiver<?> destruct = local.fetch(null, Vat.destruct);
         
         local.link(sessions, new SessionMaker(local));
-        local.link(outbound, new Outbound());
+        final Outbound outbound = new Outbound();
+        local.link(VatInitializer.outbound, outbound);
         local.link(Vat.wake, new Wake());
         final List<Task<?>> tasks = List.list();
         local.link(VatInitializer.tasks, tasks);
         final Token deferred = new Token();
+        local.link(VatInitializer.deferred, deferred);
         final Eventual _= new Eventual(deferred,enqueue(effect,tasks),here,log);
-        final Publisher publisher = publish(local, _, deferred,
-                                    new MessengerSchemeDispatcher(local));
+        local.link(VatInitializer._, _);
+        final Messenger messenger = new MessengerSchemeDispatcher(local);
+        local.link(VatInitializer.messenger, messenger);
+        final Messenger http = new HTTP(_, effect, detach(outbound), local);
+        local.link(MessengerSchemeDispatcher.prefix + "http", http);
+        local.link(MessengerSchemeDispatcher.prefix + "https", http);
+        final Publisher publisher = publish(local, _, deferred, messenger);
         final Framework framework = new Framework(
             _, destruct, spawn(publisher), anonymous ? null : publisher
         );
+        final Exports exports = new Exports(local);
+        final ConstArray<?> optional = new JSONDeserializer().run(here,
+            exports.connect(),
+            ConstArray.array(build.getGenericParameterTypes()).without(0),
+            exports.code, argv.asInputStream());
         final Channel<R> r = _.defer();
         final Builder<R> init = new Builder<R>(build, framework, r.resolver);
+        /*
         return PowerlessArray.array(
             here + Exports.href(local.export(init, false), false),
             here + Exports.href(local.export(r.promise, false), true)
         );
+        */
+        return null;
     }
 
     /**
@@ -94,10 +117,11 @@ VatInitializer<R> extends Transaction<PowerlessArray<String>> {
             public @SuppressWarnings("unchecked") <R> R
             spawn(final String name,
                   final Class<?> builder, final Object... argv) {
-                final Method build = Exports.dispatch(builder, "build");
+                final Method build = Callee.dispatch(builder, "build");
                 final Class<?> R = build.getReturnType();
                 try {
                     if (null != name) { vet(name); }
+                    /*
                     final String project = mother.fetch(null, Vat.project);
                     final Creator creator = mother.fetch(null, Vat.creator);
                     final PowerlessArray<String> keys = creator.run(project,
@@ -109,6 +133,8 @@ VatInitializer<R> extends Transaction<PowerlessArray<String>> {
                         (Receiver)connect.run(keys.get(0),null, Receiver.class);
                     init.run(ConstArray.array(argv));
                     return (R)connect.run(keys.get(1), null, R);
+                    */
+                    return null;
                 } catch (final Exception e) {
                     return new Rejected<R>(e)._(R);
                 }
@@ -171,9 +197,7 @@ VatInitializer<R> extends Transaction<PowerlessArray<String>> {
                 effect.run(runTask());
             }
             final Outbound outbound= local.fetch(null, VatInitializer.outbound);
-            for (final Outbound.Entry x : outbound.getPending()) {
-                x.msgs.resend();
-            }
+            for (final Pipeline x : outbound.getPending()) { x.resend(); }
             return null;
         }
     }
@@ -203,7 +227,10 @@ VatInitializer<R> extends Transaction<PowerlessArray<String>> {
     }
     
     static protected final String outbound = ".outbound";
-    static private final String tasks = ".tasks";
+    static private   final String tasks = ".tasks";
+    static protected final String _ = "._";
+    static protected final String deferred = ".deferred";
+    static protected final String messenger = ".messenger";
 
     /**
      * key bound to the session maker in all vats

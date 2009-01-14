@@ -26,15 +26,16 @@ MessageSink extends Struct implements Messenger, Powerless, Serializable {
     private
     MessageSink() {}
 
+    public <R> R
+    when(final String href, final Remote proxy,
+         final Class<?> R, final Do<Object, R> observer) {
+        return new Rejected<R>(new UnsupportedScheme(URI.scheme(href)))._(R);
+    }
+
     public Object
     invoke(final String href, final Object proxy,
            final Method method, final Object... arg) {
         return new Rejected<Object>(new UnsupportedScheme(URI.scheme(href))).
             _(method.getReturnType());
-    }
-
-    public <R> R
-    when(final String href, final Class<?> R, final Do<Object, R> observer) {
-        return new Rejected<R>(new UnsupportedScheme(URI.scheme(href)))._(R);
     }
 }

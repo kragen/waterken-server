@@ -5,8 +5,8 @@ package org.waterken.remote.http;
 import java.io.Serializable;
 
 import org.ref_send.promise.eventual.Log;
-import org.waterken.vat.Root;
-import org.waterken.vat.Vat;
+import org.waterken.db.Root;
+import org.waterken.db.Vat;
 
 /**
  * A {@link Session} maker.
