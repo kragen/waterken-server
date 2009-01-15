@@ -2,18 +2,15 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
-import java.io.File;
-import java.io.FileFilter;
 import java.io.PrintStream;
 import java.net.BindException;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 
+import org.ref_send.promise.eventual.Receiver;
+import org.waterken.dns.Resource;
 import org.waterken.net.TCPDaemon;
 import org.waterken.udp.UDPDaemon;
-import org.waterken.vat.Root;
-import org.waterken.vat.Transaction;
-import org.waterken.vat.Vat;
 
 /**
  * Starts the server.
@@ -51,7 +48,7 @@ Serve {
     }
     
     static private void
-    start(final PrintStream err, final String[] args) throws Exception {
+    start(final PrintStream err, final String... services) throws Exception {
         final Credentials credentials = Proxy.init();
         final String hostname =
             null != credentials ? credentials.getHostname() : "localhost";
@@ -60,8 +57,8 @@ Serve {
         Settings.summarize(hostname, err);
 
         // start the network services
-        for (int i = 0; i != args.length; ++i) {
-            final String service = args[i];
+        final Receiver<Resource> updateDNS_ = Settings.config.read("updateDNS");
+        for (final String service : services) {
         	try {
 	            final Object config = Settings.config.read(service);
 	            final Runnable task;
@@ -73,11 +70,14 @@ Serve {
 	                : new ServerSocket(daemon.port, daemon.backlog,
 	                				   Loopback.addr);
 	                task = new TCP(service, err, daemon,
-	                               daemon.SSL ? hostname : "localhost", listen);
+	                               daemon.SSL ? hostname : "localhost",
+	                               listen, updateDNS_);
 	            } else if (config instanceof UDPDaemon) {
 	                final UDPDaemon daemon = (UDPDaemon)config;
 	                task = new UDP(service, err, daemon,
 	                               new DatagramSocket(daemon.port));
+	            } else if (config instanceof Runnable) {
+	                task = (Runnable)config;
 	            } else {
 	            	throw new Exception("Unrecognized service: " + service);
 	            }
@@ -91,30 +91,5 @@ Serve {
 	        	throw e;
 	        }
         }
-        
-        // ping all the persistent vats to restart any pending tasks
-        err.println("Restarting all vats...");
-        final File vats = Settings.config.read("vatRootFolder");
-        ping(vats);
-        err.println("All vats restarted.");
-    }
-    
-    static private void
-    ping(final File dir) {
-        dir.listFiles(new FileFilter() {
-            public boolean
-            accept(final File child) {
-                if (child.isDirectory() && !child.getName().startsWith(".")) {
-                    ping(child);
-                }
-                return false;
-            }
-        });
-        try {
-            Settings.vats.connect(dir).enter(Vat.extend, new Transaction<Void>() {
-                public Void
-                run(final Root local) { return null; }
-            });
-        } catch (final Exception e) {}
     }
 }

@@ -33,12 +33,12 @@ import javax.net.ssl.X509TrustManager;
 
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
-import org.ref_send.promise.eventual.Do;
 import org.waterken.base32.Base32;
+import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.net.Locator;
-import org.waterken.net.http.Client;
+import org.waterken.net.http.ClientSide;
 import org.waterken.uri.Authority;
 import org.waterken.uri.Header;
 import org.waterken.uri.Location;
@@ -156,19 +156,19 @@ SSL {
                     Integer.parseInt(System.getProperty("proxyPort")));
                 try {
                     final OutputStream out = proxy.getOutputStream();
-                    Client.send(new Request(
+                    ClientSide.send(new Request(
                         "HTTP/1.0", "CONNECT", hostname + ":" + port,
-                        PowerlessArray.array(new Header[0]), null), out);
+                        PowerlessArray.array(new Header[0])), null, out);
                     out.flush();
                     final boolean[] connected = { false };
-                    Client.receive("CONNECT", proxy.getInputStream(),
-                                   new Do<Response,Void>() {
-                        @Override public Void
-                        fulfill(final Response r) throws Exception {
-                            if ("200".equals(r.status)) {
+                    ClientSide.receive("CONNECT", proxy.getInputStream(),
+                                   new Client() {
+                        public void
+                        run(final Response head,
+                            final InputStream body) throws Exception {
+                            if ("200".equals(head.status)) {
                                 connected[0] = true;
                             }
-                            return null;
                         }
                     });
                     if (!connected[0]) { throw new ConnectException(); }

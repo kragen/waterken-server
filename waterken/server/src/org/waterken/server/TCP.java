@@ -13,10 +13,10 @@ import java.net.SocketTimeoutException;
 import java.util.Enumeration;
 
 import org.joe_e.array.ByteArray;
-import org.ref_send.var.Setter;
-import org.ref_send.var.Variable;
+import org.ref_send.promise.eventual.Receiver;
 import org.waterken.dns.Resource;
 import org.waterken.net.TCPDaemon;
+import org.waterken.thread.Yield;
 
 /**
  * A TCP daemon.
@@ -24,82 +24,53 @@ import org.waterken.net.TCPDaemon;
 final class
 TCP implements Runnable {
     
-    private final String service;
+    private final String serviceName;
     private final PrintStream err;
     private final TCPDaemon daemon;
     private final String hostname;
     private final ServerSocket port;
+    private final Receiver<Resource> updateDNS;
     
-    private       long count = 0;
+    private       long connectionCount = 0;
+    private       InetAddress lastKnownAddress = null;
     
-    TCP(final String service, final PrintStream err,  
-        final TCPDaemon daemon, final String hostname, final ServerSocket port){
-        this.service = service;
+    TCP(final String serviceName, final PrintStream err,  
+        final TCPDaemon daemon, final String hostname,
+        final ServerSocket port, final Receiver<Resource> updateDNS) {
+        this.serviceName = serviceName;
         this.err = err;
         this.daemon = daemon;
         this.hostname = hostname;
         this.port = port;
+        this.updateDNS = updateDNS;
     }
 
     public void
     run() {
-        err.println(service + ": " + "running at " +
+        err.println(serviceName + ": " + "running at " +
                     port.getLocalSocketAddress() + " ...");
         
-        final ThreadGroup threads = new ThreadGroup(service);
-        final Setter<Resource> updater_;
-        if (daemon.SSL) {
-            final Variable<Resource> ip;
-            try {
-                ip = Settings.config.read("ip");
-            } catch (final Exception e) { throw new Error(e); }
-            if (null != ip) {
-                updater_ = Settings.browser._._(ip.setter);
-                try {
-                    port.setSoTimeout(60 * 1000);
-                } catch (final Exception e) {
-                    err.println(service + ": " + e);
-                }
-            } else {
-                updater_ = null;
-            }
-        } else {
-            updater_ = null;
-        }
-        InetAddress address = null;
-        boolean recheck = null != updater_;
+        final ThreadGroup threads = new ThreadGroup(serviceName);
+        if (null != updateDNS) { updateHostAddress(); }
         while (true) {
             final Socket socket;
             try {
-                if (recheck) {
-                    final InetAddress a = dynip();
-                    if (!a.equals(address)) {
-                        err.println(
-                            "Updating DNS to: " + a.getHostAddress() + "...");
-                        updater_.run(new Resource(
-                            Resource.A, Resource.IN, 60,
-                            ByteArray.array(a.getAddress())));
-                        address = a;
-                    }
-                    recheck = false;
-                }
-
                 socket = port.accept();
             } catch (final SocketTimeoutException e) {
-                recheck = true;
+                if (null != updateDNS) { updateHostAddress(); }
                 continue;
             } catch (final Exception e) {
                 // something strange happened
                 e.printStackTrace();
                 continue;
             }
-            final String name = service + "-" + count++;
+            final String name = serviceName + "-" + connectionCount++;
             new Thread(threads, new Runnable() {
                 public void
                 run() {
                     try {
                         err.println(name + ": processing...");
-                        daemon.accept(Settings.exe, hostname, socket).run();
+                        daemon.accept(new Yield(), hostname, socket).run();
                     } catch (final SocketTimeoutException e) {
                     	// normal end to a TCP connection
                     } catch (final Throwable e) {
@@ -110,6 +81,23 @@ TCP implements Runnable {
                     err.println(name + ": done");
                 }
             }, name).start();
+        }
+    }
+    
+    private void
+    updateHostAddress() {
+        try {
+            final InetAddress a = dynip();
+            if (!a.equals(lastKnownAddress)) {
+                err.println(
+                    "Updating DNS to: " + a.getHostAddress() + "...");
+                updateDNS.run(new Resource(
+                    Resource.A, Resource.IN, 60,
+                    ByteArray.array(a.getAddress())));
+                lastKnownAddress = a;
+            }
+        } catch (final Exception e) {
+            e.printStackTrace();
         }
     }
     

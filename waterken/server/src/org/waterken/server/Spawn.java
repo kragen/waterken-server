@@ -4,23 +4,11 @@ package org.waterken.server;
 
 import java.io.PrintStream;
 
-import org.joe_e.Token;
-import org.ref_send.log.Anchor;
-import org.ref_send.promise.Volatile;
-import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Receiver;
+import org.joe_e.array.ByteArray;
 import org.waterken.net.http.HTTPD;
-import org.waterken.project.ProjectTracer;
-import org.waterken.remote.Remote;
-import org.waterken.remote.Remoting;
-import org.waterken.remote.http.AMP;
+import org.waterken.project.Project;
+import org.waterken.remote.http.VatInitializer;
 import org.waterken.uri.Hostname;
-import org.waterken.uri.URI;
-import org.waterken.vat.Creator;
-import org.waterken.vat.Root;
-import org.waterken.vat.Tracer;
-import org.waterken.vat.Transaction;
-import org.waterken.vat.Vat;
 
 /**
  * Command line program to create a new database.
@@ -42,11 +30,11 @@ Spawn {
             final PrintStream log = System.err;
             log.println("Creates a new persistent object folder.");
             log.println("use: java -jar spawn.jar " +
-                "<project-name> <factory-typename> <database-label>");
+                "<project-name> <maker-typename> <database-label>");
             System.exit(-1);
             return;
         }
-        final String projectValue = args[0];
+        final String project = args[0];
         final String typename = args[1];
         final String label = 2 < args.length ? args[2] : null;
 
@@ -54,7 +42,7 @@ Spawn {
         final String vatURIPathPrefix= Settings.config.read("vatURIPathPrefix");
 
         // determine the local address
-        final String hereValue;
+        final String here;
         final Credentials credentials = Proxy.init();
         if (null != credentials) {
             final String host = credentials.getHostname();
@@ -62,74 +50,19 @@ Spawn {
             final HTTPD https = Settings.config.read("https");
             final int portN = https.port;
             final String port = 443 == portN ? "" : ":" + portN;
-            hereValue = "https://" + host + port + "/" + vatURIPathPrefix;
+            here = "https://" + host + port + "/" + vatURIPathPrefix;
         } else {
         	final HTTPD http = Settings.config.read("http");
             final int portN = http.port;
             final String port = 80 == portN ? "" : ":" + portN;
-            hereValue = "http://localhost" + port + "/" + vatURIPathPrefix;
+            here = "http://localhost" + port + "/" + vatURIPathPrefix;
         }
-        final Proxy clientValue = new Proxy();
         
         // create the database
-        final String r = Settings.vat().enter(Vat.change,
-                                              new Transaction<String>() {
-            public String
-            run(final Root local) throws Exception {
-                final Token deferredValue = new Token();
-                final Eventual _Value = new Eventual(deferredValue, null);
-                final Creator creator = local.fetch(null, Root.creator);
-                final ClassLoader code = creator.load(projectValue);
-                final Tracer tracerValue =
-                    ProjectTracer.make(code, code.getParent());
-                final Root synthetic = new Root() {
-                    
-                    public String
-                    getVatName() { return local.getVatName(); }
-
-                    public Anchor
-                    anchor() { return local.anchor(); }
-
-					public @SuppressWarnings("unchecked") Object
-                    fetch(final Object otherwise, final String name) {
-                        return Root.project.equals(name)
-                            ? projectValue
-                        : Root.here.equals(name)
-                            ? hereValue
-                        : Root.events.equals(name)
-                            ? ReadConfig.make("events", Receiver.class)
-                        : Root.tracer.equals(name)
-                            ? tracerValue
-                        : Remoting.client.equals(name)
-                            ? clientValue
-                        : Remoting.deferred.equals(name)
-                            ? deferredValue
-                        : Remoting._.equals(name)
-                            ? _Value
-                        : local.fetch(otherwise, name);
-                    }
-
-                    public void
-                    link(final String name,
-                         final Object value) { throw new AssertionError(); }
-
-                    public String
-                    export(final Object value) { throw new AssertionError(); }
-
-                    public String
-                    pipeline(final String m, final long w, final long i) {
-                        throw new AssertionError();
-                    }
-
-                    public String
-                    getTransactionTag() { throw new AssertionError(); }
-                };
-                final Class<?> factory = code.loadClass(typename);
-                final Volatile<?> p = Eventual.promised(
-                        AMP.publish(synthetic).spawn(label, factory));
-                return Remote.bind(synthetic, null).run(p.cast());
-            }
-        }).cast();
-        System.out.println(URI.resolve(hereValue, r));
+        final ClassLoader code = Project.connect(project);
+        final Class<?> maker = code.loadClass(typename);
+        final ByteArray r = VatInitializer.create(Settings.vat(), here, project,
+                                                  maker, label);
+        System.out.write(r.toByteArray());
     }
 }

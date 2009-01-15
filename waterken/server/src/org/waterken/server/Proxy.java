@@ -2,20 +2,20 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.HashMap;
 
 import org.joe_e.Struct;
-import org.ref_send.promise.Volatile;
-import org.ref_send.promise.eventual.Do;
-import org.ref_send.promise.eventual.Loop;
+import org.ref_send.promise.eventual.Receiver;
 import org.waterken.cache.Cache;
+import org.waterken.http.Client;
 import org.waterken.http.Request;
-import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.net.Locator;
-import org.waterken.net.http.Client;
+import org.waterken.net.http.ClientSide;
 import org.waterken.thread.Concurrent;
+import org.waterken.thread.Sleep;
 import org.waterken.uri.URI;
 
 /**
@@ -32,11 +32,11 @@ Proxy extends Struct implements Server, Serializable {
     connect(final String peer, final Locator transport) {
         Server r = connections.fetch(null, peer);
         if (null == r) {
-            final Loop<Client.Outbound> sender =
-                Concurrent.loop(threads, "=>" + peer);
-            final Loop<Client.Inbound> receiver =
-                Concurrent.loop(threads, "<=" + peer);
-            r = Client.make(peer, transport, Settings.exe, sender, receiver);
+            final Receiver<ClientSide.Outbound> sender =
+                Concurrent.make(threads, "=>" + peer);
+            final Receiver<ClientSide.Inbound> receiver =
+                Concurrent.make(threads, "<=" + peer);
+            r = ClientSide.make(peer, transport, new Sleep(), sender, receiver);
             connections.put(peer, r);
         }
         return r;
@@ -58,12 +58,12 @@ Proxy extends Struct implements Server, Serializable {
     }
     
     public void
-    serve(final String resource, final Volatile<Request> request,
-          final Do<Response,?> respond) throws Exception {
-        final String scheme = URI.scheme(null, resource).toLowerCase();
+    serve(final String resource, final Request head, final InputStream body,
+                                 final Client client) throws Exception{
+        final String scheme = URI.scheme(resource);
         final Locator transport = protocols.get(scheme);
         final String authority= transport.canonicalize(URI.authority(resource));
         final String peer = scheme + "://" + authority + "/";
-        connect(peer, transport).serve(resource, request, respond);
+        connect(peer, transport).serve(resource, head, body, client);
     }
 }
