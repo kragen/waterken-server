@@ -14,7 +14,6 @@ import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.test.Test;
-import org.web_send.graph.Framework;
 
 /**
  * An introduction to eventual operations in Java.
@@ -53,26 +52,25 @@ Main extends Struct implements Test, Serializable {
     }
     
     /**
-	 * Constructs an instance.
-	 * <p>
-	 * This method is called by the infrastructure code that manages the
-	 * lifecycle of vats. The method must have the exact declaration shown
-	 * below. The sole parameter is the set of permissions provided to the first
-	 * application object created in a new vat. The return from this method is
-	 * an object that will be returned to the creator of the new vat. In this
-	 * case, the vat creator will get an eventual reference of type {@link Test}
-	 * to an instance of this class. In all cases, the return type for a build()
-	 * method must be either an interface, or a {@link Promise}.
-	 * </p>
-	 * @param framework	vat permissions
-	 */
+     * Constructs an instance.
+     * <p>
+     * This method is called by the infrastructure code that manages the
+     * lifecycle of vats. The return from this method is an object that will be
+     * returned to the creator of the new vat. In this case, the vat creator
+     * will get an eventual reference of type {@link Test} to an instance of
+     * this class. In all cases, the return type for a make() method must be
+     * either an interface, or a {@link Promise}.
+     * </p>
+     * 
+     * @param framework vat permissions
+     */
     static public Test
-    build(final Framework framework) {
+    make(final Eventual _) {
         /*
          * In this case, we only need the eventual operator, so the rest of the
          * provided permissions are ignored.
          */ 
-        return new Main(framework._);
+        return new Main(_);
     }
     
     // Command line interface

@@ -18,7 +18,6 @@ import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.test.Test;
-import org.web_send.graph.Framework;
 
 /**
  * An argument passing test.
@@ -46,8 +45,8 @@ Main extends Struct implements Test, Serializable {
      * @param framework vat permissions
      */
     static public Test
-    build(final Framework framework) {
-        return new Main(framework._);
+    make(final Eventual _) {
+        return new Main(_);
     }
     
     // Command line interface

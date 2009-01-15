@@ -12,7 +12,6 @@ import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
 import org.ref_send.test.Test;
-import org.web_send.graph.Framework;
 
 /**
  * Eventual invocation tests.
@@ -37,11 +36,11 @@ Main extends Struct implements Test, Serializable {
     
     /**
      * Constructs an instance.
-     * @param framework vat permissions
+     * @param _ eventual operator
      */
     static public Test
-    build(final Framework framework) {
-        return new Main(framework._);
+    make(final Eventual _) {
+        return new Main(_);
     }
     
     // Command line interface

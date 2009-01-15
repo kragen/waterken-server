@@ -16,7 +16,7 @@ import org.waterken.bang.Bang;
 import org.waterken.bang.Drum;
 import org.waterken.bounce.Bounce;
 import org.waterken.bounce.Wall;
-import org.web_send.graph.Framework;
+import org.web_send.graph.Vat;
 
 /**
  * Runs all tests.
@@ -25,20 +25,23 @@ public final class
 Main extends Struct implements Test, Serializable {
     static private final long serialVersionUID = 1L;
     
-    private final Framework framework;
+    private final Eventual _;
+    private final Vat vat;
     
     private
-    Main(final Framework framework) {
-        this.framework = framework;
+    Main(final Eventual _, final Vat vat) {
+        this._ = _;
+        this.vat = vat;
     }
 
     /**
      * Constructs an instance.
-     * @param framework vat permissions
+     * @param _     eventual operator
+     * @param vat   containing vat
      */
     static public Test
-    build(final Framework framework) {
-        return new Main(framework);
+    make(final Eventual _, final Vat vat) {
+        return new Main(_, vat);
     }
     
     // org.ref_send.test.Test interface
@@ -48,18 +51,17 @@ Main extends Struct implements Test, Serializable {
      */
     public Promise<Boolean>
     start() throws Exception {
-        final Eventual _ = framework._;
         final ConstArray.Builder<Volatile<Boolean>> r = ConstArray.builder(4);
         
         _.log.comment("testing EQ operations on promises");
         r.append(new org.waterken.eq.Main(_).start());
         
         _.log.comment("testing argument passing");
-        final Wall wall_ = framework.publisher.spawn("wall", Bounce.class);
+        final Wall wall_ = vat.publisher.spawn("wall", Bounce.class);
         r.append(new org.waterken.bounce.Main(_).test(wall_));
         
         _.log.comment("testing message pipelining");
-        final Drum drum_ = framework.publisher.spawn("drum", Bang.class);
+        final Drum drum_ = vat.publisher.spawn("drum", Bang.class);
         r.append(new org.waterken.bang.Main(_).test(drum_, 0));
 
         return and(_, r.snapshot());

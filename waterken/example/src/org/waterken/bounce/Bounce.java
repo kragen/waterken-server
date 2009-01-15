@@ -25,7 +25,6 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Receiver;
-import org.web_send.graph.Framework;
 
 /**
  * A {@link Wall} implementation.
@@ -39,14 +38,6 @@ Bounce {
     /**
      * Constructs an instance.
      * @param framework vat permissions
-     */
-    static public Wall
-    build(final Framework framework) {
-        return make(framework._);
-    }
-    
-    /**
-     * Constructs an instance.
      */
     static public Wall
     make(final Eventual _) {

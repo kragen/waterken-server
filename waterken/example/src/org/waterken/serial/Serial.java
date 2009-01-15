@@ -10,7 +10,6 @@ import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Resolver;
-import org.web_send.graph.Framework;
 
 /**
  * A {@link Series} maker.
@@ -22,15 +21,6 @@ Serial {
 
     private
     Serial() {}
-
-    /**
-     * Constructs an instance.
-     * @param framework vat permissions
-     */
-    static public <T> Series<T>
-    build(final Framework framework) {
-        return make(framework._);
-    }
 
     /**
      * Makes a {@link Series}.
