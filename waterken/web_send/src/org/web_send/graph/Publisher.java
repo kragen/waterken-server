@@ -29,12 +29,12 @@ Publisher extends Struct {
     /**
      * Creates a named vat.
      * @param <R> return type, MUST be either an interface, or a {@link Promise}
-     * @param name      vat name, or <code>null</code> for a generated name
-     * @param builder   same requirements as in {@link Spawn#run}
-     * @param argv      more arguments for <code>builder</code>'s build method
-     * @return promise for the object returned by the <code>builder</code>
+     * @param label vat label, or <code>null</code> for a generated label
+     * @param maker same requirements as in {@link Spawn#run}
+     * @param argv  more arguments for <code>maker</code>'s make method
+     * @return promise for the object returned by the <code>maker</code>
      * @see org.web_send.graph.Spawn#run
      */
     public abstract <R> R
-    spawn(String name, Class<?> builder, Object... argv);
+    spawn(String label, Class<?> maker, Object... argv);
 }

@@ -15,17 +15,21 @@ Spawn extends Struct {
     /**
      * Creates a vat.
      * <p>
-     * The <code>builder</code> MUST have a method with signature:
+     * The <code>maker</code> MUST have a method with signature:
      * </p>
      * <pre>
      * static public R
-     * build({@link Framework} framework<i>, &hellip;</i>)
+     * make({@link Eventual} _, {@link Vat} vat<i>, &hellip;</i>)
      * </pre>
+     * <p>
+     * All of the parameters in the make method are optional, but MUST appear
+     * in the order shown if present.
+     * </p>
      * @param <R> return type, MUST be either an interface, or a {@link Promise}
-     * @param builder   object constructor class
-     * @param argv      more arguments for <code>builder</code>'s build method
-     * @return promise for the object returned by the <code>builder</code>
+     * @param maker object constructor class
+     * @param argv  more arguments for <code>makers</code>'s make method
+     * @return promise for the object returned by the <code>make</code>
      */
     public abstract <R> R
-    run(Class<?> builder, Object... argv);
+    run(Class<?> maker, Object... argv);
 }

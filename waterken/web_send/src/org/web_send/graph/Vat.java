@@ -8,7 +8,6 @@ import org.joe_e.Struct;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Receiver;
 
 /**
@@ -26,13 +25,8 @@ import org.ref_send.promise.eventual.Receiver;
  * </p>
  */
 public final class
-Framework extends Struct implements Record, Serializable {
+Vat extends Struct implements Record, Serializable {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * eventual operator
-     */
-    public final Eventual _;
 
     /**
      * permission to destruct this vat
@@ -63,17 +57,14 @@ Framework extends Struct implements Record, Serializable {
 
     /**
      * Constructs an instance.
-     * @param _         {@link #_}
      * @param destruct  {@link #destruct}
      * @param spawn     {@link #spawn}
      * @param publisher optional {@link #publisher}
      */
     public @deserializer
-    Framework(@name("_") final Eventual _,
-              @name("destruct") final Receiver<?> destruct,
-              @name("spawn") final Spawn spawn,
-              @name("publisher") final Publisher publisher) {
-        this._ = _;
+    Vat(@name("destruct") final Receiver<?> destruct,
+        @name("spawn") final Spawn spawn,
+        @name("publisher") final Publisher publisher) {
         this.destruct = destruct;
         this.spawn = spawn;
         this.publisher = publisher;
