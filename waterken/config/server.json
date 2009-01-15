@@ -1,25 +1,24 @@
 [ {
-  "$" : [ "org.waterken.remote.mux.Mux" ],
-  "vatURIPathPrefix" : { "@" : "vatURIPathPrefix" },
-  "vatRoot" : { "@" : "vatRootFolder" },
-  "vats" : { "@" : "vats" },
-  "remoting" : {
-    "$" : [ "org.waterken.remote.http.AMP" ]
-  },
+  "$" : [ "org.waterken.http.trace.Trace" ],
+  "prefix" : "trace/",
   "next" : {
-    "$" : [ "org.waterken.http.trace.Trace" ],
-    "prefix" : "trace/",
+    "$" : [ "org.waterken.http.dump.Dump" ],
+    "path" : "log/",
+    "key" : null,
+    "folder" : { "@" : "file/log/" },
+    "formats" : { "@" : "mime" },
     "next" : {
-      "$" : [ "org.waterken.http.dump.Dump" ],
-      "path" : "log/",
-      "key" : null,
-      "folder" : { "@" : "www/log/" },
-      "formats" : { "@" : "mime" },
+      "$" : [ "org.waterken.remote.mux.Mux" ],
+      "vatURIPathPrefix" : { "@" : "vatURIPathPrefix" },
+      "vatRoot" : { "@" : "vat/" },
+      "vats" : { "@" : "vats" },
+      "remoting" : {
+        "$" : [ "org.waterken.remote.http.AMP" ]
+      },
       "next" : {
         "$" : [ "org.waterken.http.mirror.Mirror" ],
-        "maxAge" : 0,
+        "root" : { "@" : "file/" },
         "tag" : { "@" : "tag" },
-        "root" : { "@" : "www/" },
         "formats" : { "@" : "mime" }
       }
     }

@@ -1,9 +1,8 @@
 [ {
   "$" : [ "org.waterken.io.MIME" ],
   "known" : [
-    { "ext" : ".html", "name" : "text/html; charset=UTF-8" },
-    { "ext" : ".htm",  "name" : "text/html; charset=UTF-8" },
-    { "ext" : ".json", "name" : "application/jsonrequest" },
+    { "ext" : ".html", "name" : "text/html" },
+    { "ext" : ".htm",  "name" : "text/html" },
     { "ext" : ".json", "name" : "application/json" },
     { "ext" : ".js",   "name" : "application/javascript" },
     { "ext" : ".css",  "name" : "text/css; charset=ISO-8859-1" },
@@ -15,8 +14,7 @@
     { "ext" : ".xml",  "name" : "application/xml" },
     { "ext" : ".rdf",  "name" : "application/rdf+xml" },
     { "ext" : ".xsl",  "name" : "application/xsl" },
-    { "ext" : ".txt",  "name" : "text/plain; charset=US-ASCII" },
-    { "ext" : ".uri",  "name" : "text/uri-list; charset=US-ASCII" },
-    { "ext" : "",      "name" : "application/octet-stream" }
+    { "ext" : ".txt",  "name" : "text/plain" },
+    { "ext" : ".uri",  "name" : "text/uri-list; charset=US-ASCII" }
   ]
   } ]
