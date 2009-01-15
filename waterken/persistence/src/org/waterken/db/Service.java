@@ -5,7 +5,7 @@ package org.waterken.db;
 import org.ref_send.promise.eventual.Task;
 
 /**
- * A transient {@link Vat#service}.
+ * A transient {@link Database#service}.
  */
 public interface
 Service extends Task<Void> {}

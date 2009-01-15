@@ -12,7 +12,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import org.joe_e.file.Filesystem;
-import org.waterken.db.Vat;
+import org.waterken.db.Database;
 import org.waterken.project.Project;
 
 /**
@@ -54,7 +54,7 @@ Report {
         final PrintStream out = System.out;
         final File topic = new File(args[0]);
         final File dir = topic.isDirectory() ? topic : topic.getParentFile();
-        final String project = readSetting(Filesystem.file(dir, Vat.project));
+        final String project = readSetting(Filesystem.file(dir, Database.project));
         final ClassLoader code = Project.connect(project);
         
         if (topic.isFile()) {

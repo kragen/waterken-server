@@ -7,8 +7,8 @@ import org.joe_e.file.InvalidFilenameException;
 /**
  * The roots of a persistent object graph.
  * <p>
- * A {@link Root} provides administrative authority over a {@link Vat}. By
- * convention, {@link Vat} infrastructure code keeps hidden state in this
+ * A {@link Root} provides administrative authority over a {@link Database}. By
+ * convention, {@link Database} infrastructure code keeps hidden state in this
  * mapping by prefixing the binding name with a '<code>.</code>' character.
  * </p>
  */

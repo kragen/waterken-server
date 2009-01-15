@@ -9,7 +9,7 @@ import org.ref_send.name;
 
 /**
  * Signals an attempt to modify persistent state in a {@link Transaction#query}
- * {@link Vat#enter transaction}.
+ * {@link Database#enter transaction}.
  */
 public class
 ProhibitedModification extends RuntimeException implements Powerless, Record {

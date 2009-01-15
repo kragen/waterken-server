@@ -47,7 +47,7 @@ import org.waterken.db.Root;
 import org.waterken.db.Service;
 import org.waterken.db.Transaction;
 import org.waterken.db.UnknownClass;
-import org.waterken.db.Vat;
+import org.waterken.db.Database;
 import org.waterken.project.Project;
 import org.waterken.store.Sink;
 import org.waterken.store.Store;
@@ -61,7 +61,7 @@ import org.waterken.trace.project.ProjectTracer;
  * An object graph stored as a set of Java Object Serialization files.
  */
 /* package */ final class
-JODB<S> extends Vat<S> {
+JODB<S> extends Database<S> {
     
     /**
      * Canonicalizes a {@link Root} name.
@@ -123,7 +123,7 @@ JODB<S> extends Vat<S> {
             run(final Object ignored) {
                 effect.run(new Effect<S>() {
                     public void
-                    run(final Vat<S> origin) {
+                    run(final Database<S> origin) {
                         while (true) {
                             try {
                                 ((JODB<?>)origin).store.clean();
@@ -168,7 +168,7 @@ JODB<S> extends Vat<S> {
             process(new Transaction<Immutable>(Transaction.query) {
                 public Immutable
                 run(final Root local) throws Exception {
-                    final Task<?> wake = local.fetch(null, Vat.wake);
+                    final Task<?> wake = local.fetch(null, Database.wake);
                     if (null != wake) { wake.run(); }
                     return null;
                 }
@@ -508,7 +508,7 @@ JODB<S> extends Vat<S> {
             public void
             run(final Effect<S> task) {
                 if (body.isQuery) {
-                    throw new ProhibitedModification(Vat.effect);
+                    throw new ProhibitedModification(Database.effect);
                 }
 
                 services.add(new Service() {
@@ -552,7 +552,7 @@ JODB<S> extends Vat<S> {
                 }
                 try {
                     final String path = URLEncoding.encode(name) + "/";
-                    final String here = root.fetch("/-/", Vat.here) + path;
+                    final String here = root.fetch("/-/", Database.here) + path;
                     final byte[] bits = new byte[128 / Byte.SIZE];
                     prng.nextBytes(bits);
                     final ByteArray secretBits = ByteArray.array(bits);
@@ -565,20 +565,20 @@ JODB<S> extends Vat<S> {
                     return sub.process(new Transaction<X>(Transaction.update) {
                         public X
                         run(final Root local) throws Exception {
-                            local.link(Vat.project, project);
-                            local.link(Vat.here, here);
+                            local.link(Database.project, project);
+                            local.link(Database.here, here);
                             local.link(secret, secretBits);
                             final TurnCounter turn = TurnCounter.make(here);
                             local.link(JODB.flip, turn.flip);
-                            final ClassLoader code = local.fetch(null,Vat.code);
+                            final ClassLoader code = local.fetch(null,Database.code);
                             final Tracer tracer = ProjectTracer.make(code, 2);
                             final Receiver<Effect<S>> effect =
-                                local.fetch(null, Vat.effect);
+                                local.fetch(null, Database.effect);
                             final Receiver<Event> txerr =
                                 local.fetch(null, JODB.txerr);
-                            local.link(Vat.destruct, EventSender.makeDestructor(
+                            local.link(Database.destruct, EventSender.makeDestructor(
                                 makeDestructor(effect),txerr,turn.mark,tracer));
-                            local.link(Vat.log,
+                            local.link(Database.log,
                                 EventSender.makeLog(txerr, turn.mark, tracer));
                             return setup.run(local);
                         }
@@ -599,22 +599,22 @@ JODB<S> extends Vat<S> {
             if (null == prng) { prng = new SecureRandom(); }
             if (null == project) {
                 try {
-                    project = root.fetch(null, Vat.project);
+                    project = root.fetch(null, Database.project);
                 } catch (final Exception e) { throw new Error(e); }
             }
             if (null == code) { code = Project.connect(project); }
     
             // setup the pseudo-persistent objects
-            f2b.put(filename(Vat.code),     new Bucket(code));
-            f2b.put(filename(Vat.creator),  new Bucket(creator));
-            f2b.put(filename(Vat.effect),   new Bucket(effect));
-            f2b.put(filename(Vat.nothing),  new Bucket(null));
-            f2b.put(filename(Vat.tagger),   new Bucket(tagger));
+            f2b.put(filename(Database.code),     new Bucket(code));
+            f2b.put(filename(Database.creator),  new Bucket(creator));
+            f2b.put(filename(Database.effect),   new Bucket(effect));
+            f2b.put(filename(Database.nothing),  new Bucket(null));
+            f2b.put(filename(Database.tagger),   new Bucket(tagger));
             f2b.put(filename(JODB.txerr),   new Bucket(txerr));
             f2b.put(filename(".root"),      new Bucket(root));
             if (null == stderr) {
                 // short-circuit the log implementation
-                f2b.put(filename(Vat.log),  new Bucket(new NOP()));
+                f2b.put(filename(Database.log),  new Bucket(new NOP()));
             }
             for (final Map.Entry<String,Bucket> x : f2b.entrySet()) {
                 o2f.put(x.getValue().value, x.getKey());

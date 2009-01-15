@@ -14,7 +14,7 @@ import org.ref_send.promise.eventual.Task;
  * A persistent object graph.
  */
 public abstract class
-Vat<S> {
+Database<S> {
 
     // known root names
     
@@ -35,7 +35,7 @@ Vat<S> {
 
     /**
      * {@link Effect} {@link Receiver output} processed only if the current
-     * {@link Vat#enter transaction} commits, initialized by vat
+     * {@link Database#enter transaction} commits, initialized by vat
      */
     static public final String effect = ".effect";
     
@@ -66,7 +66,7 @@ Vat<S> {
     static public final String tagger = ".tagger";
 
     /**
-     * {@link Vat#extend} {@link Task} to run each time vat is loaded
+     * {@link Database#extend} {@link Task} to run each time vat is loaded
      */
     static public final String wake = ".wake";
 
@@ -86,7 +86,7 @@ Vat<S> {
      * Constructs an instance.
      */
     protected
-    Vat(final S session, final Receiver<Service> service) {
+    Database(final S session, final Receiver<Service> service) {
         this.session = session;
         this.service = service;
     }

@@ -10,7 +10,7 @@ import org.ref_send.name;
 
 /**
  * Signals an attempt to persist non-{@link Selfless} state in a
- * {@link Transaction#query} {@link Vat#enter transaction}.
+ * {@link Transaction#query} {@link Database#enter transaction}.
  */
 public class
 ProhibitedCreation extends RuntimeException implements Powerless, Record {

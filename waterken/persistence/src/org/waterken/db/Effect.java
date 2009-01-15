@@ -16,5 +16,5 @@ Effect<S> extends Immutable {
      * @throws Exception    any problem
      */
     void
-    run(Vat<S> origin) throws Exception;    
+    run(Database<S> origin) throws Exception;    
 }

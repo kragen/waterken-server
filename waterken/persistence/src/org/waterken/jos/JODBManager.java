@@ -10,7 +10,7 @@ import org.ref_send.log.Event;
 import org.ref_send.promise.eventual.Receiver;
 import org.waterken.cache.Cache;
 import org.waterken.db.Service;
-import org.waterken.db.VatManager;
+import org.waterken.db.DatabaseManager;
 import org.waterken.store.StoreMaker;
 import org.waterken.thread.Concurrent;
 import org.waterken.thread.Sleep;
@@ -19,7 +19,7 @@ import org.waterken.thread.Sleep;
  * A cache of live vats.
  */
 public final class
-JODBManager<S> implements VatManager<S> {
+JODBManager<S> implements DatabaseManager<S> {
     
     private final ThreadGroup group = new ThreadGroup("db");
     private final Cache<File,JODB<S>> live = Cache.make();

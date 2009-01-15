@@ -6,18 +6,18 @@ import org.joe_e.Immutable;
 import org.joe_e.Struct;
 
 /**
- * A {@link Vat#enter transaction} body.
+ * A {@link Database#enter transaction} body.
  */
 public abstract class
 Transaction<R extends Immutable> extends Struct implements Immutable {
     
     /**
-     * indicates a {@linkplain Vat#enter transaction} may modify existing state
+     * indicates a {@linkplain Database#enter transaction} may modify existing state
      */
     static public final boolean update = false;
 
     /**
-     * indicates a {@linkplain Vat#enter transaction} only queries existing
+     * indicates a {@linkplain Database#enter transaction} only queries existing
      * state, and does not persist any new selfish objects
      */
     static public final boolean query = true;
@@ -38,7 +38,7 @@ Transaction<R extends Immutable> extends Struct implements Immutable {
 
     /**
      * Executes the transaction.
-     * @param local {@link Vat} root
+     * @param local {@link Database} root
      * @return any return
      * @throws Exception    any problem
      */

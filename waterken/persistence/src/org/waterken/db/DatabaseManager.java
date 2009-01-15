@@ -5,10 +5,10 @@ package org.waterken.db;
 import java.io.File;
 
 /**
- * A {@link Vat} connection manager.
+ * A {@link Database} connection manager.
  */
 public interface
-VatManager<S> {
+DatabaseManager<S> {
 
     /**
      * Gets the connection to a vat.
@@ -16,5 +16,5 @@ VatManager<S> {
      * @return corresponding vat
      * @throws Exception    any problem
      */
-    Vat<S> connect(File id) throws Exception;
+    Database<S> connect(File id) throws Exception;
 }
