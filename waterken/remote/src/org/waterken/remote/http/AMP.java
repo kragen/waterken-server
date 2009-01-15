@@ -12,9 +12,9 @@ import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.charset.URLEncoding;
 import org.ref_send.deserializer;
+import org.waterken.db.Database;
 import org.waterken.db.Root;
 import org.waterken.db.Transaction;
-import org.waterken.db.Vat;
 import org.waterken.http.Client;
 import org.waterken.http.Message;
 import org.waterken.http.Request;
@@ -43,51 +43,50 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
     // org.waterken.remote.mux.Remoting interface
 
     public Server
-    remote(final Server bootstrap, final String scheme, final Vat<Server> vat) {
-        return new Server() {
-            public void
-            serve(final String resource, final Request head,
-                  final InputStream body, final Client client) throws Exception{
+    remote(final Server bootstrap, final String scheme,
+           final Database<Server> vat) { return new Server() {
+        public void
+        serve(final String resource, final Request head,
+              final InputStream body, final Client client) throws Exception {
 
-                // check for web browser bootstrap request
-                final String q = URI.query(null, resource);
-                if (null == q) {
-                    bootstrap.serve("file:///site/" +
-                            URLEncoding.encode(vat.getProject()) + "/" +
-                            URLEncoding.encode(Path.name(URI.path(resource))),
-                        head, body, client);
-                    return;
-                }
-
-                final int length = head.getContentLength();
-                if (length > maxEntitySize) {
-                    client.run(Response.tooBig(), null);
-                    throw new TooBig();
-                }
-                if (!head.expect(client,"TRACE","OPTIONS","GET","HEAD","POST")){
-                    return;
-                }
-                final Message<Request> m = new Message<Request>(head,
-                    null==body ? null : Stream.snapshot(length>=0 ?length :1024,
-                                           Limited.input(maxEntitySize, body)));
-                final Message<Response> r;
-                try {
-                    r = vat.enter(new Transaction<Message<Response>>(
-                            "GET".equals(head.method) ||
-                            "HEAD".equals(head.method) ||
-                            "OPTIONS".equals(head.method) ||
-                            "TRACE".equals(head.method)) {
-                        public Message<Response>
-                        run(final Root local) throws Exception {
-                            return new Callee(new Exports(local)).run(q, m);
-                        }
-                    }).cast();
-                } catch (final FileNotFoundException e) {
-                    client.run(Response.gone(), null);
-                    return;
-                } 
-                client.run(r.head, null!=r.body ?r.body.asInputStream() :null);
+            // check for web browser bootstrap request
+            final String q = URI.query(null, resource);
+            if (null == q) {
+                bootstrap.serve("file:///site/" +
+                        URLEncoding.encode(vat.getProject()) + "/" +
+                        URLEncoding.encode(Path.name(URI.path(resource))),
+                    head, body, client);
+                return;
             }
-        };
-    }
+
+            final int length = head.getContentLength();
+            if (length > maxEntitySize) {
+                client.run(Response.tooBig(), null);
+                throw new TooBig();
+            }
+            if (!head.expect(client, "TRACE","OPTIONS","GET","HEAD","POST")) {
+                return;
+            }
+            final Message<Request> m = new Message<Request>(head, null == body
+                ? null : Stream.snapshot(length >= 0 ? length : 1024,
+                                         Limited.input(maxEntitySize, body)));
+            final Message<Response> r;
+            try {
+                r = vat.enter(new Transaction<Message<Response>>(
+                        "GET".equals(head.method) ||
+                        "HEAD".equals(head.method) ||
+                        "OPTIONS".equals(head.method) ||
+                        "TRACE".equals(head.method)) {
+                    public Message<Response>
+                    run(final Root local) throws Exception {
+                        return new Callee(new Exports(local)).run(q, m);
+                    }
+                }).cast();
+            } catch (final FileNotFoundException e) {
+                client.run(Response.gone(), null);
+                return;
+            } 
+            client.run(r.head, null != r.body ? r.body.asInputStream() : null);
+        }
+    }; }
 }

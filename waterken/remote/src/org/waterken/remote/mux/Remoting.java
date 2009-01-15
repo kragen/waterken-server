@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.mux;
 
-import org.waterken.db.Vat;
+import org.waterken.db.Database;
 import org.waterken.http.Server;
 
 /**
@@ -19,5 +19,5 @@ Remoting<S> {
      * @return network interface
      */
     Server
-    remote(Server bootstrap, String scheme, Vat<S> vat);
+    remote(Server bootstrap, String scheme, Database<S> vat);
 }

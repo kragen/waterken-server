@@ -100,7 +100,7 @@ Callee extends Struct implements Serializable {
         }
         
         // determine the type of accessed member
-        final Method lambda = dispatch(target, p);
+        final Method lambda = Exports.dispatch(target, p);
         if (null == lambda) {                   // no such member
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
@@ -238,46 +238,6 @@ Callee extends Struct implements Serializable {
             } catch (final NoSuchMethodException e) {}
         }
         return null;
-    }
-    
-    /**
-     * synthetic modifier
-     */
-    static private final int synthetic = 0x1000;
-    
-    /**
-     * Is the synthetic flag set?
-     * @param flags Java modifiers
-     * @return <code>true</code> if synthetic, else <code>false</code>
-     */
-    static private boolean
-    isSynthetic(final int flags) { return 0 != (flags & synthetic); }
-
-    /**
-     * Finds a named method.
-     * @param target    invocation target
-     * @param name      method name
-     * @return corresponding method, or <code>null</code> if not found
-     */
-    static protected Method
-    dispatch(final Object target, final String name) {
-        final Class<?> type = null != target ? target.getClass() : Void.class;
-        final boolean c = Class.class == type;
-        Method r = null;
-        for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
-            final int flags = m.getModifiers();
-            if (c == isStatic(flags) && !isSynthetic(flags)) {
-                String mn = Exports.property(m);
-                if (null == mn) {
-                    mn = m.getName();
-                }
-                if (name.equals(mn)) {
-                    if (null != r) { return null; }
-                    r = m;
-                }
-            }
-        }
-        return r;
     }
     
     static private Scope

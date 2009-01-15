@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 import org.ref_send.promise.eventual.Log;
 import org.waterken.db.Root;
-import org.waterken.db.Vat;
+import org.waterken.db.Database;
 
 /**
  * A {@link Session} maker.
@@ -26,7 +26,7 @@ SessionMaker implements Serializable {
     
     public String
     create(final String name) {
-        final Log log = local.fetch(null, Vat.log);
+        final Log log = local.fetch(null, Database.log);
         return local.export(new ServerSideSession(name, log), false);
     }
 }

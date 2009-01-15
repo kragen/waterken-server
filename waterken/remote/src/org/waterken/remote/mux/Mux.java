@@ -11,7 +11,7 @@ import org.joe_e.Struct;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.waterken.db.VatManager;
+import org.waterken.db.DatabaseManager;
 import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
@@ -28,7 +28,7 @@ Mux<S> extends Struct implements Server, Serializable {
     
     private final String vatURIPathPrefix;
     private final File vatRoot;
-    private final VatManager<S> vats;
+    private final DatabaseManager<S> vats;
     private final Remoting<S> remoting;
     private final Server next;
     
@@ -43,7 +43,7 @@ Mux<S> extends Struct implements Server, Serializable {
     public @deserializer
     Mux(@name("vatURIPathPrefix") final String vatURIPathPrefix,
         @name("vatRoot") final File vatRoot,
-        @name("vats") final VatManager<S> vats,
+        @name("vats") final DatabaseManager<S> vats,
         @name("remoting") final Remoting<S> remoting,
         @name("next") final Server next) {
         this.vatURIPathPrefix = vatURIPathPrefix;

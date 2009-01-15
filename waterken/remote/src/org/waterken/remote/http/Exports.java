@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
+import static java.lang.reflect.Modifier.isStatic;
+
 import java.io.Serializable;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
@@ -10,12 +12,13 @@ import java.lang.reflect.Type;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.charset.URLEncoding;
+import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.db.Root;
-import org.waterken.db.Vat;
+import org.waterken.db.Database;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
 import org.waterken.syntax.Exporter;
@@ -49,7 +52,7 @@ Exports extends Struct implements Serializable {
     Exports(final Root local) {
         this.local = local;
         
-        code = local.fetch(null, Vat.code);
+        code = local.fetch(null, Database.code);
     }
     
     // org.waterken.remote.http.Exports interface
@@ -58,14 +61,14 @@ Exports extends Struct implements Serializable {
      * Gets the base URL for this namespace.
      */
     protected String
-    getHere() { return local.fetch("x-browser:", Vat.here); }
+    getHere() { return local.fetch("x-browser:", Database.here); }
 
     /**
      * Calls {@link Root#getTransactionTag()}.
      */
     protected String
     getTransactionTag() {
-        final Task<String> tagger = local.fetch(null, Vat.tagger);
+        final Task<String> tagger = local.fetch(null, Database.tagger);
         try { return tagger.run(); } catch (final Exception e) { return ""; }
     }
     
@@ -240,6 +243,22 @@ Exports extends Struct implements Serializable {
         final Messenger to = local.fetch(null, VatInitializer.messenger);
         return Remote.export(to, new ExporterX());
     }
+    
+    protected Exporter
+    send(final String base) {
+        final String here = getHere();
+        final Exporter export = export();
+        class ExporterX extends Struct implements Exporter, Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public String
+            run(final Object object) {
+                final String absolute = URI.resolve(here, export.run(object));
+                return null != base ? URI.relate(base, absolute) : absolute;
+            }
+        }
+        return new ExporterX();
+    }
 
     /**
      * Is the given object pass-by-construction?
@@ -294,6 +313,46 @@ Exports extends Struct implements Serializable {
         if (null != r && 0 != r.length() &&
                 (1 == r.length() || !Character.isUpperCase(r.charAt(1)))) {
             r = Character.toLowerCase(r.charAt(0)) + r.substring(1);
+        }
+        return r;
+    }
+    
+    /**
+     * synthetic modifier
+     */
+    static private final int synthetic = 0x1000;
+    
+    /**
+     * Is the synthetic flag set?
+     * @param flags Java modifiers
+     * @return <code>true</code> if synthetic, else <code>false</code>
+     */
+    static private boolean
+    isSynthetic(final int flags) { return 0 != (flags & synthetic); }
+
+    /**
+     * Finds a named method.
+     * @param target    invocation target
+     * @param name      method name
+     * @return corresponding method, or <code>null</code> if not found
+     */
+    static public Method
+    dispatch(final Object target, final String name) {
+        final Class<?> type = null != target ? target.getClass() : Void.class;
+        final boolean c = Class.class == type;
+        Method r = null;
+        for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
+            final int flags = m.getModifiers();
+            if (c == isStatic(flags) && !isSynthetic(flags)) {
+                String mn = property(m);
+                if (null == mn) {
+                    mn = m.getName();
+                }
+                if (name.equals(mn)) {
+                    if (null != r) { return null; }
+                    r = m;
+                }
+            }
         }
         return r;
     }

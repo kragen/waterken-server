@@ -26,7 +26,6 @@ import org.waterken.io.FileType;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
 import org.waterken.syntax.BadSyntax;
-import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
@@ -238,8 +237,8 @@ Caller extends Struct implements Messenger, Serializable {
                     new Header("Content-Length", "" + body.length())
                 )), body);        
         }
-        final ByteArray body =
-            new JSONSerializer().run(export(URI.resolve(target, ".")), argv);  
+        final ByteArray body = new JSONSerializer().run(
+                exports.send(URI.resolve(target, ".")), argv);  
         return new Message<Request>(new Request(
             "HTTP/1.1", "POST", URI.request(target),
             PowerlessArray.array(
@@ -247,21 +246,6 @@ Caller extends Struct implements Messenger, Serializable {
                 new Header("Content-Type", FileType.json.name),
                 new Header("Content-Length", "" + body.length())
             )), body);        
-    }
-    
-    private Exporter
-    export(final String base) {
-        final String here = exports.getHere();
-        final Exporter export = exports.export();
-        class ExporterX extends Struct implements Exporter, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public String
-            run(final Object object) {
-                return URI.relate(base, URI.resolve(here, export.run(object)));
-            }
-        }
-        return new ExporterX();
     }
     
     private Object

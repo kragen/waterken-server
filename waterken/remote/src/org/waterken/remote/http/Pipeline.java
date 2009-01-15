@@ -16,7 +16,7 @@ import org.waterken.db.Effect;
 import org.waterken.db.Root;
 import org.waterken.db.Service;
 import org.waterken.db.Transaction;
-import org.waterken.db.Vat;
+import org.waterken.db.Database;
 import org.waterken.http.Client;
 import org.waterken.http.Message;
 import org.waterken.http.Request;
@@ -148,12 +148,12 @@ Pipeline implements Serializable {
     restart(final String peer, final int max, final long skipTo
            ) { return new Effect<Server>() {
         public void
-        run(final Vat<Server> vat) throws Exception {
+        run(final Database<Server> vat) throws Exception {
             vat.enter(new Transaction<Immutable>(Transaction.query) {
                 public Immutable
                 run(final Root local) throws Exception {
                     final Receiver<Effect<Server>> effect =
-                        local.fetch(null, Vat.effect);
+                        local.fetch(null, Database.effect);
                     final Outbound outbound =
                         local.fetch(null, VatInitializer.outbound);
                     final Pipeline m = outbound.find(peer);
@@ -186,7 +186,7 @@ Pipeline implements Serializable {
                                 x.render(m.key, window, index);
                             effect.run(new Effect<Server>() {
                                 public void
-                                run(final Vat<Server> vat) throws Exception {
+                                run(final Database<Server> vat) throws Exception {
                                     vat.session.serve(peer, q.head,
                                       null!=q.body?q.body.asInputStream():null,
                                       fulfill(vat, peer, guid, mid));
@@ -195,7 +195,7 @@ Pipeline implements Serializable {
                         } catch (final Exception reason) {
                             effect.run(new Effect<Server>() {
                                 public void
-                                run(final Vat<Server> vat) throws Exception {
+                                run(final Database<Server> vat) throws Exception {
                                     vat.session.serve(peer, null, null,
                                         reject(vat, peer, guid, mid, reason));
                                 }
@@ -209,7 +209,7 @@ Pipeline implements Serializable {
     }; }
     
     static private Client
-    reject(final Vat<Server> vat, final String peer,
+    reject(final Database<Server> vat, final String peer,
            final String request, final long mid, final Exception reason
           ) { return new Client() {
         public void
@@ -234,7 +234,7 @@ Pipeline implements Serializable {
     }; }
     
     static private Client
-    fulfill(final Vat<Server> vat, final String peer, 
+    fulfill(final Database<Server> vat, final String peer, 
             final String request, final long mid) { return new Client() {
         public void
         run(final Response head, final InputStream body) throws Exception {
