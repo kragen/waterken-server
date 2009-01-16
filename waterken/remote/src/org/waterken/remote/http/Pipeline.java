@@ -149,7 +149,7 @@ Pipeline implements Serializable {
            ) { return new Effect<Server>() {
         public void
         run(final Database<Server> vat) throws Exception {
-            vat.enter(new Transaction<Immutable>(Transaction.query) {
+            vat.enter(Transaction.query, new Transaction<Immutable>() {
                 public Immutable
                 run(final Root local) throws Exception {
                     final Receiver<Effect<Server>> effect =
@@ -217,7 +217,7 @@ Pipeline implements Serializable {
             vat.service.run(new Service() {
                 public Void
                 run() throws Exception {
-                    vat.enter(new Transaction<Immutable>(Transaction.update) {
+                    vat.enter(Transaction.update, new Transaction<Immutable>() {
                         public Immutable
                         run(final Root local) throws Exception {
                             final Outbound outbound =
@@ -256,7 +256,7 @@ Pipeline implements Serializable {
             vat.service.run(new Service() {
                 public Void
                 run() throws Exception {
-                    vat.enter(new Transaction<Immutable>(Transaction.update) {
+                    vat.enter(Transaction.update, new Transaction<Immutable>() {
                         public Immutable
                         run(final Root local) throws Exception {
                             final Outbound outbound =

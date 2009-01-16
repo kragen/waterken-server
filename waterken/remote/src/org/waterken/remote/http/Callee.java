@@ -77,7 +77,7 @@ Callee extends Struct implements Serializable {
             if (null == p && !Exports.isPBC(value)) {
                 value = describe(value.getClass());
             }
-            final Response failed = m.head.allow("");
+            final Response failed = m.head.allow("\"\"");
             if (null != failed) { return new Message<Response>(failed, null); }
             return serialize(m.head.method, "200", "OK", Server.forever, value);
         }                                       // member access

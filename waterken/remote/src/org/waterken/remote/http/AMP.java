@@ -72,14 +72,16 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                                          Limited.input(maxEntitySize, body)));
             final Message<Response> r;
             try {
-                r = vat.enter(new Transaction<Message<Response>>(
-                        "GET".equals(head.method) ||
-                        "HEAD".equals(head.method) ||
-                        "OPTIONS".equals(head.method) ||
-                        "TRACE".equals(head.method)) {
+                r = vat.enter("GET".equals(head.method) ||
+                              "HEAD".equals(head.method) ||
+                              "OPTIONS".equals(head.method) ||
+                              "TRACE".equals(head.method),
+                              new Transaction<Message<Response>>() {
                     public Message<Response>
                     run(final Root local) throws Exception {
-                        return new Callee(new Exports(local)).run(q, m);
+                        final Exports exports =
+                            local.fetch(null, VatInitializer.exports);
+                        return new Callee(exports).run(q, m);
                     }
                 }).cast();
             } catch (final FileNotFoundException e) {

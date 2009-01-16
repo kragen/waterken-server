@@ -30,10 +30,11 @@ HTTP extends Struct implements Messenger, Serializable {
     private final Receiver<Effect<Server>> effect;
     private final Fulfilled<Outbound> outbound;
     private final Root local;
+    // TODO: keep a list here instead of in the root.
     
     protected
     HTTP(final Eventual _, final Receiver<Effect<Server>> effect,
-            final Fulfilled<Outbound> outbound, final Root local) {
+         final Fulfilled<Outbound> outbound, final Root local) {
         this._ = _;
         this.effect = effect;
         this.outbound = outbound;
@@ -66,6 +67,7 @@ HTTP extends Struct implements Messenger, Serializable {
             msgs = new Pipeline(name, peer, effect, outbound);
             local.link(peerKey, msgs);
         }
-        return new Caller(_, msgs, new Exports(local));
+        final Exports exports = local.fetch(null, VatInitializer.exports);
+        return new Caller(_, msgs, exports);
     }
 }

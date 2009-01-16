@@ -31,7 +31,6 @@ import org.waterken.remote.Messenger;
 import org.waterken.remote.MessengerSchemeDispatcher;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
-import org.waterken.uri.URI;
 import org.web_send.graph.Publisher;
 import org.web_send.graph.Spawn;
 import org.web_send.graph.Vat;
@@ -40,18 +39,19 @@ import org.web_send.graph.Vat;
  * The vat initialization transaction.
  */
 public final class
-VatInitializer extends Transaction<ByteArray> {
+VatInitializer extends Struct implements Transaction<ByteArray> {
 
     private final boolean anonymous;
     private final Method build;
+    private final String base;      // base URL for JSON serialization
     private final ByteArray body;   // JSON serialized arguments
     
     private
-    VatInitializer(final boolean anonymous,
-                   final Method build, final ByteArray body) {
-        super(Transaction.update);
+    VatInitializer(final boolean anonymous, final Method build,
+                   final String base, final ByteArray body) {
         this.anonymous = anonymous;
         this.build = build;
+        this.base = base;
         this.body = body;
     }
     
@@ -69,14 +69,13 @@ VatInitializer extends Transaction<ByteArray> {
         final List<Task<?>> tasks = List.list();
         local.link(VatInitializer.tasks, tasks);
         final Token deferred = new Token();
-        local.link(VatInitializer.deferred, deferred);
         final Eventual _= new Eventual(deferred,enqueue(effect,tasks),here,log);
-        local.link(VatInitializer._, _);
         final Messenger messenger = new MessengerSchemeDispatcher(local);
-        local.link(VatInitializer.messenger, messenger);
         final Messenger http = new HTTP(_, effect, detach(outbound), local);
         local.link(MessengerSchemeDispatcher.prefix + "http", http);
         local.link(MessengerSchemeDispatcher.prefix + "https", http);
+        final Exports exports = new Exports(_, deferred, messenger, local);
+        local.link(VatInitializer.exports, exports);
         final Publisher publisher = publish(local);
         final Vat vat = new Vat(
             destruct, spawn(publisher), anonymous ? null : publisher
@@ -90,10 +89,8 @@ VatInitializer extends Transaction<ByteArray> {
         if (parameters.length() != 0) {     // pop the vat permissions
             parameters = parameters.without(0);
         }
-        final Exports exports = new Exports(local);
-        final ConstArray<?> optional = new JSONDeserializer().run(
-            URI.resolve(here, ".."), exports.connect(),
-            parameters, exports.code, body.asInputStream());
+        final ConstArray<?> optional = new JSONDeserializer().run(base,
+            exports.connect(), parameters, exports.code, body.asInputStream());
         final Object[] argv = new Object[signature.length()];
         if (0 < argv.length) { argv[0] = _; }
         if (1 < argv.length) { argv[1] = vat; }
@@ -101,7 +98,7 @@ VatInitializer extends Transaction<ByteArray> {
             argv[i] = optional.get(i - 2);
         }
         final Object value = Reflection.invoke(build, null, argv);
-        return new JSONSerializer().run(exports.send(URI.resolve(here, "..")),
+        return new JSONSerializer().run(exports.send(base),
                                         ConstArray.array(value));
     }
 
@@ -121,72 +118,56 @@ VatInitializer extends Transaction<ByteArray> {
             }
 
             public @SuppressWarnings("unchecked") <R> R
-            spawn(final String name,
+            spawn(final String label,
                   final Class<?> maker, final Object... argv) {
                 final Method make = Exports.dispatch(maker, "make");
                 final Class<?> R = make.getReturnType();
                 try {
-                    if (null != name) { vet(name); }
-                    final Exports exports = new Exports(mother);
+                    if (null != label) { vet(label); }
+                    final Exports exports =
+                        mother.fetch(null, VatInitializer.exports);
                     final ByteArray body = new JSONSerializer().run(
                             exports.export(), ConstArray.array(argv));  
                     final String project = mother.fetch(null, Database.project);
                     final Creator creator = mother.fetch(null,Database.creator);
-                    final ByteArray response = creator.run(project, name,
-                        new VatInitializer(null == name, make, body)).cast();
+                    final String here = exports.getHere();
+                    final ByteArray response = creator.run(project, here, label,
+                        new VatInitializer(null==label,make, here,body)).cast();
                     return (R)new JSONDeserializer().run(
-                        exports.getHere(), exports.connect(),
+                        here, exports.connect(),
                         ConstArray.array(make.getGenericReturnType()),
                         exports.code, response.asInputStream()).get(0);
                 } catch (final Exception e) {
                     return new Rejected<R>(e)._(R);
                 }
             }
-            
-            private void
-            vet(final String name) throws InvalidFilenameException {
-                if (name.startsWith(".")){throw new InvalidFilenameException();}
-                for (int i = name.length(); i-- != 0;) {
-                    if (disallowed.indexOf(name.charAt(i)) != -1) {
-                        throw new InvalidFilenameException();
-                    }
-                }
-            }
         }
         return new PublisherX();
     }
     
+    static private void
+    vet(final String name) throws InvalidFilenameException {
+        if (name.startsWith(".")){throw new InvalidFilenameException();}
+        for (int i = name.length(); i-- != 0;) {
+            if (Publisher.disallowed.indexOf(name.charAt(i)) != -1) {
+                throw new InvalidFilenameException();
+            }
+        }
+    }
+    
     static public ByteArray
-    create(final Database<Server> parent, final String here,
-           final String project, final Class<?> maker,
-           final String label) throws Exception {
-        return parent.enter(new Transaction<ByteArray>(Transaction.update) {
+    create(final Database<Server> parent, final String project,
+           final String base, final String label,
+           final Class<?> maker) throws Exception {
+        final Method make = Exports.dispatch(maker, "make");
+        if (null != label) { vet(label); }
+        return parent.enter(Transaction.update, new Transaction<ByteArray>() {
             public ByteArray
             run(final Root local) throws Exception {
-                final Root synthetic = new Root() {
-
-                    public @SuppressWarnings("unchecked") Object
-                    fetch(final Object otherwise, final String name) {
-                        return Database.project.equals(name)
-                            ? project
-                        : Database.here.equals(name)
-                            ? here
-                        : local.fetch(otherwise, name);
-                    }
-
-                    public void
-                    link(final String name,
-                         final Object value) { throw new AssertionError(); }
-
-                    public String
-                    export(final Object value,
-                           final boolean isWeak) { throw new AssertionError(); }
-                };
-
-                final Object value = publish(synthetic).spawn(label, maker);
-                final Exports exports = new Exports(local);
-                return new JSONSerializer().run(exports.send(null),
-                                                ConstArray.array(value));
+                final Creator creator = local.fetch(null, Database.creator);
+                return creator.run(project, base, label, new VatInitializer(
+                    null == label, make, null,
+                    ByteArray.array((byte)'[', (byte)']'))).cast();
             }
         }).cast();
     }
@@ -221,10 +202,8 @@ VatInitializer extends Transaction<ByteArray> {
     }
 
     static private final class
-    Wake extends Transaction<Immutable> implements Serializable {
+    Wake extends Struct implements Transaction<Immutable>, Serializable {
         static private final long serialVersionUID = 1L;
-
-        Wake() { super(Transaction.query); }
         
         public Immutable
         run(final Root local) throws Exception {
@@ -245,7 +224,7 @@ VatInitializer extends Transaction<ByteArray> {
         return new Effect<Server>() {
             public void
             run(final Database<Server> vat) throws Exception {
-                vat.enter(new Transaction<Immutable>(Transaction.update) {
+                vat.enter(Transaction.update, new Transaction<Immutable>() {
                     public Immutable
                     run(final Root local) throws Exception {
                         final List<Task<?>> tasks =
@@ -266,9 +245,7 @@ VatInitializer extends Transaction<ByteArray> {
     
     static protected final String outbound = ".outbound";
     static private   final String tasks = ".tasks";
-    static protected final String _ = "._";
-    static protected final String deferred = ".deferred";
-    static protected final String messenger = ".messenger";
+    static protected final String exports = ".exports";
 
     /**
      * key bound to the session maker in all vats

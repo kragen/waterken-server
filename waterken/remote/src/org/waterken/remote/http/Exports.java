@@ -34,10 +34,10 @@ import org.waterken.uri.URI;
 Exports extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;    
     
-    /**
-     * vat root
-     */
-    private   final Root local;
+    private   final Eventual _;             // eventual operator
+    private   final Token deferred;         // deferred permission
+    private   final Messenger messenger;    // top-level messenger
+    private   final Root local;             // vat root
     
     /**
      * corresponding code base
@@ -49,7 +49,11 @@ Exports extends Struct implements Serializable {
      * @param local vat root
      */
     protected
-    Exports(final Root local) {
+    Exports(final Eventual _, final Token deferred, final Messenger messenger,
+            final Root local) {
+        this._ = _;
+        this.deferred = deferred;
+        this.messenger = messenger;
         this.local = local;
         
         code = local.fetch(null, Database.code);
@@ -206,9 +210,6 @@ Exports extends Struct implements Serializable {
      */
     protected Importer
     connect() {
-        final Eventual _ = local.fetch(null, VatInitializer._);
-        final Token deferred = local.fetch(null, VatInitializer.deferred);
-        final Messenger messenger = local.fetch(null, VatInitializer.messenger);
         final String here = getHere();
         final Importer next = Remote.connect(_, deferred, messenger, here);
         class ImporterX extends Struct implements Importer, Serializable {
@@ -219,7 +220,7 @@ Exports extends Struct implements Serializable {
                                    final Type type) throws Exception {
                 final String URL = null != base ? URI.resolve(base,href) : href;
                 return Header.equivalent(URI.resolve(URL, "."), here)
-                    ? reference(URI.query(URI.fragment("", URL), URL))
+                    ? reference(URI.fragment("", URL))
                 : next.run(URL, null, type);
             }
         }
@@ -240,8 +241,7 @@ Exports extends Struct implements Serializable {
                     !(Eventual.promised(object) instanceof Fulfilled));
             }
         }
-        final Messenger to = local.fetch(null, VatInitializer.messenger);
-        return Remote.export(to, new ExporterX());
+        return Remote.export(messenger, new ExporterX());
     }
     
     protected Exporter
