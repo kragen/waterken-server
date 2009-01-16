@@ -171,6 +171,7 @@ Folder extends Struct implements StoreMaker, Serializable {
                                     sleep.run(100L);
                                 }
                             }
+                            renameAll(committed, dir);
                         }
                     }
                 };

@@ -81,14 +81,6 @@ JODB<S> extends Database<S> {
      * file extension for a serialized Java object tree
      */
     static protected final String ext = ".jos";
-    
-    /**
-     * Creates the corresponding filename for a {@link Root} name.
-     * @param name  chosen name
-     * @return corresponding filename
-     */
-    static private String
-    filename(final String name) { return canonicalize(name) + ext; }
 
     static private final int keyChars = 14;
     static private final int keyBytes = keyChars * 5 / 8 + 1;
@@ -100,7 +92,7 @@ JODB<S> extends Database<S> {
      */
     static private String
     filename(final byte[] id) {
-        return Base32.encode(id).substring(0, keyChars) + ext;
+        return Base32.encode(id).substring(0, keyChars);
     }
 
     private final Receiver<Event> stderr;   // log event output
@@ -144,6 +136,7 @@ JODB<S> extends Database<S> {
     // org.waterken.vat.Vat interface
     
     private String project;
+    private ClassLoader code = JODB.class.getClassLoader();
     
     public synchronized String
     getProject() throws Exception {
@@ -152,9 +145,9 @@ JODB<S> extends Database<S> {
     }
 
     public synchronized <R extends Immutable> Promise<R>
-    enter(Transaction<R> body) throws Exception {
+    enter(final boolean isQuery, final Transaction<R> body) throws Exception {
         wake();
-        return process(body);
+        return process(isQuery, body);
     }
     
     /**
@@ -165,7 +158,7 @@ JODB<S> extends Database<S> {
     private void
     wake() throws Exception {
         if (!awake.is()) {
-            process(new Transaction<Immutable>(Transaction.query) {
+            process(Transaction.query, new Transaction<Immutable>() {
                 public Immutable
                 run(final Root local) throws Exception {
                     final Task<?> wake = local.fetch(null, Database.wake);
@@ -210,10 +203,9 @@ JODB<S> extends Database<S> {
     }
 
     private SecureRandom prng;      // pseudo-random number generator
-    private ClassLoader code;       // project's corresponding ClassLoader
 
     protected <R extends Immutable> Promise<R>
-    process(final Transaction<R> body) throws Exception {
+    process(final boolean isQuery, final Transaction<R> body) throws Exception {
         final Update update = store.update();
 
         // setup tables to keep track of what's been loaded from disk
@@ -255,15 +247,16 @@ JODB<S> extends Database<S> {
             link(final String name,
                  final Object value) throws InvalidFilenameException,
                                             ProhibitedModification {
-                if (body.isQuery) {
+                if (isQuery) {
                     throw new ProhibitedModification(
                             Reflection.getName(Root.class));
                 }
 
-                final String filename = filename(name);
+                final String filename = canonicalize(name);
                 final boolean exists;
                 try {
-                    exists=f2b.containsKey(filename)||update.includes(filename);
+                    exists = f2b.containsKey(filename) ||
+                             update.includes(filename + ext);
                 } catch (final Exception e) { throw new Error(e); }
                 if (exists) { throw new InvalidFilenameException(); }
                 f2b.put(filename,new Bucket(true,new SymbolicLink(value),null));
@@ -272,7 +265,7 @@ JODB<S> extends Database<S> {
 
 			public @SuppressWarnings("unchecked") <T> T
             fetch(final Object otherwise, final String name) {
-                final Bucket b = load(filename(name));
+                final Bucket b = load(canonicalize(name));
                 return (T)(null == b
                     ? otherwise
                 : b.value instanceof SymbolicLink
@@ -318,7 +311,7 @@ JODB<S> extends Database<S> {
                         final Class<?>[] type = { Object.class };
                         InputStream in = null;
                         try {
-                            in = update.read(at);
+                            in = update.read(at + ext);
                             final SubstitutionStream oin =
                                     new SubstitutionStream(true, code, in) {
                                 protected Object
@@ -359,9 +352,9 @@ JODB<S> extends Database<S> {
             read(final String filename) throws FileNotFoundException {
                 InputStream in = null;
                 try {
-                    in = update.read(filename);
+                    in = update.read(filename + ext);
                     final Mac mac;
-                    if (filename(JODB.secret).equals(filename)) {
+                    if (canonicalize(JODB.secret).equals(filename)) {
                         mac = null; // stop recursion in loading master secret
                     } else {
                         mac = allocMac(this);
@@ -444,7 +437,7 @@ JODB<S> extends Database<S> {
                 
                 // to support caching of query responses, forbid
                 // export of selfish state in a query transaction
-                if (body.isQuery) {
+                if (isQuery) {
                     throw new ProhibitedCreation(
                         Reflection.getName(value.getClass()));
                 }
@@ -467,7 +460,7 @@ JODB<S> extends Database<S> {
                         prng.nextBytes(id);
                         filename = filename(id);
                     } while (f2b.containsKey(filename) ||
-                             update.includes(filename));
+                             update.includes(filename + ext));
                 } catch (final Exception e) { throw new Error(e); }
                 
                 // persist the persistent identity
@@ -507,7 +500,7 @@ JODB<S> extends Database<S> {
         final Receiver<Effect<S>> effect = new Receiver<Effect<S>>() {
             public void
             run(final Effect<S> task) {
-                if (body.isQuery) {
+                if (isQuery) {
                     throw new ProhibitedModification(Database.effect);
                 }
 
@@ -522,10 +515,10 @@ JODB<S> extends Database<S> {
         };
         final Creator creator = new Creator() {
             public <X extends Immutable> Promise<X>
-            run(final String project, String name,
+            run(final String project, final String base, String name,
                 final Transaction<X> setup) throws InvalidFilenameException,
                                                    ProhibitedModification {
-                if (body.isQuery) {
+                if (isQuery) {
                     throw new ProhibitedModification(
                             Reflection.getName(Creator.class));
                 }
@@ -551,8 +544,7 @@ JODB<S> extends Database<S> {
                     }
                 }
                 try {
-                    final String path = URLEncoding.encode(name) + "/";
-                    final String here = root.fetch("/-/", Database.here) + path;
+                    final String here = base + URLEncoding.encode(name) + "/";
                     final byte[] bits = new byte[128 / Byte.SIZE];
                     prng.nextBytes(bits);
                     final ByteArray secretBits = ByteArray.array(bits);
@@ -562,7 +554,8 @@ JODB<S> extends Database<S> {
                             run(final Event event) {}
                         } : stderr, subStore);
                     sub.project = project;
-                    return sub.process(new Transaction<X>(Transaction.update) {
+                    sub.code = code;
+                    return sub.process(Transaction.update, new Transaction<X>(){
                         public X
                         run(final Root local) throws Exception {
                             local.link(Database.project, project);
@@ -570,14 +563,16 @@ JODB<S> extends Database<S> {
                             local.link(secret, secretBits);
                             final TurnCounter turn = TurnCounter.make(here);
                             local.link(JODB.flip, turn.flip);
-                            final ClassLoader code = local.fetch(null,Database.code);
+                            final ClassLoader code =
+                                local.fetch(null, Database.code);
                             final Tracer tracer = ProjectTracer.make(code, 2);
                             final Receiver<Effect<S>> effect =
                                 local.fetch(null, Database.effect);
                             final Receiver<Event> txerr =
                                 local.fetch(null, JODB.txerr);
-                            local.link(Database.destruct, EventSender.makeDestructor(
-                                makeDestructor(effect),txerr,turn.mark,tracer));
+                            local.link(Database.destruct, EventSender.
+                                makeDestructor(makeDestructor(effect), txerr,
+                                               turn.mark, tracer));
                             local.link(Database.log,
                                 EventSender.makeLog(txerr, turn.mark, tracer));
                             return setup.run(local);
@@ -601,20 +596,20 @@ JODB<S> extends Database<S> {
                 try {
                     project = root.fetch(null, Database.project);
                 } catch (final Exception e) { throw new Error(e); }
+                code = Project.connect(project);
             }
-            if (null == code) { code = Project.connect(project); }
     
             // setup the pseudo-persistent objects
-            f2b.put(filename(Database.code),     new Bucket(code));
-            f2b.put(filename(Database.creator),  new Bucket(creator));
-            f2b.put(filename(Database.effect),   new Bucket(effect));
-            f2b.put(filename(Database.nothing),  new Bucket(null));
-            f2b.put(filename(Database.tagger),   new Bucket(tagger));
-            f2b.put(filename(JODB.txerr),   new Bucket(txerr));
-            f2b.put(filename(".root"),      new Bucket(root));
+            f2b.put(canonicalize(Database.code),    new Bucket(code));
+            f2b.put(canonicalize(Database.creator), new Bucket(creator));
+            f2b.put(canonicalize(Database.effect),  new Bucket(effect));
+            f2b.put(canonicalize(Database.nothing), new Bucket(null));
+            f2b.put(canonicalize(Database.tagger),  new Bucket(tagger));
+            f2b.put(canonicalize(JODB.txerr),       new Bucket(txerr));
+            f2b.put(canonicalize(".root"),          new Bucket(root));
             if (null == stderr) {
                 // short-circuit the log implementation
-                f2b.put(filename(Database.log),  new Bucket(new NOP()));
+                f2b.put(canonicalize(Database.log), new Bucket(new NOP()));
             }
             for (final Map.Entry<String,Bucket> x : f2b.entrySet()) {
                 o2f.put(x.getValue().value, x.getKey());
@@ -622,7 +617,7 @@ JODB<S> extends Database<S> {
 
             // execute the transaction body
             try {
-                if (!body.isQuery) {
+                if (!isQuery) {
                     final Task<?> flip = root.fetch(null, JODB.flip);
                     if (null != flip) { flip.run(); }
                 }
@@ -639,7 +634,7 @@ JODB<S> extends Database<S> {
                 i.remove();
 
                 final OutputStream fout;
-                if (body.isQuery && !b.created) {
+                if (isQuery && !b.created) {
                     fout = new MacOutputStream(new Sink(), allocMac(root)) {
                         public void
                         close() throws IOException {
@@ -654,7 +649,7 @@ JODB<S> extends Database<S> {
                         }
                     };
                 } else {
-                    fout = update.write(filename);
+                    fout = update.write(filename + ext);
                 }
                 final Slicer out = new Slicer(b.value, root, fout);
                 out.writeObject(b.value);

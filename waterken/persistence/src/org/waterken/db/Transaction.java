@@ -3,38 +3,23 @@
 package org.waterken.db;
 
 import org.joe_e.Immutable;
-import org.joe_e.Struct;
 
 /**
  * A {@link Database#enter transaction} body.
  */
-public abstract class
-Transaction<R extends Immutable> extends Struct implements Immutable {
+public interface
+Transaction<R extends Immutable> extends Immutable {
     
     /**
      * indicates a {@linkplain Database#enter transaction} may modify existing state
      */
-    static public final boolean update = false;
+    boolean update = false;
 
     /**
      * indicates a {@linkplain Database#enter transaction} only queries existing
      * state, and does not persist any new selfish objects
      */
-    static public final boolean query = true;
-    
-    /**
-     * either {@link #update} or {@link #query} 
-     */
-    public final boolean isQuery;
-    
-    /**
-     * Constructs an instance.
-     * @param isQuery   {@link #isQuery}
-     */
-    protected
-    Transaction(final boolean isQuery) {
-        this.isQuery = isQuery;
-    }
+    boolean query = true;
 
     /**
      * Executes the transaction.
@@ -42,6 +27,5 @@ Transaction<R extends Immutable> extends Struct implements Immutable {
      * @return any return
      * @throws Exception    any problem
      */
-    public abstract R
-    run(Root local) throws Exception;
+    R run(Root local) throws Exception;
 }
