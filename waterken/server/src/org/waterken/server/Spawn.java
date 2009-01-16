@@ -61,8 +61,8 @@ Spawn {
         // create the database
         final ClassLoader code = Project.connect(project);
         final Class<?> maker = code.loadClass(typename);
-        final ByteArray r = VatInitializer.create(Settings.vat(), here, project,
-                                                  maker, label);
+        final ByteArray r = VatInitializer.create(Settings.vat(), project,
+                                                  here, label, maker);
         System.out.write(r.toByteArray());
     }
 }
