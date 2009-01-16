@@ -27,8 +27,6 @@ import org.waterken.db.Effect;
 import org.waterken.db.Root;
 import org.waterken.db.Transaction;
 import org.waterken.http.Server;
-import org.waterken.remote.Messenger;
-import org.waterken.remote.MessengerSchemeDispatcher;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.web_send.graph.Publisher;
@@ -70,11 +68,8 @@ VatInitializer extends Struct implements Transaction<ByteArray> {
         local.link(VatInitializer.tasks, tasks);
         final Token deferred = new Token();
         final Eventual _= new Eventual(deferred,enqueue(effect,tasks),here,log);
-        final Messenger messenger = new MessengerSchemeDispatcher(local);
-        final Messenger http = new HTTP(_, effect, detach(outbound), local);
-        local.link(MessengerSchemeDispatcher.prefix + "http", http);
-        local.link(MessengerSchemeDispatcher.prefix + "https", http);
-        final Exports exports = new Exports(_, deferred, messenger, local);
+        final HTTP http = new HTTP(_, effect, detach(outbound), local);
+        final Exports exports = new Exports(_, deferred, http, local);
         local.link(VatInitializer.exports, exports);
         final Publisher publisher = publish(local);
         final Vat vat = new Vat(
