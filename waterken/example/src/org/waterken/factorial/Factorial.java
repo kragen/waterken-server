@@ -13,9 +13,7 @@ import org.ref_send.promise.eventual.Eventual;
  */
 public final class
 Factorial {
-
-    private
-    Factorial() {}
+    private Factorial() {}
     
     /**
      * Computes a factorial.
@@ -24,7 +22,7 @@ Factorial {
      * @return promise for the factorial of <code>n</code>
      */
     static public Promise<Integer>
-    factorial(final Eventual _, final int n) {
+    make(final Eventual _, final int n) {
         if (n < 0) { return new Rejected<Integer>(new Exception()); }
         /*
          * We'll simulate tail recursive calls by doing eventual invocations of
@@ -52,7 +50,6 @@ Factorial {
      */
     static public interface
     Recursion {
-        Promise<Integer>
-        run(Recursion loop_, int n, int acc);
+        Promise<Integer> run(Recursion loop_, int n, int acc);
     }
 }

@@ -4,9 +4,6 @@ package org.waterken.factorial;
 
 import static org.ref_send.test.Logic.was;
 
-import java.io.Serializable;
-
-import org.joe_e.Struct;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Eventual;
@@ -17,30 +14,26 @@ import org.ref_send.test.Test;
  * Eventual invocation tests.
  */
 public final class
-Main extends Struct implements Test, Serializable {
-    static private final long serialVersionUID = 1L;
-
-    /**
-     * eventual operator
-     */
-    private final Eventual _;
-
-    /**
-     * Constructs an instance
-     * @param _ eventual operator
-     */
-    public
-    Main(final Eventual _) {
-        this._ = _;
-    }
+FactorialN {
+    private FactorialN() {}
     
     /**
      * Constructs an instance.
      * @param _ eventual operator
+     * @param n number to compute factorial of
      */
     static public Test
-    make(final Eventual _) {
-        return new Main(_);
+    make(final Eventual _, final int n) {
+        return new Test() {
+            public Promise<Boolean>
+            run() {
+                int r = 1;
+                for (int i = n; i > 0; --i) {
+                    r *= i;
+                }
+                return _.when(Factorial.make(_, n), was(r));
+            }
+        };
     }
     
     // Command line interface
@@ -52,19 +45,12 @@ Main extends Struct implements Test, Serializable {
      */
     static public void
     main(final String[] args) throws Exception {
+        final int n = args.length > 0 ? Integer.parseInt(args[0]) : 4;
+        
         final List<Task<?>> work = List.list();
-        final Eventual _ = new Eventual(work.appender());
-        final Test test = new Main(_);
-        final Promise<Boolean> result = test.start();
+        final Test test = make(new Eventual(work.appender()), n);
+        final Promise<Boolean> result = test.run();
         while (!work.isEmpty()) { work.pop().run(); }
         if (!result.cast()) { throw new Exception("test failed"); }
     }
-    
-    // org.ref_send.test.Test interface
-
-    /**
-     * Starts a test.
-     */
-    public Promise<Boolean>
-    start() { return _.when(Factorial.factorial(_, 4), was(4 * 3 * 2 * 1)); }
 }

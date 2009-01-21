@@ -20,13 +20,11 @@ Series<T> extends Iterable<Volatile<T>> {
      * Appends a value to the end of the series.
      * @param value value to append
      */
-    void
-    produce(Volatile<T> value);
+    void produce(Volatile<T> value);
     
     /**
      * Removes the first element in the series.
      * @return value of the removed element
      */
-    Volatile<T>
-    consume();
+    Volatile<T> consume();
 }

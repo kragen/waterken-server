@@ -14,12 +14,10 @@ Element<T> {
     /**
      * element value
      */
-    Volatile<T>
-    getValue();
+    Volatile<T> getValue();
 
     /**
      * next element
      */
-    Element<T>
-    getNext();
+    Element<T> getNext();
 }

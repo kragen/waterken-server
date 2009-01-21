@@ -13,14 +13,12 @@ Wall {
     /**
      * Creates a record of all types.
      */
-    Promise<AllTypes>
-    getAll();
+    Promise<AllTypes> getAll();
 
     /**
      * Returns the given argument.
      * @param a value to return
      * @return <code>a</code>
      */
-    <A> Promise<A>
-    bounce(A a);
+    <A> Promise<A> bounce(A a);
 }

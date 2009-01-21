@@ -13,14 +13,12 @@ Drum {
     /**
      * Gets the number of hits.
      */
-    Promise<Integer>
-    getHits();
+    Promise<Integer> getHits();
 
     /**
      * Bangs the drum.
      * @param beats number of beats
      * @return self reference
      */
-    Drum
-    bang(int beats);
+    Drum bang(int beats);
 }

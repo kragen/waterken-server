@@ -31,13 +31,11 @@ import org.ref_send.promise.eventual.Receiver;
  */
 public final class
 Bounce {
-
-    private
-    Bounce() {}
+    private Bounce() {}
 
     /**
      * Constructs an instance.
-     * @param framework vat permissions
+     * @param _ eventual operator
      */
     static public Wall
     make(final Eventual _) {

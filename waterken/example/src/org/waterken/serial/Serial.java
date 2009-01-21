@@ -18,9 +18,7 @@ import org.ref_send.promise.eventual.Resolver;
  */
 public final class
 Serial {
-
-    private
-    Serial() {}
+    private Serial() {}
 
     /**
      * Makes a {@link Series}.
@@ -39,34 +37,35 @@ Serial {
             private Element<T> front_ = _.cast(Element.class, initial.promise);
             private Resolver<Element<T>> back = initial.resolver;
 
-            public IteratorX
-            iterator() { return new IteratorX(); }
+            public Iterator<Volatile<T>>
+            iterator() {
+                class IteratorX implements Iterator<Volatile<T>>, Serializable {
+                    static private final long serialVersionUID = 1L;
 
-            final class
-            IteratorX implements Iterator<Volatile<T>>, Serializable {
-                static private final long serialVersionUID = 1L;
+                    private Element<T> current_ = front_;
 
-                private Element<T> current_ = front_;
+                    public boolean
+                    hasNext() { return true; }  // The future is unlimited.
 
-                public boolean
-                hasNext() { return true; }  // The future is unlimited. 
+                    public Volatile<T>
+                    next() {
+                        /*
+                         * Produce a promise for what will be the value of the
+                         * current element and hold onto an eventual reference
+                         * for what will be the next element in the list, which
+                         * is now the current element in the iteration order.
+                         */
+                        final Volatile<T> r = current_.getValue();
+                        current_ = current_.getNext();
+                        return r;
+                    }
 
-                public Volatile<T>
-                next() {
-                    /*
-                     * Produce a promise for what will be the value of the
-                     * current element and hold onto an eventual reference for
-                     * what will be the next element in the list, which is now
-                     * the current element in the iteration order.
-                     */
-                    final Volatile<T> r = current_.getValue();
-                    current_ = current_.getNext();
-                    return r;
+                    public void
+                    remove() { throw new UnsupportedOperationException(); }
                 }
-
-                public void
-                remove() { throw new UnsupportedOperationException(); }
+                return new IteratorX();
             }
+
 
             public void
             produce(final Volatile<T> value) {
