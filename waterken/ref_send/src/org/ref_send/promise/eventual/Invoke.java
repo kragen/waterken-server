@@ -5,6 +5,7 @@ package org.ref_send.promise.eventual;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
+import org.joe_e.inert;
 import org.joe_e.array.ConstArray;
 import org.joe_e.reflect.Reflection;
 
@@ -24,7 +25,7 @@ Invoke<T> extends Do<T,Object> implements Serializable {
      * @param argv      invocation arguments
      */
     public
-    Invoke(final Method method, final ConstArray<?> argv) {
+    Invoke(final Method method, final @inert ConstArray<?> argv) {
         this.method = method;
         this.argv = argv;
     }

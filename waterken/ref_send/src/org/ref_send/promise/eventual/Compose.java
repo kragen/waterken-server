@@ -5,6 +5,7 @@ package org.ref_send.promise.eventual;
 import java.io.Serializable;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
@@ -18,11 +19,11 @@ import org.ref_send.type.Typedef;
  * @param <R> return type
  */
 public final class
-Compose<A,B> extends Do<A,Void> implements Serializable {
+Compose<P,R> extends Do<P,Void> implements Serializable {
     static private final long serialVersionUID = 1L;
 
-    private final Do<A,B> block;
-    private final Resolver<B> resolver;
+    private final Do<P,R> block;
+    private final Resolver<R> resolver;
     
     /**
      * Constructs a call return block.
@@ -30,7 +31,7 @@ Compose<A,B> extends Do<A,Void> implements Serializable {
      * @param resolver  code block's return resolver
      */
     public
-    Compose(final Do<A,B> block, final Resolver<B> resolver) {
+    Compose(final Do<P,R> block, final Resolver<R> resolver) {
         this.block = block;
         this.resolver = resolver;
     }
@@ -38,28 +39,28 @@ Compose<A,B> extends Do<A,Void> implements Serializable {
     // org.ref_send.promise.eventual.Do interface
     
     public Void
-    fulfill(final A a) {
-        final B b;
+    fulfill(final P a) {
+        final R r;
         try {
-            b = block.fulfill(a);
+            r = block.fulfill(a);
         } catch (final Exception e) {
             resolver.reject(e);
             return null;
         }
-        resolver.run(b);
+        resolver.run(r);
         return null;
     }
 
     public Void
     reject(final Exception reason) {
-        final B b;
+        final R r;
         try {
-            b = block.reject(reason);
+            r = block.reject(reason);
         } catch (final Exception e) {
             resolver.reject(e);
             return null;
         }
-        resolver.run(b);
+        resolver.run(r);
         return null;
     }
     
@@ -77,7 +78,9 @@ Compose<A,B> extends Do<A,Void> implements Serializable {
             x instanceof Compose ? ((Compose<?,?>)x).block : x;
         if (inner instanceof Invoke) {
             final Method m = ((Invoke<?>)inner).method;
-            return Reflection.method(p, m.getName(), m.getParameterTypes());
+            return Modifier.isStatic(m.getModifiers())
+                ? m
+            : Reflection.method(p, m.getName(), m.getParameterTypes());
         }
         return Reflection.method(inner.getClass(), "fulfill", Object.class);
     }
@@ -90,13 +93,15 @@ Compose<A,B> extends Do<A,Void> implements Serializable {
     rejecter(final @inert Do<?,?> x) throws NoSuchMethodException {
         final @inert Do<?,?> inner =
             x instanceof Compose ? ((Compose<?,?>)x).block : x;
-        return Reflection.method(inner.getClass(), "reject", Exception.class);
+        return inner instanceof Invoke
+            ? ((Invoke<?>)inner).method
+        : Reflection.method(inner.getClass(), "reject", Exception.class);
     }
 
     /**
      * Do block parameter type
      */
-    static private final TypeVariable<?> DoP = Typedef.var(Do.class, "P");
+    static private final TypeVariable<?> P = Typedef.var(Do.class, "P");
     
     /**
      * Determines a block's parameter type.
@@ -109,6 +114,26 @@ Compose<A,B> extends Do<A,Void> implements Serializable {
             x instanceof Compose ? ((Compose<?,?>)x).block : x;
         return inner instanceof Invoke
             ? ((Invoke<?>)inner).method.getDeclaringClass()
-        : Typedef.value(DoP, inner.getClass());
+        : Typedef.value(P, inner.getClass());
+    }
+
+    /**
+     * Do block return type
+     */
+    static private final TypeVariable<?> R = Typedef.var(Do.class, "R");
+    
+    /**
+     * Determines a block's return type.
+     * @param p block's parameter type
+     * @param x block to introspect on
+     * @return <code>x</code>'s return type
+     */
+    static protected Type
+    output(final Class<?> p, final @inert Do<?,?> x) {
+        final @inert Do<?,?> inner =
+            x instanceof Compose ? ((Compose<?,?>)x).block : x;
+        return inner instanceof Invoke
+            ? Typedef.bound(((Invoke<?>)inner).method.getGenericReturnType(), p)
+        : Typedef.value(R, inner.getClass());
     }
 }

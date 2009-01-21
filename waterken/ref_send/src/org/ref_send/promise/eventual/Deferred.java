@@ -16,7 +16,6 @@ import org.joe_e.array.ConstArray;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Volatile;
-import org.ref_send.type.Typedef;
 
 /**
  * Implementation hook that users should ignore.
@@ -49,6 +48,18 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
         if (_.deferred != deferred) { throw new ClassCastException(); }
         this._ = _;
     }
+    
+    /**
+     * Is an untrusted promise actually a trusted implementation?
+     * @param deferred  {@link Deferred} permission
+     * @param untrusted currently untrusted promise
+     * @return <code>true</code> if trusted, else <code>false</code>
+     */
+    static protected final boolean
+    trusted(final Token deferred, final Object untrusted) {
+        return untrusted instanceof Deferred &&
+               deferred == ((Deferred<?>)untrusted)._.deferred;
+    }
 
     // java.lang.Object interface
 
@@ -79,11 +90,8 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
                 return Reflection.invoke(method, this, arg);
             }
         }
-        try {
-            return when(Typedef.raw(Typedef.bound(method.getGenericReturnType(),
-                                                  proxy.getClass())),
-                new Invoke<T>(method,null==arg ? null : ConstArray.array(arg)));
-        } catch (final Exception e) { throw new Error(e); }
+        return _.when(proxy.getClass(), this,
+            new Invoke<T>(method, null == arg ? null : ConstArray.array(arg)));
     }
 
     // org.ref_send.promise.Volatile interface
@@ -95,15 +103,10 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
     
     /**
      * Notifies an observer in a future event loop turn.
-     * @param <R> observer's return type
-     * @param R         observer's return type
      * @param observer  promise observer
-     * @return promise, or {@linkplain Eventual#cast eventual reference}, for
-     *         the <code>observer</code>'s return, or <code>null</code> if the
-     *         <code>observer</code>'s return type is <code>Void</code>
      */
-    protected abstract <R> R
-    when(Class<?> R, Do<T,R> observer);
+    protected abstract void
+    when(Do<T,?> observer);
     
     /**
      * Creates a remote reference.
