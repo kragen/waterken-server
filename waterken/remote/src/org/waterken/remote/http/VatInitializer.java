@@ -10,14 +10,11 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Immutable;
 import org.joe_e.Struct;
-import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
-import org.joe_e.file.InvalidFilenameException;
+import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.list.List;
-import org.ref_send.promise.Rejected;
-import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
@@ -28,156 +25,73 @@ import org.waterken.db.Root;
 import org.waterken.db.Transaction;
 import org.waterken.http.Server;
 import org.waterken.syntax.json.JSONDeserializer;
-import org.waterken.syntax.json.JSONSerializer;
-import org.web_send.graph.Publisher;
-import org.web_send.graph.Spawn;
-import org.web_send.graph.Vat;
 
 /**
  * The vat initialization transaction.
  */
 public final class
-VatInitializer extends Struct implements Transaction<ByteArray> {
+VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
 
-    private final boolean anonymous;
-    private final Method build;
+    private final Method make;
     private final String base;      // base URL for JSON serialization
     private final ByteArray body;   // JSON serialized arguments
     
-    private
-    VatInitializer(final boolean anonymous, final Method build,
-                   final String base, final ByteArray body) {
-        this.anonymous = anonymous;
-        this.build = build;
+    protected
+    VatInitializer(final Method make, final String base, final ByteArray body) {
+        this.make = make;
         this.base = base;
         this.body = body;
     }
     
-    public ByteArray
+    public PowerlessArray<String>
     run(final Root local) throws Exception {
         final String here = local.fetch(null, Database.here);
         final Receiver<Effect<Server>> effect=local.fetch(null,Database.effect);
         final Log log = local.fetch(null, Database.log);
         final Receiver<?> destruct = local.fetch(null, Database.destruct);
         
-        local.link(sessions, new SessionMaker(local));
+        local.link(HTTP.sessions, new SessionMaker(local));
         final Outbound outbound = new Outbound();
         local.link(VatInitializer.outbound, outbound);
         local.link(Database.wake, new Wake());
         final List<Task<?>> tasks = List.list();
         local.link(VatInitializer.tasks, tasks);
-        final Token deferred = new Token();
-        final Eventual _= new Eventual(deferred,enqueue(effect,tasks),here,log);
-        final HTTP http = new HTTP(_, effect, detach(outbound), local);
-        final Exports exports = new Exports(_, deferred, http, local);
-        local.link(VatInitializer.exports, exports);
-        final Publisher publisher = publish(local);
-        final Vat vat = new Vat(
-            destruct, spawn(publisher), anonymous ? null : publisher
-        );
+        final HTTP http = new HTTP(enqueue(effect,tasks), here, log,
+                                   destruct, local, detach(outbound));
+        local.link(VatInitializer.exports, http);
         final ConstArray<Type> signature =
-            ConstArray.array(build.getGenericParameterTypes());
+            ConstArray.array(make.getGenericParameterTypes());
         ConstArray<Type> parameters = signature;
         if (parameters.length() != 0) {     // pop the eventual operator
             parameters = parameters.without(0);
         }
-        if (parameters.length() != 0) {     // pop the vat permissions
-            parameters = parameters.without(0);
-        }
+        final HTTP.Exports exports = http.crack();
         final ConstArray<?> optional = new JSONDeserializer().run(base,
-            exports.connect(), parameters, exports.code, body.asInputStream());
+            exports.connect(), parameters, exports.getCodebase(),
+            body.asInputStream());
         final Object[] argv = new Object[signature.length()];
-        if (0 < argv.length) { argv[0] = _; }
-        if (1 < argv.length) { argv[1] = vat; }
-        for (int i = 2; i < argv.length; ++i) {
-            argv[i] = optional.get(i - 2);
+        if (argv.length != 0) { argv[0] = exports; }
+        for (int i = 0; i != optional.length(); ++i) {
+            argv[i + 1] = optional.get(i);
         }
-        final Object value = Reflection.invoke(build, null, argv);
-        return new JSONSerializer().run(exports.send(base),
-                                        ConstArray.array(value));
-    }
-
-    /**
-     * Constructs a reference exporter.
-     * @param mother    local vat root
-     */
-    static private Publisher
-    publish(final Root mother) {
-        class PublisherX extends Publisher implements Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public void
-            bind(final String name, final Object value) {
-                vet(name);
-                mother.link(name, value);
-            }
-
-            public @SuppressWarnings("unchecked") <R> R
-            spawn(final String label,
-                  final Class<?> maker, final Object... argv) {
-                final Method make = Exports.dispatch(maker, "make");
-                final Class<?> R = make.getReturnType();
-                try {
-                    if (null != label) { vet(label); }
-                    final Exports exports =
-                        mother.fetch(null, VatInitializer.exports);
-                    final ByteArray body = new JSONSerializer().run(
-                            exports.export(), ConstArray.array(argv));  
-                    final String project = mother.fetch(null, Database.project);
-                    final Creator creator = mother.fetch(null,Database.creator);
-                    final String here = exports.getHere();
-                    final ByteArray response = creator.run(project, here, label,
-                        new VatInitializer(null==label,make, here,body)).cast();
-                    return (R)new JSONDeserializer().run(
-                        here, exports.connect(),
-                        ConstArray.array(make.getGenericReturnType()),
-                        exports.code, response.asInputStream()).get(0);
-                } catch (final Exception e) {
-                    return new Rejected<R>(e)._(R);
-                }
-            }
-        }
-        return new PublisherX();
+        final Object value = Reflection.invoke(make, null, argv);
+        return PowerlessArray.array(exports.send(base).run(value));
     }
     
-    static private void
-    vet(final String name) throws InvalidFilenameException {
-        if (name.startsWith(".")){throw new InvalidFilenameException();}
-        for (int i = name.length(); i-- != 0;) {
-            if (Publisher.disallowed.indexOf(name.charAt(i)) != -1) {
-                throw new InvalidFilenameException();
-            }
-        }
-    }
-    
-    static public ByteArray
+    static public String
     create(final Database<Server> parent, final String project,
            final String base, final String label,
            final Class<?> maker) throws Exception {
-        final Method make = Exports.dispatch(maker, "make");
-        if (null != label) { vet(label); }
-        return parent.enter(Transaction.update, new Transaction<ByteArray>() {
-            public ByteArray
+        final Method make = HTTP.dispatch(maker, "make");
+        return parent.enter(Transaction.update,
+                            new Transaction<PowerlessArray<String>>() {
+            public PowerlessArray<String>
             run(final Root local) throws Exception {
                 final Creator creator = local.fetch(null, Database.creator);
                 return creator.run(project, base, label, new VatInitializer(
-                    null == label, make, null,
-                    ByteArray.array((byte)'[', (byte)']'))).cast();
+                    make, null, ByteArray.array((byte)'[', (byte)']'))).cast();
             }
-        }).cast();
-    }
-    
-    static private Spawn
-    spawn(final Publisher publisher) {
-        class SpawnX extends Spawn implements Serializable {
-            static private final long serialVersionUID = 1L;
-            
-            public <R> R
-            run(final Class<?> builder, final Object... argv) {
-                return publisher.spawn(null, builder, argv);
-            }
-        }
-        return new SpawnX();
+        }).cast().get(0);
     }
     
     static private Receiver<Task<?>>
@@ -241,9 +155,4 @@ VatInitializer extends Struct implements Transaction<ByteArray> {
     static protected final String outbound = ".outbound";
     static private   final String tasks = ".tasks";
     static protected final String exports = ".exports";
-
-    /**
-     * key bound to the session maker in all vats
-     */
-    static protected final String sessions = "sessions";
 }

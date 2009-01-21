@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import static org.web_send.Failure.maxEntitySize;
+import static org.ref_send.promise.eventual.Failure.maxEntitySize;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -79,9 +79,9 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                               new Transaction<Message<Response>>() {
                     public Message<Response>
                     run(final Root local) throws Exception {
-                        final Exports exports =
+                        final HTTP http =
                             local.fetch(null, VatInitializer.exports);
-                        return new Callee(exports).run(q, m);
+                        return new Callee(http.crack()).run(q, m);
                     }
                 }).cast();
             } catch (final FileNotFoundException e) {

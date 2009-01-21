@@ -41,10 +41,10 @@ import org.waterken.uri.Header;
 Callee extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
     
-    private final Exports exports;
+    private final HTTP.Exports exports;
 
     protected
-    Callee(final Exports exports) {
+    Callee(final HTTP.Exports exports) {
         this.exports = exports;
     }
 
@@ -54,7 +54,7 @@ Callee extends Struct implements Serializable {
     run(final String query, final Message<Request> m) throws Exception {
         
         // further dispatch the request based on the accessed member
-        final String p = Exports.predicate(query);
+        final String p = HTTP.predicate(query);
         if (null == p || ".".equals(p)) {       // introspection or when block
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
@@ -74,7 +74,7 @@ Callee extends Struct implements Serializable {
             } catch (final Exception e) {
                 value = new Rejected<Object>(e);
             }
-            if (null == p && !Exports.isPBC(value)) {
+            if (null == p && !HTTP.isPBC(value)) {
                 value = describe(value.getClass());
             }
             final Response failed = m.head.allow("\"\"");
@@ -94,13 +94,13 @@ Callee extends Struct implements Serializable {
             return serialize(m.head.method, "404", "never", Server.forever,
                              new Rejected<Object>(e));
         }       
-        if (Exports.isPBC(target)) {
+        if (HTTP.isPBC(target)) {
             // prevent access to local implementation details
             return new Message<Response>(Response.gone(), null);
         }
         
         // determine the type of accessed member
-        final Method lambda = Exports.dispatch(target, p);
+        final Method lambda = HTTP.dispatch(target, p);
         if (null == lambda) {                   // no such member
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
@@ -110,7 +110,7 @@ Callee extends Struct implements Serializable {
                     Response.notAllowed("TRACE", "OPTIONS"), null);
         }
         
-        if (null != Exports.property(lambda)) { // property access
+        if (null != HTTP.property(lambda)) { // property access
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
                     Response.options("TRACE","OPTIONS","GET","HEAD"), null);
@@ -210,7 +210,7 @@ Callee extends Struct implements Serializable {
             return ConstArray.array(m.body);
         }
         return new JSONDeserializer().run(exports.getHere(), exports.connect(),
-                parameters, exports.code, m.body.asInputStream());
+                parameters, exports.getCodebase(), m.body.asInputStream());
     }
 
     /**

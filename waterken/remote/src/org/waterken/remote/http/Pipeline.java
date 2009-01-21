@@ -3,14 +3,20 @@
 package org.waterken.remote.http;
 
 import static org.ref_send.promise.Fulfilled.near;
-import static org.web_send.Failure.maxEntitySize;
+import static org.ref_send.promise.eventual.Failure.maxEntitySize;
 
 import java.io.InputStream;
 import java.io.Serializable;
+import java.lang.reflect.Type;
 
 import org.joe_e.Immutable;
+import org.joe_e.Struct;
+import org.joe_e.array.ByteArray;
+import org.joe_e.array.ConstArray;
+import org.joe_e.array.PowerlessArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Fulfilled;
+import org.ref_send.promise.eventual.Failure;
 import org.ref_send.promise.eventual.Receiver;
 import org.waterken.db.Effect;
 import org.waterken.db.Root;
@@ -22,9 +28,15 @@ import org.waterken.http.Message;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
+import org.waterken.io.FileType;
 import org.waterken.io.Stream;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.limited.TooBig;
+import org.waterken.syntax.json.JSONDeserializer;
+import org.waterken.syntax.json.JSONSerializer;
+import org.waterken.uri.Authority;
+import org.waterken.uri.Header;
+import org.waterken.uri.URI;
 
 /**
  * Manages a pending request queue for a peer vat.
@@ -52,7 +64,8 @@ Pipeline implements Serializable {
      * resumes once the response to the Query has been received.
      */
     
-    private         String key = "";    // messaging session key
+    private         String key = null;              // messaging session key
+    private         boolean keyRequested = false;   // session key requested?
 
     protected
     Pipeline(final String name, final String peer,
@@ -74,6 +87,49 @@ Pipeline implements Serializable {
      */
     protected String
     enqueue(final Operation operation) {
+        if (!keyRequested && operation instanceof Update) {
+            class Init extends Struct implements Operation, Update, Query,
+                                                 Serializable {
+                static private final long serialVersionUID = 1L;
+                
+                public Message<Request>
+                render(final String x,final long w,final int m)throws Exception{
+                    final String target = HTTP.init(peer);
+                    final String authority = URI.authority(target);
+                    final String location = Authority.location(authority);
+                    final ByteArray body = new JSONSerializer().
+                                        run(null, PowerlessArray.array(name));  
+                    return new Message<Request>(new Request(
+                        "HTTP/1.1", "POST", URI.request(target),
+                        PowerlessArray.array(
+                            new Header("Host", location),
+                            new Header("Content-Type", FileType.json.name),
+                            new Header("Content-Length", "" + body.length())
+                        )), body);
+                }
+
+                public void
+                fulfill(final String request, final Message<Response> response){
+                    try {
+                        if (!"200".equals(response.head.status)) {
+                            throw new Failure(response.head.status,
+                                              response.head.phrase);
+                        }
+                        final Type R = String.class;
+                        key = (String)new JSONDeserializer().run(peer, null,
+                                        ConstArray.array(R), null,
+                                        response.body.asInputStream()).get(0);
+                    } catch (final Exception e) {
+                        reject(request, e);
+                    }
+                }
+                
+                public void
+                reject(final String request, final Exception reason) {}
+            }
+            keyRequested = true;
+            enqueue(new Init());
+        }
         if (pending.isEmpty()) {
             near(outbound).add(this);
         }
@@ -81,7 +137,6 @@ Pipeline implements Serializable {
         final long mid = acknowledged + pending.getSize();
         final String guid;
         if (operation instanceof Update) {
-            // TODO: initialize session key
             if (0 != queries) {
                 halts += 1;
                 queries = 0;
@@ -179,14 +234,14 @@ Pipeline implements Serializable {
                         if (x instanceof Update) {
                             guid = m.name + "-" + window + "-" + index;
                         } else {
-                            guid = m.name + "!" + mid;
+                            guid = m.name + "*" + mid;
                         }
                         try {
                             final Message<Request> q =
                                 x.render(m.key, window, index);
                             effect.run(new Effect<Server>() {
                                 public void
-                                run(final Database<Server> vat) throws Exception {
+                                run(final Database<Server> vat)throws Exception{
                                     vat.session.serve(peer, q.head,
                                       null!=q.body?q.body.asInputStream():null,
                                       fulfill(vat, peer, guid, mid));
@@ -195,7 +250,7 @@ Pipeline implements Serializable {
                         } catch (final Exception reason) {
                             effect.run(new Effect<Server>() {
                                 public void
-                                run(final Database<Server> vat) throws Exception {
+                                run(final Database<Server> vat)throws Exception{
                                     vat.session.serve(peer, null, null,
                                         reject(vat, peer, guid, mid, reason));
                                 }

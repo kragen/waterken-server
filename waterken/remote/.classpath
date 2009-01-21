@@ -5,7 +5,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/joe-e"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/network"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/ref_send"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/web_send"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/persistence"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/log"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/syntax"/>
