@@ -4,7 +4,6 @@ package org.waterken.server;
 
 import java.io.PrintStream;
 
-import org.joe_e.array.ByteArray;
 import org.waterken.net.http.HTTPD;
 import org.waterken.project.Project;
 import org.waterken.remote.http.VatInitializer;
@@ -61,8 +60,8 @@ Spawn {
         // create the database
         final ClassLoader code = Project.connect(project);
         final Class<?> maker = code.loadClass(typename);
-        final ByteArray r = VatInitializer.create(Settings.vat(), project,
-                                                  here, label, maker);
-        System.out.write(r.toByteArray());
+        final String r = VatInitializer.create(Settings.vat(), project,
+                                               here, label, maker);
+        System.out.println(r);
     }
 }
