@@ -3,17 +3,10 @@
 package org.ref_send.test;
 
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.eventual.Task;
 
 /**
  * A test suite.
  */
 public interface
-Test {
-
-    /**
-     * Starts a test.
-     * @return promise for the test result
-     */
-    Promise<Boolean>
-    start() throws Exception;
-}
+Test extends Task<Promise<Boolean>> {}
