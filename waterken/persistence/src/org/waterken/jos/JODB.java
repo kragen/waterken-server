@@ -553,12 +553,12 @@ JODB<S> extends Database<S> {
                             public void
                             run(final Event event) {}
                         } : stderr, subStore);
-                    sub.project = project;
-                    sub.code = code;
+                    sub.project = null != project ? project : JODB.this.project;
+                    sub.code = Project.connect(sub.project);
                     return sub.process(Transaction.update, new Transaction<X>(){
                         public X
                         run(final Root local) throws Exception {
-                            local.link(Database.project, project);
+                            local.link(Database.project, sub.project);
                             local.link(Database.here, here);
                             local.link(secret, secretBits);
                             final TurnCounter turn = TurnCounter.make(here);

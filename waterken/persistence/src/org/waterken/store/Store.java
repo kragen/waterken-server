@@ -12,8 +12,7 @@ Store {
      * Recursively deletes all contained entries. 
      * @throws Exception                any I/O problem
      */
-    void
-    clean() throws Exception;
+    void clean() throws Exception;
     
     /**
      * Creates a transaction.
@@ -22,6 +21,5 @@ Store {
      * </p>
      * @throws Exception                any I/O problem
      */
-    Update
-    update() throws Exception;
+    Update update() throws Exception;
 }

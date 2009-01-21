@@ -112,6 +112,7 @@ Folder extends Struct implements StoreMaker, Serializable {
                         if (done.is()) { throw new AssertionError(); }
                         if (isWriting) { throw new AssertionError(); }
                         if (written.mark(true) && !nested.is()){mkdir(pending);}
+                        if(!ok(filename)){throw new InvalidFilenameException();}
                         final OutputStream out =
                             writeNew(Filesystem.file(pending, filename));
                         isWriting = true;
@@ -144,7 +145,7 @@ Folder extends Struct implements StoreMaker, Serializable {
                                                        IOException {
                         if (done.is()) { throw new AssertionError(); }
                         final String was = "." + filename + ".was";
-                        if (filename.startsWith(".") ||
+                        if (filename.startsWith(".") || !ok(filename) ||
                             Filesystem.file(dir, was).isFile() ||
                             (nested.is() &&
                              Filesystem.file(pending, was).isFile())) {
@@ -177,6 +178,15 @@ Folder extends Struct implements StoreMaker, Serializable {
                 };
             }
         };
+    }
+    
+    static private boolean
+    ok(final String name)  {
+        if (0 == name.length()) { return false; }
+        for (int i = name.length(); i-- != 0;) {
+            if (disallowed.indexOf(name.charAt(i)) != -1) { return false; }
+        }
+        return true;
     }
     
     // the rest is static implementation helpers for file I/O

@@ -11,6 +11,11 @@ import org.ref_send.promise.eventual.Receiver;
  */
 public interface
 StoreMaker {
+    
+    /**
+     * set of disallowed name characters: {@value}
+     */
+    String disallowed = ";\\/:*?<>|\"=#";
 
     /**
      * Constructs a {@link Store}.

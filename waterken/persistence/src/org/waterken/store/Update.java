@@ -21,8 +21,7 @@ Update {
      *         <code>false</code> otherwise
      * @throws Exception                any I/O problem
      */
-    boolean
-    includes(String filename) throws Exception;
+    boolean includes(String filename) throws Exception;
     
     /**
      * Opens an existing file for reading.
@@ -32,9 +31,8 @@ Update {
      * @throws FileNotFoundException    <code>filename</code> does not exist
      * @throws Exception                any I/O problem
      */
-    InputStream
-    read(String filename) throws InvalidFilenameException,
-                                 FileNotFoundException, Exception;
+    InputStream read(String filename) throws InvalidFilenameException,
+                                             FileNotFoundException, Exception;
     
     /**
      * Terminates this transaction.
@@ -43,8 +41,7 @@ Update {
      * </p>
      * @throws Exception                any I/O problem
      */
-    void
-    close() throws Exception;
+    void close() throws Exception;
 
     /**
      * Creates an update file.
@@ -56,8 +53,8 @@ Update {
      * @throws InvalidFilenameException <code>filename</code> not valid
      * @throws Exception                any I/O problem
      */
-    OutputStream
-    write(String filename) throws InvalidFilenameException, Exception;
+    OutputStream write(String filename) throws InvalidFilenameException,
+                                               Exception;
    
     /**
      * Creates a nested {@link Store}.
@@ -66,13 +63,11 @@ Update {
      * @throws InvalidFilenameException <code>filename</code> not available
      * @throws Exception                any I/O problem
      */
-    Store
-    nest(String filename) throws InvalidFilenameException, Exception;
+    Store nest(String filename) throws InvalidFilenameException, Exception;
 
     /**
      * Commits all changes to the {@link Store}.
      * @throws Exception                any I/O problem
      */
-    void
-    commit() throws Exception;
+    void commit() throws Exception;
 }
