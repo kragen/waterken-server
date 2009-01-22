@@ -12,6 +12,7 @@ import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Resolver;
 
 /**
  * Test condition operations.
@@ -33,7 +34,10 @@ Logic {
             static private final long serialVersionUID = 1L;
 
             public Promise<Boolean>
-            fulfill(final T value) { return ref(expected.equals(value)); }
+            fulfill(final T value) throws Exception {
+                if (expected.equals(value)) { return ref(true); }
+                throw new Exception();
+            }
         }
         return new Was();
     }
@@ -49,6 +53,7 @@ Logic {
         if (0 == tests.length()) { return ref(true); }
         final Channel<Boolean> answer = _.defer();
         final int[] todo = { tests.length() };
+        final Resolver<Boolean> resolver = answer.resolver;
         for (final Volatile<Boolean> test : tests) {
             class AND extends Do<Boolean,Void> implements Serializable {
                 static private final long serialVersionUID = 1L;
@@ -57,16 +62,16 @@ Logic {
                 fulfill(final Boolean value) {
                     if (value) {
                         if (0 == --todo[0]) {
-                            answer.resolver.run(true);
+                            resolver.run(true);
                         }
                     } else {
-                        answer.resolver.run(false);
+                        resolver.run(false);
                     }
                     return null;
                 }
                 public Void
                 reject(final Exception e) {
-                    answer.resolver.reject(e);
+                    resolver.reject(e);
                     return null;
                 }
             }
