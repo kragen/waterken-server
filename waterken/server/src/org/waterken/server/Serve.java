@@ -123,6 +123,6 @@ Serve {
                                     new Transaction<Immutable>() {
                 public Immutable
                 run(final Root local) { return null; }
-            });
-        } catch (final Exception e) {}
+            }).cast();
+        } catch (final Exception e) { e.printStackTrace(); }
     }}
