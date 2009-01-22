@@ -185,7 +185,8 @@ Callee extends Struct implements Serializable {
             return new Message<Response>(new Response(
                 "HTTP/1.1", status, phrase,
                 PowerlessArray.array(
-                    new Header("Cache-Control", "max-age=" + maxAge),
+                    new Header("Cache-Control", "max-age=" + maxAge + 
+                            (0 == maxAge ? ", must-revalidate" : "")),
                     new Header("Content-Type", FileType.unknown.name),
                     new Header("Content-Length", "" + content.length())
                 )),
@@ -196,7 +197,8 @@ Callee extends Struct implements Serializable {
         return new Message<Response>(new Response(
             "HTTP/1.1", status, phrase,
             PowerlessArray.array(
-                new Header("Cache-Control", "max-age=" + maxAge),
+                new Header("Cache-Control", "max-age=" + maxAge + 
+                        (0 == maxAge ? ", must-revalidate" : "")),
                 new Header("Content-Type", FileType.json.name),
                 new Header("Content-Length", "" + content.length())
             )),

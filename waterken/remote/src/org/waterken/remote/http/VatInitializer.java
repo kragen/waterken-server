@@ -70,7 +70,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             exports.connect(), parameters, exports.getCodebase(),
             body.asInputStream());
         final Object[] argv = new Object[signature.length()];
-        if (argv.length != 0) { argv[0] = exports; }
+        if (argv.length != 0) { argv[0] = http; }
         for (int i = 0; i != optional.length(); ++i) {
             argv[i + 1] = optional.get(i);
         }
