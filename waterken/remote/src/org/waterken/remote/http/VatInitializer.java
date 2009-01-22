@@ -53,8 +53,8 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         local.link(HTTP.sessions, new SessionMaker(local));
         final Outbound outbound = new Outbound();
         local.link(VatInitializer.outbound, outbound);
-        local.link(Database.wake, new Wake());
         final List<Task<?>> tasks = List.list();
+        local.link(Database.wake, wake(tasks, outbound, effect));
         local.link(VatInitializer.tasks, tasks);
         final HTTP http = new HTTP(enqueue(effect,tasks), here, log,
                                    destruct, local, detach(outbound));
@@ -109,23 +109,23 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         }
         return new Enqueue();
     }
-
-    static private final class
-    Wake extends Struct implements Transaction<Immutable>, Serializable {
-        static private final long serialVersionUID = 1L;
-        
-        public Immutable
-        run(final Root local) throws Exception {
-            final List<Task<?>> tasks = local.fetch(null, VatInitializer.tasks);
-            if (!tasks.isEmpty()) {
-                final Receiver<Effect<Server>> effect =
-                    local.fetch(null, Database.effect);
-                effect.run(runTask());
+    
+    static private Task<?>
+    wake(final List<Task<?>> tasks, final Outbound outbound,
+         final Receiver<Effect<Server>> effect) {
+        class Wake extends Struct implements Task<Void>, Serializable {
+            static private final long serialVersionUID = 1L;
+            
+            public Void
+            run() throws Exception {
+                if (!tasks.isEmpty()) {
+                    effect.run(runTask());
+                }
+                for (final Pipeline x : outbound.getPending()) { x.resend(); }
+                return null;
             }
-            final Outbound outbound= local.fetch(null, VatInitializer.outbound);
-            for (final Pipeline x : outbound.getPending()) { x.resend(); }
-            return null;
         }
+        return new Wake();
     }
     
     static private Effect<Server>
