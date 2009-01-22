@@ -4,7 +4,6 @@ package org.waterken.server;
 
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.HashMap;
 
 import org.joe_e.Struct;
 import org.ref_send.promise.eventual.Receiver;
@@ -12,14 +11,16 @@ import org.waterken.cache.Cache;
 import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Server;
+import org.waterken.http.TokenList;
 import org.waterken.net.Locator;
 import org.waterken.net.http.ClientSide;
 import org.waterken.thread.Concurrent;
 import org.waterken.thread.Sleep;
-import org.waterken.uri.URI;
+import org.waterken.uri.Header;
+import org.waterken.uri.Location;
 
 /**
- * The HTTP gateway for this JVM.
+ * The HTTPS gateway for this JVM.
  */
 public final class
 Proxy extends Struct implements Server, Serializable {
@@ -42,28 +43,19 @@ Proxy extends Struct implements Server, Serializable {
         return r;
     }
 
-    static private final HashMap<String,Locator> protocols =
-        new HashMap<String,Locator>();
-    static private       Credentials credentials = null;
-    
-    static public Credentials
-    init() {
-        if (!protocols.isEmpty()) { throw new Error(); }
-        Proxy.protocols.put("http", Loopback.client(80));
-        if (Settings.keys.isFile()) {
-            credentials = SSL.keystore("TLS", Settings.keys, "nopass");
-            Proxy.protocols.put("https", SSL.client(443, credentials));
-        }
-        return credentials;
-    }
+    static private   final Locator http = Loopback.client(80);
+    static protected final Credentials credentials = Settings.keys.isFile()
+        ? SSL.keystore("TLS", Settings.keys, "nopass") : null;
+    static private   final Locator https =
+        null != credentials ? SSL.client(443, credentials) : null;
     
     public void
-    serve(final String resource, final Request head, final InputStream body,
-                                 final Client client) throws Exception{
-        final String scheme = URI.scheme(resource);
-        final Locator transport = protocols.get(scheme);
-        final String authority= transport.canonicalize(URI.authority(resource));
-        final String peer = scheme + "://" + authority + "/";
-        connect(peer, transport).serve(resource, head, body, client);
+    serve(final Request head,
+          final InputStream body, final Client client) throws Exception {
+        // TODO: implement boot comm
+        final String host = TokenList.find("localhost", "Host", head.headers);
+        final Locator transport =
+            Header.equivalent("localhost", Location.hostname(host))?http:https;
+        connect(transport.canonicalize(host),transport).serve(head,body,client);
     }
 }

@@ -42,7 +42,7 @@ Spawn {
 
         // determine the local address
         final String here;
-        final Credentials credentials = Proxy.init();
+        final Credentials credentials = Proxy.credentials;
         if (null != credentials) {
             final String host = credentials.getHostname();
             Hostname.vet(host);

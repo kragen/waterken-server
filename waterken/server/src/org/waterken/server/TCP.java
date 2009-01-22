@@ -70,7 +70,7 @@ TCP implements Runnable {
                 run() {
                     try {
                         err.println(name + ": processing...");
-                        daemon.accept(new Yield(), hostname, socket).run();
+                        daemon.accept(hostname, socket, new Yield()).run();
                     } catch (final SocketTimeoutException e) {
                     	// normal end to a TCP connection
                     } catch (final Throwable e) {

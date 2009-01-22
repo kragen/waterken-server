@@ -13,7 +13,6 @@ import java.net.UnknownHostException;
 import org.waterken.net.Locator;
 import org.waterken.uri.Authority;
 import org.waterken.uri.Location;
-import org.waterken.uri.URI;
 
 /**
  * The loopback device.
@@ -46,9 +45,8 @@ Loopback {
             }
             
             public Socket
-            locate(final String host,
+            locate(final String authority,
                    final SocketAddress mostRecent) throws IOException {
-                final String authority = URI.authority(host);
                 final String location = Authority.location(authority);
                 final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);

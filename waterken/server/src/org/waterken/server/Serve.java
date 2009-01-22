@@ -56,7 +56,7 @@ Serve {
     
     static private void
     start(final PrintStream err, final String... services) throws Exception {
-        final Credentials credentials = Proxy.init();
+        final Credentials credentials = Proxy.credentials;
         final String hostname =
             null != credentials ? credentials.getHostname() : "localhost";
 

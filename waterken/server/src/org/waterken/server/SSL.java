@@ -42,7 +42,6 @@ import org.waterken.net.http.ClientSide;
 import org.waterken.uri.Authority;
 import org.waterken.uri.Header;
 import org.waterken.uri.Location;
-import org.waterken.uri.URI;
 
 /**
  * SSL implementation
@@ -70,7 +69,8 @@ SSL {
             }
             
             public Socket
-            locate(final String host, final SocketAddress x) throws IOException{
+            locate(final String authority,
+                   final SocketAddress x) throws IOException{
                 if (null == factory) {
                     try {
                         factory = credentials.getContext().getSocketFactory();
@@ -79,7 +79,6 @@ SSL {
                     }
                 }
                 
-                final String authority = URI.authority(host);
                 final String location = Authority.location(authority);
                 final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
