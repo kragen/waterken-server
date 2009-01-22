@@ -6,16 +6,12 @@ import static org.ref_send.promise.Fulfilled.ref;
 import static org.ref_send.test.Logic.and;
 import static org.ref_send.test.Logic.was;
 
-import java.io.Serializable;
-
-import org.joe_e.Struct;
 import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
-import org.ref_send.test.Test;
 
 /**
  * Eventual invocation tests.
@@ -31,39 +27,31 @@ PopPushN {
     private PopPushN() {}
     
     /**
-     * Constructs an instance.
+     * Runs a unit test.
      * @param _ eventual operator
      * @param n number of test iterations
      */
-    static public Test
+    static public Promise<Boolean>
     make(final Eventual _, final int n) {
-        class TestX extends Struct implements Test, Serializable {
-            static private final long serialVersionUID = 1L;
-            
-            public Promise<Boolean>
-            run() {
-                final Series<Integer> x = Serial.make(_);
-                
-                /*
-                 * Check that the first n integers in the series will be the
-                 * numbers from 0 through n.
-                 */
-                ConstArray<Volatile<Boolean>> r = ConstArray.array();
-                for (int i = 0; i != n; ++i) {
-                    r = r.with(_.when(x.consume(), was(i)));
-                }
-                
-                /*
-                 * Append the numbers 0 through n to the series.
-                 */
-                for (int i = 0; i != n; ++i) {
-                    x.produce(ref(i));
-                }
-                
-                return and(_, r);
-            }
+        final Series<Integer> x = Serial.make(_);
+        
+        /*
+         * Check that the first n integers in the series will be the
+         * numbers from 0 through n.
+         */
+        ConstArray<Volatile<Boolean>> r = ConstArray.array();
+        for (int i = 0; i != n; ++i) {
+            r = r.with(_.when(x.consume(), was(i)));
         }
-        return new TestX();
+        
+        /*
+         * Append the numbers 0 through n to the series.
+         */
+        for (int i = 0; i != n; ++i) {
+            x.produce(ref(i));
+        }
+        
+        return and(_, r);
     }
     
     // Command line interface
@@ -78,8 +66,7 @@ PopPushN {
         final int n = args.length > 0 ? Integer.parseInt(args[0]) : 4;
         
         final List<Task<?>> work = List.list();
-        final Test test = make(new Eventual(work.appender()), n);
-        final Promise<Boolean> result = test.run();
+        final Promise<Boolean> result = make(new Eventual(work.appender()), n);
         while (!work.isEmpty()) { work.pop().run(); }
         if (!result.cast()) { throw new Exception("test failed"); }
     }

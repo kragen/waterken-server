@@ -10,7 +10,6 @@ import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
-import org.ref_send.test.Test;
 
 /**
  * An introduction to eventual operations in Java.
@@ -29,8 +28,7 @@ Beat {
      * This method is called by the infrastructure code that manages the
      * lifecycle of vats. The return from this method is an object that will be
      * returned to the creator of the new vat. In this case, the vat creator
-     * will get an eventual reference of type {@link Test} to an instance of
-     * the created test class.
+     * will get a promise for a boolean.
      * </p>
      * <p>
      * By convention, an instance of {@link Eventual} is held in a variable

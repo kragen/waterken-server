@@ -39,14 +39,14 @@ All {
         
         _.log.comment("testing argument passing");
         final Wall wall_ = _.spawn("wall", Bounce.class);
-        r = r.with(Pitch.make(_, wall_).run());
+        r = r.with(Pitch.make(_, wall_));
         
         _.log.comment("testing message pipelining");
         final Drum drum_ = _.spawn("drum", Bang.class);
         r = r.with(Beat.make(_, drum_));
         
         _.log.comment("testing promise resolution");
-        r = r.with(PopPushN.make(_, 4).run());
+        r = r.with(PopPushN.make(_, 4));
 
         return and(_, r);
     }

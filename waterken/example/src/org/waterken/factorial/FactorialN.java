@@ -8,7 +8,6 @@ import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Task;
-import org.ref_send.test.Test;
 
 /**
  * Eventual invocation tests.
@@ -18,22 +17,17 @@ FactorialN {
     private FactorialN() {}
     
     /**
-     * Constructs an instance.
+     * Runs a unit test.
      * @param _ eventual operator
      * @param n number to compute factorial of
      */
-    static public Test
+    static public Promise<Boolean>
     make(final Eventual _, final int n) {
-        return new Test() {
-            public Promise<Boolean>
-            run() {
-                int r = 1;
-                for (int i = n; i > 0; --i) {
-                    r *= i;
-                }
-                return _.when(Factorial.make(_, n), was(r));
-            }
-        };
+        int r = 1;
+        for (int i = n; i > 0; --i) {
+            r *= i;
+        }
+        return _.when(Factorial.make(_, n), was(r));
     }
     
     // Command line interface
@@ -48,8 +42,7 @@ FactorialN {
         final int n = args.length > 0 ? Integer.parseInt(args[0]) : 4;
         
         final List<Task<?>> work = List.list();
-        final Test test = make(new Eventual(work.appender()), n);
-        final Promise<Boolean> result = test.run();
+        final Promise<Boolean> result = make(new Eventual(work.appender()), n);
         while (!work.isEmpty()) { work.pop().run(); }
         if (!result.cast()) { throw new Exception("test failed"); }
     }

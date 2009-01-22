@@ -26,7 +26,7 @@ SoundCheck {
     private SoundCheck() {}
     
     /**
-     * Constructs an instance.
+     * Runs a unit test.
      * @param _ eventual operator
      */
     static public Promise<Boolean>
@@ -49,13 +49,13 @@ SoundCheck {
         final Promise<T> p = ref(x);
         check(p.equals(p));
         check(ref(x).equals(p));
-        check(x == p.cast());
+        check(x.equals(p.cast()));
         class EQ extends Do<T,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public Promise<Boolean>
             fulfill(final T arg) throws Exception {
-                check(x == arg);
+                check(x.equals(arg));
                 return ref(true);
             }
         }
