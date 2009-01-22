@@ -50,11 +50,11 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
               final InputStream body, final Client client) throws Exception {
 
             // check for web browser bootstrap request
-            final String q = URI.query(null, head.URI);
+            final String q = URI.query(null, head.uri);
             if (null == q) {
                 bootstrap.serve(new Request(head.version, head.method,
                         "/site/" + URLEncoding.encode(vat.getProject()) + "/" +
-                        URLEncoding.encode(Path.name(URI.path(head.URI))),
+                        URLEncoding.encode(Path.name(URI.path(head.uri))),
                         head.headers), body, client);
                 return;
             }

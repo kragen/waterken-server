@@ -59,7 +59,7 @@ Mux<S> extends Struct implements Server, Serializable {
     serve(final Request head, final InputStream body,
                               final Client client) throws Exception {
         final Server server;
-        final String path = URI.path(head.URI);
+        final String path = URI.path(head.uri);
         if (path.startsWith(vatURIPathPrefix)) {
             final String vatPath = path.substring(vatURIPathPrefix.length());
             try {
