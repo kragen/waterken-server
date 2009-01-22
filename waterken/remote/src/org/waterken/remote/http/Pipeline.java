@@ -46,7 +46,7 @@ Pipeline implements Serializable {
     static private final long serialVersionUID = 1L;
     
     private   final String name;                    // messaging session name
-    protected final String peer;                    // URI of peer vat
+    protected final String peer;                    // absolute URI of peer vat
     private   final Receiver<Effect<Server>> effect;
     private   final Fulfilled<Outbound> outbound;
    
@@ -160,7 +160,7 @@ Pipeline implements Serializable {
         
         final Operation front = pending.pop();
         if (pending.isEmpty()) {
-            near(outbound).remove(peer);
+            near(outbound).remove(this);
         }
         acknowledged += 1;
         if (front instanceof Update) {
@@ -195,7 +195,7 @@ Pipeline implements Serializable {
     
     /**
      * Serializes requests and enqueues them on the transient HTTP connection.
-     * @param peer      id for the pipeline to service
+     * @param peer      absolute URI for the pipeline to service
      * @param max       maximum number of requests to enqueue
      * @param skipTo    id of first request to send
      */
@@ -242,16 +242,23 @@ Pipeline implements Serializable {
                             effect.run(new Effect<Server>() {
                                 public void
                                 run(final Database<Server> vat)throws Exception{
-                                    vat.session.serve(peer, q.head,
+                                    vat.session.serve(q.head,
                                       null!=q.body?q.body.asInputStream():null,
                                       fulfill(vat, peer, guid, mid));
                                 }
                             });
                         } catch (final Exception reason) {
+                            final String authority = URI.authority(peer);
+                            final String location=Authority.location(authority);
                             effect.run(new Effect<Server>() {
                                 public void
                                 run(final Database<Server> vat)throws Exception{
-                                    vat.session.serve(peer, null, null,
+                                    vat.session.serve(
+                                        new Request("HTTP/1.1", "OPTIONS",
+                                            URI.request(peer),
+                                            PowerlessArray.array(
+                                                new Header("Host", location)
+                                            )), null,
                                         reject(vat, peer, guid, mid, reason));
                                 }
                             });

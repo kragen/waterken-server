@@ -43,19 +43,19 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
     // org.waterken.remote.mux.Remoting interface
 
     public Server
-    remote(final Server bootstrap, final String scheme,
+    remote(final Server bootstrap,
            final Database<Server> vat) { return new Server() {
         public void
-        serve(final String resource, final Request head,
+        serve(final Request head,
               final InputStream body, final Client client) throws Exception {
 
             // check for web browser bootstrap request
-            final String q = URI.query(null, resource);
+            final String q = URI.query(null, head.URI);
             if (null == q) {
-                bootstrap.serve("file:///site/" +
-                        URLEncoding.encode(vat.getProject()) + "/" +
-                        URLEncoding.encode(Path.name(URI.path(resource))),
-                    head, body, client);
+                bootstrap.serve(new Request(head.version, head.method,
+                        "/site/" + URLEncoding.encode(vat.getProject()) + "/" +
+                        URLEncoding.encode(Path.name(URI.path(head.URI))),
+                        head.headers), body, client);
                 return;
             }
 
@@ -79,9 +79,9 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                               new Transaction<Message<Response>>() {
                     public Message<Response>
                     run(final Root local) throws Exception {
-                        final HTTP http =
+                        final HTTP.Exports exports =
                             local.fetch(null, VatInitializer.exports);
-                        return new Callee(http.crack()).run(q, m);
+                        return new Callee(exports).run(q, m);
                     }
                 }).cast();
             } catch (final FileNotFoundException e) {

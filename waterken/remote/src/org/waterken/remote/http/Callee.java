@@ -5,6 +5,7 @@ package org.waterken.remote.http;
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 import static org.joe_e.array.PowerlessArray.builder;
+import static org.ref_send.promise.Fulfilled.ref;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -177,29 +178,30 @@ Callee extends Struct implements Serializable {
         return serialize(m.head.method, "200", "OK", Server.ephemeral, value);
     }
     
+    static private final Class<?> Inline = ref(0).getClass();
+    
     private Message<Response>
     serialize(final String method, final String status, final String phrase,
-              final int maxAge, final Object value) throws Exception {
-        if (value instanceof ByteArray) {
-            final ByteArray content = (ByteArray)value;
-            return new Message<Response>(new Response(
-                "HTTP/1.1", status, phrase,
-                PowerlessArray.array(
-                    new Header("Cache-Control", "max-age=" + maxAge + 
-                            (0 == maxAge ? ", must-revalidate" : "")),
-                    new Header("Content-Type", FileType.unknown.name),
-                    new Header("Content-Length", "" + content.length())
-                )),
-                "HEAD".equals(method) ? null : content);
+              final int maxAge, Object value) throws Exception {
+        if (Inline.isInstance(value)) {
+            value = ((Fulfilled<?>)value).cast();
         }
-        final ByteArray content =
-            new JSONSerializer().run(exports.export(), ConstArray.array(value));
+        final String contentType;
+        final ByteArray content;
+        if (value instanceof ByteArray) {
+            contentType = FileType.unknown.name;
+            content = (ByteArray)value;
+        } else {
+            contentType = FileType.json.name;
+            content = new JSONSerializer().run(exports.export(),
+                                               ConstArray.array(value));
+        }
         return new Message<Response>(new Response(
             "HTTP/1.1", status, phrase,
             PowerlessArray.array(
                 new Header("Cache-Control", "max-age=" + maxAge + 
                         (0 == maxAge ? ", must-revalidate" : "")),
-                new Header("Content-Type", FileType.json.name),
+                new Header("Content-Type", contentType),
                 new Header("Content-Length", "" + content.length())
             )),
             "HEAD".equals(method) ? null : content);

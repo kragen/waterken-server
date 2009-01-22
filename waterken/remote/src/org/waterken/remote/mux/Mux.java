@@ -56,16 +56,15 @@ Mux<S> extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
 
     public void
-    serve(final String resource, final Request head, final InputStream body,
-                                 final Client client) throws Exception {
+    serve(final Request head, final InputStream body,
+                              final Client client) throws Exception {
         final Server server;
-        final String path = URI.path(resource);
+        final String path = URI.path(head.URI);
         if (path.startsWith(vatURIPathPrefix)) {
             final String vatPath = path.substring(vatURIPathPrefix.length());
             try {
                 final File folder = Path.descend(vatRoot, vatPath);
-                server = remoting.remote(next, URI.scheme(resource),
-                                         vats.connect(folder));
+                server = remoting.remote(next, vats.connect(folder));
             } catch (final InvalidFilenameException e) {
                 client.run(Response.gone(), null);
                 return;
@@ -76,6 +75,6 @@ Mux<S> extends Struct implements Server, Serializable {
         } else {
             server = next;
         }
-        server.serve(resource, head, body, client);
+        server.serve(head, body, client);
     }
 }

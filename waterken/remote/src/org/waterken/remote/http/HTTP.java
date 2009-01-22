@@ -54,7 +54,7 @@ HTTP extends Eventual implements Serializable {
     private   final Creator creator;                    // sub-vat factory
     private   final Receiver<Effect<Server>> effect;    // tx effect scheduler
 
-    protected
+    private
     HTTP(final Receiver<Task<?>> enqueue,
          final String here, final Log log, final Receiver<?> destruct,
          final Root local, final Fulfilled<Outbound> outbound) {
@@ -82,7 +82,7 @@ HTTP extends Eventual implements Serializable {
         } catch (final Exception e) { throw new Error(e); }
         final Class<?> R = make.getReturnType();
         try {
-            final Exports http = new Exports();
+            final Exports http = new Exports(this);
             final ByteArray body =
                 new JSONSerializer().run(http.export(), ConstArray.array(argv));  
             final String href = creator.run(null, here, label,
@@ -97,12 +97,25 @@ HTTP extends Eventual implements Serializable {
     
     // org.waterken.remote.http.Exports interface
     
-    protected Exports
-    crack() { return new Exports(); }
+    static protected HTTP.Exports
+    make(final Receiver<Task<?>> enqueue,
+         final Root local, final Fulfilled<Outbound> outbound) {
+        final String here = local.fetch(null, Database.here);
+        final Log log = local.fetch(null, Database.log);
+        final Receiver<?> destruct = local.fetch(null, Database.destruct);
+        return new Exports(new HTTP(enqueue,here,log,destruct, local,outbound));
+    }
     
-    protected final class
+    static protected final class
     Exports extends Struct implements Messenger, Serializable {
         static private final long serialVersionUID = 1L;
+        
+        protected final HTTP _;
+        
+        private
+        Exports(final HTTP _) {
+            this._ = _;
+        }
         
         // org.waterken.remote.Messenger interface
 
@@ -112,7 +125,6 @@ HTTP extends Eventual implements Serializable {
             if (isPromise(URI.fragment("", href))) {
                 peer(href).when(href, proxy, observer);
             } else {
-                final Eventual _ = HTTP.this;
                 final Class<?> p = Typedef.raw(Compose.parameter(observer));
                 _.when(ref(_.cast(p, proxy)), observer);
             }
@@ -126,34 +138,35 @@ HTTP extends Eventual implements Serializable {
         
         // org.waterken.remote.http.Exports.HTTP interface
         
-        private Messenger
+        private Caller
         peer(final String href) {
-            final String peer = URLEncoding.encode(URI.resolve(href, "."));
-            final String peerKey = ".peer-" + peer;
-            Pipeline msgs = local.fetch(null, peerKey);
+            final String peer = URI.resolve(href, ".");
+            final String peerKey = ".peer-" + URLEncoding.encode(peer);
+            Pipeline msgs = _.local.fetch(null, peerKey);
             if (null == msgs) {
-                final String name = local.export(new Token(), false);
-                msgs = new Pipeline(name, peer, effect, outbound);
-                local.link(peerKey, msgs);
+                final String name = _.local.export(new Token(), false);
+                msgs = new Pipeline(name, URI.resolve(_.here, peer),
+                                    _.effect, _.outbound);
+                _.local.link(peerKey, msgs);
             }
-            return new Caller(HTTP.this, this, msgs);
+            return new Caller(this, msgs);
         }
         
         /**
          * Gets the base URL for this URL space.
          */
         protected String
-        getHere() { return here; }
+        getHere() { return _.here; }
         
         protected ClassLoader
-        getCodebase() { return local.fetch(null, Database.code); }
+        getCodebase() { return _.local.fetch(null, Database.code); }
         
         /**
          * Constructs a reference importer.
          */
         protected Importer
         connect() {
-            final Importer next=Remote.connect(HTTP.this, deferred, this, here);
+            final Importer next=Remote.connect(_, _.deferred, this, _.here);
             class ImporterX extends Struct implements Importer, Serializable {
                 static private final long serialVersionUID = 1L;
 
@@ -161,7 +174,7 @@ HTTP extends Eventual implements Serializable {
                 run(final String href, final String base,
                                        final Type type) throws Exception {
                     final String URL=null!=base ? URI.resolve(base,href) : href;
-                    return Header.equivalent(URI.resolve(URL, "."), here)
+                    return Header.equivalent(URI.resolve(URL, "."), _.here)
                         ? reference(URI.fragment("", URL))
                     : next.run(URL, null, type);
                 }
@@ -179,11 +192,11 @@ HTTP extends Eventual implements Serializable {
 
                 public String
                 run(final Object object) {
-                    return href(local.export(object, false), isPBC(object) ||
+                    return href(_.local.export(object, false), isPBC(object) ||
                         !(Eventual.promised(object) instanceof Fulfilled));
                 }
             }
-            return Remote.export(deferred, new ExporterX());
+            return Remote.export(_.deferred, new ExporterX());
         }
         
         protected Exporter
@@ -193,8 +206,8 @@ HTTP extends Eventual implements Serializable {
                 static private final long serialVersionUID = 1L;
 
                 public String
-                run(final Object object) {
-                    final String absolute=URI.resolve(here, export.run(object));
+                run(final Object x) {
+                    final String absolute = URI.resolve(_.here, export.run(x));
                     return null != base ? URI.relate(base, absolute) : absolute;
                 }
             }
@@ -206,7 +219,7 @@ HTTP extends Eventual implements Serializable {
          */
         protected String
         getTransactionTag() {
-            final Task<String> tagger = local.fetch(null, Database.tagger);
+            final Task<String> tagger = _.local.fetch(null, Database.tagger);
             try { return tagger.run(); } catch (final Exception e) {return "";}
         }
         
@@ -225,7 +238,7 @@ HTTP extends Eventual implements Serializable {
                     return op.run();
                 } catch (final Exception e) { return new Rejected<Object>(e); }
             }
-            final ServerSideSession session = local.fetch(null, x);
+            final ServerSideSession session = _.local.fetch(null, x);
             return session.once(window(query), message(query), member, op);
         }
         
@@ -237,7 +250,7 @@ HTTP extends Eventual implements Serializable {
         protected Object
         reference(final String query) {
             final String s = subject(query);
-            return null == s || s.startsWith(".") ? null : local.fetch(null, s);
+            return null==s || s.startsWith(".") ? null : _.local.fetch(null, s);
         }
     }
     

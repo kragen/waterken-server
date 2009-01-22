@@ -45,14 +45,14 @@ Outbound implements Serializable {
     }
     
     protected void
-    remove(final String peer) {
-        final Pipeline[] next = new Pipeline[pending.length() - 1];
+    remove(final Pipeline msgs) {
         int i = 0;
         for (final Pipeline x : pending) {
-            if (!peer.equals(x.peer)) {
-                next[i++] = x;
+            if (x.equals(msgs)) {
+                pending = pending.without(i);
+                break;
             }
+            ++i;
         }
-        pending = ConstArray.array(next);
     }
 }

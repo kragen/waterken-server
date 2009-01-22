@@ -14,10 +14,9 @@ Remoting<S> {
     /**
      * Wrap a network interface around a vat.
      * @param bootstrap bootstrap server
-     * @param scheme    URI scheme
      * @param vat       vat
      * @return network interface
      */
     Server
-    remote(Server bootstrap, String scheme, Database<S> vat);
+    remote(Server bootstrap, Database<S> vat);
 }
