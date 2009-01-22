@@ -43,10 +43,10 @@ TCPDaemon extends Struct implements Serializable {
      * <p>
      * The caller is responsible for closing the socket.
      * </p>
-     * @param yield     yield to other threads
      * @param hostname  server's hostname
      * @param socket    incoming TCP connection
+     * @param yield     yield to other threads
      */
     public abstract Task<Void>
-    accept(Receiver<Void> yield, String hostname, Socket socket);
+    accept(String hostname, Socket socket, Receiver<?> yield);
 }

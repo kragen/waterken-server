@@ -87,17 +87,17 @@ ClientSide implements Server {
     static public interface
     Inbound extends Task<Void> {}
     
-    private final String host;
+    private final String location;
     private final Locator locator;
     private final Receiver<Long> sleep;
     private final Receiver<Outbound> sender;
     private final Receiver<Inbound> receiver;
 
     private
-    ClientSide(final String host, final Locator locator,
+    ClientSide(final String location, final Locator locator,
                final Receiver<Long> sleep, final Receiver<Outbound> sender,
                final Receiver<Inbound> receiver) {
-        this.host = host;
+        this.location = location;
         this.locator = locator;
         this.sleep = sleep;
         this.sender = sender;
@@ -142,7 +142,7 @@ ClientSide implements Server {
         run() {
             for (long a = 0, b = minSleep; true;) {
                 try {
-                    socket = locator.locate(host, mostRecent);
+                    socket = locator.locate(location, mostRecent);
                     in = socket.getInputStream();
                     out = socket.getOutputStream();
                     break;
@@ -324,23 +324,25 @@ ClientSide implements Server {
      * <p>
      * Each response block will be invoked from the receiver event loop.
      * </p>
-     * @param host      URL identifying the remote host  
+     * @param location  URL identifying the remote host  
      * @param locator   socket factory
      * @param sleep     sleep the current thread
      * @param sender    HTTP request event loop
      * @param receiver  HTTP response event loop
      */
     static public Server
-    make(final String host, final Locator locator, final Receiver<Long> sleep,
+    make(final String location,final Locator locator,final Receiver<Long> sleep,
          final Receiver<Outbound> sender, final Receiver<Inbound> receiver) {
-        final ClientSide r = new ClientSide(host,locator,sleep,sender,receiver);
+        final ClientSide r = new ClientSide(location, locator, sleep,
+                                            sender, receiver);
         r.start();
         return r;
     }
 
     public void
-    serve(final String resource, final Request head, final InputStream body,
-          final Client client) { entry.enqueue(head, body, client); }
+    serve(final Request head, final InputStream body, final Client client) {
+        entry.enqueue(head, body, client);
+    }
     
     /**
      * Sends an HTTP request.

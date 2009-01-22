@@ -58,13 +58,11 @@ HTTPD extends TCPDaemon {
     // org.waterken.net.Daemon interface
 
     public Task<Void>
-    accept(final Receiver<Void> yield,
-           final String hostname, final Socket socket) {
-        final String scheme = SSL ? "https" : "http";
-        final String origin = SSL
+    accept(final String hostname, final Socket socket, final Receiver<?> yield){
+        final String location = SSL
             ? (port == 443 ? hostname : hostname + ":" + port)
         : (port == 80 ? hostname : hostname + ":" + port);
-        return new ServerSide(this, yield, scheme, origin, socket);
+        return new ServerSide(this, location, socket, yield);
     }
 
 	/**

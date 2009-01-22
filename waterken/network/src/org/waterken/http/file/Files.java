@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.http.file;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -10,7 +9,6 @@ import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.joe_e.array.PowerlessArray;
-import org.joe_e.charset.ASCII;
 import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.deserializer;
@@ -54,14 +52,14 @@ Files extends Struct implements Server, Serializable {
     }
     
     public void
-    serve(final String resource, final Request head, final InputStream body,
-                                 final Client client) throws Exception {        
+    serve(final Request head,
+          final InputStream body, final Client client) throws Exception {        
 
         // determine the request target
         FileType contentType = FileType.unknown;
         final File file;
         try {
-            final String name = Path.name(URI.path(resource));
+            final String name = Path.name(URI.path(head.URI));
             final String filename = "".equals(name) ? "index" : name;
             final String ext = Filename.ext(filename);
             if (filename.startsWith(".")) { throw new FileNotFoundException(); }
@@ -78,7 +76,7 @@ Files extends Struct implements Server, Serializable {
                 client.run(new Response(
                     "HTTP/1.1", "307", "Temporary Redirect",
                     PowerlessArray.array(
-                        new Header("Location", resource + "/"),
+                        new Header("Location", head.URI + "/"),
                         new Header("Content-Length", "0")
                     )), null);
                 return;
@@ -94,13 +92,7 @@ Files extends Struct implements Server, Serializable {
                 }
                 if (null == negotiated) { throw new FileNotFoundException(); }
                 file = negotiated;
-            } else {
-                final File redirect = Filesystem.file(folder,
-                        Filename.key(filename) + FileType.uri.ext);
-                if (!redirect.isFile()) { throw new FileNotFoundException(); }
-                file = redirect;
-                contentType = FileType.uri;
-            }
+            } else { throw new FileNotFoundException(); }
         } catch (final FileNotFoundException e) {
             client.run(Response.notFound(), null);
             return;
@@ -112,41 +104,9 @@ Files extends Struct implements Server, Serializable {
         // obey any request restrictions
         final String etag = tag.run(file); 
         if (!head.respond(etag,client,"GET","HEAD","OPTIONS","TRACE")) {return;}
-        
-        // special case for a non-information resource
-        if (FileType.uri.equals(contentType)) {
-            String location = null;
-            final BufferedReader in = new BufferedReader(
-                ASCII.input(Filesystem.read(file)));
-            try {
-                while (true) {
-                    final String line = in.readLine();
-                    if (null == line) { break; }
-                    if (!line.startsWith("#")) {
-                        location = URI.resolve(resource, line);
-                        break;
-                    }
-                }
-            } catch (final Exception e) {
-                try { in.close(); } catch (final Exception e2) {}
-                throw e;
-            }
-            in.close();
-            if (null == location) {
-                client.run(Response.notFound(), null);
-                return;
-            }
-            client.run(new Response(
-                "HTTP/1.1", "303", "See Other",
-                PowerlessArray.array(
-                    new Header("Location", location),
-                    new Header("Content-Length", "0")
-                )), null);
-            return;
-        }
 
         // output the corresponding representation
-        final String query = URI.query("", resource);
+        final String query = URI.query("", head.URI);
         final int maxAge = Integer.parseInt(Query.arg("0", query, "max-age"));
         if (maxAge < 0) { throw new NumberFormatException(); }
         final InputStream in = Filesystem.read(file);
@@ -159,11 +119,10 @@ Files extends Struct implements Server, Serializable {
                 new Header("Content-Type", contentType.name)
             );
             if (null != contentType.encoding) {
-                header = header.with(
-                    new Header("Content-Encoding", contentType.encoding));
+                header = header.with(new Header("Content-Encoding",
+                                                contentType.encoding));
             }
-            client.run(new Response(
-                "HTTP/1.1", "200", "OK", header), in);
+            client.run(new Response("HTTP/1.1", "200", "OK", header), in);
         } catch (final Exception e) {
             try { in.close(); } catch (final Exception e2) {}
             throw e;

@@ -61,16 +61,16 @@ Dump extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
     
     public void
-    serve(final String resource, final Request head, final InputStream body,
-                                 final Client client) throws Exception {        
+    serve(final Request head, final InputStream body,
+                              final Client client) throws Exception {        
         // further dispatch the request
-        if (!URI.path(resource).equals(path)) {
-            next.serve(resource, head, body, client);
+        if (!URI.path(head.URI).equals(path)) {
+            next.serve(head, body, client);
             return;
         }
 
         // further dispatch the request based on the query string
-        final String query = URI.query("", resource);
+        final String query = URI.query("", head.URI);
         final String s = Query.arg(null, query, "s");
         final String p = Query.arg(null, query, "p");
         final String m = Query.arg(null, query, "m");

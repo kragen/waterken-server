@@ -14,7 +14,6 @@ import org.waterken.http.Response;
 import org.waterken.http.TokenList;
 import org.waterken.io.limited.Limited;
 import org.waterken.uri.Header;
-import org.waterken.uri.URI;
 
 /**
  * The server side of the HTTP protocol.
@@ -23,9 +22,8 @@ final class
 ServerSide implements Task<Void> {
 
     private final HTTPD config;
-    private final Receiver<Void> yield;
-    private final String scheme;
-    private final String origin;
+    private final Receiver<?> yield;
+    private final String location;
     private final Socket socket;
 
     /**
@@ -37,18 +35,16 @@ ServerSide implements Task<Void> {
      * give the remote client a DOS force multiplier.
      * </p>
      * @param config    configuration
-     * @param yield     yield to other threads
-     * @param scheme    expected URI scheme
-     * @param origin    expected value of the Host header
+     * @param location  expected value of the Host header
      * @param socket    connection socket, trusted to behave like a socket, but
      *                  not trusted to be connected to a trusted HTTP client
+     * @param yield     yield to other threads
      */
-    ServerSide(final HTTPD config, final Receiver<Void> yield, 
-               final String scheme, final String origin, final Socket socket) {
+    ServerSide(final HTTPD config, final String location, 
+               final Socket socket, final Receiver<?> yield){
         this.config = config;
         this.yield = yield;
-        this.scheme = scheme;
-        this.origin = origin;
+        this.location = location;
         this.socket = socket;
     }
 
@@ -128,18 +124,15 @@ ServerSide implements Task<Void> {
                     }
                     host = "localhost";
                 }
-                if (!Header.equivalent(origin, host)) {
+                if (!Header.equivalent(location, host)) {
                     // client is hosting this server under the wrong origin
                     // this could lead to a browser side scripting attack
-                    throw new Exception("wrong origin");
+                    throw new Exception("wrong origin: " + host);
                 }
-                final String resource = "*".equals(requestURI)
-                    ? "*"
-                : URI.resolve(scheme + "://" + origin + "/", requestURI);
 
                 // process the request
-                config.server.serve(resource, new Request(
-                    version, method, requestURI, headers), body, client);
+                config.server.serve(new Request(version, method, requestURI,
+                                                headers), body, client);
             } catch (final Exception e) {
                 current.closing.mark(true);
                 client.run(new Response(

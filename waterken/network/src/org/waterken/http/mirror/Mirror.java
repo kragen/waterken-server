@@ -50,15 +50,15 @@ Mirror extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
     
     public void
-    serve(final String resource, final Request head, final InputStream body,
-                                 final Client client) throws Exception {        
+    serve(final Request head, final InputStream body,
+                              final Client client) throws Exception {        
         final File folder;
         try {
-            folder = Path.descend(root, Path.folder(URI.path(resource)));
+            folder = Path.descend(root, Path.folder(URI.path(head.URI)));
         } catch (final InvalidFilenameException e) {
             client.run(Response.gone(), null);
             return;
         }
-        new Files(folder, tag, formats).serve(resource, head, body, client);
+        new Files(folder, tag, formats).serve(head, body, client);
     }
 }

@@ -24,12 +24,6 @@ FileType implements Powerless, Selfless, Record, Serializable {
         new FileType("",        "application/do-not-execute",           null);
     
     /**
-     * <code>text/uri-list; charset=US-ASCII</code> MIME type
-     */
-    static public final FileType uri =
-        new FileType(".uri",    "text/uri-list; charset=US-ASCII",      null);
-    
-    /**
      * <code>application/json</code> MIME type
      */
     static public final FileType json =

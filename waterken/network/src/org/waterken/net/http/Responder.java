@@ -52,8 +52,7 @@ Responder {
             run(final Response head, final InputStream body) throws Exception{
                 if (null == body && head.status.startsWith("4")) {
                     // use the configured response body
-                    final String resource = "file:///site/" + head.status;
-                    server.serve(resource, new Request(version, "GET", resource,
+                    server.serve(new Request(version,"GET","/site/"+head.status,
                             array(new Header[] {})), null, new Client() {
                        public void
                        run(final Response bodyHead,
