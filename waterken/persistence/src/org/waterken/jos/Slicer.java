@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import org.joe_e.JoeE;
 import org.joe_e.Selfless;
 import org.ref_send.promise.Fulfilled;
+import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Deferred;
 import org.waterken.db.Root;
 
@@ -57,8 +58,11 @@ Slicer extends ObjectOutputStream {
             x = new Faulting(root,
                     root.export(Fulfilled.near((Fulfilled<?>)x), false));
         } else if (Deferred.WeakPromise == type) {
-            x = new Faulting(root,
-                    root.export(Fulfilled.near((Fulfilled<?>)x), true));
+            final Object referent;
+            try {
+                referent = ((Volatile<?>)x).cast();
+            } catch (final Exception e) { throw new AssertionError(e); }
+            x = new Faulting(root, root.export(referent, true));
         } else if (!inline(type)) {
             if (value instanceof Throwable &&
                 StackTraceElement.class == type.getComponentType()) {
