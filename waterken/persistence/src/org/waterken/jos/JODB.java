@@ -500,10 +500,6 @@ JODB<S> extends Database<S> {
         final Receiver<Effect<S>> effect = new Receiver<Effect<S>>() {
             public void
             run(final Effect<S> task) {
-                if (isQuery) {
-                    throw new ProhibitedModification(Database.effect);
-                }
-
                 services.add(new Service() {
                     public Void
                     run() throws Exception {

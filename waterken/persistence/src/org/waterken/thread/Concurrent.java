@@ -39,7 +39,7 @@ Concurrent {
                     new Thread(group, name) {
                         public void
                         run() {
-                            final String id = group.getName() + "/" + name;
+                            final String id = group.getName() + ":" + name;
                             System.err.println("Processing: " + id);
                             try {
                                 while (true) {
