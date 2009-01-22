@@ -39,7 +39,7 @@ Request extends Struct implements Powerless, Record, Serializable {
     /**
      * <code>Request-URI</code>
      */
-    public final String URI;
+    public final String uri;
 
     /**
      * each header: [ name =&gt; line ]
@@ -50,18 +50,18 @@ Request extends Struct implements Powerless, Record, Serializable {
      * Constructs an instance.
      * @param version   {@link #version}
      * @param method    {@link #method}
-     * @param URI       {@link #URI}
+     * @param uri       {@link #uri}
      * @param headers   {@link #headers}
      * @param body      {@link #body}
      */
     public @deserializer
     Request(@name("version") final String version,
             @name("method") final String method,
-            @name("URI") final String URI,
+            @name("uri") final String uri,
             @name("headers") final PowerlessArray<Header> headers) {
         this.version = version;
         this.method = method;
-        this.URI = URI;
+        this.uri = uri;
         this.headers = headers;
     }
     
@@ -99,7 +99,7 @@ Request extends Struct implements Powerless, Record, Serializable {
         // output the Request-Line
         hout.write(method);
         hout.write(" ");
-        hout.write(URI);
+        hout.write(uri);
         hout.write(" ");
         hout.write(version);
         hout.write("\r\n");

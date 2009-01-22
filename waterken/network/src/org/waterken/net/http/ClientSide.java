@@ -358,12 +358,12 @@ ClientSide implements Server {
 
         // Output the Request-Line.
         TokenList.vet(TokenList.token, TokenList.nothing, head.method);
-        TokenList.vet(TokenList.text, TokenList.whitespace, head.URI);
+        TokenList.vet(TokenList.text, TokenList.whitespace, head.uri);
         
         final Writer hout = ASCII.output(Open.output(out));
         hout.write(head.method);
         hout.write(" ");
-        hout.write(head.URI);
+        hout.write(head.uri);
         hout.write(" HTTP/1.1\r\n");
 
         // Output the header.

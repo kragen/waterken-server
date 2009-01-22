@@ -59,7 +59,7 @@ Files extends Struct implements Server, Serializable {
         FileType contentType = FileType.unknown;
         final File file;
         try {
-            final String name = Path.name(URI.path(head.URI));
+            final String name = Path.name(URI.path(head.uri));
             final String filename = "".equals(name) ? "index" : name;
             final String ext = Filename.ext(filename);
             if (filename.startsWith(".")) { throw new FileNotFoundException(); }
@@ -76,7 +76,7 @@ Files extends Struct implements Server, Serializable {
                 client.run(new Response(
                     "HTTP/1.1", "307", "Temporary Redirect",
                     PowerlessArray.array(
-                        new Header("Location", head.URI + "/"),
+                        new Header("Location", head.uri + "/"),
                         new Header("Content-Length", "0")
                     )), null);
                 return;
@@ -106,7 +106,7 @@ Files extends Struct implements Server, Serializable {
         if (!head.respond(etag,client,"GET","HEAD","OPTIONS","TRACE")) {return;}
 
         // output the corresponding representation
-        final String query = URI.query("", head.URI);
+        final String query = URI.query("", head.uri);
         final int maxAge = Integer.parseInt(Query.arg("0", query, "max-age"));
         if (maxAge < 0) { throw new NumberFormatException(); }
         final InputStream in = Filesystem.read(file);

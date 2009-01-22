@@ -44,7 +44,7 @@ Trace extends Struct implements Server, Serializable {
                               final Client client) throws Exception {        
     
         // further dispatch the request
-        if (!URI.path(head.URI).startsWith(prefix)) {
+        if (!URI.path(head.uri).startsWith(prefix)) {
             next.serve(head, body, client);
             return;
         }

@@ -64,13 +64,13 @@ Dump extends Struct implements Server, Serializable {
     serve(final Request head, final InputStream body,
                               final Client client) throws Exception {        
         // further dispatch the request
-        if (!URI.path(head.URI).equals(path)) {
+        if (!URI.path(head.uri).equals(path)) {
             next.serve(head, body, client);
             return;
         }
 
         // further dispatch the request based on the query string
-        final String query = URI.query("", head.URI);
+        final String query = URI.query("", head.uri);
         final String s = Query.arg(null, query, "s");
         final String p = Query.arg(null, query, "p");
         final String m = Query.arg(null, query, "m");
