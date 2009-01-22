@@ -2,13 +2,20 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.PrintStream;
 import java.net.BindException;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 
+import org.joe_e.Immutable;
 import org.ref_send.promise.eventual.Receiver;
+import org.waterken.db.DatabaseManager;
+import org.waterken.db.Root;
+import org.waterken.db.Transaction;
 import org.waterken.dns.Resource;
+import org.waterken.http.Server;
 import org.waterken.net.TCPDaemon;
 import org.waterken.udp.UDPDaemon;
 
@@ -91,5 +98,31 @@ Serve {
 	        	throw e;
 	        }
         }
+
+        // ping all the persistent vats to restart any pending tasks
+        err.println("Restarting all vats...");
+        final DatabaseManager<Server> vats = Settings.config.read("vats");
+        final File root = Settings.config.readType("vatRootFolder", File.class);
+        ping(vats, root);
+        err.println("All vats restarted.");
     }
-}
+    
+    static private void
+    ping(final DatabaseManager<Server> vats, final File dir) {
+        dir.listFiles(new FileFilter() {
+            public boolean
+            accept(final File child) {
+                if (child.isDirectory() && !child.getName().startsWith(".")) {
+                    ping(vats, child);
+                }
+                return false;
+            }
+        });
+        try {
+            vats.connect(dir).enter(Transaction.query,
+                                    new Transaction<Immutable>() {
+                public Immutable
+                run(final Root local) { return null; }
+            });
+        } catch (final Exception e) {}
+    }}
