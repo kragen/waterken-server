@@ -54,7 +54,8 @@ Report {
         final PrintStream out = System.out;
         final File topic = new File(args[0]);
         final File dir = topic.isDirectory() ? topic : topic.getParentFile();
-        final String project = readSetting(Filesystem.file(dir, Database.project));
+        final String project =
+            readSetting(Filesystem.file(dir, Database.project + JODB.ext));
         final ClassLoader code = Project.connect(project);
         
         if (topic.isFile()) {
@@ -124,7 +125,7 @@ Report {
     static private String
     log(final PrintStream out, final ClassLoader code, final File file) {
         out.print(file.getName());
-        for (int n= minFilenameWidth-file.getName().length(); 0 < n--;){
+        for (int n = minFilenameWidth - file.getName().length(); 0 < n--;) {
             out.print(' ');
         }
         out.print('\t');
@@ -139,9 +140,11 @@ Report {
                     code, Filesystem.read(file)) {
                 protected Object
                 resolveObject(Object x) throws IOException {
-                    if (x instanceof Wrapper) {
+                    if (x instanceof Splice) {
                         type[0] = x.getClass();
                         x = null;
+                    } else if (x instanceof Wrapper) {
+                        x = ((Wrapper)x).peel(null);
                     }
                     return x;
                 }
@@ -150,17 +153,16 @@ Report {
             in.close();
             if (x instanceof SymbolicLink) {
                 final Object sx = ((SymbolicLink)x).target;
-                final Class<?> sxt = null!=sx ? sx.getClass() : type[0];
+                final Class<?> sxt = null != sx ? sx.getClass() : type[0];
                 typename = "-> " + sxt.getName();
             } else {
                 if (null != x) { type[0] = x.getClass(); }
                 typename = type[0].getName();
             }
         } catch (final Exception e) {
-            typename = "<" + e.getClass().getName() + ">";
+            typename = "! " + e.getClass().getName();
         }
-        out.print(typename);
-        out.println();
+        out.println(typename);
         return typename;
     }
 }

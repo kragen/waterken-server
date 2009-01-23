@@ -315,10 +315,12 @@ JODB<S> extends Database<S> {
                             final SubstitutionStream oin =
                                     new SubstitutionStream(true, code, in) {
                                 protected Object
-                                resolveObject(Object x) {
-                                    if (x instanceof Wrapper) {
+                                resolveObject(Object x) throws IOException {
+                                    if (x instanceof Splice) {
                                         type[0] = x.getClass();
                                         x = null;
+                                    } else if (x instanceof Wrapper) {
+                                        x = ((Wrapper)x).peel(null);
                                     }
                                     return x;
                                 }
