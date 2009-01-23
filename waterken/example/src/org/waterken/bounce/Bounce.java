@@ -40,7 +40,7 @@ Bounce {
      */
     static public Wall
     make(final Eventual _) {
-        final Receiver<?> normal = new Sink();
+        final Receiver<?> normal = new Sink<Void>();
         final Rejected<Receiver<?>> rejected =
             new Rejected<Receiver<?>>(new Exception());
         final Channel<Boolean> d = _.defer(); 

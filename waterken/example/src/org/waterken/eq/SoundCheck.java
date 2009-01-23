@@ -33,7 +33,7 @@ SoundCheck {
     static public Promise<Boolean>
     make(final Eventual _) throws Exception {
         ConstArray<Volatile<Boolean>> r = ConstArray.array();
-        r = r.with(testNormal(_, new Sink()));
+        r = r.with(testNormal(_, new Sink<Void>()));
         r = r.with(testNull(_, null));
         r = r.with(testDouble(_));
         r = r.with(testFloat(_));
