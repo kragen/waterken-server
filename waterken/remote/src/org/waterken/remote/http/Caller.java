@@ -91,6 +91,7 @@ Caller extends Struct implements Messenger, Serializable {
                     value = new Rejected<Object>(e);
                 }
                 exports._.when(value, observer);
+                // TODO: implement polling on a 404 response
             }
             
             public void
