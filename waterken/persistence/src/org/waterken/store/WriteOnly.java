@@ -8,13 +8,13 @@ import java.io.OutputStream;
  * An output stream that ignores all output.
  */
 public final class
-Sink extends OutputStream {
+WriteOnly extends OutputStream {
     
     /**
      * Constructs an instance.
      */
     public
-    Sink() {}
+    WriteOnly() {}
 
     /**
      * Does nothing.

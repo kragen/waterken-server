@@ -36,6 +36,7 @@ import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.NOP;
 import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.eventual.Sink;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.base32.Base32;
 import org.waterken.db.Creator;
@@ -49,7 +50,7 @@ import org.waterken.db.Transaction;
 import org.waterken.db.UnknownClass;
 import org.waterken.db.Database;
 import org.waterken.project.Project;
-import org.waterken.store.Sink;
+import org.waterken.store.WriteOnly;
 import org.waterken.store.Store;
 import org.waterken.store.Update;
 import org.waterken.trace.EventSender;
@@ -409,7 +410,7 @@ JODB<S> extends Database<S> {
                     try {
                         final Mac mac = allocMac(this);
                         final Slicer out = new Slicer(value, this,
-                                new MacOutputStream(new Sink(), mac));
+                                new MacOutputStream(new WriteOnly(), mac));
                         out.writeObject(value);
                         out.flush();
                         out.close();
@@ -547,10 +548,7 @@ JODB<S> extends Database<S> {
                     prng.nextBytes(bits);
                     final ByteArray secretBits = ByteArray.array(bits);
                     final JODB<S> sub = new JODB<S>(null, null, null == stderr
-                        ? new Receiver<Event>() {
-                            public void
-                            run(final Event event) {}
-                        } : stderr, subStore);
+                        ? new Sink<Event>() : stderr, subStore);
                     sub.project = null != project ? project : JODB.this.project;
                     sub.code = Project.connect(sub.project);
                     return sub.process(Transaction.update, new Transaction<X>(){
@@ -633,7 +631,7 @@ JODB<S> extends Database<S> {
 
                 final OutputStream fout;
                 if (isQuery && !b.created) {
-                    fout = new MacOutputStream(new Sink(), allocMac(root)) {
+                    fout = new MacOutputStream(new WriteOnly(), allocMac(root)){
                         public void
                         close() throws IOException {
                             super.close();
