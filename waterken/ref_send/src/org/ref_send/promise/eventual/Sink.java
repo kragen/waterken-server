@@ -8,6 +8,7 @@ import org.joe_e.Struct;
 
 /**
  * Ignore all notifications.
+ * @param <T> value type
  */
 public final class
 Sink<T> extends Struct implements Receiver<T>, Serializable {
