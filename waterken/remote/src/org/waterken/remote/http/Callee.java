@@ -151,7 +151,7 @@ Callee extends Struct implements Serializable {
         final Response failed = m.head.allow(null);
         if (null != failed) { return new Message<Response>(failed, null); }
         final Object value = exports.execute(query, lambda, new Task<Object>() {
-            @Override public Object
+            public Object
             run() throws Exception {
                 /*
                  * SECURITY CLAIM: deserialize inside the once block to ensure

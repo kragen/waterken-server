@@ -296,7 +296,7 @@ ClientSide implements Server {
             final Exchange x = new Exchange(head, body, client, new Outbound() {
                 public Void
                 run() {
-                    pending.pop();
+                    pending.removeFirst();
                     return null;
                 }
             });

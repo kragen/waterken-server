@@ -49,7 +49,7 @@ Concurrent {
                                             running = false;
                                             break;
                                         }
-                                        todo = tasks.pop();
+                                        todo = tasks.removeFirst();
                                     }
                                     try {
                                         todo.run();

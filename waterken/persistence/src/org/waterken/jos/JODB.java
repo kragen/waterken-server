@@ -665,12 +665,12 @@ JODB<S> extends Database<S> {
         
         // output the log events for the committed transaction
         if (null != stderr) {
-            while (!events.isEmpty()) { stderr.run(events.pop()); }
+            while (!events.isEmpty()) { stderr.run(events.removeFirst()); }
         }
         
         // schedule any services
         if (null != service) {
-            while (!services.isEmpty()) { service.run(services.pop()); }
+            while (!services.isEmpty()) { service.run(services.removeFirst()); }
         }
         
         return r;
