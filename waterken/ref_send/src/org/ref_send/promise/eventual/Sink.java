@@ -7,12 +7,15 @@ import java.io.Serializable;
 import org.joe_e.Struct;
 
 /**
- * Does nothing.
+ * Ignore all notifications.
  */
 public final class
-Sink extends Struct implements Receiver<Object>, Serializable {
+Sink<T> extends Struct implements Receiver<T>, Serializable {
     static private final long serialVersionUID = 1L;
 
+    /**
+     * Does nothing.
+     */
     public void
-    run(final Object value) {}
+    run(final T value) {}
 }

@@ -191,7 +191,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
      */
     public
     Eventual(final Receiver<Task<?>> enqueue) {
-        this(new Token(), enqueue, "", new NOP(), new Sink());
+        this(new Token(), enqueue, "", new NOP(), new Sink<Void>());
     }
 
     // org.ref_send.promise.eventual.Loop interface
