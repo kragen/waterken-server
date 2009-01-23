@@ -25,6 +25,7 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Channel;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.eventual.Sink;
 
 /**
  * A {@link Wall} implementation.
@@ -39,7 +40,7 @@ Bounce {
      */
     static public Wall
     make(final Eventual _) {
-        final Receiver<?> normal = new Normal();
+        final Receiver<?> normal = new Sink();
         final Rejected<Receiver<?>> rejected =
             new Rejected<Receiver<?>>(new Exception());
         final Channel<Boolean> d = _.defer(); 

@@ -9,7 +9,7 @@ import org.joe_e.Struct;
 /**
  * Does nothing.
  */
-/* package */ final class
+public final class
 Sink extends Struct implements Receiver<Object>, Serializable {
     static private final long serialVersionUID = 1L;
 

@@ -16,6 +16,7 @@ import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.eventual.Sink;
 import org.ref_send.promise.eventual.Task;
 
 /**
@@ -32,7 +33,7 @@ SoundCheck {
     static public Promise<Boolean>
     make(final Eventual _) throws Exception {
         ConstArray<Volatile<Boolean>> r = ConstArray.array();
-        r = r.with(testNormal(_, new Normal()));
+        r = r.with(testNormal(_, new Sink()));
         r = r.with(testNull(_, null));
         r = r.with(testDouble(_));
         r = r.with(testFloat(_));
