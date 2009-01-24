@@ -8,15 +8,14 @@ import java.io.File;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 
-import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.ref_send.scope.Scope;
 import org.waterken.syntax.Exporter;
-import org.waterken.syntax.Syntax;
 import org.waterken.syntax.Importer;
+import org.waterken.syntax.Syntax;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 
@@ -25,8 +24,8 @@ import org.waterken.syntax.json.JSONSerializer;
  * <p>
  * This class provides convenient access to a folder of JSON files; each of
  * which represents a particular configuration setting. The class provides
- * methods for {@link #init initializing} and {@link #read reading} these
- * settings.
+ * methods for {@linkplain #init initializing} and {@linkplain #read reading}
+ * these settings.
  * </p>
  * <p>
  * For example, consider a folder with contents:
@@ -78,7 +77,7 @@ Config {
     private final Importer connect;
     private final Exporter export;
     private final PowerlessArray<Syntax> supported;
-    private final String outputExt;
+    private final Syntax output;
     
     private       Scope cache;      // [ URI => value ]
     
@@ -89,21 +88,20 @@ Config {
      * @param baseURI   base URI for all referenced objects
      * @param connect   remote reference importer, may be <code>null</code>
      * @param export    remote reference exporter, may be <code>null</code>
-     * @param supported each supported serialization syntax
-     * @param outputExt {@linkplain Syntax#ext extension} of the
-     *                  {@linkplain #init output} syntax
+     * @param supported each supported {@linkplain #read input} syntax
+     * @param output    {@linkplain #init output} syntax
      */
     public
     Config(final File root, final ClassLoader code,
            final String baseURI, final Importer connect, final Exporter export, 
-           final PowerlessArray<Syntax> supported, final String outputExt) {
+           final PowerlessArray<Syntax> supported, final Syntax output) {
         this.root = root;
         this.code = code;
         this.baseURI = baseURI;
         this.connect = connect;
         this.export = export;
         this.supported = supported;
-        this.outputExt = outputExt;
+        this.output = output;
         
         cache = Empty.make();
     }
@@ -119,7 +117,7 @@ Config {
     public
     Config(final File root, final ClassLoader code,
            final String baseURI, final Importer connect, final Exporter export){
-        this(root, code, baseURI, connect, export, known, json.ext);
+        this(root, code, baseURI, connect, export, known, json);
     }
     
     /**
@@ -131,6 +129,16 @@ Config {
     Config(final File root, final ClassLoader code) {
         this(root, code, "file:///", null, null);
     }
+    
+    /**
+     * Reads a configuration setting.
+     * @param <T>   expected value type
+     * @param name  setting name
+     * @return <code>{@link #read(String, Type) read}(name, Object.class)</code>
+     * @throws Exception    any problem connecting to the identified reference
+     */
+    public <T> T
+    read(final String name) throws Exception {return read(name, Object.class);}
     
     /**
      * Reads a configuration setting.
@@ -149,80 +157,61 @@ Config {
      * <pre>
      * final File root = config.read("");
      * </pre>
-     * @param <T>   expected value type
-     * @param name  setting name
-     * @return setting value, or <code>null</code> if not set
-     * @throws Exception    any problem connecting to the identified reference
-     */
-    public <T> T
-    read(final String name) throws Exception {
-        return readType(name, Object.class);
-    }
-    
-    /**
-     * Reads a configuration setting.
      * @param <T> expected value type
      * @param name setting name
-     * @param type expected value type used as a hint to help deserialization
+     * @param type expected value type, used as a hint to help deserialization
      * @return setting value, or <code>null</code> if not set
      * @throws Exception any problem connecting to the identified reference
      */
     public @SuppressWarnings("unchecked") <T> T
-    readType(final String name, final Type type) throws Exception {
+    read(final String name, final Type type) throws Exception {
         return (T)sub(root, baseURI).run(name, baseURI, type);
     }
     
     private Importer
-    sub(final File root, final String baseURI) {
-        class ImporterX extends Struct implements Importer {
-            public Object
-            run(final String href, final String base,
-                                   final Type type) throws Exception {
-                if (!baseURI.equals(base) || -1 != href.indexOf(':')) {
-                    return connect.run(href, base, type);
-                }
-                
-                // check the cache
-                String path = baseURI.substring(0, baseURI.lastIndexOf('/')+1);
-                final String key = path + href; {
-                    final int i = cache.meta.find(key);
-                    if (-1 != i) { return cache.values.get(i); }
-                }
-
-                // descend to the named file
-                File folder = root;     // sub-folder containing file
-                String name = href;     // filename
-                while (true) {
-                    final int i = name.indexOf('/');
-                    if (-1 == i) { break; }
-                    folder = Filesystem.file(folder, name.substring(0, i));
-                    path += name.substring(0, i + 1);
-                    name = name.substring(i + 1);
-                }
-                if ("".equals(name)) { return folder; }
-                if (-1 != name.indexOf('.')) {
-                    return Filesystem.file(folder, name);
-                }
-
-                // deserialize the named object
-                Object r = null;
-                for (final Syntax syntax : supported) {
-                    final String filename = name + syntax.ext;
-                    final File file = Filesystem.file(folder, filename);
-                    if (!file.isFile()) { continue; }
-                    final String subBaseURI = path + filename;
-                    r = syntax.deserialize.run(
-                            subBaseURI, sub(folder, subBaseURI),
-                            ConstArray.array(type), code,
-                            Filesystem.read(file)).get(0);
-                    break;
-                }
-                cache = cache.with(key, r);
-                return r;
+    sub(final File root, final String baseURI) { return new Importer() {
+        public Object
+        run(final String href, final String base,
+                               final Type type) throws Exception {
+            if (!baseURI.equals(base) || -1 != href.indexOf(':')) {
+                return connect.run(href, base, type);
             }
+            
+            // check the cache
+            String path = baseURI.substring(0, baseURI.lastIndexOf('/') + 1);
+            final String key = path + href; {
+                final int i = cache.meta.find(key);
+                if (-1 != i) { return cache.values.get(i); }
+            }
+
+            // descend to the named file
+            File folder = root;     // sub-folder containing file
+            String name = href;     // filename
+            while (true) {
+                final int i = name.indexOf('/');
+                if (-1 == i) { break; }
+                folder = Filesystem.file(folder, name.substring(0, i));
+                path += name.substring(0, i + 1);
+                name = name.substring(i + 1);
+            }
+            if ("".equals(name)) { return folder; }
+            if (-1 != name.indexOf('.')) {return Filesystem.file(folder, name);}
+
+            // deserialize the named object
+            Object r = null;
+            for (final Syntax syntax : supported) {
+                final String filename = name + syntax.ext;
+                final File file = Filesystem.file(folder, filename);
+                if (!file.isFile()) { continue; }
+                final String subBaseURI = path + filename;
+                r = syntax.deserialize.run(subBaseURI, sub(folder, subBaseURI),
+                    ConstArray.array(type), code, Filesystem.read(file)).get(0);
+                break;
+            }
+            cache = cache.with(key, r);
+            return r;
         }
-        return new ImporterX();
-    }
+    }; }
     
     /**
      * Initializes a configuration setting.
@@ -232,13 +221,6 @@ Config {
      */
     public void
     init(final String name, final Object value) throws Exception {
-        Syntax output = null;
-        for (final Syntax syntax : supported) {
-            if (syntax.ext.equals(outputExt)) {
-                output = syntax;
-                break;
-            }
-        }
         final ByteArray content =
             output.serialize.run(export, ConstArray.array(value));
         final OutputStream out =
