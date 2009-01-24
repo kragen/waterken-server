@@ -78,13 +78,14 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
            final String base, final String label,
            final Class<?> maker) throws Exception {
         final Method make = HTTP.dispatch(maker, "make");
+        final ByteArray body = ByteArray.array((byte)'[', (byte)']');
         return parent.enter(Transaction.update,
                             new Transaction<PowerlessArray<String>>() {
             public PowerlessArray<String>
             run(final Root local) throws Exception {
                 final Creator creator = local.fetch(null, Database.creator);
-                return creator.run(project, base, label, new VatInitializer(
-                    make, null, ByteArray.array((byte)'[', (byte)']'))).cast();
+                return creator.run(project, base, label,
+                                   new VatInitializer(make, null, body)).cast();
             }
         }).cast().get(0);
     }
