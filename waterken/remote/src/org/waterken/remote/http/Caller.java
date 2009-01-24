@@ -229,6 +229,30 @@ Caller extends Struct implements Messenger, Serializable {
         }
     }
     
+    private Object
+    deserialize(final String base,
+                final Message<Response> m, final Type R) throws Exception {
+        final Importer connect = exports.connect();
+        if ("200".equals(m.head.status) || "201".equals(m.head.status) ||
+            "202".equals(m.head.status) || "203".equals(m.head.status)) {
+            if (Header.equivalent(FileType.unknown.name,
+                                  m.head.getContentType())) { return m.body; }
+            return new JSONDeserializer().run(base,connect, ConstArray.array(R),
+                    exports.getCodebase(), m.body.asInputStream()).get(0);
+        } 
+        if ("204".equals(m.head.status) ||
+            "205".equals(m.head.status)) { return null; }
+        if ("303".equals(m.head.status)) {
+            for (final Header h : m.head.headers) {
+                if (Header.equivalent("Location", h.name)) {
+                    return connect.run(h.value, null, R);
+                }
+            }
+            return null;    // request accepted, but no response provided
+        } 
+        throw new Failure(m.head.status, m.head.phrase);
+    }
+    
     static private final Class<?> Inline = ref(0).getClass();
     
     private Message<Request>
@@ -256,29 +280,5 @@ Caller extends Struct implements Messenger, Serializable {
                 new Header("Content-Type", contentType),
                 new Header("Content-Length", "" + content.length())
             )), content);        
-    }
-    
-    private Object
-    deserialize(final String base,
-                final Message<Response> m, final Type R) throws Exception {
-        final Importer connect = exports.connect();
-        if ("200".equals(m.head.status) || "201".equals(m.head.status) ||
-            "202".equals(m.head.status) || "203".equals(m.head.status)) {
-            if (Header.equivalent(FileType.unknown.name,
-                                  m.head.getContentType())) { return m.body; }
-            return new JSONDeserializer().run(base,connect, ConstArray.array(R),
-                    exports.getCodebase(), m.body.asInputStream()).get(0);
-        } 
-        if ("204".equals(m.head.status) ||
-            "205".equals(m.head.status)) { return null; }
-        if ("303".equals(m.head.status)) {
-            for (final Header h : m.head.headers) {
-                if (Header.equivalent("Location", h.name)) {
-                    return connect.run(h.value, null, R);
-                }
-            }
-            return null;    // request accepted, but no response provided
-        } 
-        throw new Failure(m.head.status, m.head.phrase);
     }
 }
