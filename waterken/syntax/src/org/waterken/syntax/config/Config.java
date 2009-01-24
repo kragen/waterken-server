@@ -215,8 +215,8 @@ Config {
     
     /**
      * Initializes a configuration setting.
-     * @param name      setting name
-     * @param value     setting value
+     * @param name  setting name
+     * @param value setting value
      * @throws Exception    any problem persisting the <code>value</code>
      */
     public void
@@ -233,8 +233,8 @@ Config {
     
     /**
      * Creates a temporary override of a configuration setting.
-     * @param name      setting name
-     * @param value     transient setting value
+     * @param name  setting name
+     * @param value transient setting value
      */
     public void
     override(final String name, final Object value) {
