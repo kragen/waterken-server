@@ -102,7 +102,7 @@ Serve {
         // ping all the persistent vats to restart any pending tasks
         err.println("Restarting all vats...");
         final DatabaseManager<Server> vats = Settings.config.read("vats");
-        final File root = Settings.config.readType("vatRootFolder", File.class);
+        final File root = Settings.config.read("vatRootFolder");
         ping(vats, root);
         err.println("All vats restarted.");
     }

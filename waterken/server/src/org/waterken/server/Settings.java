@@ -38,7 +38,8 @@ Settings {
     static public    final File keys= Filesystem.file(configFolder, "keys.jks");
     
     // remaining configuration is stored in the config folder
-    static public    final Config config = new Config(configFolder, code);
+    static public    final Config config =
+        new Config(configFolder, code, "file:///", null, null); // TODO
     static {
         config.override("tag", new LastModified());
         
@@ -55,7 +56,7 @@ Settings {
     static protected Database<Server>
     vat() throws Exception {
         final DatabaseManager<Server> vats = config.read("vats");
-        final File root = config.readType("vatRootFolder", File.class);
+        final File root = config.read("vatRootFolder");
         return vats.connect(root);
     }
     
