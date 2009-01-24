@@ -4,16 +4,20 @@ package org.waterken.jos;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.io.PrintStream;
+
+import org.joe_e.Immutable;
+import org.waterken.db.Root;
+import org.waterken.db.Transaction;
+import org.waterken.store.folder.Folder;
 
 /**
  * Touches all the mutable objects in a vat.
  */
 final class
 Touch {
-    
-    private
-    Touch() {}
+    private Touch() {}
 
     /**
      * The command line arguments are:
@@ -32,24 +36,26 @@ Touch {
             return;
         }
 
-        touch(new File(args[0]), log);
+        touch(new File(args[0]),
+              new JODBManager<Void>(new Folder(), null, null),
+              log);
     }
     
     static private void
-    touch(final File dir, final PrintStream log) throws Exception {
+    touch(final File dir, final JODBManager<Void> vats,
+                          final PrintStream log) throws Exception {
         dir.listFiles(new FileFilter() {
             public boolean
             accept(final File file) {
                 if (file.isDirectory()) {
-                    try { touch(file, log); } catch (final Exception e) {}
+                    try { touch(file, vats, log); } catch (final Exception e) {}
                 }
                 return false;
             }
         });
         log.println(dir.getPath() + " ...");
-        /* TODO
-        final JODB db = (JODB)new JODBCache().connect(dir);
-        db.process(new Transaction<Immutable>(Transaction.update) {
+        final JODB<Void> db = vats.connect(dir);
+        db.process(Transaction.update, new Transaction<Immutable>() {
             public Immutable
             run(final Root local) throws Exception {
                 dir.list(new FilenameFilter() {
@@ -66,6 +72,5 @@ Touch {
                 return null;
             }
         });
-        */
     }
 }

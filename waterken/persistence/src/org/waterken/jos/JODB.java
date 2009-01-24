@@ -66,24 +66,22 @@ JODB<S> extends Database<S> {
     
     /**
      * Canonicalizes a {@link Root} name.
-     * @param name  chosen name
+     * <p>
+     * All lower-case names are used to hide differences in how different file
+     * systems handle case-sensitivity.
+     * </p>
+     * @param name chosen name
      * @return canonical name
      */
     static private String
-    canonicalize(final String name) {
-        /*
-         * All lower-case names are used to hide differences in how
-         * different file systems handle case-sensitivity.
-         */
-        return name.toLowerCase(Locale.ENGLISH);
-    }
+    canonicalize(final String name) { return name.toLowerCase(Locale.ENGLISH); }
 
     /**
      * file extension for a serialized Java object tree
      */
     static protected final String ext = ".jos";
 
-    static private final int keyChars = 14;
+    static private final int keyChars = 70 / 5;     // 70 bits > 10^21 keys
     static private final int keyBytes = keyChars * 5 / 8 + 1;
 
     /**
@@ -92,9 +90,7 @@ JODB<S> extends Database<S> {
      * @return corresponding filename
      */
     static private String
-    filename(final byte[] id) {
-        return Base32.encode(id).substring(0, keyChars);
-    }
+    filename(final byte[] id) {return Base32.encode(id).substring(0, keyChars);}
 
     private final Receiver<Event> stderr;   // log event output
     private final Store store;              // byte storage
@@ -547,8 +543,8 @@ JODB<S> extends Database<S> {
                     final byte[] bits = new byte[128 / Byte.SIZE];
                     prng.nextBytes(bits);
                     final ByteArray secretBits = ByteArray.array(bits);
-                    final JODB<S> sub = new JODB<S>(null, null, null == stderr
-                        ? new Sink<Event>() : stderr, subStore);
+                    final JODB<S> sub = new JODB<S>(null, null,
+                        null == stderr ? new Sink<Event>() : stderr, subStore);
                     sub.project = null != project ? project : JODB.this.project;
                     sub.code = Project.connect(sub.project);
                     return sub.process(Transaction.update, new Transaction<X>(){
