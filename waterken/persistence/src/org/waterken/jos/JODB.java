@@ -56,7 +56,7 @@ import org.waterken.store.Update;
 import org.waterken.trace.EventSender;
 import org.waterken.trace.Tracer;
 import org.waterken.trace.TurnCounter;
-import org.waterken.trace.project.ProjectTracer;
+import org.waterken.trace.application.ApplicationTracer;
 
 /**
  * An object graph stored as a set of Java Object Serialization files.
@@ -557,7 +557,7 @@ JODB<S> extends Database<S> {
                             local.link(JODB.flip, turn.flip);
                             final ClassLoader code =
                                 local.fetch(null, Database.code);
-                            final Tracer tracer = ProjectTracer.make(code, 2);
+                            final Tracer tracer = ApplicationTracer.make(code);
                             final Receiver<Effect<S>> effect =
                                 local.fetch(null, Database.effect);
                             final Receiver<Event> txerr =
