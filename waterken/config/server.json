@@ -4,13 +4,13 @@
   "next" : {
     "$" : [ "org.waterken.http.dump.Dump" ],
     "path" : "log/",
-    "key" : null,
-    "folder" : { "@" : "file/log/" },
+    "key" : "foo",
+    "file" : { "@" : "log/live.log" },
     "formats" : { "@" : "mime" },
     "next" : {
       "$" : [ "org.waterken.remote.mux.Mux" ],
       "vatURIPathPrefix" : { "@" : "vatURIPathPrefix" },
-      "vatRoot" : { "@" : "vat/" },
+      "vatRoot" : { "@" : "vatRootFolder" },
       "vats" : { "@" : "vats" },
       "remoting" : {
         "$" : [ "org.waterken.remote.http.AMP" ]
