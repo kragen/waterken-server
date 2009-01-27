@@ -223,13 +223,13 @@ Eventual implements Receiver<Task<?>>, Serializable {
 
             public Void
             run() throws Exception {
-                log.got(here+"t"+id, Reflection.method(task.getClass(), "run"));
+                log.got(here+"#t"+id, Reflection.method(task.getClass(),"run"));
                 try { task.run(); } catch (final Exception e) {log.problem(e);}
                 return null;
             }
         }
         enqueue.run(new TaskX());
-        log.sent(here + "t" + id);
+        log.sent(here + "#t" + id);
     }
 
     // org.ref_send.promise.eventual.Eventual interface
@@ -347,12 +347,12 @@ Eventual implements Receiver<Task<?>>, Serializable {
                 public Void
                 run() throws Exception {
                     // AUDIT: call to untrusted application code
-                    sample(untrusted, observer, _.log, _.here + "t" + id);
+                    sample(untrusted, observer, _.log, _.here + "#t" + id);
                     return null;
                 }
             }
             _.enqueue.run(new Sample());
-            _.log.sent(_.here + "t" + id);
+            _.log.sent(_.here + "#t" + id);
         }
     }
     
@@ -466,7 +466,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
             block.condition = 0;    // ensure block is not run again
             
             if (null != block.next) {
-                final String message = here + "w" + block.message;
+                final String message = here + "#w" + block.message;
                 if (Deferred.trusted(deferred, value)) {
                     final Member member;
                     try {
@@ -504,7 +504,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
         observe(final Do<T,?> observer) {
             final When<T> block = Fulfilled.near(back);
             if (condition == block.condition) {
-                log.sentIf(here + "w" + block.message, here + "p" + condition);
+                log.sentIf(here+"#w"+block.message, here+"#p"+condition);
                 block.observer = observer;
                 back = block.next = allocWhen(condition);
             } else {
@@ -574,7 +574,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
         
         private void
         chain(final Volatile<T> promise) {
-            log.resolved(here + "p" + condition);
+            log.resolved(here + "#p" + condition);
             enqueue.run(new Forward<T>(condition, promise, front));
             try { state.cast().mark(promise); } catch (final Exception e) {}
         }
