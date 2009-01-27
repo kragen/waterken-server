@@ -13,6 +13,7 @@ import org.waterken.db.DatabaseManager;
 import org.waterken.http.Server;
 import org.waterken.jos.JODBManager;
 import org.waterken.project.Project;
+import org.waterken.remote.http.AMP;
 import org.waterken.store.StoreMaker;
 import org.waterken.syntax.config.Config;
 
@@ -39,7 +40,8 @@ Settings {
     
     // remaining configuration is stored in the config folder
     static public    final Config config =
-        new Config(configFolder, code, "file:///", null, null); // TODO
+        new Config(configFolder, code, "file:///",
+                   AMP.connect(new Proxy()), null);
     static {
         config.override("tag", new LastModified());
         
