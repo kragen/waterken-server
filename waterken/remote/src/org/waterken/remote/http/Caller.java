@@ -32,6 +32,7 @@ import org.waterken.io.FileType;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
 import org.waterken.syntax.BadSyntax;
+import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
@@ -46,12 +47,21 @@ import org.waterken.uri.URI;
 Caller extends Struct implements Messenger, Serializable {
     static private final long serialVersionUID = 1L;
 
-    private final HTTP.Exports exports; // operations on web-keys
+    private final Eventual _;
+    private final String here;
+    private final ClassLoader codebase;
+    private final Importer connect;
+    private final Exporter export;
     private final Pipeline msgs;        // queued HTTP requests
     
     protected
-    Caller(final HTTP.Exports exports, final Pipeline msgs) {
-        this.exports = exports;
+    Caller(final Eventual _, final String here, final ClassLoader codebase,
+           final Importer connect, final Exporter export, final Pipeline msgs) {
+        this._ = _;
+        this.here = here;
+        this.codebase = codebase;
+        this.connect = connect;
+        this.export = export;
         this.msgs = msgs;
     }
 
@@ -59,7 +69,7 @@ Caller extends Struct implements Messenger, Serializable {
 
     public void
     when(final String href, final Remote proxy, final Do<Object,?> observer) {
-        final String base = URI.resolve(exports.getHere(), href);
+        final String base = URI.resolve(here, href);
         class When extends Struct implements Operation, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -82,7 +92,7 @@ Caller extends Struct implements Messenger, Serializable {
                     member = Reflection.method(When.class, "fulfill",
                                                String.class, Message.class);
                 } catch (final Exception e) { throw new Error(e); }
-                exports._.log.got(request, member);
+                _.log.got(request, member);
                 Volatile<Object> value;
                 try {
                     value = Eventual.promised(deserialize(base,
@@ -90,7 +100,7 @@ Caller extends Struct implements Messenger, Serializable {
                 } catch (final Exception e) {
                     value = new Rejected<Object>(e);
                 }
-                exports._.when(value, observer);
+                _.when(value, observer);
                 // TODO: implement polling on a 404 response
             }
             
@@ -101,11 +111,11 @@ Caller extends Struct implements Messenger, Serializable {
                     member = Reflection.method(When.class, "reject",
                                                String.class, Exception.class);
                 } catch (final Exception e) { throw new Error(e); }
-                exports._.log.got(request, member);
-                exports._.when(new Rejected<Object>(reason), observer);
+                _.log.got(request, member);
+                _.when(new Rejected<Object>(reason), observer);
             }
         }
-        exports._.log.sent(msgs.enqueue(new When()));
+        _.log.sent(msgs.enqueue(new When()));
     }
    
     public Object
@@ -120,8 +130,8 @@ Caller extends Struct implements Messenger, Serializable {
     private Object
     get(final String href, final Class<?> type,
         final Method method, final ConstArray<?> argv) {
-        final String base = URI.resolve(exports.getHere(), href);
-        final Channel<Object> r = exports._.defer();
+        final String base = URI.resolve(here, href);
+        final Channel<Object> r = _.defer();
         final Resolver<Object> resolver = r.resolver;
         class GET extends Struct implements Operation, Query, Serializable {
             static private final long serialVersionUID = 1L;
@@ -140,25 +150,25 @@ Caller extends Struct implements Messenger, Serializable {
 
             public void
             fulfill(final String request, final Message<Response> response) {
-                exports._.log.got(request, method);
+                _.log.got(request, method);
                 receive(base, response, type, method, argv, resolver);
             }
             
             public void
             reject(final String request, final Exception reason) {
-                exports._.log.got(request, method);
+                _.log.got(request, method);
                 resolver.reject(reason);
             }
         }
-        exports._.log.sent(msgs.enqueue(new GET()));
-        return exports._.cast(Typedef.raw(
+        _.log.sent(msgs.enqueue(new GET()));
+        return _.cast(Typedef.raw(
             Typedef.bound(method.getGenericReturnType(), type)), r.promise);
     }
     
     private Object
     post(final String href, final Class<?> type,
          final Method method, final ConstArray<?> argv) {
-        final String base = URI.resolve(exports.getHere(), href);
+        final String base = URI.resolve(here, href);
         final Object r_;
         final Resolver<Object> resolver;
         final Class<?> R =
@@ -167,8 +177,8 @@ Caller extends Struct implements Messenger, Serializable {
             r_ = null;
             resolver = null;
         } else {
-            final Channel<Object> x = exports._.defer();
-            r_ = exports._.cast(R, x.promise);
+            final Channel<Object> x = _.defer();
+            r_ = _.cast(R, x.promise);
             resolver = x.resolver;
         }
         class POST extends Struct implements Operation, Update, Serializable {
@@ -176,22 +186,23 @@ Caller extends Struct implements Messenger, Serializable {
             
             public Message<Request>
             render(final String x, final long w, final int m) throws Exception {
-                return serialize(HTTP.post(base, method.getName(),x,w,m), argv);
+                return serialize(here, export,
+                                 HTTP.post(base, method.getName(),x,w,m), argv);
             }
 
             public void
             fulfill(final String request, final Message<Response> response) {
-                exports._.log.got(request + "-return", method);
+                _.log.got(request + "-return", method);
                 receive(base, response, type, method, argv, resolver);
             }
             
             public void
             reject(final String request, final Exception reason) {
-                exports._.log.got(request + "-return", method);
+                _.log.got(request + "-return", method);
                 if (null != resolver) { resolver.reject(reason); }
             }
         }
-        exports._.log.sent(msgs.enqueue(new POST()));
+        _.log.sent(msgs.enqueue(new POST()));
         return r_;
     }
     
@@ -206,11 +217,11 @@ Caller extends Struct implements Messenger, Serializable {
                 ? invoke : new Compose<Object,Object>(invoke, resolver);
             Object x;
             try {
-                x = exports.connect().run(href, null, Object.class);
+                x = connect.run(href, null, Object.class);
             } catch (final Exception e) {
                 x = new Rejected<Object>(e);
             }
-            exports._.when(x, forward);
+            _.when(x, forward);
         } else if (null != resolver) {
             Volatile<Object> value;
             try {
@@ -232,13 +243,12 @@ Caller extends Struct implements Messenger, Serializable {
     private Object
     deserialize(final String base,
                 final Message<Response> m, final Type R) throws Exception {
-        final Importer connect = exports.connect();
         if ("200".equals(m.head.status) || "201".equals(m.head.status) ||
             "202".equals(m.head.status) || "203".equals(m.head.status)) {
             if (Header.equivalent(FileType.unknown.name,
                                   m.head.getContentType())) { return m.body; }
-            return new JSONDeserializer().run(base,connect, ConstArray.array(R),
-                    exports.getCodebase(), m.body.asInputStream()).get(0);
+            return new JSONDeserializer().run(base, connect,
+                ConstArray.array(R), codebase, m.body.asInputStream()).get(0);
         } 
         if ("204".equals(m.head.status) ||
             "205".equals(m.head.status)) { return null; }
@@ -255,8 +265,9 @@ Caller extends Struct implements Messenger, Serializable {
     
     static private final Class<?> Inline = ref(0).getClass();
     
-    private Message<Request>
-    serialize(final String target, final ConstArray<?> argv) throws Exception {
+    static protected Message<Request>
+    serialize(final String here, final Exporter export,
+              final String target, final ConstArray<?> argv) throws Exception {
         final String contentType;
         final ByteArray content;
         Object arg = argv.length() == 1 ? argv.get(0) : null;
@@ -268,8 +279,8 @@ Caller extends Struct implements Messenger, Serializable {
             content = (ByteArray)arg;
         } else {
             contentType = FileType.json.name;
-            content = new JSONSerializer().
-                        run(exports.send(URI.resolve(target, ".")), argv);
+            content = new JSONSerializer().run(HTTP.changeBase(here, export,
+                                               URI.resolve(target, ".")), argv);
         }
         final String authority = URI.authority(target);
         final String location = Authority.location(authority);

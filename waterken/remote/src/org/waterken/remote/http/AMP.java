@@ -7,11 +7,14 @@ import static org.ref_send.promise.eventual.Failure.maxEntitySize;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.lang.reflect.Type;
 
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
+import org.joe_e.array.ConstArray;
 import org.joe_e.charset.URLEncoding;
 import org.ref_send.deserializer;
+import org.ref_send.promise.eventual.Receiver;
 import org.waterken.db.Database;
 import org.waterken.db.Root;
 import org.waterken.db.Transaction;
@@ -24,6 +27,7 @@ import org.waterken.io.Stream;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.limited.TooBig;
 import org.waterken.remote.mux.Remoting;
+import org.waterken.syntax.Importer;
 import org.waterken.uri.Path;
 import org.waterken.uri.URI;
 
@@ -89,6 +93,30 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                 return;
             } 
             client.run(r.head, null != r.body ? r.body.asInputStream() : null);
+        }
+    }; }
+
+    static private <T> Receiver<T>
+    poster(final String href, final Server proxy) { return new Receiver<T>() {
+        public void
+        run(final Object value) {
+            try {
+                final String target = HTTP.post(href, "run", null, 0, 0);
+                final Message<Request> q =
+                    Caller.serialize("", null, target, ConstArray.array(value));
+                proxy.serve(q.head, q.body.asInputStream(), new Client() {
+                    public void
+                    run(final Response head, final InputStream body) {}
+                });
+            } catch (final Exception e) {}
+        }
+    }; }
+    
+    static public Importer
+    connect(final Server proxy) { return new Importer() {
+        public Object
+        run(final String href, final String base, final Type type) {
+            return poster(null != base ? URI.resolve(base, href) : href, proxy);
         }
     }; }
 }

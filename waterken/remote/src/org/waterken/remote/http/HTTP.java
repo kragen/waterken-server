@@ -149,7 +149,7 @@ HTTP extends Eventual implements Serializable {
                                     _.effect, _.outbound);
                 _.local.link(peerKey, msgs);
             }
-            return new Caller(this, msgs);
+            return new Caller(_,_.here,getCodebase(), connect(),export(),msgs);
         }
         
         /**
@@ -197,21 +197,6 @@ HTTP extends Eventual implements Serializable {
                 }
             }
             return Remote.export(_.deferred, new ExporterX());
-        }
-        
-        protected Exporter
-        send(final String base) {
-            final Exporter export = export();
-            class ExporterX extends Struct implements Exporter, Serializable {
-                static private final long serialVersionUID = 1L;
-
-                public String
-                run(final Object x) {
-                    final String absolute = URI.resolve(_.here, export.run(x));
-                    return null != base ? URI.relate(base, absolute) : absolute;
-                }
-            }
-            return new ExporterX();
         }
 
         /**
@@ -299,10 +284,11 @@ HTTP extends Eventual implements Serializable {
         if (null != predicate) {
             query += "&q=" + URLEncoding.encode(predicate);
         }
-        if (null == sessionKey) { throw new NullPointerException(); }
-        query += "&x=" + URLEncoding.encode(sessionKey);
-        query += "&w=" + window;
-        query += "&m=" + message;
+        if (null != sessionKey) {
+            query += "&x=" + URLEncoding.encode(sessionKey) +
+                     "&w=" + window +
+                     "&m=" + message;
+        }
         return URI.resolve(href, "./?" + query);
     }
 
@@ -464,5 +450,25 @@ HTTP extends Eventual implements Serializable {
             }
         }
         return r;
+    }
+    
+    /**
+     * Changes the base URI.
+     * @param here      current base URI
+     * @param export    local exporter
+     * @param there     new base URI
+     */
+    static protected Exporter
+    changeBase(final String here, final Exporter export, final String there) {
+        class ChangeBase extends Struct implements Exporter, Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public String
+            run(final Object target) {
+                final String absolute = URI.resolve(here, export.run(target));
+                return null != there ? URI.relate(there, absolute) : absolute;
+            }
+        }
+        return new ChangeBase();
     }
 }

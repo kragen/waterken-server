@@ -70,7 +70,8 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             argv[i + 1] = optional.get(i);
         }
         final Object value = Reflection.invoke(make, null, argv);
-        return PowerlessArray.array(exports.send(base).run(value));
+        return PowerlessArray.array(HTTP.changeBase(
+                exports.getHere(), exports.export(), base).run(value));
     }
     
     static public String
