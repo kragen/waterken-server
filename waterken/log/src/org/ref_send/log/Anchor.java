@@ -52,7 +52,7 @@ Anchor implements Comparable<Anchor>, Selfless, Powerless, Record, Serializable{
     hashCode() {
         return (null != turn ? turn.hashCode() : 0) +
                (int)(number ^ (number >>> 32)) +
-               0x10097C42;
+               0x7C42A2C4;
     }
 
     // java.lang.Comparable interface

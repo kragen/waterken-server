@@ -1,11 +1,10 @@
 // Copyright 2008 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.trace.project;
+package org.waterken.trace.application;
 
 import java.io.Serializable;
 import java.lang.reflect.Member;
 import java.lang.reflect.Proxy;
-import java.net.URLClassLoader;
 
 import org.joe_e.Struct;
 import org.joe_e.array.IntArray;
@@ -15,20 +14,17 @@ import org.ref_send.log.Trace;
 import org.waterken.trace.Tracer;
 
 /**
- * Produces a stack trace composed of only calls initiated by project code.
+ * Produces a stack trace composed of only calls initiated by application code.
  */
 public final class
-ProjectTracer {
+ApplicationTracer {
 
     /**
      * Constructs an instance.
-     * @param code      project class loader
-     * @param levels    number of relative path segments to include in paths
+     * @param code  application class loader
      */
     static public Tracer
-    make(final ClassLoader code, final int levels) {
-        if (0 > levels) { throw new RuntimeException(); }
-        
+    make(final ClassLoader code) {
         class TracerX extends Struct implements Tracer, Serializable {
             static private final long serialVersionUID = 1L;
             
@@ -53,38 +49,43 @@ ProjectTracer {
                 final PowerlessArray.Builder<CallSite> sites =
                     PowerlessArray.builder(frames.length);
                 for (final StackTraceElement frame : frames) {
-                    String project = null;
+                    
+                    // Is this frame from application code or system code?
+                    boolean included = false;
                     try {
                         final Class<?> c = code.loadClass(frame.getClassName());
-                        final ClassLoader cl = c.getClassLoader();
-                        if (!Proxy.isProxyClass(c) &&
-                                cl instanceof URLClassLoader) {
-                            final String uri =
-                                ((URLClassLoader)cl).getURLs()[0].toString();
-                            if (uri.endsWith("/")) {
-                                int start = uri.length() - 1;
-                                for (int i = levels; 0 != i--;) {
-                                    start = uri.lastIndexOf('/', start - 1);
+                        if (!Proxy.isProxyClass(c)) {
+                            final ClassLoader application = c.getClassLoader();
+                            final ClassLoader system =
+                                ApplicationTracer.class.getClassLoader();
+                            for(ClassLoader i=code; i!=system; i=i.getParent()){
+                                if (application == i) {
+                                    included = true;
+                                    break;
                                 }
-                                project = uri.substring(start + 1);
                             }
                         }
                     } catch (final ClassNotFoundException e) {}
-                    if (null == project) {
+                    if (!included) {
                         if (0 == sites.length()) { continue; }
                         break;
                     }
                     
+                    // Describe the application stack frame.
                     final String enclosing; {
                         final String name = frame.getClassName();
                         final int end = name.indexOf('$');
-                        enclosing= -1 == end ? name : name.substring(0, end);
+                        enclosing = -1 == end ? name : name.substring(0, end);
+                    }
+                    final String typename; {
+                        final String name = frame.getClassName();
+                        typename = name.substring(name.lastIndexOf('.') + 1);
                     }
                     final int line = frame.getLineNumber();
                     sites.append(new CallSite(
-                      project + enclosing.replace('.', '/') + ".java",
-                      frame.getMethodName(),
-                      line<0?null:PowerlessArray.array(IntArray.array(line))));
+                      enclosing.replace('.', '/') + ".java",
+                      typename + "." + frame.getMethodName(),
+                      line>1?PowerlessArray.array(IntArray.array(line)):null));
                 }
                 return new Trace(sites.snapshot());
             }

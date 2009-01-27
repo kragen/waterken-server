@@ -4,4 +4,4 @@
 /**
  * Stack tracing implementation.
  */
-package org.waterken.trace.project;
+package org.waterken.trace.application;
