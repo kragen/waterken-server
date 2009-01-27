@@ -10,3 +10,4 @@ echo 'Building remote project...'
 rm -rf bin/
 mkdir -p bin
 javac -classpath $CLASSPATH -d bin/ `find src/ -name '*.java'` $@
+./jars.sh
