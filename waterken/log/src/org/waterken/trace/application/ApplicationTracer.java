@@ -72,19 +72,19 @@ ApplicationTracer {
                     }
                     
                     // Describe the application stack frame.
-                    final String enclosing; {
-                        final String name = frame.getClassName();
-                        final int end = name.indexOf('$');
-                        enclosing = -1 == end ? name : name.substring(0, end);
+                    final String namespace; {
+                        final String fqn = frame.getClassName();
+                        final int end = fqn.indexOf('$');
+                        namespace = -1 == end ? fqn : fqn.substring(0, end);
                     }
-                    final String typename; {
-                        final String name = frame.getClassName();
-                        typename = name.substring(name.lastIndexOf('.') + 1);
+                    final String name; {
+                        final String fqn = frame.getClassName();
+                        name = fqn.substring(fqn.lastIndexOf('.') + 1) + "." +
+                               frame.getMethodName();
                     }
                     final int line = frame.getLineNumber();
                     sites.append(new CallSite(
-                      enclosing.replace('.', '/') + ".java",
-                      typename + "." + frame.getMethodName(),
+                      namespace.replace('.', '/') + ".java", name,
                       line>1?PowerlessArray.array(IntArray.array(line)):null));
                 }
                 return new Trace(sites.snapshot());
