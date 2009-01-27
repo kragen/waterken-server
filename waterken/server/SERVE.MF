@@ -1,3 +1,0 @@
-Class-Path: joe-e/bin/ ref_send/bin/ syntax/bin/ log/bin/ persistence/bin/ network/bin/ remote/bin/ server/bin/
-Main-Class: org.waterken.server.Serve
-
