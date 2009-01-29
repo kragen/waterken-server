@@ -1,0 +1,173 @@
+From: oakland09-pcchairs-l@cs.cornell.edu
+Sent: Wednesday, January 28, 2009 5:46 PM
+To: Close, Tyler J.
+Cc: Andrew Myers
+Subject: [Oakland09] Rejected paper #31 "ACLs don't"
+
+Dear Tyler Close,
+
+We are sorry to inform you that your submission, "ACLs don't", was not selected for publication by the program committee for the 2009 IEEE Symposium on Security and Privacy.  The selection process was highly competitive, with only 26 of 254 submissions selected.
+
+Reviewers' comments are included below and are available at the reviewing
+website:
+
+  http://oakland09.cs.cornell.edu/oakland09/paper.php?p=31
+
+We hope that these reviews will be useful to you.
+
+Thank you for submitting to IEEE Security and Privacy, and we hope to see you at the conference in May!
+
+Best regards,
+Andrew Myers and Dave Evans,
+Co-Chairs, 2009 IEEE Symposium on Security and Privacy Program Committee
+
+===========================================================================
+                           Oakland09 Review #31A
+                 Updated Tuesday 2 Dec 2008 4:07:57pm EST
+---------------------------------------------------------------------------
+                           Paper #31: ACLs don't
+---------------------------------------------------------------------------
+
+                      Overall merit: 3. Weak reject: will not argue against
+                Reviewer confidence: 3. Confident
+                        Correctness: 4. Convincing
+                       Presentation: 4. Well written
+                          Relevance: 4. This is a reasonable venue for this
+                                        paper
+                            Novelty: 2. Probably done before
+
+                       ===== Summary of paper =====
+
+This paper discusses limitations of the ACL model in multi-principal settings.
+
+                        ===== Recommendation =====
+
+
+This paper discusses limitations of the ACL model in multi-principal settings. 
+
+Obviously it is commonly agreed that "the view presented in the Protection paper that ACLs and capabilities are merely different implementation choices for a single access model embodied by the access matrix is incorrect."
+
+This knowledge has been around for decades however. ACLs differ from capabilities in dozen ways or more. Simply countering a claim made in the original papers on AC might not be very relevant. It would be more interesting to see if the nuances discussed here have not been presented elsewhere also.
+
+I might be biased, but while reading the paper I was trying to identify items that I was not aware of before. And while indeed I am not aware of another effort that discusses all these issues together, I would assume that any serious system security course would touch on most of them in its AC section. 
+
+Ultimately, I feel this would be probably suited better as part of a paper discussion a novel AC mechanism that solves some of the issues -- e.g., in the context of a a browser AC plugin that defends against CSS or similar etc. 
+
+Finally, the paper has not been anonymized properly. The acknowledgment section should probably have been eliminated.
+
+===========================================================================
+                           Oakland09 Review #31B
+                 Updated Friday 19 Dec 2008 4:41:46am EST
+---------------------------------------------------------------------------
+                           Paper #31: ACLs don't
+---------------------------------------------------------------------------
+
+                      Overall merit: 2. Reject: will argue to reject
+                Reviewer confidence: 3. Confident
+                        Correctness: 2. Unconvincing
+                       Presentation: 2. Hard to follow
+                          Relevance: 3. Not sure whether it belongs here or
+                                        in another venue
+                            Novelty: 3. Unsurprising next step
+
+                       ===== Summary of paper =====
+
+This paper purports to show a limitation of ACLs: The ACL model is unable to make correct access decisions for interactions involving more than two principals, since required information is not retained across message sends. 
+The critique is based on CSRF and clickjacking; which are web attacks that involve 3 parties: a dishonest site, an honest user, and an honest site (the victim).
+
+                        ===== Recommendation =====
+
+The contribution of this paper is not evident. The discussion about limitations of ACL and advantages of capability model is a high-level, almost philosophical treatment of the topic.
+What specific measures could be used to prevent CSRF? How would they be implemented in the browser, or at a web site? If the authors of the paper truly believe they have a solution to CSRF, then they should implement it and reap the benefits of success
+
+                     ===== Comments for authors =====
+
+The paper says, "Though these victim applications may correctly implement traditional access control lists (ACLs), somehow the attacker still gains access to resources that are supposed to be inaccessible"  However it is not clear where the ACL lies in this analysis. Is the browser security policy considered as an ACL? Is the ACL something at the victim site? 
+
+In analysis of CSFR, the paper says, "Although the CSRF article makes no reference to the Confused Deputy attack or capabilities, the suggested defense is effectively to transition the application away from the ACL model and to the capability model". It is not clear this this reviwer what the paper is talking about. The three main defenses against CSRF are (i) unguessable tokes in forms, (ii) checking the referrer header, and (iii) custom headers, as implemented with XmlHttpRequest (XHR). What does the capability model have to do with these standard defensesw?
+
+The author(s) similarly does not seem to be aware of the current defense against simple clickfraud that uses randomized links. These are arguably meant to be capability like, but still defeated by clickjacking attacks.
+
+The discussion of web phenomena seems simplistic and uninformed about topics that are readily available on the web.
+
+===========================================================================
+                           Oakland09 Review #31C
+                Updated Wednesday 14 Jan 2009 6:24:44pm EST
+---------------------------------------------------------------------------
+                           Paper #31: ACLs don't
+---------------------------------------------------------------------------
+
+                      Overall merit: 3. Weak reject: will not argue against
+                Reviewer confidence: 3. Confident
+                        Correctness: 4. Convincing
+                       Presentation: 5. Lucid and eloquent
+                          Relevance: 5. This is the natural home for this
+                                        paper
+                            Novelty: 3. Unsurprising next step
+
+                       ===== Summary of paper =====
+
+The paper gives a well written overview of how ACLs work, pointing out subtle and important difference with respect to the capability mechanism.
+It shows that recent attacks such as Cross-Site Request Forgery and clickjacking are instances of the Confused Deputy attack. It suggests also how to solve this problem using the capability model rather than ACLs.
+
+                        ===== Recommendation =====
+
+The paper is very well written and it can be actually used as a good class paper to explain the differences between ACLs and capabilities.
+Many of the reported observation already appear here and there sparse in the security literature, however this paper has the merit to write all of them consistently in a single note. This is also a paper that explains in depth the Confused Deputy problem.
+
+                     ===== Comments for authors =====
+
+It is true the Protection paper didn’t discuss on the fundamental differences between ACL and capabilities. However, many subsequent papers, many of which on this symposium (e.g. IBAC, KeykoS, OASIS, etc.), discuss extensively on the difference, in particular when it’s matter of delegation.
+I am also surprised that delegation was barely mentioned in the paper since most of the problems outlined seem to boil down to: 1) hidden delegation while it should be made explicit to make evident when the Compiler act on behalf of a User (which user and on which file). 2) Use of ACLs instead of capabilities to implement this delegation.
+
+===========================================================================
+                           Oakland09 Review #31D
+                 Updated Tuesday 13 Jan 2009 2:06:40am EST
+---------------------------------------------------------------------------
+                           Paper #31: ACLs don't
+---------------------------------------------------------------------------
+
+                      Overall merit: 2. Reject: will argue to reject
+                Reviewer confidence: 3. Confident
+                        Correctness: 3. Plausible
+                       Presentation: 4. Well written
+                          Relevance: 3. Not sure whether it belongs here or
+                                        in another venue
+                            Novelty: 2. Probably done before
+
+                       ===== Summary of paper =====
+
+This paper argues that ACL-based protection systems are inferior to capability-based ones in the case of multi-principal interactions, since these interactions are prone to confused deputy attacks.  The paper develops this idea using the "tried and true"
+users/compiler/vendor example often mentioned in the literature, but also shows how the points apply to Web scenarios.  The paper spends time explaining the limitations of ACLs, some time describing how capabilities are better in some scenarios, and some time describing CSRF and clickjacking attacks in this vein.  The paper is rhetoric, in that no new system, algorithm, or mechanism is introduced, and there is no evaluation.
+
+                        ===== Recommendation =====
+
+The paper didn't feel like it had enough "raw meat" -- many of the capability vs. ACL arguments mentioned in this paper have been the topic of religious wars in historical systems over the past three decades, and confused deputy attacks have been understood for some time (as has the fact that CSRF and clickjacking are instances of the confused deputy problem).
+
+I didn't entirely agree with the conclusion that capabilities solve the problems, or that ACLs cannot solve the problem; the paper doesn't really attempt to constructively find a solution to the problem using ACLs.
+
+The paper doesn't discuss alternative protection models that attempt to solve exactly these kinds of problems (e.g., information flow control -- see, for example, some of the recent work in the OS community on this topic, such as Flume or HiStar).
+
+                     ===== Comments for authors =====
+
+I do appreciate this style of paper -- namely one that uses rhetoric and thought experiments to make a new insight about system structure, design, or architecture.  However, I think the burden on this kind of paper is to make a substantial leap, or resolve a long-unresolved problem, otherwise the paper might be inconsequential or prone to retreading old argument.  This paper didn't really feel like it met the burden of a sufficiently new or substantial contribution.
+
+ACLs vs. capabilities have been long debated in many systems.  The confused deputy article referenced in this paper ([8]) essentially makes the same pro-capability argument as the paper itself:
+capabilities bundle together the designation of the object that the deputy should operate on with the permission to access that object.
+Thus, the major premise of this paper (capabilities are better than
+ACLs) is not a new observation.
+
+CSRF and clickjacking have been recognized for several years now as examples of the confused deputy problem.  (See, for example:
+
+   http://ieeexplore.ieee.org/xpls/abs_all.jsp?isnumber=4446683&arnumber=4446703
+   http://www.cgisecurity.com/csrf-faq.html
+   http://waterken.sourceforge.net/clickjacking/
+
+It's true that ACLs don't bundle object designation with permission, but the specific compiler/user/vendor problem can be solved with argument validation -- the compiler verifies that the output file is a file that the user invoking the compiler is allowed to access before writing to it.
+
+Solutions other than capabilities would work, such as an information-flow based solution.  (I agree this is harder to apply to the web.)
+
+The acknowledgements section is not appropriate for an anonymized submission -- it leaks too much information about who may have authored the paper.  (It's fine for a camera ready, of course.)
+
+
+
