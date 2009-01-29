@@ -73,7 +73,7 @@ Files extends Struct implements Server, Serializable {
                     }
                 }
             } else if (exact.isDirectory()) {
-                client.run(new Response(
+                client.receive(new Response(
                     "HTTP/1.1", "307", "Temporary Redirect",
                     PowerlessArray.array(
                         new Header("Location", head.uri + "/"),
@@ -94,10 +94,10 @@ Files extends Struct implements Server, Serializable {
                 file = negotiated;
             } else { throw new FileNotFoundException(); }
         } catch (final FileNotFoundException e) {
-            client.run(Response.notFound(), null);
+            client.receive(Response.notFound(), null);
             return;
         } catch (final InvalidFilenameException e) {
-            client.run(Response.gone(), null);
+            client.receive(Response.gone(), null);
             return;
         }
 
@@ -122,7 +122,7 @@ Files extends Struct implements Server, Serializable {
                 header = header.with(new Header("Content-Encoding",
                                                 contentType.encoding));
             }
-            client.run(new Response("HTTP/1.1", "200", "OK", header), in);
+            client.receive(new Response("HTTP/1.1", "200", "OK", header), in);
         } catch (final Exception e) {
             try { in.close(); } catch (final Exception e2) {}
             throw e;

@@ -14,7 +14,6 @@ import java.net.SocketAddress;
 import java.util.LinkedList;
 
 import org.joe_e.Powerless;
-import org.joe_e.Struct;
 import org.joe_e.inert;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.ASCII;
@@ -179,7 +178,7 @@ ClientSide implements Server {
             socket = null;
         }
     }
-    class Exchange extends Struct implements Client {
+    class Exchange extends Client {
         protected final Request head;
         protected final InputStream body;
         private   final Client client;
@@ -196,8 +195,8 @@ ClientSide implements Server {
         }
         
         public void
-        run(final Response head, final InputStream body) throws Exception {
-            client.run(head, body); // don't pop if there is an I/O error
+        receive(final Response head, final InputStream body) throws Exception {
+            client.receive(head, body); // don't pop if there is an I/O error
             sender.run(pop);
         }
     }
@@ -218,7 +217,7 @@ ClientSide implements Server {
             if (null == on.in) { return null; }
             try {
                 if (null == x.head) {
-                    x.run(Response.badRequest(), null);
+                    x.receive(Response.badRequest(), null);
                 } else {
                     if (receive(x.head.method, on.in, x)) {on.retry();}
                 }
@@ -488,7 +487,7 @@ ClientSide implements Server {
             final InputStream explicit = HTTPD.input(headers, cin);
             entity = null != explicit ? explicit : cin;
         }
-        client.run(new Response(version, status, phrase, headers), entity);
+        client.receive(new Response(version, status, phrase, headers), entity);
         
         // ensure this response has been fully read out of the
         // response stream before reading in the next response

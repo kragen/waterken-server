@@ -2,10 +2,10 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.net.http;
 
-import static org.joe_e.array.PowerlessArray.array;
 import static org.waterken.io.Stream.chunkSize;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,82 +28,132 @@ import org.waterken.uri.Header;
  * Outputs a {@link Response}.  
  */
 final class
-Responder {
+Responder extends Client {
 
-    public  final Milestone<Boolean> closing = Milestone.plan();
     private final Server server;
-    private       OutputStream connection;
+    private final Milestone<Boolean> failed;    // should connection be failed?
+    private       OutputStream connection;      // null unless this response is
+                                                // next one to output
+    
+    // response data waiting it's turn for output
+    public  final Milestone<Boolean> closing = Milestone.plan();
+    private       Responder next;
+    private       String version;
+    private       String method;
+    private       Response head;
+    private       InputStream body;
 
-    Responder(final Server server) {
+    private
+    Responder(final Server server, final Milestone<Boolean> failed) {
         this.server = server;
+        this.failed = failed;
     }
 
     Responder(final Server server, final OutputStream connection) {
         this.server = server;
+        failed = Milestone.plan();
         this.connection =
             new BufferedOutputStream(connection,chunkSize-"0\r\n\r\n".length());
     }
     
-    protected Client
-    respond(final String version, final String method, final Responder next) {
-        return new Client() {
-
-            public void
-            run(final Response head, final InputStream body) throws Exception{
-                if (null == body && head.status.startsWith("4")) {
-                    // use the configured response body
-                    server.serve(new Request(version,"GET","/site/"+head.status,
-                            array(new Header[] {})), null, new Client() {
-                       public void
-                       run(final Response bodyHead,
-                           final InputStream body) throws Exception {
-                           PowerlessArray<Header> headers = bodyHead.headers;
-                           for (final Header i : head.headers) {
-                               if (null==TokenList.find(null, i.name, headers)){
-                                   headers = headers.with(i);
-                               }
-                           }
-                           output(new Response(head.version, head.status,
-                                               head.phrase, headers), body);
+    // org.waterken.http.Client interface
+    
+    public synchronized boolean
+    isStillWaiting() { return !failed.is(); }
+    
+    public synchronized void
+    fail(final Exception reason) throws Exception {
+        failed.mark(true);
+        closing.mark(true);
+        super.fail(reason);
+    }
+    
+    public synchronized void
+    receive(final Response head, final InputStream body) throws Exception {
+        if (null == body && head.status.startsWith("4")) {
+            server.serve(new Request(version, "GET", "/site/" + head.status,
+                PowerlessArray.array(new Header[0])), null, new Client() {
+               public void
+               receive(final Response entity,
+                       final InputStream body) throws Exception {
+                   // merge response headers with default entity headers
+                   PowerlessArray<Header> headers = entity.headers;
+                   for (final Header i : head.headers) {
+                       if (null==TokenList.find(null, i.name, headers)){
+                           headers = headers.with(i);
                        }
-                    });
-                } else {
-                    output(head, body);
-                }
+                   }
+                   setResponse(new Response(head.version, head.status,
+                                            head.phrase, headers), body);
+               }
+            });
+        } else {
+            setResponse(head, body);
+        }
+    }
+    
+    private synchronized void
+    setResponse(final Response head, InputStream body) throws Exception {
+        if (null != body &&
+                !(body instanceof ByteArrayInputStream) && null == connection) {
+            // buffer the body until the connection is ready
+            final int len = head.getContentLength();
+            body = Stream.snapshot(len >= 0 ? len : 512, body).asInputStream();
+        }
+        this.head = head;
+        this.body = body;
+        
+        final OutputStream out = connection;
+        if (null != out) {
+            connection = null;
+            output(out);
+        }
+    }
+    
+    private synchronized void
+    output(final OutputStream out) throws Exception {
+        if (null != head) { // output already produced response
+            try {
+                write(closing, out, version, method, head, body);
+            } catch (final Exception e) {
+                failed.mark(true);
+                closing.mark(true);
+                try { out.close(); } catch (final IOException e2) {}
+                throw e;
             }
-            
-            private void
-            output(final Response head, final InputStream body)throws Exception{
-                if (null == connection) { return; }
-                final OutputStream out = connection;
-                connection = null;
-                try {
-                    write(closing, out, version, method, head, body);
-                } catch (final Exception e) {
-                    closing.mark(true);
-                    try { out.close(); } catch (final IOException e2) {}
-                    throw e;
-                }
+            if (closing.is()) {
+                failed.mark(true);
                 out.flush();
-                if (closing.is()) {
-                    out.close();
+                out.close();
+            } else {
+                if (head.status.startsWith("1")) {
+                    out.flush();
+                    connection = out;
                 } else {
-                    if (head.status.startsWith("1")) {
-                        connection = out;
-                    } else {
-                        next.connection = out;
-                    }
+                    next.output(out);
                 }
             }
-        };
+        } else {            // hold onto output stream until response is ready
+            out.flush();
+            connection = out;
+        }
+    }
+    
+    // org.waterken.net.http.Responder interface
+    
+    protected synchronized Responder
+    follow(final String version, final String method) {
+        next = new Responder(server, failed);
+        this.version = version;
+        this.method = method;
+        return next;
     }
     
     /**
      * Writes an HTTP response.
      * <p>
      * If the connection is to be kept alive, the implementation MUST write a
-     * complete response and prevent further writes to the output stream by the
-     * <code>response</code>. If the connection is not to be kept alive, the
+     * complete response. If the connection is not to be kept alive, the
      * method MUST either set the closing flag, or throw an exception. 
      * </p>
      */

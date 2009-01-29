@@ -53,6 +53,6 @@ Trace extends Struct implements Server, Serializable {
         if (!head.respond(null,client,"TRACE","OPTIONS","GET","HEAD")) {return;}
         
         final Message<Response> r = head.trace();
-        client.run(r.head, r.body.asInputStream());
+        client.receive(r.head, r.body.asInputStream());
     }
 }

@@ -8,9 +8,7 @@ import java.net.Socket;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
-import org.waterken.http.Client;
 import org.waterken.http.Request;
-import org.waterken.http.Response;
 import org.waterken.http.TokenList;
 import org.waterken.io.limited.Limited;
 import org.waterken.uri.Header;
@@ -87,63 +85,58 @@ ServerSide implements Task<Void> {
                 ? "HTTP/0.9"
             : requestLine.substring(endRequestURI + 1);
 
-            final Responder next = new Responder(config.server);
-            final Client client = current.respond(version, method, next);
+            // parse the request based on the protocol version
             final InputStream body;
-            try {
-                // parse the request based on the protocol version
-                final PowerlessArray<Header> headers;
-                if (version.startsWith("HTTP/1.")) {
-                    final PowerlessArray<Header> all = HTTPD.readHeaders(hin); 
-                    body = HTTPD.input(all, connection);
-                    headers = HTTPD.forward(version, all, current.closing);
-                } else if (version.startsWith("HTTP/0.")) {
-                    // old HTTP client; no headers, no content
-                    current.closing.mark(true);
-                    headers = PowerlessArray.array();
-                    body = null;
-                } else {
-                    throw new Exception("HTTP Version Not Supported: "+version);
-                }
-    
-                // do some sanity checking on the request
-                if (null != body && "TRACE".equals(method)) {
-                    throw new Exception("No entity allowed in TRACE");
-                }
-                if (null == body &&
-                        null != TokenList.find(null, "Content-Type", headers)) {
-                    throw new Exception("unknown message length");
-                }
-    
-                // determine the request target
-                String host = TokenList.find(null, "Host", headers);
-                if (null == host) {
-                    if (version.startsWith("HTTP/1.") &&
-                            !version.equals("HTTP/1.0")){
-                        throw new Exception("Missing Host header");
-                    }
-                    host = "localhost";
-                }
-                if (!Header.equivalent(location, host)) {
-                    // client is hosting this server under the wrong origin
-                    // this could lead to a browser side scripting attack
-                    throw new Exception("wrong origin: " + host);
-                }
-
-                // process the request
-                config.server.serve(new Request(version, method, requestURI,
-                                                headers), body, client);
-            } catch (final Exception e) {
+            final PowerlessArray<Header> headers;
+            if (version.startsWith("HTTP/1.")) {
+                final PowerlessArray<Header> all = HTTPD.readHeaders(hin); 
+                body = HTTPD.input(all, connection);
+                headers = HTTPD.forward(version, all, current.closing);
+            } else if (version.startsWith("HTTP/0.")) {
+                // old HTTP client; no headers, no content
                 current.closing.mark(true);
-                client.run(new Response(
-                    "HTTP/1.1", "500", "Internal Server Error",
-                    PowerlessArray.array(
-                        new Header("Content-Length", "0")
-                    )), null);
-                throw e;
+                headers = PowerlessArray.array();
+                body = null;
+            } else {
+                throw new Exception("HTTP Version Not Supported: " + version);
             }
 
-            if (current.closing.is()) { break; }
+            // do some sanity checking on the request
+            if (null != body && "TRACE".equals(method)) {
+                throw new Exception("No entity allowed in TRACE");
+            }
+            if (null == body &&
+                    null != TokenList.find(null, "Content-Type", headers)) {
+                throw new Exception("unknown message length");
+            }
+
+            // determine the request target
+            String host = TokenList.find(null, "Host", headers);
+            if (null == host) {
+                if (version.startsWith("HTTP/1.") &&
+                        !version.equals("HTTP/1.0")) {
+                    throw new Exception("Missing Host header");
+                }
+                host = "localhost";
+            }
+            if (!Header.equivalent(location, host)) {
+                // client is hosting this server under the wrong origin
+                // this could lead to a browser side scripting attack
+                throw new Exception("wrong origin: " + host);
+            }
+
+            // process the request
+            final Responder next = current.follow(version, method);
+            try {
+                config.server.serve(new Request(version, method, requestURI,
+                                                headers), body, current);
+            } catch (final Exception e) {
+                current.fail(e);
+                throw e;
+            }
+            
+            // prepare for next request
+            if (current.closing.is() || !next.isStillWaiting()) { break; }
             current = next;
 
             // ensure the request body is removed from the input stream

@@ -56,7 +56,7 @@ Mirror extends Struct implements Server, Serializable {
         try {
             folder = Path.descend(root, Path.folder(URI.path(head.uri)));
         } catch (final InvalidFilenameException e) {
-            client.run(Response.gone(), null);
+            client.receive(Response.gone(), null);
             return;
         }
         new Files(folder, tag, formats).serve(head, body, client);

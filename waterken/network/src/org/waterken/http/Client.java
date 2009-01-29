@@ -4,16 +4,45 @@ package org.waterken.http;
 
 import java.io.InputStream;
 
+import org.joe_e.array.PowerlessArray;
+import org.waterken.io.limited.TooBig;
+import org.waterken.uri.Header;
+
 /**
  * The response processor for a pending HTTP {@linkplain Server#serve request}.
  */
-public interface
+public abstract class
 Client {
+    
+    /**
+     * Is this client still interested in the response?
+     * @return <code>true</code> if request should continue,
+     *         else <code>false</code>
+     */
+    public boolean
+    isStillWaiting() { return true; }
+    
+    /**
+     * The request cannot be completed.
+     * @param reason    reason for failure
+     */
+    public void
+    fail(final Exception reason) throws Exception {
+        if (reason instanceof TooBig) {
+            receive(Response.tooBig(), null);
+        } else {
+            receive(new Response("HTTP/1.1", "500", "Internal Server Error",
+                                 PowerlessArray.array(
+                                     new Header("Content-Length", "0")
+                                 )), null);
+        }
+    }
 
     /**
      * Receive the response to an HTTP request.
      * @param head  response head
-     * @param body  response body, or <code>null</code> if none
+     * @param body  response content, or <code>null</code> if none
      */
-    void run(Response head, InputStream body) throws Exception;
+    public abstract void
+    receive(Response head, InputStream body) throws Exception;
 }
