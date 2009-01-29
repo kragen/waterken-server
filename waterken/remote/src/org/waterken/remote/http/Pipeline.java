@@ -275,7 +275,7 @@ Pipeline implements Serializable {
            final String request, final long mid, final Exception reason
           ) { return new Client() {
         public void
-        run(final Response head, final InputStream body) throws Exception {
+        receive(final Response head, final InputStream body) throws Exception {
             vat.service.run(new Service() {
                 public Void
                 run() throws Exception {
@@ -299,7 +299,7 @@ Pipeline implements Serializable {
     fulfill(final Database<Server> vat, final String peer, 
             final String request, final long mid) { return new Client() {
         public void
-        run(final Response head, final InputStream body) throws Exception {
+        receive(final Response head, final InputStream body) throws Exception {
             Message<Response> r;
             if (null != body) {
                 try {

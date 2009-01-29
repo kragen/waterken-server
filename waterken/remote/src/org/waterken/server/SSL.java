@@ -161,9 +161,9 @@ SSL {
                     out.flush();
                     final boolean[] connected = { false };
                     ClientSide.receive("CONNECT", proxy.getInputStream(),
-                                   new Client() {
+                                       new Client() {
                         public void
-                        run(final Response head,
+                        receive(final Response head,
                             final InputStream body) throws Exception {
                             if ("200".equals(head.status)) {
                                 connected[0] = true;

@@ -70,7 +70,7 @@ Dump implements Server, Serializable {
         final String s = Query.arg(null, query, "s");
         final String q = Query.arg(null, query, "q");
         if (!key.equals(s) || !"run".equals(q)) {
-            client.run(Response.notFound(), null);
+            client.receive(Response.notFound(), null);
             return;
         }
 
@@ -91,7 +91,7 @@ Dump implements Server, Serializable {
         }
         
         // acknowledge the request
-        client.run(new Response("HTTP/1.1", "204", "OK",
+        client.receive(new Response("HTTP/1.1", "204", "OK",
             PowerlessArray.array(new Header[] {})), null);
     }
 }

@@ -17,6 +17,7 @@ import org.ref_send.deserializer;
 import org.ref_send.promise.eventual.Receiver;
 import org.waterken.db.Database;
 import org.waterken.db.Root;
+import org.waterken.db.Service;
 import org.waterken.db.Transaction;
 import org.waterken.http.Client;
 import org.waterken.http.Message;
@@ -64,35 +65,44 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
             }
 
             final int length = head.getContentLength();
-            if (length > maxEntitySize) {
-                client.run(Response.tooBig(), null);
-                throw new TooBig();
-            }
+            if (length > maxEntitySize) { throw new TooBig(); }
             if (!head.expect(client, "TRACE","OPTIONS","GET","HEAD","POST")) {
                 return;
             }
             final Message<Request> m = new Message<Request>(head, null == body
-                ? null : Stream.snapshot(length >= 0 ? length : 1024,
+                ? null : Stream.snapshot(length >= 0 ? length : 512,
                                          Limited.input(maxEntitySize, body)));
-            final Message<Response> r;
-            try {
-                r = vat.enter("GET".equals(head.method) ||
-                              "HEAD".equals(head.method) ||
-                              "OPTIONS".equals(head.method) ||
-                              "TRACE".equals(head.method),
-                              new Transaction<Message<Response>>() {
-                    public Message<Response>
-                    run(final Root local) throws Exception {
-                        final HTTP.Exports exports =
-                            local.fetch(null, VatInitializer.exports);
-                        return new Callee(exports).run(q, m);
+            vat.service.run(new Service() {
+                public Void
+                run() throws Exception {
+                    if (!client.isStillWaiting()) { return null; }
+                    
+                    final Message<Response> r;
+                    try {
+                        r = vat.enter("GET".equals(head.method) ||
+                                      "HEAD".equals(head.method) ||
+                                      "OPTIONS".equals(head.method) ||
+                                      "TRACE".equals(head.method),
+                                      new Transaction<Message<Response>>() {
+                            public Message<Response>
+                            run(final Root local) throws Exception {
+                                final HTTP.Exports exports =
+                                    local.fetch(null, VatInitializer.exports);
+                                return new Callee(exports).run(q, m);
+                            }
+                        }).cast();
+                    } catch (final FileNotFoundException e) {
+                        client.receive(Response.gone(), null);
+                        throw e;
+                    } catch (final Exception e) {
+                        client.fail(e);
+                        throw e;
                     }
-                }).cast();
-            } catch (final FileNotFoundException e) {
-                client.run(Response.gone(), null);
-                return;
-            } 
-            client.run(r.head, null != r.body ? r.body.asInputStream() : null);
+                    client.receive(r.head,
+                                   null!=r.body ?r.body.asInputStream() :null);
+                    return null;
+                }
+            });
         }
     }; }
 
@@ -106,7 +116,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                     Caller.serialize("", null, target, ConstArray.array(value));
                 proxy.serve(q.head, q.body.asInputStream(), new Client() {
                     public void
-                    run(final Response head, final InputStream body) {}
+                    receive(final Response head, final InputStream body) {}
                 });
             } catch (final Exception e) {}
         }

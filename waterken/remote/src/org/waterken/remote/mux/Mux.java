@@ -66,10 +66,10 @@ Mux<S> extends Struct implements Server, Serializable {
                 final File folder = Path.descend(vatRoot, vatPath);
                 server = remoting.remote(next, vats.connect(folder));
             } catch (final InvalidFilenameException e) {
-                client.run(Response.gone(), null);
+                client.receive(Response.gone(), null);
                 return;
             } catch (final FileNotFoundException e) {
-                client.run(Response.gone(), null);
+                client.receive(Response.gone(), null);
                 return;
             }
         } else {
