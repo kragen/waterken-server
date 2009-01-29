@@ -75,7 +75,10 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
             vat.service.run(new Service() {
                 public Void
                 run() throws Exception {
-                    if (!client.isStillWaiting()) { return null; }
+                    if (!client.isStillWaiting()) {
+                        client.fail(new Exception());
+                        return null;
+                    }
                     
                     final Message<Response> r;
                     try {
