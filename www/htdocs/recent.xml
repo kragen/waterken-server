@@ -4,7 +4,7 @@
       xml:base="http://waterken.sourceforge.net/">
 
 <id>http://waterken.sourceforge.net/recent</id>
-<updated>2008-10-16T00:00:00Z</updated>
+<updated>2009-01-28T00:00:00Z</updated>
 <title>Waterken News</title>
 <subtitle>Capability-based security on the Web</subtitle>
 <link href="recent.html"/>
@@ -15,6 +15,23 @@
     <name>Tyler Close</name>
     <uri>http://waterken.sourceforge.net/recent.html</uri>
 </author>
+
+<entry>
+<id>http://waterken.sourceforge.net/recent#8</id>
+<updated>2008-10-15T00:00:00Z</updated>
+<title>ACLs don't</title>
+<link href="http://waterken.sourceforge.net/aclsdont/"/>
+<content type="xhtml">
+<div xmlns="http://www.w3.org/1999/xhtml">
+<p>The ACL model is unable to make correct access decisions for interactions
+involving more than two principals, since required information is not retained
+across message sends. Though this deficiency has long been documented in the
+published literature, it is not widely understood. This logic error in the ACL
+model is exploited by both the clickjacking and Cross-Site Request Forgery
+attacks that affect many Web applications.</p>
+</div>
+</content>
+</entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#7</id>
