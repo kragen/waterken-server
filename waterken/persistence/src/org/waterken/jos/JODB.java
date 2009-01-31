@@ -166,6 +166,8 @@ JODB<S> extends Database<S> {
             awake.mark(true);
         }
     }
+    
+    // TODO: implement an inter-transaction object cache to cut down on I/O ops
 
     /**
      * An object store entry.
