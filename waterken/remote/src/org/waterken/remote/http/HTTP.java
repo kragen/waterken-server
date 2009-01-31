@@ -140,13 +140,13 @@ HTTP extends Eventual implements Serializable {
         
         private Caller
         peer(final String href) {
-            final String peer = URI.resolve(href, ".");
+            // TODO: only use a relative URL for the peer key
+            final String peer = URI.resolve(URI.resolve(_.here, href), ".");
             final String peerKey = ".peer-" + URLEncoding.encode(peer);
             Pipeline msgs = _.local.fetch(null, peerKey);
             if (null == msgs) {
                 final String name = _.local.export(new Token(), false);
-                msgs = new Pipeline(name, URI.resolve(_.here, peer),
-                                    _.effect, _.outbound);
+                msgs = new Pipeline(name, peer, _.effect, _.outbound);
                 _.local.link(peerKey, msgs);
             }
             return new Caller(_,_.here,getCodebase(), connect(),export(),msgs);

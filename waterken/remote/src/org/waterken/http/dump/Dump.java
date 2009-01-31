@@ -2,13 +2,13 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.http.dump;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 
-import org.joe_e.array.ByteArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
 import org.ref_send.deserializer;
@@ -17,7 +17,6 @@ import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
-import org.waterken.io.Stream;
 import org.waterken.uri.Header;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
@@ -77,16 +76,29 @@ Dump implements Server, Serializable {
         // obey any request restrictions
         if (!head.respond(null, client, "POST", "OPTIONS", "TRACE")) { return; }
 
-        // write out the log entry
+        // strip off the outer array syntax
         final int length = head.getContentLength();
-        final ByteArray received =
-            Stream.snapshot(length >= 0 ? length : 1024, body);
+        final byte[] buffer = new byte[length];
+        for (int i = 0; i != length; ) {
+            final int n = body.read(buffer, i, length - i);
+            if (-1 == n) { throw new EOFException(); }
+            i += n;
+        }
+        int begin = 0;
+        while ('[' != buffer[begin++]) {}
+        int end = length - 1;
+        while (']' != buffer[end--]) {}
+
+        // write out the log entry
         synchronized (this) {
             if (null == log) {
                 file.delete();
                 log = Filesystem.writeNew(file);
+                log.write('[');
+            } else {
+                log.write(',');
             }
-            log.write(received.toByteArray());
+            log.write(buffer, begin, end - begin);
             log.flush();
         }
         
