@@ -3,7 +3,7 @@
 package org.waterken.remote.http;
 
 import java.io.Serializable;
-import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 
 import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Rejected;
@@ -40,14 +40,14 @@ ServerSideSession implements Serializable {
     
     protected Object
     once(final long window, final int message,
-         final Member member, final Task<?> op){
+         final Method method, final Task<?> op) {
         if (window == current) {
             if (message != returns.length()) { return returns.get(message); }
         } else {
             current = window;
             returns = ConstArray.array();
         }
-        log.got(name + "-" + window + "-" + message, member);
+        log.got(name + "-" + window + "-" + message, method);
         Object r;
         try {
             r = op.run();
@@ -55,7 +55,9 @@ ServerSideSession implements Serializable {
             r = new Rejected<Object>(e);
         }
         returns = returns.with(r);
-        log.sent(name + "-" + window + "-" + message + "-return");
+        if (void.class != method.getReturnType()) {
+            log.sent(name + "-" + window + "-" + message + "-return");
+        }
         return r;
     }
     

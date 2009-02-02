@@ -150,8 +150,7 @@ Caller extends Struct implements Messenger, Serializable {
 
             public void
             fulfill(final String request, final Message<Response> response) {
-                _.log.got(request, method);
-                receive(base, response, type, method, argv, resolver);
+                receive(base, response, type, method, argv, request, resolver);
             }
             
             public void
@@ -192,14 +191,16 @@ Caller extends Struct implements Messenger, Serializable {
 
             public void
             fulfill(final String request, final Message<Response> response) {
-                _.log.got(request + "-return", method);
-                receive(base, response, type, method, argv, resolver);
+                receive(base, response, type, method, argv,
+                        request + "-return", resolver);
             }
             
             public void
             reject(final String request, final Exception reason) {
-                _.log.got(request + "-return", method);
-                if (null != resolver) { resolver.reject(reason); }
+                if (null != resolver) {
+                    _.log.got(request + "-return", method);
+                    resolver.reject(reason);
+                }
             }
         }
         _.log.sent(msgs.enqueue(new POST()));
@@ -208,8 +209,8 @@ Caller extends Struct implements Messenger, Serializable {
     
     private void
     receive(final String href, final Message<Response> response,
-            final Class<?> type, final Method method,
-            final ConstArray<?> argv, final Resolver<Object> resolver) {
+            final Class<?> type, final Method method, final ConstArray<?> argv,
+            final String request, final Resolver<Object> resolver) {
         if ("404".equals(response.head.status)) {
             // re-dispatch this invocation on the resolved value of the web-key
             final Invoke<Object> invoke = new Invoke<Object>(method, argv);
@@ -223,6 +224,7 @@ Caller extends Struct implements Messenger, Serializable {
             }
             _.when(x, forward);
         } else if (null != resolver) {
+            _.log.got(request, method);
             Volatile<Object> value;
             try {
                 value = Eventual.promised(deserialize(href, response,

@@ -6,7 +6,6 @@ import static java.lang.reflect.Modifier.isStatic;
 import static org.ref_send.promise.Fulfilled.ref;
 
 import java.io.Serializable;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -82,6 +81,7 @@ HTTP extends Eventual implements Serializable {
         } catch (final Exception e) { throw new Error(e); }
         final Class<?> R = make.getReturnType();
         try {
+            log.sent(here + URLEncoding.encode(label) + "/#make");
             final Exports http = new Exports(this);
             final ByteArray body =
                 new JSONSerializer().run(http.export(), ConstArray.array(argv));  
@@ -98,10 +98,9 @@ HTTP extends Eventual implements Serializable {
     // org.waterken.remote.http.Exports interface
     
     static protected HTTP.Exports
-    make(final Receiver<Task<?>> enqueue,
-         final Root local, final Fulfilled<Outbound> outbound) {
+    make(final Receiver<Task<?>> enqueue, final Root local,
+         final Log log, final Fulfilled<Outbound> outbound) {
         final String here = local.fetch(null, Database.here);
-        final Log log = local.fetch(null, Database.log);
         final Receiver<?> destruct = local.fetch(null, Database.destruct);
         return new Exports(new HTTP(enqueue,here,log,destruct, local,outbound));
     }
@@ -211,12 +210,12 @@ HTTP extends Eventual implements Serializable {
         /**
          * Receives an operation.
          * @param query     request query string
-         * @param member    corresponding operation
+         * @param method    corresponding operation
          * @param op        operation to run
          * @return <code>op</code> return value
          */
         protected Object
-        execute(final String query, final Member member, final Task<Object> op){
+        execute(final String query, final Method method, final Task<Object> op){
             final String x = session(query);
             if (null == x) {
                 try {
@@ -224,7 +223,7 @@ HTTP extends Eventual implements Serializable {
                 } catch (final Exception e) { return new Rejected<Object>(e); }
             }
             final ServerSideSession session = _.local.fetch(null, x);
-            return session.once(window(query), message(query), member, op);
+            return session.once(window(query), message(query), method, op);
         }
         
         /**

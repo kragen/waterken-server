@@ -15,6 +15,7 @@ import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.list.List;
+import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
 import org.waterken.db.Creator;
@@ -31,7 +32,7 @@ import org.waterken.syntax.json.JSONDeserializer;
 public final class
 VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
 
-    private final Method make;
+    private final Method make;      // maker method
     private final String base;      // base URL for JSON serialization
     private final ByteArray body;   // JSON serialized arguments
     
@@ -44,17 +45,19 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     
     public PowerlessArray<String>
     run(final Root local) throws Exception {
+        final Log log = local.fetch(null, Database.log);
         final Receiver<Effect<Server>> effect=local.fetch(null,Database.effect);
         
-        local.link(HTTP.sessions, new SessionMaker(local));
-        final Outbound outbound = new Outbound();
-        local.link(VatInitializer.outbound, outbound);
         final List<Task<?>> tasks = List.list();
-        local.link(Database.wake, wake(tasks, outbound, effect));
-        local.link(VatInitializer.tasks, tasks);
+        final Outbound outbound = new Outbound();
         final HTTP.Exports exports =
-            HTTP.make(enqueue(effect,tasks), local, detach(outbound));
+            HTTP.make(enqueue(effect, tasks), local, log, detach(outbound));
+        log.got(exports.getHere() + "#make", make);
+        local.link(VatInitializer.tasks, tasks);
+        local.link(VatInitializer.outbound, outbound);
         local.link(VatInitializer.exports, exports);
+        local.link(HTTP.sessions, new SessionMaker(local));
+        local.link(Database.wake, wake(tasks, outbound, effect));
         final ConstArray<Type> signature =
             ConstArray.array(make.getGenericParameterTypes());
         ConstArray<Type> parameters = signature;
