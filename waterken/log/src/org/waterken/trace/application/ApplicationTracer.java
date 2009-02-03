@@ -56,11 +56,11 @@ ApplicationTracer {
                     try {
                         final Class<?> c = code.loadClass(frame.getClassName());
                         if (!Proxy.isProxyClass(c)) {
-                            final ClassLoader owner = c.getClassLoader();
+                            final ClassLoader application = c.getClassLoader();
                             final ClassLoader system =
                                 ApplicationTracer.class.getClassLoader();
                             for(ClassLoader i=code; i!=system; i=i.getParent()){
-                                if (owner == i) {
+                                if (application == i) {
                                     included = true;
                                     break;
                                 }
