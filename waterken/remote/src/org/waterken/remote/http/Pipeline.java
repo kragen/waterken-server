@@ -234,7 +234,7 @@ Pipeline implements Serializable {
                         if (x instanceof Update) {
                             guid = m.name + "-" + window + "-" + index;
                         } else {
-                            guid = m.name + "*" + mid;
+                            guid = m.name + "-0-" + mid;
                         }
                         try {
                             final Message<Request> q =
