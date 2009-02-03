@@ -410,19 +410,6 @@ HTTP extends Eventual implements Serializable {
         }
         return r;
     }
-    
-    /**
-     * synthetic modifier
-     */
-    static private final int synthetic = 0x1000;
-    
-    /**
-     * Is the synthetic flag set?
-     * @param flags Java modifiers
-     * @return <code>true</code> if synthetic, else <code>false</code>
-     */
-    static private boolean
-    isSynthetic(final int flags) { return 0 != (flags & synthetic); }
 
     /**
      * Finds a named method.
@@ -437,7 +424,7 @@ HTTP extends Eventual implements Serializable {
         Method r = null;
         for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
             final int flags = m.getModifiers();
-            if (c == isStatic(flags) && !isSynthetic(flags)) {
+            if (c == isStatic(flags) && !m.isSynthetic() && !m.isBridge()) {
                 String mn = property(m);
                 if (null == mn) {
                     mn = m.getName();
