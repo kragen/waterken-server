@@ -18,16 +18,16 @@ import org.ref_send.name;
 public class
 CallSite extends Struct implements Powerless, Record, Serializable {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * path to the source code containing the call site
-     */
-    public final String source;
     
     /**
      * call site's human meaningful name within the {@linkplain #source}
      */
     public final String name;
+
+    /**
+     * path to the source code containing the call site
+     */
+    public final String source;
     
     /**
      * call site's position within the {@linkplain #source} (optional)
@@ -69,16 +69,16 @@ CallSite extends Struct implements Powerless, Record, Serializable {
     
     /**
      * Constructs an instance.
-     * @param source    {@link #source}
      * @param name      {@link #name}
+     * @param source    {@link #source}
      * @param span      {@link #span}
      */
     public @deserializer
-    CallSite(@name("source") final String source,
-             @name("name") final String name,
+    CallSite(@name("name") final String name,
+             @name("source") final String source,
              @name("span") final PowerlessArray<IntArray> span) {
-        this.source = source;
         this.name = name;
+        this.source = source;
         this.span = span;
     }
 }

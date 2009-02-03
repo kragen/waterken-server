@@ -39,6 +39,7 @@ ApplicationTracer {
                 return trace(new StackTraceElement(
                     lambda.getDeclaringClass().getName(), lambda.getName(),
                     null, -1));
+                // TODO: really want a line number for the member
             }
 
             public Trace
@@ -72,19 +73,20 @@ ApplicationTracer {
                     }
                     
                     // Describe the application stack frame.
-                    final String namespace; {
-                        final String fqn = frame.getClassName();
-                        final int end = fqn.indexOf('$');
-                        namespace = -1 == end ? fqn : fqn.substring(0, end);
-                    }
                     final String name; {
                         final String fqn = frame.getClassName();
-                        name = fqn.substring(fqn.lastIndexOf('.') + 1) + "." +
-                               frame.getMethodName();
+                        final String cn = fqn.substring(fqn.lastIndexOf('.')+1);
+                        final String sn = cn.replace("$1",".").replace("$",".");
+                        name = sn + "." + frame.getMethodName();
+                    }
+                    final String source; {
+                        final String fqn = frame.getClassName();
+                        final int end = fqn.indexOf('$');
+                        final String top = -1==end ? fqn : fqn.substring(0,end);
+                        source = top.replace('.', '/') + ".java";
                     }
                     final int line = frame.getLineNumber();
-                    sites.append(new CallSite(
-                      namespace.replace('.', '/') + ".java", name,
+                    sites.append(new CallSite(name, source,
                       line>1?PowerlessArray.array(IntArray.array(line)):null));
                 }
                 return new Trace(sites.snapshot());
