@@ -43,7 +43,7 @@ Anchor implements Comparable<Anchor>, Selfless, Powerless, Record, Serializable{
     
     public boolean
     equals(final Object o) {
-        return o instanceof Anchor &&
+        return null != o && Anchor.class == o.getClass() &&
             number == ((Anchor)o).number &&
             (null!=turn?turn.equals(((Anchor)o).turn):null==((Anchor)o).turn);
     }

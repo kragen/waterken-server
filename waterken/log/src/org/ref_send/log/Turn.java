@@ -43,7 +43,7 @@ Turn implements Comparable<Turn>, Selfless, Powerless, Record, Serializable {
     
     public boolean
     equals(final Object o) {
-        return o instanceof Turn &&
+        return null != o && Turn.class == o.getClass() &&
             number == ((Turn)o).number &&
             (null!=loop ? loop.equals(((Turn)o).loop) : null == ((Turn)o).loop);
     }
