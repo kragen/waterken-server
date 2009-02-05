@@ -172,14 +172,10 @@ ADSAFE.go('SHELL_', function (dom, lib) {
         if (0 !== value) { throw new Error(); }
         output.append(dom.text('Made empty drum.')).
                append(dom.tag('br'));
-    }, function (reason) {
-        throw reason;
     });
     lib.Q.when(lib.Q.post(drum, 'bang', [ 1 ]), function (value) {
         output.append(dom.text('Incremented drum.')).
                append(dom.tag('br'));
-    }, function (reason) {
-        throw reason;
     });
     lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
         if (1 !== value) {
@@ -189,8 +185,6 @@ ADSAFE.go('SHELL_', function (dom, lib) {
         }
         output.append(dom.text('Drum was incremented.')).
                append(dom.tag('br'));
-    }, function (reason) {
-        throw reason;
     });
     lib.Q.post(drum, 'bang', [ lib.Q.get(drum, 'hits') ]);
     lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
@@ -201,8 +195,6 @@ ADSAFE.go('SHELL_', function (dom, lib) {
         }
         output.append(dom.text('Used promise as argument.')).
                append(dom.tag('br'));
-    }, function (reason) {
-        throw reason;
     });
 });
 </script>
