@@ -4,12 +4,9 @@
 // ref_send.js version: 2009-02-04
 "use strict";
 ADSAFE.lib('Q', function () {
-    function error($) {
-        var r = new Error();
-        if (undefined !== $) {
-            r.$ = $;
-        }
-        return r;
+    function type(x, $) {
+        x.$ = $;
+        return x;
     }
     function reject(reason) {
         var self = function (op, arg1, arg2, arg3) {
@@ -25,9 +22,11 @@ ADSAFE.lib('Q', function () {
         return self;
     }
     function ref(value) {
-        if (null === value || undefined === value) { return reject(error()); }
+        if (null === value || undefined === value) {
+            return reject(type(new ReferenceError(), [ 'NaO' ]));
+        }
         if ('number' === typeof value && !isFinite(value)) {
-            return reject(error([ 'NaN' ]));
+            return reject(type(new RangeError(), [ 'NaN' ]));
         }
         return function (op, arg1, arg2, arg3) {
             if (undefined === op) { return value; }
@@ -43,7 +42,7 @@ ADSAFE.lib('Q', function () {
             } else if ('POST' === op) {
                 r = ADSAFE.invoke(value, arg2, arg3);
             } else {
-                throw error();
+                throw new Error();
             }
             return arg1(r);
         };
@@ -75,7 +74,7 @@ ADSAFE.lib('Q', function () {
         return 'function' === typeof value ? value : ref(value);
     }
     function defer() {
-        var value = ref();
+        var value = reject(type(new Error(), [ 'Indeterminate' ])); // TODO
         var pending = [];
         return {
             promise: function (op, arg1, arg2, arg3) {
@@ -106,7 +105,6 @@ ADSAFE.lib('Q', function () {
 
     return {
         enqueue: enqueue,
-        error: error,
         reject: reject,
         ref: ref,
         defer: defer,
@@ -118,13 +116,16 @@ ADSAFE.lib('Q', function () {
             var done = false;   // ensure the untrusted promise makes at most a
                                 // single call to one of the callbacks
             forward(promise(value), 'WHEN', function (x) {
-                if (done) { throw error(); }
+                if (done) { throw new Error(); }
                 done = true;
                 r.resolve(ref(x)('WHEN', fulfilled, rejected));
             }, function (reason) {
-                if (done) { throw error(); }
+                if (done) { throw new Error(); }
                 done = true;
-                r.resolve(rejected(reason));
+                if (!reason) {
+                    reason = new Error();
+                }
+                r.resolve(rejected ? rejected(reason) : reject(reason));
             });
             return r.promise;
         },

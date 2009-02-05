@@ -133,6 +133,8 @@ commands:</p>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.near(hits)</span>
 <span class="output">12</span>
 </pre>
+<pre class="listing" id="SHELL_OUTPUT">
+</pre>
 <script type="text/javascript">
 'use subset cautious';
 ADSAFE.id('SHELL_');
@@ -150,6 +152,58 @@ ADSAFE.go('SHELL_', function (dom, lib) {
     }                           // not ADsafe
     // , so that it can be used from the console.
     // Normally, you'd put your code here, instead of writing in the console.
+
+    // Do some unit testing of the API.
+    var output = dom.q('#SHELL_OUTPUT');
+    var factory = lib.Q.when(lib.Q.get(web.page), function (value) {
+        return value.$.filter(function (typename) {
+            return 'org.waterken.bang.DrumFactory' === typename;
+        }).length ? web.page : null;
+    });
+    lib.Q.when(factory, function (value) {
+        output.append(dom.text('Running unit tests against drum...')).
+               append(dom.tag('br'));
+    }, function (reason) {
+        output.append(dom.text('Target is not a drum factory.')).
+               append(dom.tag('br'));
+    });
+    var drum = lib.Q.post(factory, 'makeDrum', []);
+    lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
+        if (0 !== value) { throw new Error(); }
+        output.append(dom.text('Made empty drum.')).
+               append(dom.tag('br'));
+    }, function (reason) {
+        throw reason;
+    });
+    lib.Q.when(lib.Q.post(drum, 'bang', [ 1 ]), function (value) {
+        output.append(dom.text('Incremented drum.')).
+               append(dom.tag('br'));
+    }, function (reason) {
+        throw reason;
+    });
+    lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
+        if (1 !== value) {
+            output.append(dom.text('expected 1: ' + value)).
+                   append(dom.tag('br'));
+            throw new Error();
+        }
+        output.append(dom.text('Drum was incremented.')).
+               append(dom.tag('br'));
+    }, function (reason) {
+        throw reason;
+    });
+    lib.Q.post(drum, 'bang', [ lib.Q.get(drum, 'hits') ]);
+    lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
+        if (2 !== value) {
+            output.append(dom.text('expected 2: ' + value)).
+                   append(dom.tag('br'));
+            throw new Error();
+        }
+        output.append(dom.text('Used promise as argument.')).
+               append(dom.tag('br'));
+    }, function (reason) {
+        throw reason;
+    });
 });
 </script>
 </div>

@@ -45,13 +45,17 @@ ADSAFE.lib('web', function () {
         var self = function (op, arg1, arg2, arg3) {
             if (undefined === op) { unsealedURLref = URLref; return self; }
             if ('WHEN' === op) {
-                send(URLref, 'GET', function (value) {
-                    if (typeof value === 'function') {
-                        value(op, arg1, arg2, arg3);
-                    } else {
-                        arg1(value);
-                    }
-                }, '.');
+                if (/#o=/.test(URLref)) {
+                    send(URLref, 'GET', function (value) {
+                        if (typeof value === 'function') {
+                            value(op, arg1, arg2, arg3);
+                        } else {
+                            arg1(value);
+                        }
+                    }, '.');
+                } else {
+                    arg1(self);
+                }
             } else {
                 send(URLref, op, arg1, arg2, arg3);
             }
