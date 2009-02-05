@@ -196,11 +196,19 @@ Callee extends Struct implements Serializable {
             content = new JSONSerializer().run(exports.export(),
                                                ConstArray.array(value));
         }
+        if ("POST".equals(method)) {
+            return new Message<Response>(new Response(
+                "HTTP/1.1", status, phrase,
+                PowerlessArray.array(
+                    new Header("Content-Type", contentType),
+                    new Header("Content-Length", "" + content.length())
+                )), content);
+        }
         return new Message<Response>(new Response(
             "HTTP/1.1", status, phrase,
             PowerlessArray.array(
-                new Header("Cache-Control", "max-age=" + maxAge + 
-                        (0 == maxAge ? ", must-revalidate" : "")),
+                new Header("Cache-Control", 
+                           0 < maxAge ? "max-age=" + maxAge : "no-cache"),
                 new Header("Content-Type", contentType),
                 new Header("Content-Length", "" + content.length())
             )),
