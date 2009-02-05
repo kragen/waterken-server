@@ -108,13 +108,12 @@ Files extends Struct implements Server, Serializable {
         // output the corresponding representation
         final String query = URI.query("", head.uri);
         final int maxAge = Integer.parseInt(Query.arg("0", query, "max-age"));
-        if (maxAge < 0) { throw new NumberFormatException(); }
         final InputStream in = Filesystem.read(file);
         try {
             PowerlessArray<Header> header = PowerlessArray.array(
                 new Header("ETag", etag),
-                new Header("Cache-Control",  "max-age=" + maxAge + 
-                    (0 == maxAge ? ", must-revalidate" : "")),
+                new Header("Cache-Control",
+                           0 < maxAge ? "max-age=" + maxAge : "no-cache"),
                 new Header("Content-Length", "" + Filesystem.length(file)),
                 new Header("Content-Type", contentType.name)
             );
