@@ -43,21 +43,6 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
 
     public ByteArray
     run(final Exporter export, final ConstArray<?> values) throws Exception {
-        final ByteArray.BuilderOutputStream buffer =
-            ByteArray.builder(512).asOutputStream();
-        write(export, values, new BufferedWriter(UTF8.output(buffer)));
-        return buffer.snapshot();
-    }
-    
-    /**
-     * Serializes an array of Java objects to a JSON text stream.
-     * @param export    reference exporter
-     * @param values    each value to serialize
-     * @param text      UTF-8 text output, will be flushed and closed
-     */
-    static public void
-    write(final Exporter export, final ConstArray<?> values,
-                                 final Writer text) throws Exception {
         /*
          * SECURITY CLAIM: Only the immutable root of the application object
          * tree provided by the values argument is serialized. The Exporter is
@@ -71,10 +56,27 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
          * SECURITY CLAIM: Iteration of the immutable root is done without
          * causing execution of application code. This constraint ensures that
          * serialization has no effect on the application object tree.
+         * 
+         * SECURITY DEPENDENCY: Application code cannot extend ConstArray, so
+         * iteration of the values array will not transfer control to
+         * application code.
          */
+        final ByteArray.BuilderOutputStream buffer =
+            ByteArray.builder(512).asOutputStream();
+        write(export, values, new BufferedWriter(UTF8.output(buffer)));
+        return buffer.snapshot();
+    }
+    
+    /**
+     * Serializes a stream of Java objects to a JSON text stream.
+     * @param export    reference exporter
+     * @param values    each value to serialize
+     * @param text      UTF-8 text output, will be flushed and closed
+     */
+    static public void
+    write(final Exporter export, final Iterable<?> values,
+                                 final Writer text) throws Exception {
         final JSONWriter top = JSONWriter.make(text);
-        // Application code cannot extend ConstArray, so iteration of the
-        // values array will not transfer control to application code.
         final JSONWriter.ArrayWriter aout = top.startArray();
         for (final Object value : values) {
             serialize(export, Object.class, value, aout.startElement());
@@ -128,8 +130,11 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.writeNull();
         } else if (Scope.class == actual) {
             final Scope scope = (Scope)value;
-            // Application code cannot extend ConstArray, so iteration of the
-            // scope arrays will not transfer control to application code.
+            /*
+             * SECURITY DEPENDENCY: Application code cannot extend ConstArray,
+             * so iteration of the scope arrays will not transfer control to
+             * application code.
+             */
             final JSONWriter.ObjectWriter oout = out.startObject();
             final int length = scope.values.length();
             for (int i = 0; i != length; ++i) {
@@ -144,11 +149,16 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             final Type r = Typedef.value(R, implicit);
             serialize(export, null != r ? r : Object.class,
                       ((Fulfilled<?>)value).cast(), out);
-            // The Inline.cast() method simply returns the value of the
-            // final field containing the promise's referent.
+            /*
+             * SECURITY DEPENDENCY: The Inline.cast() method simply returns the
+             * value of the final field containing the promise's referent.
+             */ 
         } else if (value instanceof ConstArray) {
-            // Application code cannot extend ConstArray, so iteration of the
-            // value array will not transfer control to application code.
+            /*
+             * SECURITY DEPENDENCY: Application code cannot extend ConstArray,
+             * so iteration of the value array will not transfer control to
+             * application code.
+             */
             final Type elementType = Typedef.bound(T, implicit);
             final JSONWriter.ArrayWriter aout = out.startArray();
             for (final Object element : (ConstArray<?>)value) {

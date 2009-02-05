@@ -12,9 +12,7 @@ import org.joe_e.reflect.Reflection;
  */
 final class
 Java {
-
-    private
-    Java() {}
+    private Java() {}
     
     static private final class
     Alias extends Struct implements Powerless {
@@ -37,9 +35,8 @@ Java {
         new Alias(RuntimeException.class, "Error"),
         new Alias(java.lang.reflect.Method.class, "function"),
         new Alias(Class.class, "class"),
-        new Alias(ClassCastException.class, "org.ref_send.Forgery"),
-        new Alias(NullPointerException.class,
-                  "org.ref_send.promise.Indeterminate"),
+        new Alias(ClassCastException.class, "NoMatch"),
+        new Alias(NullPointerException.class, "undefined"),
         new Alias(ArithmeticException.class, "NaN"),
         new Alias(org.joe_e.array.ConstArray.class, "array")
     );
