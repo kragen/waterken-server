@@ -21,6 +21,7 @@ import org.ref_send.promise.Rejected;
 import org.ref_send.promise.eventual.Compose;
 import org.ref_send.promise.eventual.Do;
 import org.ref_send.promise.eventual.Eventual;
+import org.ref_send.promise.eventual.Invoke;
 import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
@@ -78,16 +79,17 @@ HTTP extends Eventual implements Serializable {
                     break;
                 }
             }
+            if (null == make) { throw new NullPointerException(); }
         } catch (final Exception e) { throw new Error(e); }
         final Class<?> R = make.getReturnType();
         try {
             log.sent(here + URLEncoding.encode(label) + "/#make");
             final Exports http = new Exports(this);
-            final ByteArray body =
-                new JSONSerializer().run(http.export(), ConstArray.array(argv));  
+            final ByteArray body = new JSONSerializer().run(
+                    http.export(), ConstArray.array(argv));  
             final String href = creator.run(null, here, label,
                 new VatInitializer(make, here, body)).cast().get(0);
-            return (R)http.connect().run(href,here,make.getGenericReturnType());
+            return (R)http.connect().run(href, here, R);
         } catch (final BadSyntax e) {
             return new Rejected<R>((Exception)e.getCause())._(R);
         } catch (final Exception e) {
@@ -132,20 +134,26 @@ HTTP extends Eventual implements Serializable {
         public Object
         invoke(final String href, final Object proxy,
                final Method method, final Object... arg) {
-            return peer(href).invoke(href, proxy, method, arg);
+            if (isPromise(URI.fragment("", href))) {
+                // re-dispatch invocation on resolved value of web-key
+                final ConstArray<?> argv =
+                    ConstArray.array(null == arg ? new Object[0] : arg);
+                return _.when(proxy, new Invoke<Object>(method, argv));
+            } else {
+                return peer(href).invoke(href, proxy, method, arg);
+            }
         }
         
         // org.waterken.remote.http.Exports.HTTP interface
         
         private Caller
         peer(final String href) {
-            // TODO: only use a relative URL for the peer key
             final String peer = URI.resolve(URI.resolve(_.here, href), ".");
             final String peerKey = ".peer-" + URLEncoding.encode(peer);
             Pipeline msgs = _.local.fetch(null, peerKey);
             if (null == msgs) {
-                final String name = _.local.export(new Token(), false);
-                msgs = new Pipeline(name, peer, _.effect, _.outbound);
+                final SessionInfo s = new SessionMaker(_.local).create();
+                msgs = new Pipeline(peer, s.key, s.name, _.effect, _.outbound);
                 _.local.link(peerKey, msgs);
             }
             return new Caller(_,_.here,getCodebase(), connect(),export(),msgs);
@@ -222,7 +230,7 @@ HTTP extends Eventual implements Serializable {
                     return op.run();
                 } catch (final Exception e) { return new Rejected<Object>(e); }
             }
-            final ServerSideSession session = _.local.fetch(null, x);
+            final ServerSideSession session = new SessionMaker(_.local).open(x);
             return session.once(window(query), message(query), method, op);
         }
         
@@ -289,21 +297,6 @@ HTTP extends Eventual implements Serializable {
                      "&m=" + message;
         }
         return URI.resolve(href, "./?" + query);
-    }
-
-    /**
-     * key bound to the session maker in all vats
-     */
-    static protected final String sessions = "sessions";
-    
-    /**
-     * Constructs a live web-key for session initialization.
-     * @param peer  peer vat URL
-     */
-    static protected String
-    init(final String peer) {
-        return URI.resolve(peer, "./?s=" + URLEncoding.encode(sessions) +
-                                   "&q=" + URLEncoding.encode("create"));          
     }
     
     /**

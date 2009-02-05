@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
+import org.joe_e.Struct;
 import org.waterken.http.Message;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
@@ -9,8 +10,8 @@ import org.waterken.http.Response;
 /**
  * A queued HTTP request.
  */
-/* package */ interface
-Operation {
+/* package */ abstract class
+Operation extends Struct {
     
     /**
      * Render the request.
@@ -20,7 +21,7 @@ Operation {
      * @return corresponding request
      * @throws Exception    any problem
      */
-    Message<Request>
+    protected abstract Message<Request>
     render(final String sessionKey, long window, int index) throws Exception;
     
     /**
@@ -28,12 +29,14 @@ Operation {
      * @param request   GUID for request message
      * @param response  received HTTP response
      */
-    void fulfill(String request, Message<Response> response);
+    protected abstract void
+    fulfill(String request, Message<Response> response);
     
     /**
      * Process the corresponding rejection.
      * @param request   GUID for request message
      * @param reason    reason response will never be provided
      */
-    void reject(String request, Exception reason);
+    protected abstract void
+    reject(String request, Exception reason);
 }

@@ -56,7 +56,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         local.link(VatInitializer.tasks, tasks);
         local.link(VatInitializer.outbound, outbound);
         local.link(VatInitializer.exports, exports);
-        local.link(HTTP.sessions, new SessionMaker(local));
+        local.link(VatInitializer.sessions, new SessionMaker(local));
         local.link(Database.wake, wake(tasks, outbound, effect));
         final ConstArray<Type> signature =
             ConstArray.array(make.getGenericParameterTypes());
@@ -151,6 +151,11 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             }
         };
     }
+
+    /**
+     * key bound to the session maker in all vats
+     */
+    static private   final String sessions = "sessions";
     
     static protected final String outbound = ".outbound";
     static private   final String tasks = ".tasks";

@@ -4,9 +4,14 @@ package org.waterken.remote.http;
 
 import java.io.Serializable;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.joe_e.Token;
 import org.ref_send.promise.eventual.Log;
-import org.waterken.db.Root;
+import org.waterken.base32.Base32;
 import org.waterken.db.Database;
+import org.waterken.db.Root;
 
 /**
  * A {@link Session} maker.
@@ -24,9 +29,40 @@ SessionMaker implements Serializable {
     
     // org.waterken.remote.http.SessionMaker interface
     
-    public String
-    create(final String name) {
-        final Log log = local.fetch(null, Database.log);
-        return local.export(new ServerSideSession(name, log), false);
+    static private final String sessionKeyPrefix = ".session-";
+    
+    protected ServerSideSession
+    open(final String key) {
+        ServerSideSession r = local.fetch(null, sessionKeyPrefix + key);
+        if (null == r) {
+            final Log log = local.fetch(null, Database.log);
+            r = new ServerSideSession(hash(key), log);
+            local.link(sessionKeyPrefix + key, r);
+        }
+        return r;
+    }
+    
+    public SessionInfo
+    create() {
+        final String key = local.export(new Token(), false);
+        return new SessionInfo(key, hash(key));
+    }
+    
+    static private String
+    hash(final String x) {
+        // TODO: Do something here that will pass Joe-E verification.
+        try {
+            final int keyChars = 128 / 5 + 1;
+            final StringBuilder keyBuffer = new StringBuilder(keyChars);
+            keyBuffer.append(x);
+            for (int i = x.length(); i != keyChars; ++i){keyBuffer.append('a');}
+            final byte[] key = Base32.decode(keyBuffer.toString());
+            final byte[] plaintext = new byte[128 / Byte.SIZE];
+            final byte[] cyphertext = new byte[128 / Byte.SIZE];
+            final Cipher aes = Cipher.getInstance("AES/ECB/NoPadding");
+            aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"));
+            aes.doFinal(plaintext, 0, plaintext.length, cyphertext);
+            return Base32.encode(cyphertext).substring(x.length());
+        } catch (final Exception e) { throw new Error(e); }        
     }
 }

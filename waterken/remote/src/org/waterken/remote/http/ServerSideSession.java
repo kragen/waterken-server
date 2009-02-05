@@ -17,11 +17,11 @@ import org.ref_send.promise.eventual.Task;
 ServerSideSession implements Serializable {
     static private final long serialVersionUID = 1L;
 
-    private final String name;          // GUID of this messaging session
-    private final Log log;              // corresponding log output
+    private final String name;                  // GUID of this session
+    private final Log log;                      // corresponding log output
     
-    private long current;               // current window number
-    private ConstArray<Object> returns; // return values in the current window
+    private       long current;                 // current window number
+    private       ConstArray<Object> returns;   // returns in current window
     
     protected
     ServerSideSession(final String name, final Log log) {
@@ -30,12 +30,6 @@ ServerSideSession implements Serializable {
         
         current = -1;
         returns = ConstArray.array();
-    }
-    
-    protected Object
-    get(final long window, final int index) {
-        if (window != current) { throw new IndexOutOfBoundsException(); }
-        return returns.get(index);
     }
     
     protected Object
@@ -60,5 +54,4 @@ ServerSideSession implements Serializable {
         }
         return r;
     }
-    
 }
