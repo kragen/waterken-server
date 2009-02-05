@@ -28,17 +28,23 @@ commands at the "<kbd><span class="prompt">&gt;&gt;&gt;</span></kbd>" prompt at
 the bottom of the window:</p>
 <pre class="listing">
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">username = Q.defer()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">
+<span class="comment">
 // put a marker in the debug log at the point the username is entered</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { ADSAFE.log('username: ' + value); })</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) {
+        ADSAFE.log('username: ' + value);
+    })</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">
+<span class="comment">
 // start updating the page...</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { ADSAFE.log('updating some text on the page...');  })</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) {
+        ADSAFE.log('updating some text on the page...');
+    })</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { ADSAFE.log('updating some other text on the page...'); })</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) {
+        ADSAFE.log('updating some other text on the page...');
+    })</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">
+<span class="comment">
 // pretend the text box event has fired</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">username.resolve('Tyler')</span>
 <span class="stdout">username: Tyler</span>
