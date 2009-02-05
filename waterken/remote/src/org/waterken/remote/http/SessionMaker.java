@@ -62,7 +62,7 @@ SessionMaker implements Serializable {
             final Cipher aes = Cipher.getInstance("AES/ECB/NoPadding");
             aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"));
             aes.doFinal(plaintext, 0, plaintext.length, cyphertext);
-            return Base32.encode(cyphertext).substring(x.length());
+            return Base32.encode(cyphertext).substring(0, x.length());
         } catch (final Exception e) { throw new Error(e); }        
     }
 }
