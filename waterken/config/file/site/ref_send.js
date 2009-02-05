@@ -35,10 +35,10 @@ ADSAFE.lib('Q', function () {
 
             var r;
             if ('GET' === op) {
-                if (arg2) {
-                    r = ADSAFE.get(value, arg2);
-                } else {
+                if (undefined === arg2) {
                     r = value;
+                } else {
+                    r = ADSAFE.get(value, arg2);
                 }
             } else if ('POST' === op) {
                 r = ADSAFE.invoke(value, arg2, arg3);
