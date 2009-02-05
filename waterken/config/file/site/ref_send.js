@@ -1,12 +1,11 @@
-// Copyright 2007-2008 Waterken Inc. under the terms of the MIT X license
-// found at http://www.opensource.org/licenses/mit-license.html
+// Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
+// at http://www.opensource.org/licenses/mit-license.html
 //
-// ref_send.js version: 2008-08-06
+// ref_send.js version: 2009-02-04
 "use strict";
 ADSAFE.lib('Q', function () {
     function error($) {
-        var r;
-        try { r = null.promise; } catch (e) { r = e; }
+        var r = new Error();
         if (undefined !== $) {
             r.$ = $;
         }
@@ -36,10 +35,10 @@ ADSAFE.lib('Q', function () {
 
             var r;
             if ('GET' === op) {
-                if ('*' === arg2) {
-                    r = value;
-                } else {
+                if (arg2) {
                     r = ADSAFE.get(value, arg2);
+                } else {
+                    r = value;
                 }
             } else if ('POST' === op) {
                 r = ADSAFE.invoke(value, arg2, arg3);

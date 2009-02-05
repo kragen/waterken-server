@@ -27,20 +27,23 @@ For example, select the "Console" tab in Firebug and then enter the following
 commands at the "<kbd><span class="prompt">&gt;&gt;&gt;</span></kbd>" prompt at
 the bottom of the window:</p>
 <pre class="listing">
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">var username = Q.defer()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">// setup GUI for collecting username</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">var onChange = function () { username.resolve(this.value); }</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">// put a marker in the debug log at the point the username is entered</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { console.log('username: ' + value); })</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">username = Q.defer()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">
+// put a marker in the debug log at the point the username is entered</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { ADSAFE.log('username: ' + value); })</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">// start updating the page...</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { /* update some text on the page */ })</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">
+// start updating the page...</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { ADSAFE.log('updating some text on the page...');  })</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { /* update some other text on the page */ })</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) { ADSAFE.log('updating some other text on the page...'); })</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">// pretend the text box event has fired</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="comment">
+// pretend the text box event has fired</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">username.resolve('Tyler')</span>
 <span class="stdout">username: Tyler</span>
+<span class="stdout">updating some text on the page...</span>
+<span class="stdout">updating some other text on the page...</span>
 </pre>
 <p>All of the callbacks registered in the code above, via the
 <code>Q.when()</code> method, will be executed in the same order as they were
@@ -49,14 +52,14 @@ update the DOM will show up after the message that echoes the username.</p>
 <p>In addition to notifying callbacks, a promise can also queue invocations for
 later delivery. For example:</p>
 <pre class="listing">
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">var logger = Q.defer()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">logger = Q.defer()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(logger.promise, 'log', [ 'Starting process...' ])</span>
 <span class="output">function()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(logger.promise, 'log', [ 'Finished foo setup.' ])</span>
 <span class="output">function()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(logger.promise, 'log', [ 'Finished bar setup.' ])</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">logger.resolve(console)</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">logger.resolve(ADSAFE)</span>
 <span class="stdout">Starting process...</span>
 <span class="stdout">Finished foo setup.</span>
 <span class="stdout">Finished bar setup.</span>
@@ -64,6 +67,66 @@ later delivery. For example:</p>
 <p>Using promises can make it easier to decouple code that collects information
 from code that processes it, allowing you to easily setup complex "if this
 happens, then do that" chains in your program.</p>
+<p>Using the <a href="/site/web_send.js">web_send library</a> you can also
+perform remote operations using promises. For example, try the following
+commands:</p>
+<pre class="listing">
+<span class="comment">
+// The test page is a factory object for constructing a
+// <a href="http://waterken.sf.net/javadoc/org/waterken/bang/Drum.html">org.waterken.bang.Drum</a> object. A Drum is just a counter object that
+// can be incremented. We'll create a new Drum by invoking the factory
+// method.</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">drum = Q.post(web.page, 'makeDrum', [])</span>
+<span class="output">function()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = Q.get(drum, 'hits')</span>
+<span class="output">function()</span>
+<span class="comment">
+// Since I'm just typing in an interactive shell, the response to the GET
+// request sent above will already have been received and processed by the
+// time I hit the 'Enter' key.</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.near(hits)</span>
+<span class="output">0</span>
+<span class="comment">
+// Send a POST request to increment the counter...</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(drum, 'bang', [ 1 ])</span>
+<span class="output">function()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = Q.get(drum, 'hits')</span>
+<span class="output">function()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.near(hits)</span>
+<span class="output">1</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(drum, 'bang', [ 2 ])</span>
+<span class="output">function()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = Q.get(drum, 'hits')</span>
+<span class="output">function()</span>
+<span class="comment">
+// If we weren't typing in an interactive shell, we might want to setup a
+// callback to be invoked after a promise is resolved. We can do this
+// using the when() method. Below, we setup two callbacks: one to be
+// notified if the promise is fulfilled with a value; and another to be
+// notified if the promise is not fulfilled. Each callback simply prints a
+// message to stdout.</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(hits, function (value) {
+        ADSAFE.log('hits = ' + value);
+    }, function (reason) {
+        ADSAFE.log('request failed');
+    })</span>
+<span class="output">function()</span>
+<span class="stdout">hits = 3</span>
+<span class="comment">
+// A promise can also be used to queue up future messages. Below, the GET
+// request to query the counter is sent on the promise returned by the
+// POST request that increases the counter.</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = Q.get(Q.post(drum, 'bang', [ 3 ]), 'hits')</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.near(hits)</span>
+<span class="output">6</span>
+<span class="comment">
+// Promises can also be used as arguments...</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(drum, 'bang', [ hits ])</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = Q.get(drum, 'hits')</span>
+<span class="output">function()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.near(hits)</span>
+<span class="output">12</span>
+</pre>
 <script type="text/javascript">
 'use subset cautious';
 ADSAFE.id('SHELL_');

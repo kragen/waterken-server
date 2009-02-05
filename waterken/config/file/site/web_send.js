@@ -1,12 +1,20 @@
-// Copyright 2007-2008 Waterken Inc. under the terms of the MIT X license
-// found at http://www.opensource.org/licenses/mit-license.html
-//
-// web_send.js version: 2008-08-06
-//
-// This library doesn't actually pass the ADsafe verifier, but rather is
-// designed to provide a safe interface to the network, that can be
-// loaded as an ADsafe library.
+/*
+ * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
+ * at http://www.opensource.org/licenses/mit-license.html
+ *
+ * web_send.js version: 2009-02-03
+ *
+ * This library doesn't actually pass the ADsafe verifier, but rather is
+ * designed to provide a safe interface to the network, that can be loaded as
+ * an ADsafe library.
+ */
+"use strict";
 ADSAFE.lib('web', function () {
+
+    /**
+     * Construct a rejected promise.
+     * @param reason    reason promise will not be fulfilled
+     */
     function reject(reason) {
         var self = function (op, arg1, arg2, arg3) {
             if (undefined === op) {
@@ -21,18 +29,40 @@ ADSAFE.lib('web', function () {
         return self;
     }
 
+    /**
+     * secret slot to extract the URL from a promise
+     * <p>
+     * Invoking a promise puts the URL in the slot.
+     * </p>
+     */
     var unsealedURLref = null;
+
+    /**
+     * Construct a remote promise.
+     * @param URLref    URL reference to wrap
+     */
     function proxy(URLref) {
         var self = function (op, arg1, arg2, arg3) {
             if (undefined === op) { unsealedURLref = URLref; return self; }
             if ('WHEN' === op) {
-                // TODO
+                send(URLref, 'GET', function (value) {
+                    if (typeof value === 'function') {
+                        value(op, arg1, arg2, arg3);
+                    } else {
+                        arg1(value);
+                    }
+                }, '.');
             } else {
                 send(URLref, op, arg1, arg2, arg3);
             }
         };
         return self;
     }
+
+    /**
+     * Produce the JSON text for an array of JSON objects.
+     * @param argv  JSON objects to serialize
+     */
     function serialize(argv) {
         return JSON.stringify(argv, function (key, value) {
             switch (typeof value) {
@@ -56,6 +86,12 @@ ADSAFE.lib('web', function () {
             return value;
         }, ' ');
     }
+
+    /**
+     * Resolves a relative URL reference.
+     * @param base  absolute base URL
+     * @param href  relative URL to resolve
+     */
     function resolveURI(base, href) {
         if ('' === href) {
             var iRef = base.indexOf('#');
@@ -83,7 +119,7 @@ ADSAFE.lib('web', function () {
         var path = parts[2];
         while (true) {
             if ('../' === href.substring(0, '../'.length)) {
-                path = path.substring(0, path.lastIndexOf('/', path.length-2) + 1);
+                path = path.substring(0, path.lastIndexOf('/',path.length-2)+1);
                 href = href.substring('../'.length);
             } else if ('./' === href.substring(0, './'.length)) {
                 href = href.substring('./'.length);
@@ -100,6 +136,12 @@ ADSAFE.lib('web', function () {
         }
         return host + path + href;
     }
+
+    /**
+     * Deserializes the return value from an HTTP response.
+     * @param base  base URL for request
+     * @param http  HTTP response
+     */
     function deserialize(base, http) {
         switch (http.status) {
         case 200:
@@ -107,13 +149,8 @@ ADSAFE.lib('web', function () {
         case 202:
         case 203:
             var contentType = http.getResponseHeader('Content-Type');
-            if (!/^application\/jsonrequest(;|$)/i.test(contentType) &&
-                             !/^text\/plain(;|$)/i.test(contentType)) {
-                return {
-                    $: [ 'org.web_send.Entity' ],
-                    type: contentType,
-                    text: http.responseText
-                };
+            if (/^application\/do-not-execute$/i.test(contentType)) {
+                return http.responseText;
             }
             return JSON.parse(http.responseText, function (key, value) {
                 if (null === value) { return value; }
@@ -136,36 +173,24 @@ ADSAFE.lib('web', function () {
             return null;
         case 303:
             var see = http.getResponseHeader('Location');
-            return see ? proxy(see) : null;
+            return see ? proxy(resolveURI(base, see)) : null;
         default:
             return reject({
-                $: [ 'org.web_send.Failure',
-                     'org.ref_send.promise.Indeterminate' ],
+                $: [ 'org.ref_send.promise.eventual.Failure', 'undefined' ],
                 status: http.status,
                 phrase: http.statusText
             });
         }
     }
-    function request(URLref, member, args) {
-        var iRef = URLref.indexOf('#');
-        var ref = -1 !== iRef ? URLref.substring(iRef + 1) : undefined;
-        var URL = -1 !== iRef ? URLref.substring(0, iRef) : URLref;
-        var iQuery = URL.indexOf('?');
-        var target = -1 !== iQuery ? URL.substring(0, iQuery) : URL;
-        target = target.substring(0, target.lastIndexOf('/') + 1);
-        target += '?';
-        if (undefined !== member) {
-            target += 'p=' + encodeURIComponent(member) + '&';
-        }
-        if (undefined !== args) {
-            target += 'm=' + args.m + '&';
-            target += 'w=' + args.w + '&';
-        }
-        if (undefined != ref) {
-            target += 's=' + ref;
-        }
-        return target;
-    }
+
+    /**
+     * Enqueues an HTTP request.
+     * @param URLref    target URLref
+     * @param op        HTTP verb
+     * @param resolve   response resolver
+     * @param q         query parameter value
+     * @param argv      array of JSON values for request body
+     */
     var send = (function () {
         var active = false;
         var pending = [];
@@ -175,16 +200,24 @@ ADSAFE.lib('web', function () {
         } else {
             http = new ActiveXObject('MSXML2.XMLHTTP.3.0');
         }
-
-        var sessions = {};  // [ origin => { m, w } ]
+        var sessions = { /* origin => session */ };
 
         var output = function () {
             var m = pending[0];
-            var session;
-            if ('POST' === m.op) {
-                session = ADSAFE.get(sessions, resolveURI(m.URLref, '/'));
+            var fpq = /([^#]*)#(.*)/.exec(m.URLref);
+            var query = fpq ? fpq[2] : '';
+            if ('' === query) {
+                query = 's=';
             }
-            http.open(m.op, request(m.URLref, m.member, session), true);
+            if (m.q) {
+                query += '&q=' + encodeURIComponent(m.q);
+            }
+            if (m.session) {
+                query += '&x=' + encodeURIComponent(m.session.x);
+                query += '&w=' + m.session.w;
+            }
+            var target = resolveURI(m.URLref, './?' + query);
+            http.open(m.op, target, true);
             http.onreadystatechange = function () {
                 if (4 !== http.readyState) { return; }
                 if (m !== pending.shift()) { throw null.error; }
@@ -193,14 +226,10 @@ ADSAFE.lib('web', function () {
                 } else {
                     ADSAFE.later(output);
                 }
+                if (m.session) {
+                    m.session.w += 1;
+                }
 
-                if (404 === http.status && -1 !== m.URLref.indexOf('?src=')) {
-                    // TODO
-                    return;
-                }
-                if (session) {
-                    session.w += 1;
-                }
                 m.resolve(deserialize(m.URLref, http));
             };
             if (undefined === m.argv) {
@@ -209,30 +238,35 @@ ADSAFE.lib('web', function () {
                 http.setRequestHeader('Content-Type', 'text/plain');
                 http.send(serialize(m.argv));
             }
+
+            // TODO: monitor the request with a local timeout
         };
-        return function (URLref, op, resolve, member, argv) {
+        return function (URLref, op, resolve, q, argv) {
+            var session = null;
             if ('POST' === op) {
                 var origin = resolveURI(URLref, '/');
-                if (!ADSAFE.get(sessions, origin)) {
-                    ADSAFE.set(sessions, origin, {});
+                session = ADSAFE.get(sessions, origin);
+                if (!session) {
+                    session = {};
+                    ADSAFE.set(sessions, origin, session);
                     pending.push({
-                        op: 'GET',
-                        URLref: resolveURI(URLref, './#*prng*'),
-                        member: 'seed',
+                        URLref: resolveURI(URLref, './#s=sessions'),
+                        op: 'POST',
+                        q: 'create',
+                        argv: [],
                         resolve: function (value) {
-                            ADSAFE.set(sessions, origin, {
-                                m: value,
-                                w: 0
-                            });
+                            session.x = value.key;
+                            session.w = 1;
                         }
                     });
                 }
             }
             pending.push({
+                session: session,
                 URLref: URLref,
                 op: op,
                 resolve: resolve,
-                member: member,
+                q: q,
                 argv: argv
             });
             if (!active) {
@@ -247,7 +281,7 @@ ADSAFE.lib('web', function () {
         proxy: proxy,
         crack: function (p) {
             unsealedURLref = null;
-            if ('function' === typeof p) { p() }
+            if ('function' === typeof p) { p(); }
             var r = unsealedURLref;
             unsealedURLref = null;
             return r;
