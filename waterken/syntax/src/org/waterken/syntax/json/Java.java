@@ -36,7 +36,7 @@ Java {
         new Alias(java.lang.reflect.Method.class, "function"),
         new Alias(Class.class, "class"),
         new Alias(ClassCastException.class, "NoMatch"),
-        new Alias(NullPointerException.class, "undefined"),
+        new Alias(NullPointerException.class, "NaO"),
         new Alias(ArithmeticException.class, "NaN"),
         new Alias(org.joe_e.array.ConstArray.class, "array")
     );
