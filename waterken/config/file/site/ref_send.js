@@ -4,11 +4,10 @@
 // ref_send.js version: 2009-02-04
 "use strict";
 ADSAFE.lib('Q', function () {
-    function type(x, $) {
-        x.$ = $;
-        return x;
-    }
-    function reject(reason) {
+    function reject(reason, $) {
+        if (undefined !== $) {
+            reason.$ = $;
+        }
         var self = function (op, arg1, arg2, arg3) {
             if (undefined === op) {
                 return {
@@ -23,10 +22,10 @@ ADSAFE.lib('Q', function () {
     }
     function ref(value) {
         if (null === value || undefined === value) {
-            return reject(type(new ReferenceError(), [ 'NaO' ]));
+            return reject(new ReferenceError(), [ 'NaO' ]);
         }
         if ('number' === typeof value && !isFinite(value)) {
-            return reject(type(new RangeError(), [ 'NaN' ]));
+            return reject(new RangeError(), [ 'NaN' ]);
         }
         return function (op, arg1, arg2, arg3) {
             if (undefined === op) { return value; }
@@ -74,7 +73,7 @@ ADSAFE.lib('Q', function () {
         return 'function' === typeof value ? value : ref(value);
     }
     function defer() {
-        var value = reject(type(new Error(), [ 'Indeterminate' ])); // TODO
+        var value = reject(new Error(), [ 'NaO' ]);
         var pending = [];
         return {
             promise: function (op, arg1, arg2, arg3) {
@@ -104,7 +103,7 @@ ADSAFE.lib('Q', function () {
     }
 
     return {
-        enqueue: enqueue,
+        run: enqueue,
         reject: reject,
         ref: ref,
         defer: defer,

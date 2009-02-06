@@ -15,6 +15,7 @@
     { "ext" : ".rdf",  "name" : "application/rdf+xml" },
     { "ext" : ".xsl",  "name" : "application/xsl" },
     { "ext" : ".txt",  "name" : "text/plain" },
+    { "ext" : ".zip",  "name" : "application/zip" },
     { "ext" : ".uri",  "name" : "text/uri-list; charset=US-ASCII" }
   ]
   } ]
