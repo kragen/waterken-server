@@ -1,7 +1,9 @@
-// Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
-// at http://www.opensource.org/licenses/mit-license.html
-//
-// ref_send.js version: 2009-02-04
+/*
+ * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
+ * at http://www.opensource.org/licenses/mit-license.html
+ *
+ * ref_send.js version: 2009-02-08
+ */
 "use strict";
 ADSAFE.lib('Q', function () {
     function reject(reason, $) {

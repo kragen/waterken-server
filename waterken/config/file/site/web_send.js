@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-02-03
+ * web_send.js version: 2009-02-08
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a safe interface to the network, that can be loaded as
@@ -43,7 +43,10 @@ ADSAFE.lib('web', function () {
      */
     function proxy(URLref) {
         var self = function (op, arg1, arg2, arg3) {
-            if (undefined === op) { unsealedURLref = URLref; return self; }
+            if (undefined === op) {
+                unsealedURLref = URLref;
+                return self;
+            }
             if ('WHEN' === op) {
                 if (/#o=/.test(URLref)) {
                     send(URLref, 'GET', function (value) {
@@ -64,8 +67,8 @@ ADSAFE.lib('web', function () {
     }
 
     /**
-     * Produce the JSON text for an array of JSON objects.
-     * @param argv  JSON objects to serialize
+     * Produce the JSON text for a JSON object.
+     * @param argv  JSON object to serialize
      */
     function serialize(argv) {
         return JSON.stringify(argv, function (key, value) {
@@ -97,26 +100,22 @@ ADSAFE.lib('web', function () {
      * @param href  relative URL to resolve
      */
     function resolveURI(base, href) {
-        if ('' === href) {
-            var iRef = base.indexOf('#');
-            return -1 !== iRef ? base.substring(0, iRef) : base;
-        }
-        if (/^#/.test(href)) {
-            var iRef = base.indexOf('#');
-            base = -1 !== iRef ? base.substring(0, iRef) : base;
-            return base + href;
-        }
+        base = /^[^#]*/.exec(base)[0];  // never include base fragment
+
+        if ('' === href) { return base; }
+        if (/^#/.test(href)) { return base + href; }
         if (/^[a-zA-Z][\w\-\.\+]*:/.test(href)) { return href; }
         if (/^\/\//.test(href)) {
             return /^[a-zA-Z][\w\-\.\+]*:/.exec(base)[0] + href;
         }
         if (/^\//.test(href)) {
-            return /^[a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\//.exec(base)[0] +
-                   href.substring(1);
+            return /^[a-zA-Z][\w\-\.\+]*:\/\/[^\/]*/.exec(base)[0] + href;
         }
-        var iQuery = base.indexOf('?');
-        base = -1 !== iQuery ? base.substring(0, iQuery) : base;
+
+        base = /^[^\?]*/.exec(base)[0]; // drop base query
         if (/^\?/.test(href)) { return base + href; }
+
+        // unwind relative path operators
         base = base.substring(0, base.lastIndexOf('/') + 1);
         var parts = /^([a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\/)(.*)$/.exec(base);
         var host = parts[1];
@@ -180,7 +179,7 @@ ADSAFE.lib('web', function () {
             return see ? proxy(resolveURI(base, see)) : null;
         default:
             return reject({
-                $: [ 'org.ref_send.promise.eventual.Failure', 'undefined' ],
+                $: [ 'org.ref_send.promise.eventual.Failure', 'NaO' ],
                 status: http.status,
                 phrase: http.statusText
             });
@@ -208,8 +207,8 @@ ADSAFE.lib('web', function () {
 
         var output = function () {
             var m = pending[0];
-            var fpq = /([^#]*)#(.*)/.exec(m.URLref);
-            var query = fpq ? fpq[2] : '';
+            var fq = /#(.*)$/.exec(m.URLref);
+            var query = fq ? fq[1] : '';
             if ('' === query) {
                 query = 's=';
             }
@@ -224,7 +223,7 @@ ADSAFE.lib('web', function () {
             http.open(m.op, target, true);
             http.onreadystatechange = function () {
                 if (4 !== http.readyState) { return; }
-                if (m !== pending.shift()) { throw null.error; }
+                if (m !== pending.shift()) { throw new Error(); }
                 if (0 === pending.length) {
                     active = false;
                 } else {
