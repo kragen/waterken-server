@@ -155,10 +155,10 @@ ADSAFE.go('SHELL_', function (dom, lib) {
 
     // Do some unit testing of the API.
     var output = dom.q('#SHELL_OUTPUT');
-    var factory = lib.Q.when(lib.Q.get(web.page), function (value) {
+    var factory = lib.Q.when(lib.Q.get(lib.web.page), function (value) {
         return value.$.filter(function (typename) {
             return 'org.waterken.bang.DrumFactory' === typename;
-        }).length ? web.page : null;
+        }).length ? lib.web.page : null;
     });
     lib.Q.when(factory, function (value) {
         output.append(dom.text('Running unit tests against drum...')).
