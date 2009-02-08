@@ -106,14 +106,13 @@ Files extends Struct implements Server, Serializable {
         if (!head.respond(etag,client,"GET","HEAD","OPTIONS","TRACE")) {return;}
 
         // output the corresponding representation
-        final String query = URI.query("", head.uri);
-        final int maxAge = Integer.parseInt(Query.arg("0", query, "max-age"));
+        final String promise = Query.arg(null, URI.query("", head.uri), "o");
         final InputStream in = Filesystem.read(file);
         try {
             PowerlessArray<Header> header = PowerlessArray.array(
                 new Header("ETag", etag),
                 new Header("Cache-Control",
-                           0 < maxAge ? "max-age=" + maxAge : "no-cache"),
+                           null != promise ? "max-age=" + forever : "no-cache"),
                 new Header("Content-Length", "" + Filesystem.length(file)),
                 new Header("Content-Type", contentType.name)
             );
@@ -121,7 +120,8 @@ Files extends Struct implements Server, Serializable {
                 header = header.with(new Header("Content-Encoding",
                                                 contentType.encoding));
             }
-            client.receive(new Response("HTTP/1.1", "200", "OK", header), in);
+            client.receive(new Response("HTTP/1.1", "200", "OK", header),
+                           "HEAD".equals(head.method) ? null : in);
         } catch (final Exception e) {
             try { in.close(); } catch (final Exception e2) {}
             throw e;
