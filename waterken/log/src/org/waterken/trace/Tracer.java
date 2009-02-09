@@ -16,26 +16,22 @@ Tracer {
      * Gets the text message from an exception.
      * @param e exception to extract message from
      */
-    String
-    readException(Throwable e);
+    String readException(Throwable e);
     
     /**
      * Gets the stack trace for a given exception.
      * @param e exception to trace
      */
-    Trace
-    traceException(Throwable e);
+    Trace traceException(Throwable e);
     
     /**
      * Produces a dummy stack trace for a method.
      * @param lambda    sole member of the dummy stack trace
      */
-    Trace
-    traceMember(Member lambda);
+    Trace traceMember(Member lambda);
 
     /**
      * Gets the current stack trace.
      */
-    Trace
-    traceHere();
+    Trace traceHere();
 }

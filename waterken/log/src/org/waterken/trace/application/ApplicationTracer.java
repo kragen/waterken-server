@@ -39,7 +39,7 @@ ApplicationTracer {
                 return trace(new StackTraceElement(
                     lambda.getDeclaringClass().getName(), lambda.getName(),
                     null, -1));
-                // TODO: really want a line number for the member
+                // TODO: want the first line number of the method declaration
             }
 
             public Trace
@@ -50,6 +50,8 @@ ApplicationTracer {
                 final PowerlessArray.Builder<CallSite> sites =
                     PowerlessArray.builder(frames.length);
                 for (final StackTraceElement frame : frames) {
+                    final int line = frame.getLineNumber();
+                    if (1 == line) { continue; }    // skip synthetic method
                     
                     // Is this frame from application code or system code?
                     boolean included = false;
@@ -85,11 +87,10 @@ ApplicationTracer {
                         final String top = -1==end ? fqn : fqn.substring(0,end);
                         source = top.replace('.', '/') + ".java";
                     }
-                    final int line = frame.getLineNumber();
-                    sites.append(new CallSite(name, source,
-                      line>1?PowerlessArray.array(IntArray.array(line)):null));
+                    sites.append(new CallSite(name, source, line > 1
+                        ? PowerlessArray.array(IntArray.array(line)) : null));
                 }
-                return new Trace(sites.snapshot());
+                return sites.length() != 0 ? new Trace(sites.snapshot()) : null;
             }
         }
         return new TracerX();

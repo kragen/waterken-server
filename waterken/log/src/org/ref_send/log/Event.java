@@ -23,7 +23,7 @@ Event extends Struct implements Powerless, Record, Serializable {
     public final Anchor anchor;
     
     /**
-     * trace of the call site that produced the event
+     * trace of the call site that produced the event (optional)
      */
     public final Trace trace;
     

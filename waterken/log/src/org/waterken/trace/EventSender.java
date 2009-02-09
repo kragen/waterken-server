@@ -7,17 +7,15 @@ import java.lang.reflect.Member;
 
 import org.joe_e.Equatable;
 import org.joe_e.Struct;
-import org.joe_e.array.PowerlessArray;
-import org.ref_send.log.CallSite;
 import org.ref_send.log.Comment;
 import org.ref_send.log.Death;
 import org.ref_send.log.Event;
 import org.ref_send.log.Got;
 import org.ref_send.log.Problem;
 import org.ref_send.log.Resolved;
+import org.ref_send.log.Returned;
 import org.ref_send.log.Sent;
 import org.ref_send.log.SentIf;
-import org.ref_send.log.Trace;
 import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Receiver;
 
@@ -77,9 +75,13 @@ EventSender {
 
             public void
             got(final String message, final Member member) {
-                stderr.run(new Got(mark.run(), null != member
-                    ? tracer.traceMember(member)
-                : new Trace(PowerlessArray.array(new CallSite[] {})), message));
+                stderr.run(new Got(mark.run(),
+                    null!=member ? tracer.traceMember(member) : null, message));
+            }
+
+            public void
+            returned(final String message) {
+                stderr.run(new Returned(mark.run(), null, message));
             }
 
             public void
