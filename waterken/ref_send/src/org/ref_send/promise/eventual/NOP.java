@@ -44,6 +44,12 @@ NOP implements Log, Equatable, Serializable {
      * NOP
      */
     public void
+    returned(final String message) {}
+
+    /**
+     * NOP
+     */
+    public void
     sent(final String message) {}
 
     /**

@@ -14,43 +14,43 @@ Log {
      * Logs a comment.
      * @param text  comment text
      */
-    void
-    comment(String text);
+    void comment(String text);
     
     /**
      * Logs an exception.
      * @param reason    problem reason
      */
-    void
-    problem(Exception reason);
+    void problem(Exception reason);
     
     /**
      * Logs receipt of a message.
      * @param message   message identifier
-     * @param member    corresponding operation
+     * @param member    member that received the message
      */
-    void
-    got(String message, Member member);
+    void got(String message, Member member);
+    
+    /**
+     * Logs sending of a return value.
+     * @param message   return message identifier
+     */
+    void returned(String message);
     
     /**
      * Logs a message send.
-     * @param message   message identifier
+     * @param message   sent message identifier
      */
-    void
-    sent(String message);
+    void sent(String message);
 
     /**
      * Logs a conditional message send.
      * @param message   message identifier
      * @param condition condition identifier
      */
-    void
-    sentIf(String message, String condition);
+    void sentIf(String message, String condition);
     
     /**
      * Logs resolution of a condition.
      * @param condition condition identifier
      */
-    void
-    resolved(String condition);
+    void resolved(String condition);
 }

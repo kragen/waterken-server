@@ -6,7 +6,6 @@ import static org.joe_e.reflect.Proxies.proxy;
 import static org.ref_send.promise.Fulfilled.detach;
 
 import java.io.Serializable;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
@@ -468,12 +467,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
             if (null != block.next) {
                 final String message = here + "#w" + block.message;
                 if (Deferred.trusted(deferred, value)) {
-                    final Member member;
-                    try {
-                        member = Reflection.method(value.getClass(), "when",
-                                                   Do.class);
-                    } catch (final Exception e) { throw new Error(e); }
-                    log.got(message, member);
+                    log.got(message, null);
                     ((Deferred<T>)value).when(block.observer);
                 } else {
                     try {
