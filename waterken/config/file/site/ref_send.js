@@ -2,10 +2,11 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * ref_send.js version: 2009-02-08
+ * ref_send.js version: 2009-02-09
  */
 "use strict";
 ADSAFE.lib('Q', function () {
+
     function reject(reason, $) {
         if (undefined !== $) {
             reason.$ = $;
@@ -22,6 +23,7 @@ ADSAFE.lib('Q', function () {
         };
         return self;
     }
+
     function ref(value) {
         if (null === value || undefined === value) {
             return reject(new ReferenceError(), [ 'NaO' ]);
@@ -48,6 +50,7 @@ ADSAFE.lib('Q', function () {
             return arg1(r);
         };
     }
+
     var enqueue = function () {
         var active = false;
         var pending = [];
@@ -68,12 +71,21 @@ ADSAFE.lib('Q', function () {
             }
         };
     } ();
+
+    /**
+     * Enqueues a promise operation.
+     */
     function forward(p, op, arg1, arg2, arg3) {
         enqueue(function () { p(op, arg1, arg2, arg3); });
     }
+
+    /**
+     * Gets the corresponding promise for a given reference.
+     */
     function promise(value) {
         return 'function' === typeof value ? value : ref(value);
     }
+
     function defer() {
         var value = reject(new Error(), [ 'NaO' ]);
         var pending = [];
@@ -105,13 +117,46 @@ ADSAFE.lib('Q', function () {
     }
 
     return {
+
+        /**
+         * Enqueues a task to be run in a future turn.
+         * @param task  function to invoke later
+         */
         run: enqueue,
+
+        /**
+         * Constructs a rejected promise.
+         * @param reason    Error object describing the failure
+         * @param $         optional type info to add to <code>reason</code>
+         */
         reject: reject,
+
+        /**
+         * Constructs a promise for an immediate reference.
+         * @param value immediate reference
+         */
         ref: ref,
+
+        /**
+         * Constructs a ( promise, resolver ) pair.
+         */
         defer: defer,
+
+        /**
+         * Gets the current value of a promise.
+         * @param value promise or immediate reference to evaluate
+         */
         near: function (value) {
             return 'function' === typeof value ? value() : value;
         },
+
+        /**
+         * Registers an observer on a promise.
+         * @param value     promise or immediate reference to observe
+         * @param fulfilled function to be called with the resolved value
+         * @param rejected  function to be called with the rejection reason
+         * @return promise for the return value from the invoked callback
+         */
         when: function (value, fulfilled, rejected) {
             var r = defer();
             var done = false;   // ensure the untrusted promise makes at most a
@@ -130,11 +175,26 @@ ADSAFE.lib('Q', function () {
             });
             return r.promise;
         },
+
+        /**
+         * Gets the value of a property in a future turn.
+         * @param value promise or immediate reference to get property from
+         * @param noun  name of property to get
+         * @return promise for the property value
+         */
         get: function (value, noun) {
             var r = defer();
             forward(promise(value), 'GET', r.resolve, noun);
             return r.promise;
         },
+
+        /**
+         * Invokes a method in a future turn.
+         * @param value promise or immediate reference to invoke
+         * @param verb  name of method to invoke
+         * @param argv  array of invocation arguments
+         * @return promise for the return value
+         */
         post: function (value, verb, argv) {
             var r = defer();
             forward(promise(value), 'POST', r.resolve, verb, argv);
