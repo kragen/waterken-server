@@ -50,7 +50,7 @@ ServerSideSession implements Serializable {
         }
         returns = returns.with(r);
         if (void.class != method.getReturnType()) {
-            log.sent(name + "-" + window + "-" + message + "-return");
+            log.returned(name + "-" + window + "-" + message + "-return");
         }
         return r;
     }
