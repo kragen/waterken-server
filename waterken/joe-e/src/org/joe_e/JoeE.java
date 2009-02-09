@@ -84,4 +84,17 @@ public class JoeE {
             }
         }
     }
+
+    /**
+     * Is the object one-level deep immutable?
+     * @param x candidate object
+     * @return <code>true</code> if <code>x</code> is one-level deep immutable,
+     *         <code>false</code> if it might not be
+     */
+    static public boolean
+    isFrozen(final Object x) {
+        return null == x ||
+               instanceOf(x, Selfless.class) ||
+               instanceOf(x, Immutable.class);
+    }
 }
