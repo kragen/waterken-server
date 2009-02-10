@@ -32,7 +32,7 @@
  * a {@link org.ref_send.promise.Fulfilled} promise, so some syntactic sugar is
  * provided to facilitate construction. For example:</p>
  * <pre>
- * import static org.ref_send.promise.Fulfilled.ref;
+ * import static org.ref_send.promise.eventual.Eventual.ref;
  * &hellip;
  *
  *     private int balance;
@@ -42,13 +42,13 @@
  *     getBalance() { return ref(balance); }
  *     &hellip;
  * </pre>
- * <p>The static {@link org.ref_send.promise.Fulfilled#ref ref()} function takes
- * a normal Java reference and returns a corresponding
+ * <p>The static {@link org.ref_send.promise.eventual.Eventual#ref ref()}
+ * function takes a normal Java reference and returns a corresponding
  * {@link org.ref_send.promise.Promise}.</p>
  * <p>Constructing a {@link org.ref_send.promise.Rejected} promise is a little
  * more verbose. For example:</p>
  * <pre>
- * import static org.ref_send.promise.Fulfilled.ref;
+ * import static org.ref_send.promise.eventual.Eventual.ref;
  * &hellip;
  *
  *     private int balance;

@@ -809,7 +809,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
     /**
      * Gets the corresponding reference for a fulfilled promise.
      * <p>
-     * This method is the inverse of {@link detach}.
+     * This method is the inverse of {@link #detach detach}.
      * </p>
      * <p>
      * This method will not throw an {@link Exception}.
