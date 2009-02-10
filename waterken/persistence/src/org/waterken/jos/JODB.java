@@ -303,8 +303,7 @@ JODB<S> extends Database<S> {
                     o2f.put(bucket.value, filename);
                     if (!JoeE.isFrozen(bucket.value)) { xxx.add(filename); }
                 } else if (pumpkin == bucket) {
-                    final PowerlessArray.Builder<String> types =
-                        PowerlessArray.builder(stack.size());
+                    PowerlessArray<String> types = PowerlessArray.array();
                     for (int i = stack.size(); 0 != i--;) {
                         final String at = stack.get(i);
                         final Class<?>[] type = { Object.class };
@@ -327,7 +326,7 @@ JODB<S> extends Database<S> {
                             in = oin;
                             final Object x = oin.readObject();
                             if (null != x) { type[0] = x.getClass(); }
-                            types.append(Reflection.getName(type[0]));
+                            types = types.with(Reflection.getName(type[0]));
                         } catch (final Exception e) {
                             // skip over broken bucket
                         } finally {
@@ -336,7 +335,7 @@ JODB<S> extends Database<S> {
 
                         if (filename.equals(at)) { break; }
                     }
-                    throw new CyclicGraph(types.snapshot());
+                    throw new CyclicGraph(types);
                 }
                 return bucket;
             }
