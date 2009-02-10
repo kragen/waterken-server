@@ -6,8 +6,8 @@ import java.io.Serializable;
 import java.net.Socket;
 
 import org.joe_e.Struct;
-import org.ref_send.promise.eventual.Receiver;
-import org.ref_send.promise.eventual.Task;
+import org.ref_send.promise.Receiver;
+import org.ref_send.promise.Task;
 
 /**
  * A TCP service daemon.

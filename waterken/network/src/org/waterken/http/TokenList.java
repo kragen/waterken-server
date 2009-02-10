@@ -3,8 +3,8 @@
 package org.waterken.http;
 
 import org.joe_e.array.PowerlessArray;
-import org.ref_send.promise.eventual.Receiver;
-import org.ref_send.promise.eventual.Sink;
+import org.ref_send.promise.Receiver;
+import org.ref_send.promise.Sink;
 import org.waterken.uri.Header;
 
 /**

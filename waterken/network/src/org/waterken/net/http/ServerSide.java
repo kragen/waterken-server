@@ -6,8 +6,8 @@ import java.io.InputStream;
 import java.net.Socket;
 
 import org.joe_e.array.PowerlessArray;
-import org.ref_send.promise.eventual.Receiver;
-import org.ref_send.promise.eventual.Task;
+import org.ref_send.promise.Receiver;
+import org.ref_send.promise.Task;
 import org.waterken.http.Request;
 import org.waterken.http.TokenList;
 import org.waterken.io.limited.Limited;
