@@ -2,8 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.list;
 
-import static org.ref_send.promise.Fulfilled.detach;
-import static org.ref_send.promise.Fulfilled.near;
+import static org.ref_send.promise.eventual.Eventual.detach;
+import static org.ref_send.promise.eventual.Eventual.near;
 
 import java.io.Serializable;
 import java.util.Iterator;

@@ -3,7 +3,6 @@
 package org.ref_send.promise.eventual;
 
 import static org.joe_e.reflect.Proxies.proxy;
-import static org.ref_send.promise.Fulfilled.detach;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -360,7 +359,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
            final Log log, final String message) throws Exception {
         final P a;
         try {
-            a = Fulfilled.ref(promise.cast()).cast();
+            a = ref(promise.cast()).cast();
         } catch (final Exception reason) {
             log.got(message, Compose.rejecter(observer));
             return observer.reject(reason);
@@ -412,7 +411,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
             r = detach(block);
         } else {
             r = (Fulfilled)whenPool;
-            block = (When)Fulfilled.near(r);
+            block = (When)near(r);
             whenPool = (Fulfilled)block.next;
             block.next = null;
         }
@@ -496,7 +495,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
         
         protected void
         observe(final Do<T,?> observer) {
-            final When<T> block = Fulfilled.near(back);
+            final When<T> block = near(back);
             if (condition == block.condition) {
                 log.sentIf(here+"#w"+block.message, here+"#p"+condition);
                 block.observer = observer;
@@ -805,7 +804,65 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * @return corresponding immediate reference
      */
     static public <T> T
-    near(final T reference) { return Fulfilled.near(promised(reference)); }
+    near(final T reference) { return near(promised(reference)); }
+
+    /**
+     * Gets the corresponding reference for a fulfilled promise.
+     * <p>
+     * This method is the inverse of {@link detach}.
+     * </p>
+     * <p>
+     * This method will not throw an {@link Exception}.
+     * </p>
+     * @param <T> referent type
+     * @param promise   {@linkplain Fulfilled fulfilled} promise
+     * @return {@linkplain #cast corresponding} reference
+     */
+    static public <T> T
+    near(final Volatile<T> promise) {
+        try {
+            return ((Fulfilled<T>)promise).cast();
+        } catch (final Exception e) { throw new Error(e); }
+    }
+
+    /**
+     * Marks a point where deserialization of an object graph may be deferred.
+     * <p>
+     * If a referrer holds the promise returned by this method, instead of a
+     * direct reference to the referent, the persistence engine may defer
+     * deserialization of the referent until it is {@linkplain #cast accessed}.
+     * </p>
+     * @param <T> referent type
+     * @param value {@linkplain #cast referent}
+     * @return {@linkplain Fulfilled fulfilled} promise for <code>value</code>
+     */
+    static public <T> Fulfilled<T>
+    detach(final T value) { return new Detachable<T>(value); }
+
+    /**
+     * Adapts an immediate reference to the {@link Promise} interface.
+     * @param <T> referent type
+     * @param value immediate referent
+     * @return promise that {@linkplain #cast refers} to the <code>value</code>
+     */
+    static public <T> Promise<T>
+    ref(final T value) {
+        if (null==value) { return new Rejected<T>(new NullPointerException()); }
+        if (value instanceof Double) {
+            final Double d = (Double)value;
+            if (d.isNaN()) {return new Rejected<T>(new ArithmeticException());}
+            if (d.isInfinite()) {
+                return new Rejected<T>(new ArithmeticException());
+            }
+        } else if (value instanceof Float) {
+            final Float f = (Float)value;
+            if (f.isNaN()) {return new Rejected<T>(new ArithmeticException());}
+            if (f.isInfinite()) {
+                return new Rejected<T>(new ArithmeticException());
+            }
+        }
+        return new Inline<T>(value);
+    }
     
     /**
 	 * Gets the corresponding {@linkplain Volatile promise}.
@@ -835,7 +892,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
                 }
             } catch (final Exception e) {}
         }
-        return Fulfilled.ref(reference);
+        return ref(reference);
     }
     
     /**
@@ -860,7 +917,8 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * will be given the opportunity to execute in the current event loop turn.
      * </p>
      * @param <R> return type, MUST be either an interface, or a {@link Promise}
-     * @param label     optional vat label
+     * @param label     optional vat label,
+     *                  if <code>null</code> a label will be generated
      * @param maker     constructor class
      * @param optional  more arguments for <code>maker</code>'s make method
      * @return promise for the object returned by the <code>maker</code>
