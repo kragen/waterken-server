@@ -91,7 +91,6 @@ the order is the order of compiler dependencies):
 <li>persistence</li>
 <li>syntax</li>
 <li>remote</li>
-<li>server</li>
 <li>shared</li>
 <li>example</li>
 </ol>
@@ -99,7 +98,7 @@ the order is the order of compiler dependencies):
 <li>At this point, you should have all the sources for the Waterken server
 installed.  Switch from the Repository view to the Java view, and run
 "Project/Clean..." to ensure it all builds.</li>
-<li>Go back into the Subversion view and checkout the config folder.  This is
+<li>Go back into the Subversion view and checkout the "config" folder.  This is
 not a source folder, so you get additional dialogs. Simply choose "Checkout as
 a Project in the Workspace".
 Click "Finish".</li>
@@ -111,7 +110,7 @@ right?</p>
 <h3><a name="run" href="#run">Running the Waterken server</a></h3>
 <p>To run the server under Eclipse, you need to configure the Run or Debug
 window.  Click "Debug/Open Debug Window... Debug as a Java Application", "Name"
-is "serve", "Main Project" is "server", "Main Class" is
+is "serve", "Main Project" is "remote", "Main Class" is
 "org.waterken.server.Serve". Go to the "Arguments" tab, set "Working Directory"
 to "Other", click "Variables", choose "workspace_loc".  Press "Debug". You
 should see server messages appearing in the Console. Open a browser on
