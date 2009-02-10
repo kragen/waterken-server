@@ -2,17 +2,17 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.test;
 
-import static org.ref_send.promise.eventual.Eventual.ref;
+import static org.ref_send.promise.Eventual.ref;
 
 import java.io.Serializable;
 
 import org.joe_e.array.ConstArray;
+import org.ref_send.promise.Channel;
+import org.ref_send.promise.Do;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Resolver;
 import org.ref_send.promise.Volatile;
-import org.ref_send.promise.eventual.Channel;
-import org.ref_send.promise.eventual.Do;
-import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Resolver;
 
 /**
  * Test condition operations.
