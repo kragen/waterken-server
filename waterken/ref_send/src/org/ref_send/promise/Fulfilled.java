@@ -7,7 +7,7 @@ import java.io.Serializable;
 import org.joe_e.Selfless;
 
 /**
- * A promise that alleges to be fulfilled.
+ * A promise that alleges to be born in the fulfilled state.
  * @param <T> referent type
  */
 public abstract class

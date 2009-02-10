@@ -42,7 +42,7 @@
  *     getBalance() { return ref(balance); }
  *     &hellip;
  * </pre>
- * <p>The static {@link org.ref_send.promise.eventual.Eventual#ref ref()}
+ * <p>The static {@link org.ref_send.promise.Eventual#ref ref()}
  * function takes a normal Java reference and returns a corresponding
  * {@link org.ref_send.promise.Promise}.</p>
  * <p>Constructing a {@link org.ref_send.promise.Rejected} promise is a little
@@ -109,11 +109,11 @@
  * useful for representing a value which is yet to be determined. Such a promise
  * may be used to refer to a value which will be calculated later, based on
  * inputs which are not yet known. The
- * {@link org.ref_send.promise.eventual.Eventual} class supports creating this
+ * {@link org.ref_send.promise.Eventual} class supports creating this
  * kind of
- * {@linkplain org.ref_send.promise.eventual.Eventual#defer deferred promise},
+ * {@linkplain org.ref_send.promise.Eventual#defer deferred promise},
  * as well as doing
- * {@linkplain org.ref_send.promise.eventual.Eventual#when conditional}
+ * {@linkplain org.ref_send.promise.Eventual#when conditional}
  * operations on promises.</p>
  */
 @org.joe_e.IsJoeE package org.ref_send.promise;

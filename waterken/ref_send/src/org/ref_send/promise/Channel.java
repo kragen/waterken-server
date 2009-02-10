@@ -1,6 +1,6 @@
 // Copyright 2005-2006 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.ref_send.promise.eventual;
+package org.ref_send.promise;
 
 import java.io.Serializable;
 
@@ -8,7 +8,6 @@ import org.joe_e.Struct;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.promise.Promise;
 
 /**
  * The reified {@linkplain Promise tail} and {@linkplain Resolver head} of a

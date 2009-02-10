@@ -2,8 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.list;
 
-import static org.ref_send.promise.eventual.Eventual.detach;
-import static org.ref_send.promise.eventual.Eventual.near;
+import static org.ref_send.promise.Eventual.detach;
+import static org.ref_send.promise.Eventual.near;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -11,8 +11,8 @@ import java.util.NoSuchElementException;
 
 import org.joe_e.Equatable;
 import org.joe_e.Struct;
-import org.ref_send.promise.Fulfilled;
-import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.Promise;
+import org.ref_send.promise.Receiver;
 
 /**
  * A linked list.
@@ -26,14 +26,14 @@ List<T> implements Iterable<T>, Serializable {
     Link<T> implements Equatable, Serializable {
         static private final long serialVersionUID = 1L;
 
-        Fulfilled<Link<T>> next;
+        Promise<Link<T>> next;
         T value;
     }
 
     /**
      * first element link
      */
-    private Fulfilled<Link<T>> first;
+    private Promise<Link<T>> first;
 
     /**
      * first unused link

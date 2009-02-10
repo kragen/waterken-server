@@ -33,7 +33,7 @@ package org.ref_send.promise;
  * promise was produced by code trusted to implement these semantics, the
  * promise should be held in a variable of type {@link Promise}; otherwise, the
  * variable should be of type {@link Volatile}. For example, the return from
- * the {@link org.ref_send.promise.eventual.Eventual#ref ref} function should be
+ * the {@link org.ref_send.promise.Eventual#ref ref} function should be
  * held in a variable of type {@link Promise}; whereas a promise parameter in
  * the declaration of a public method should be of type {@link Volatile}.
  * </p>
