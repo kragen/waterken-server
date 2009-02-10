@@ -2,8 +2,9 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.http;
 
-import org.joe_e.array.ArrayBuilder;
 import org.joe_e.array.PowerlessArray;
+import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.eventual.Sink;
 import org.waterken.uri.Header;
 
 /**
@@ -40,7 +41,7 @@ TokenList {
      */
     static public PowerlessArray<String>
     decode(final String list) {
-    	final PowerlessArray.Builder<String> r = PowerlessArray.builder();
+        PowerlessArray<String> r = PowerlessArray.array();
         final int end = list.length();
         int i = 0;
         while (true) {
@@ -56,13 +57,12 @@ TokenList {
             i = skip(token, nothing, list, i, end);
             final int endToken = i;
             if (beginToken == endToken) { throw new RuntimeException(); }
-            r.append(list.substring(beginToken, endToken));
+            r = r.with(list.substring(beginToken, endToken));
 
             // discard the parameters
-            final ArrayBuilder<Header> ignored = PowerlessArray.builder();
-            i = parseParameters(list, i, end, ignored);
+            i = parseParameters(list, i, end, new Sink<Header>());
         }
-        return r.snapshot();
+        return r;
     }
     
     /**
@@ -75,7 +75,7 @@ TokenList {
      */
     static protected int
     parseParameters(final String list, int i, final int end,
-    				final ArrayBuilder<Header> out) {
+    				final Receiver<Header> out) {
         while (true) {
         	i = skip(whitespace, nothing, list, i, end);
 
@@ -120,7 +120,7 @@ TokenList {
                 endValue = i;
             }
             final String value = list.substring(beginValue, endValue);
-            out.append(new Header(name, value));
+            out.run(new Header(name, value));
         }
     	return i;
     }

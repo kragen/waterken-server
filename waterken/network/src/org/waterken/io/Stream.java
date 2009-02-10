@@ -46,8 +46,7 @@ Stream {
      */
     static public ByteArray
     snapshot(final int estimate, final InputStream stream) throws IOException {
-        final ByteArray.BuilderOutputStream out =
-            new ByteArray.BuilderOutputStream(estimate);
-        copy(stream, out);
+        final ByteArray.Builder out = ByteArray.builder(estimate);
+        copy(stream, out.asOutputStream());
         return out.snapshot();
     }}

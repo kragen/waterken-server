@@ -72,14 +72,14 @@ Responder extends Client {
     receive(final Response head, final InputStream body) throws Exception {
         if (null == body && head.status.startsWith("4")) {
             server.serve(new Request(version, "GET", "/site/" + head.status,
-                PowerlessArray.array(new Header[0])), null, new Client() {
+                    PowerlessArray.array(new Header[0])), null, new Client() {
                public void
                receive(final Response entity,
                        final InputStream body) throws Exception {
                    // merge response headers with default entity headers
                    PowerlessArray<Header> headers = entity.headers;
                    for (final Header i : head.headers) {
-                       if (null==TokenList.find(null, i.name, headers)){
+                       if (null == TokenList.find(null, i.name, headers)) {
                            headers = headers.with(i);
                        }
                    }
