@@ -21,6 +21,7 @@ import org.ref_send.deserializer;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Volatile;
+import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.Exporter;
@@ -90,7 +91,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private final TypeVariable<?> R = Typedef.var(Volatile.class, "T");
     static private final TypeVariable<?> T = Typedef.var(Iterable.class, "T");
 
-    static private final Class<?> Inline = Fulfilled.ref(0).getClass();
+    static private final Class<?> Inline = Eventual.ref(0).getClass();
     
     static private void
     serialize(final Exporter export, final Type implicit, final Object value,
