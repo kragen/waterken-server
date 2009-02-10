@@ -9,7 +9,7 @@ import org.ref_send.name;
  * Logs resolution of a condition.
  * <p>
  * This kind of event is produced when a promise is
- * {@linkplain org.ref_send.promise.eventual.Resolver#resolve resolved}.
+ * {@linkplain org.ref_send.promise.Resolver#resolve resolved}.
  * </p>
  */
 public class

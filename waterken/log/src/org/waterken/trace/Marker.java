@@ -3,7 +3,7 @@
 package org.waterken.trace;
 
 import org.ref_send.log.Anchor;
-import org.ref_send.promise.eventual.Task;
+import org.ref_send.promise.Task;
 
 /**
  * An event anchor generator.

@@ -16,8 +16,8 @@ import org.ref_send.log.Resolved;
 import org.ref_send.log.Returned;
 import org.ref_send.log.Sent;
 import org.ref_send.log.SentIf;
-import org.ref_send.promise.eventual.Log;
-import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.Log;
+import org.ref_send.promise.Receiver;
 
 /**
  * Event logging infrastructure.

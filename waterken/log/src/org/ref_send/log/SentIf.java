@@ -9,8 +9,8 @@ import org.ref_send.name;
  * Logs a conditional message send.
  * <p>
  * This kind of event is produced for a send to a promise, such as happens for a
- * {@linkplain org.ref_send.promise.eventual.Eventual#when when block}, or
- * {@linkplain org.ref_send.promise.eventual.Eventual#cast eventual invocation}.
+ * {@linkplain org.ref_send.promise.Eventual#when when block}, or
+ * {@linkplain org.ref_send.promise.Eventual#cast eventual invocation}.
  * The {@link #message} identifies the queued message, and the
  * {@link #condition} identifies the promise the message is queued on.
  * </p>
