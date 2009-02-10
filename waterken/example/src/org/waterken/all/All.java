@@ -32,7 +32,7 @@ All {
      */
     static public Promise<Boolean>
     make(final Eventual _) throws Exception {
-        ConstArray<Volatile<Boolean>> r = ConstArray.array();
+        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
         
         _.log.comment("testing EQ operations on promises");
         r = r.with(SoundCheck.make(_));

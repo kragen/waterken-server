@@ -32,7 +32,7 @@ SoundCheck {
      */
     static public Promise<Boolean>
     make(final Eventual _) throws Exception {
-        ConstArray<Volatile<Boolean>> r = ConstArray.array();
+        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
         r = r.with(testNormal(_, new Sink<Void>()));
         r = r.with(testNull(_, null));
         r = r.with(testDouble(_));
@@ -45,7 +45,7 @@ SoundCheck {
      */
     static private <T extends Receiver<?>> Promise<Boolean>
     testNormal(final Eventual _, final T x) throws Exception {
-        ConstArray<Volatile<Boolean>> r = ConstArray.array();
+        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
         
         final Promise<T> p = ref(x);
         check(p.equals(p));
@@ -81,7 +81,7 @@ SoundCheck {
      */
     static private <T extends Receiver<?>> Promise<Boolean>
     testNull(final Eventual _, final T x) throws Exception {
-        ConstArray<Volatile<Boolean>> r = ConstArray.array();
+        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
         
         final Promise<T> p = ref(x);
         check(p.equals(p));
@@ -118,7 +118,7 @@ SoundCheck {
     
     static private <T> Promise<Boolean>
     testNaN(final Eventual _, final T x) throws Exception {
-        ConstArray<Volatile<Boolean>> r = ConstArray.array();
+        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
         
         final Promise<T> p = ref(x);
         check(p.equals(p));
@@ -151,7 +151,7 @@ SoundCheck {
      */
     static private Promise<Boolean>
     testDouble(final Eventual _) throws Exception {
-        ConstArray<Volatile<Boolean>> r = ConstArray.array();
+        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
         
         // check normal handling
         final Promise<Double> pMin = ref(Double.MIN_VALUE);
@@ -182,7 +182,7 @@ SoundCheck {
      */
     static private Promise<Boolean>
     testFloat(final Eventual _) throws Exception {
-        ConstArray<Volatile<Boolean>> r = ConstArray.array();
+        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
         
         // check normal handling
         final Promise<Float> pMin = ref(Float.MIN_VALUE);

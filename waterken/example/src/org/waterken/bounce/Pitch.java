@@ -32,7 +32,7 @@ Pitch {
     static public Promise<Boolean>
     make(final Eventual _, final Wall x) {
         final Wall x_ = _._(x);
-        ConstArray<Volatile<Boolean>> r = ConstArray.array();
+        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
 
         class Re extends Do<AllTypes,Promise<Boolean>>
                  implements Serializable {

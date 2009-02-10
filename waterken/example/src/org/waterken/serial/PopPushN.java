@@ -39,7 +39,7 @@ PopPushN {
          * Check that the first n integers in the series will be the
          * numbers from 0 through n.
          */
-        ConstArray<Volatile<Boolean>> r = ConstArray.array();
+        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
         for (int i = 0; i != n; ++i) {
             r = r.with(_.when(x.consume(), was(i)));
         }

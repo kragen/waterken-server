@@ -68,13 +68,18 @@ Bounce {
                     IntArray.array(0, Integer.MAX_VALUE, Integer.MIN_VALUE),
                     LongArray.array(0L, (1L << 53) - 1, -((1L << 53) - 1)),
                     "a \" \\ / </ < > \b \f \n \r \t \u0085",
-                    ConstArray.array(normal, null, rejected._(Receiver.class)),
-                    ConstArray.array(ref(false),
-                                     ref(Integer.MAX_VALUE),
-                                     ref("a"),
-                                     d.promise),
+                    new ConstArray<Receiver<?>>().
+                        with(normal).
+                        with(null).
+                        with(rejected._(Receiver.class)),
+                    new ConstArray<Promise<?>>().
+                        with(ref(false)).
+                        with(ref(Integer.MAX_VALUE)).
+                        with(ref("a")).
+                        with(d.promise),
                     ConstArray.array(
-                        ImmutableArray.array(PowerlessArray.array(true)),
+                        new ImmutableArray<PowerlessArray<Boolean>>().
+                            with(PowerlessArray.array(true)),
                         new BigInteger("9223372036854775808"),
                         new BigDecimal("3.14")
                     )));

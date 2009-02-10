@@ -112,7 +112,8 @@ Beat {
          * them to be sent and setup code to be run when the responses
          * eventually come back.
          */
-        return and(_, ConstArray.array(zero, one, three));
+        return and(_, new ConstArray<Promise<Boolean>>().
+                                with(zero).with(one).with(three));
         
         /*
          * In total, we've scheduled 3 GET requests and 2 POST requests
