@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax.json;
 
-import static org.ref_send.promise.eventual.Eventual.ref;
+import static org.ref_send.promise.Eventual.ref;
 
 import java.io.IOException;
 import java.io.Reader;
