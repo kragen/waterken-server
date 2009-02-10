@@ -28,11 +28,6 @@ Layout implements Powerless, Selfless, Record, Serializable {
      */
     public final PowerlessArray<String> names;
     
-    private
-    Layout(final PowerlessArray<String> names, final Void checked) {
-        this.names = names;
-    }
-    
     /**
      * Constructs an instance.
      * @param names {@link #names}
@@ -90,19 +85,5 @@ Layout implements Powerless, Selfless, Record, Serializable {
         int i = names.length();
         while (0 != i-- && !names.get(i).equals(name)) {}
         return i;
-    }
-    
-    /**
-     * Constructs a layout with an additional member.
-     * @param name  new member name
-     * @return a layout with the appended member
-     */
-    public Layout
-    with(final String name) {
-        if (name.equals("@")) { throw new RuntimeException(); }
-        for (int i = names.length(); 0 != i--;) {
-            if (name.equals(names.get(i))) { throw new RuntimeException(); }
-        }
-        return new Layout(names.with(name), null);
     }
 }
