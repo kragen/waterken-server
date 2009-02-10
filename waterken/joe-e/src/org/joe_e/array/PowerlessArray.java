@@ -34,7 +34,7 @@ public class PowerlessArray<E> extends ImmutableArray<E> implements Powerless {
      *     <code>values</code> is not powerless in the overlay type system
      */
     static public <E> PowerlessArray<E> array(final E... values) {
-        final Class e = values.getClass().getComponentType();
+        final Class<?> e = values.getClass().getComponentType();
         if (!JoeE.isSubtypeOf(e, Powerless.class)) {
             throw new ClassCastException(Reflection.getName(e) + 
                                          " is not Powerless");
@@ -135,7 +135,7 @@ public class PowerlessArray<E> extends ImmutableArray<E> implements Powerless {
          *  maximum length of a Java array.  The builder is unmodified.
          */
         public void append(E[] newEs, int off, int len) {
-            final Class e = newEs.getClass().getComponentType();
+            final Class<?> e = newEs.getClass().getComponentType();
             if (!JoeE.isSubtypeOf(e, Powerless.class)) {
                 throw new ClassCastException(Reflection.getName(e) +
                                              " is not Powerless");

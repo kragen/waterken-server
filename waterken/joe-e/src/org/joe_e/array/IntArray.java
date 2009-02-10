@@ -82,7 +82,7 @@ public final class IntArray extends PowerlessArray<Integer> {
         } else if (other instanceof ConstArray) {
             // Other array does not have contents in intArr:
             // check that length matches, and then compare elements one-by-one
-            final ConstArray otherArray = (ConstArray)other;
+            final ConstArray<?> otherArray = (ConstArray<?>)other;
             if (otherArray.length() != ints.length) {
                 return false;
             }            

@@ -43,6 +43,9 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
         this.arr = arr;
     }
     
+    public
+    ConstArray() { this(new Object[0]); }
+    
     /**
      * Constuct a <code>ConstArray</code>.
      * @param values    each value
@@ -77,7 +80,7 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
                                                         ClassNotFoundException {
         in.defaultReadObject();
 
-        final Class e = (Class)in.readObject();
+        final Class<?> e = (Class<?>)in.readObject();
         if (null == e) {
             arr = null;
         } else {
@@ -103,7 +106,7 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
         if (!(other instanceof ConstArray)) {
             return false;
         }
-        ConstArray otherArray = (ConstArray) other;
+        ConstArray<?> otherArray = (ConstArray<?>) other;
         // check that length matches
         if (arr.length != otherArray.length()) {
             return false;

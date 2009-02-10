@@ -45,7 +45,7 @@ public final class Reflection {
      * @return described field
      * @throws NoSuchFieldException no matching field found
      */
-    static public Field field(final Class type, final String name) 
+    static public Field field(final Class<?> type, final String name) 
                                         throws NoSuchFieldException {
         final Field f = type.getField(name);
         if (!safe(f)) { 
@@ -62,7 +62,7 @@ public final class Reflection {
      * @param type  object type
      * @return described fields
      */
-    static public PowerlessArray<Field> fields(final Class type) {
+    static public PowerlessArray<Field> fields(final Class<?> type) {
         Field[] fs = type.getFields();
 
         // Filter the members.
@@ -103,9 +103,10 @@ public final class Reflection {
      * @return described constructor
      * @throws NoSuchMethodException    no matching constructor found
      */
-    static public Constructor constructor(final Class type, final Class... args)
+    static public Constructor<?>
+    constructor(final Class<?> type, final Class<?>... args)
                                         throws NoSuchMethodException {
-        final Constructor c = type.getConstructor(args);
+        final Constructor<?> c = type.getConstructor(args);
         if (!safe(c)) {
             throw new NoSuchMethodException();
         }
@@ -120,12 +121,13 @@ public final class Reflection {
      * @param type class to search
      * @return all public constructors
      */
-    static public PowerlessArray<Constructor> constructors(final Class type) {
-        Constructor[] cs = type.getConstructors();
+    static public PowerlessArray<Constructor<?>>
+    constructors(final Class<?> type) {
+        Constructor<?>[] cs = type.getConstructors();
 
         // Filter the members.
         int n = 0;
-        for (final Constructor c : cs) {
+        for (final Constructor<?> c : cs) {
             if (safe(c)) { 
                 cs[n++] = c;
             }
@@ -135,10 +137,10 @@ public final class Reflection {
         if (cs.length != n) { 
             System.arraycopy(cs, 0, cs = new Constructor[n], 0, n); 
         }
-        Arrays.sort(cs, new Comparator<Constructor>() {
-            public int compare(final Constructor a, final Constructor b) {
-                final Class[] pa = a.getParameterTypes();
-                final Class[] pb = b.getParameterTypes();
+        Arrays.sort(cs, new Comparator<Constructor<?>>() {
+            public int compare(final Constructor<?> a, final Constructor<?> b) {
+                final Class<?>[] pa = a.getParameterTypes();
+                final Class<?>[] pb = b.getParameterTypes();
                 int diff = pa.length - pb.length;
                 for (int i = 0; diff == 0 && i < pa.length; ++i) {
                     diff = pa[i].getName().compareTo(pb[i].getName());
@@ -162,8 +164,8 @@ public final class Reflection {
      * @return described method
      * @throws NoSuchMethodException    no matching method found
      */
-    static public Method method(final Class type, final String name, 
-                                final Class... args) 
+    static public Method method(final Class<?> type, final String name, 
+                                final Class<?>... args) 
                                         throws NoSuchMethodException {
         final Method r = type.getMethod(name, args);
         if (!safe(r)) { 
@@ -180,7 +182,7 @@ public final class Reflection {
      * @param type object type
      * @return described methods
      */
-    static public PowerlessArray<Method> methods(final Class type) {
+    static public PowerlessArray<Method> methods(final Class<?> type) {
         Method[] ms = type.getMethods();
 
         // Filter the members.
@@ -204,8 +206,8 @@ public final class Reflection {
                     // Class.getName() fine as long as methods belonging to
                     // proxy classes are never safe().
                     if (diff == 0) {
-                        final Class[] pa = a.getParameterTypes();
-                        final Class[] pb = b.getParameterTypes();
+                        final Class<?>[] pa = a.getParameterTypes();
+                        final Class<?>[] pb = b.getParameterTypes();
                         if (pa.length != pb.length) {
                             diff = pa.length - pb.length;
                         }
@@ -231,7 +233,7 @@ public final class Reflection {
      * @return the name of class <code>c</code>
      * @throws IllegalArgumentException if <code>c</code> is a proxy class
      */
-    static public String getName(Class c) {
+    static public String getName(Class<?> c) {
         if (java.lang.reflect.Proxy.isProxyClass(c)) {
             throw new IllegalArgumentException("Can't get the name of a " +
                                                "proxy class.");
@@ -252,7 +254,7 @@ public final class Reflection {
      *         else <code>false</code>
      */
     static private boolean safe(final Member member) {
-        final Class declarer = member.getDeclaringClass();
+        final Class<?> declarer = member.getDeclaringClass();
         // safe if declared in a Joe-E package
         final Package pkg = declarer.getPackage();
         // getPackage returns null for proxy classes
@@ -326,7 +328,8 @@ public final class Reflection {
      *    <code>IllegalArgumentException</code>, usually due to mismatched types   
      * @throws Exception    an exception thrown by the invoked constructor
      */
-    static public Object construct(final Constructor ctor, final Object... args)
+    static public Object
+    construct(final Constructor<?> ctor, final Object... args)
                                         throws Exception {
         if (!Modifier.isPublic(ctor.getDeclaringClass().getModifiers())) {
             throw new IllegalAccessException();

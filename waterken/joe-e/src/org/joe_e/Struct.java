@@ -36,7 +36,7 @@ public abstract class Struct implements Selfless {
         
         // traverse class hierarchy, finding declared fields.  This is
         // necessary since getFields() only returns public fields.
-        for (Class i = getClass(); i != Struct.class; i = i.getSuperclass()) {
+        for (Class<?> i = getClass(); i != Struct.class; i = i.getSuperclass()) {
             final Field[] fields = i.getDeclaredFields();
             AccessibleObject.setAccessible(fields, true);
             Arrays.sort(fields, 

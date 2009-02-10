@@ -44,7 +44,7 @@ public final class Proxies {
      * @throws NullPointerException an argument is <code>null</code>
      */
     static public Object proxy(final InvocationHandler handler,
-                               final Class... interfaces) 
+                               final Class<?>... interfaces) 
                                         throws ClassCastException { 
         if (handler == null || interfaces == null) {
             throw new NullPointerException();
@@ -58,7 +58,7 @@ public final class Proxies {
         boolean immutable = false;  // Was the Immutable type claimed?
         boolean powerless = false;  // Was the Powerless type claimed?
         
-        for (final Class i : interfaces) {
+        for (final Class<?> i : interfaces) {
             
             // Can only implement public interfaces.
             if (!Modifier.isPublic(i.getModifiers())) {
@@ -129,7 +129,7 @@ public final class Proxies {
      * @param type  candidate interface
      * @return <code>true</code> if a Joe-E type, else <code>false</code>
      */
-    static public boolean isImplementable(final Class type) {
+    static public boolean isImplementable(final Class<?> type) {
         return type.isInterface() && Modifier.isPublic(type.getModifiers());
         
         // return Runnable.class == type ||
