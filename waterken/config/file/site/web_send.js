@@ -175,7 +175,7 @@ ADSAFE.lib('web', function () {
             return see ? proxy(resolveURI(base, see)) : null;
         default:
             return reject({
-                $: [ 'org.ref_send.promise.eventual.Failure', 'NaO' ],
+                $: [ 'org.ref_send.promise.Failure', 'NaO' ],
                 status: http.status,
                 phrase: http.statusText
             });
