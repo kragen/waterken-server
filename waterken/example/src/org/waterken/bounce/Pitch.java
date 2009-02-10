@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.bounce;
 
-import static org.ref_send.promise.Fulfilled.near;
+import static org.ref_send.promise.eventual.Eventual.near;
 import static org.ref_send.test.Logic.and;
 import static org.ref_send.test.Logic.was;
 

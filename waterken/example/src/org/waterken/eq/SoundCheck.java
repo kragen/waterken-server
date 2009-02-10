@@ -2,8 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.eq;
 
-import static org.ref_send.promise.Fulfilled.detach;
-import static org.ref_send.promise.Fulfilled.ref;
+import static org.ref_send.promise.eventual.Eventual.detach;
+import static org.ref_send.promise.eventual.Eventual.ref;
 import static org.ref_send.promise.eventual.Eventual.near;
 import static org.ref_send.test.Logic.and;
 

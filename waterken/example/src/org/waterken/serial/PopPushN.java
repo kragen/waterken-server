@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.serial;
 
-import static org.ref_send.promise.Fulfilled.ref;
+import static org.ref_send.promise.eventual.Eventual.ref;
 import static org.ref_send.test.Logic.and;
 import static org.ref_send.test.Logic.was;
 
