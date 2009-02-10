@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 import org.joe_e.Selfless;
 import org.joe_e.array.ConstArray;
-import org.joe_e.array.PowerlessArray;
 
 /**
  * A [ name =&gt; value ] record.
@@ -37,12 +36,6 @@ Scope implements Selfless, Serializable {
         this.meta = meta;
         this.values = values;
     }
-    
-    /**
-     * an empty scope layout
-     */
-    static public final Layout Empty =
-        new Layout(PowerlessArray.array(new String[] {}));
     
     // java.lang.Object interface
     
@@ -76,20 +69,5 @@ Scope implements Selfless, Serializable {
     get(final String name) {
         final int i = meta.find(name);
         return -1 != i ? (T)values.get(i) : null;
-    }
-    
-    /**
-     * Constructs a scope with an additional member.
-     * @param name  member name
-     * @param value member value
-     * @return new scope with appended member
-     */
-    public Scope
-    with(final String name, final Object value) {
-        final ConstArray.Builder<Object> r =
-            ConstArray.builder(values.length() + 1);
-        for (final Object x : values) { r.append(x); }
-        r.append(value);
-        return new Scope(meta.with(name), r.snapshot());
     }
 }

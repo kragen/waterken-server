@@ -2,8 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax.config;
 
-import static org.ref_send.scope.Scope.Empty;
-
 import java.io.File;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
@@ -12,7 +10,6 @@ import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
-import org.ref_send.scope.Scope;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.Syntax;
@@ -79,7 +76,8 @@ Config {
     private final PowerlessArray<Syntax> supported;
     private final Syntax output;
     
-    private       Scope cache;      // [ URI => value ]
+    private       PowerlessArray<String> cacheKeys;
+    private       ConstArray<Object> cacheValues;
     
     /**
      * Constructs an instance.
@@ -103,7 +101,8 @@ Config {
         this.supported = supported;
         this.output = output;
         
-        cache = Empty.make();
+        cacheKeys = PowerlessArray.array();
+        cacheValues = ConstArray.array();
     }
     
     /**
@@ -180,8 +179,11 @@ Config {
             // check the cache
             String path = baseURI.substring(0, baseURI.lastIndexOf('/') + 1);
             final String key = path + href; {
-                final int i = cache.meta.find(key);
-                if (-1 != i) { return cache.values.get(i); }
+                for (int i = cacheKeys.length(); 0 != i--;) {
+                    if (cacheKeys.get(i).equals(key)) {
+                        return cacheValues.get(i);
+                    }
+                }
             }
 
             // descend to the named file
@@ -208,7 +210,8 @@ Config {
                     ConstArray.array(type), code, Filesystem.read(file)).get(0);
                 break;
             }
-            cache = cache.with(key, r);
+            cacheKeys = cacheKeys.with(key);
+            cacheValues = cacheValues.with(r);
             return r;
         }
     }; }
@@ -228,7 +231,8 @@ Config {
         out.write(content.toByteArray());
         out.flush();
         out.close();
-        cache = cache.with(baseURI + name, value);
+        cacheKeys = cacheKeys.with(baseURI + name);
+        cacheValues = cacheValues.with(value);
     }
     
     /**
@@ -239,6 +243,7 @@ Config {
     public void
     override(final String name, final Object value) {
         Filesystem.file(root, name);
-        cache = cache.with(baseURI + name, value);
+        cacheKeys = cacheKeys.with(baseURI + name);
+        cacheValues = cacheValues.with(value);
     }
 }
