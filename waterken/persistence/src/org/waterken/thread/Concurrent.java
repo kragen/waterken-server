@@ -4,8 +4,8 @@ package org.waterken.thread;
 
 import java.util.LinkedList;
 
-import org.ref_send.promise.eventual.Receiver;
-import org.ref_send.promise.eventual.Task;
+import org.ref_send.promise.Receiver;
+import org.ref_send.promise.Task;
 
 /**
  * A concurrent loop.

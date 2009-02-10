@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.db;
 
-import org.ref_send.promise.eventual.Task;
+import org.ref_send.promise.Task;
 
 /**
  * A transient {@link Database#service}.

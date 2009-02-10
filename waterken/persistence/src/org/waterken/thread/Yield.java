@@ -5,7 +5,7 @@ package org.waterken.thread;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.Receiver;
 
 /**
  * 

@@ -15,7 +15,7 @@ import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.joe_e.var.Milestone;
 import org.ref_send.deserializer;
-import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.Receiver;
 import org.waterken.store.Store;
 import org.waterken.store.StoreMaker;
 import org.waterken.store.Update;

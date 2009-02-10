@@ -5,10 +5,10 @@ package org.waterken.db;
 import java.io.FileNotFoundException;
 
 import org.joe_e.Immutable;
+import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.eventual.Log;
-import org.ref_send.promise.eventual.Receiver;
-import org.ref_send.promise.eventual.Task;
+import org.ref_send.promise.Receiver;
+import org.ref_send.promise.Task;
 
 /**
  * A persistent object graph.

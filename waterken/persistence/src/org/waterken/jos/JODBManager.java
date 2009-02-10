@@ -7,7 +7,7 @@ import java.io.File;
 import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.ref_send.log.Event;
-import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.Receiver;
 import org.waterken.cache.Cache;
 import org.waterken.db.Service;
 import org.waterken.db.DatabaseManager;

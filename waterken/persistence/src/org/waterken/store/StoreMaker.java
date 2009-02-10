@@ -4,7 +4,7 @@ package org.waterken.store;
 
 import java.io.File;
 
-import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.Receiver;
 
 /**
  * A {@link Store} maker.
