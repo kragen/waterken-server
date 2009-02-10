@@ -31,9 +31,9 @@ import org.joe_e.file.InvalidFilenameException;
 import org.joe_e.reflect.Reflection;
 import org.joe_e.var.Milestone;
 import org.ref_send.log.Event;
-import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
+import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.NOP;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Sink;
@@ -614,7 +614,7 @@ JODB<S> extends Database<S> {
                     final Task<?> flip = root.fetch(null, JODB.flip);
                     if (null != flip) { flip.run(); }
                 }
-                r = Fulfilled.detach(body.run(root));
+                r = Eventual.detach(body.run(root));
             } catch (final Exception e) {
                 r = new Rejected<R>(e);
             }

@@ -16,6 +16,7 @@ import org.joe_e.Selfless;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Volatile;
 import org.ref_send.promise.eventual.Deferred;
+import org.ref_send.promise.eventual.Eventual;
 import org.waterken.db.Root;
 
 /**
@@ -35,7 +36,7 @@ Slicer extends ObjectOutputStream {
         enableReplaceObject(true);
     }
     
-    static private final Class<?> Detachable = Fulfilled.detach(0).getClass();
+    static private final Class<?> Detachable = Eventual.detach(0).getClass();
 
     protected Object
     replaceObject(Object x) throws IOException {
@@ -56,7 +57,7 @@ Slicer extends ObjectOutputStream {
         // BEGIN: slicing of the object graph into trees
         } else if (Detachable == type) {
             x = new Faulting(root,
-                    root.export(Fulfilled.near((Fulfilled<?>)x), false));
+                    root.export(Eventual.near((Fulfilled<?>)x), false));
         } else if (Deferred.WeakPromise == type) {
             final Object referent;
             try {
