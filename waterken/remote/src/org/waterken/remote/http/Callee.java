@@ -5,7 +5,6 @@ package org.waterken.remote.http;
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 import static org.joe_e.array.PowerlessArray.builder;
-import static org.ref_send.promise.Fulfilled.ref;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -111,7 +110,7 @@ Callee extends Struct implements Serializable {
                     Response.notAllowed("TRACE", "OPTIONS"), null);
         }
         
-        if (null != HTTP.property(lambda)) { // property access
+        if (null != HTTP.property(lambda)) {    // property access
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
                     Response.options("TRACE","OPTIONS","GET","HEAD"), null);
@@ -178,7 +177,7 @@ Callee extends Struct implements Serializable {
         return serialize(m.head.method, "200", "OK", Server.ephemeral, value);
     }
     
-    static private final Class<?> Inline = ref(0).getClass();
+    static private final Class<?> Inline = Eventual.ref(0).getClass();
     
     private Message<Response>
     serialize(final String method, final String status, final String phrase,

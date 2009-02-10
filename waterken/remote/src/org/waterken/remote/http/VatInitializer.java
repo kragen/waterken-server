@@ -2,8 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import static org.ref_send.promise.Fulfilled.detach;
-
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -15,6 +13,7 @@ import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.list.List;
+import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Log;
 import org.ref_send.promise.eventual.Receiver;
 import org.ref_send.promise.eventual.Task;
@@ -50,8 +49,8 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         
         final List<Task<?>> tasks = List.list();
         final Outbound outbound = new Outbound();
-        final HTTP.Exports exports =
-            HTTP.make(enqueue(effect, tasks), local, log, detach(outbound));
+        final HTTP.Exports exports = HTTP.make(enqueue(effect,tasks),local, log,
+                                               Eventual.detach(outbound));
         log.got(exports.getHere() + "#make", make);
         local.link(VatInitializer.tasks, tasks);
         local.link(VatInitializer.outbound, outbound);

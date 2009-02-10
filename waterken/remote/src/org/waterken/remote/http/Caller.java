@@ -2,8 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import static org.ref_send.promise.Fulfilled.ref;
-
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -234,7 +232,7 @@ Caller extends Struct implements Messenger, Serializable {
         throw new Failure(m.head.status, m.head.phrase);
     }
     
-    static private final Class<?> Inline = ref(0).getClass();
+    static private final Class<?> Inline = Eventual.ref(0).getClass();
     
     static protected Message<Request>
     serialize(final String here, final Exporter export,

@@ -3,7 +3,6 @@
 package org.waterken.remote.http;
 
 import static java.lang.reflect.Modifier.isStatic;
-import static org.ref_send.promise.Fulfilled.ref;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -127,7 +126,7 @@ HTTP extends Eventual implements Serializable {
                 peer(href).when(href, proxy, observer);
             } else {
                 final Class<?> p = Typedef.raw(Compose.parameter(observer));
-                _.when(ref(_.cast(p, proxy)), observer);
+                _.when(Eventual.ref(_.cast(p, proxy)), observer);
             }
         }
         

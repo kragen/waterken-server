@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import static org.ref_send.promise.Fulfilled.near;
 import static org.ref_send.promise.eventual.Failure.maxEntitySize;
 
 import java.io.InputStream;
@@ -12,6 +11,7 @@ import org.joe_e.Immutable;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Fulfilled;
+import org.ref_send.promise.eventual.Eventual;
 import org.ref_send.promise.eventual.Receiver;
 import org.waterken.db.Database;
 import org.waterken.db.Effect;
@@ -79,7 +79,7 @@ Pipeline implements Serializable {
     protected String
     enqueue(final Operation operation) {
         if (pending.isEmpty()) {
-            near(outbound).add(this);
+            Eventual.near(outbound).add(this);
         }
         pending.append(operation);
         final long mid = acknowledged + pending.getSize();
@@ -108,7 +108,7 @@ Pipeline implements Serializable {
         
         final Operation front = pending.pop();
         if (pending.isEmpty()) {
-            near(outbound).remove(this);
+            Eventual.near(outbound).remove(this);
         }
         acknowledged += 1;
         if (front instanceof Update) {
