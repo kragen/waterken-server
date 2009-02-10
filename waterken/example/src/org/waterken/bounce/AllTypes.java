@@ -17,8 +17,8 @@ import org.joe_e.array.ShortArray;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Volatile;
-import org.ref_send.promise.eventual.Receiver;
 
 /**
  * A record containing a field of each type.

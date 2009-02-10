@@ -2,22 +2,22 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.eq;
 
-import static org.ref_send.promise.eventual.Eventual.detach;
-import static org.ref_send.promise.eventual.Eventual.ref;
-import static org.ref_send.promise.eventual.Eventual.near;
+import static org.ref_send.promise.Eventual.detach;
+import static org.ref_send.promise.Eventual.near;
+import static org.ref_send.promise.Eventual.ref;
 import static org.ref_send.test.Logic.and;
 
 import java.io.Serializable;
 
 import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
+import org.ref_send.promise.Do;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Receiver;
+import org.ref_send.promise.Sink;
+import org.ref_send.promise.Task;
 import org.ref_send.promise.Volatile;
-import org.ref_send.promise.eventual.Do;
-import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Receiver;
-import org.ref_send.promise.eventual.Sink;
-import org.ref_send.promise.eventual.Task;
 
 /**
  * Checks invariants of the ref_send API.

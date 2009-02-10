@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.bounce;
 
-import static org.ref_send.promise.eventual.Eventual.near;
+import static org.ref_send.promise.Eventual.near;
 import static org.ref_send.test.Logic.and;
 import static org.ref_send.test.Logic.was;
 
@@ -11,11 +11,11 @@ import java.io.Serializable;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
+import org.ref_send.promise.Do;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Task;
 import org.ref_send.promise.Volatile;
-import org.ref_send.promise.eventual.Do;
-import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Task;
 
 /**
  * An argument passing test.

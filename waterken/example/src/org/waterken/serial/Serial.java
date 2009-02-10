@@ -6,10 +6,10 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 import org.joe_e.Struct;
+import org.ref_send.promise.Channel;
+import org.ref_send.promise.Eventual;
+import org.ref_send.promise.Resolver;
 import org.ref_send.promise.Volatile;
-import org.ref_send.promise.eventual.Channel;
-import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Resolver;
 
 /**
  * A {@link Series} maker.

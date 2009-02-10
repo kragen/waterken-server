@@ -5,9 +5,9 @@ package org.waterken.factorial;
 import static org.ref_send.test.Logic.was;
 
 import org.ref_send.list.List;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Task;
+import org.ref_send.promise.Task;
 
 /**
  * Eventual invocation tests.

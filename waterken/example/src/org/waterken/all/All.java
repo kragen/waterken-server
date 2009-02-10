@@ -6,10 +6,10 @@ import static org.ref_send.test.Logic.and;
 
 import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Task;
 import org.ref_send.promise.Volatile;
-import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Task;
 import org.waterken.bang.Bang;
 import org.waterken.bang.Beat;
 import org.waterken.bang.Drum;

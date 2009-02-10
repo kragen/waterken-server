@@ -2,11 +2,11 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.factorial;
 
-import static org.ref_send.promise.eventual.Eventual.ref;
+import static org.ref_send.promise.Eventual.ref;
 
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
-import org.ref_send.promise.eventual.Eventual;
 
 /**
  * A tail recursive factorial implementation.

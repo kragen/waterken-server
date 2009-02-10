@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.bounce;
 
-import static org.ref_send.promise.eventual.Eventual.ref;
+import static org.ref_send.promise.Eventual.ref;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -20,12 +20,12 @@ import org.joe_e.array.IntArray;
 import org.joe_e.array.LongArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.array.ShortArray;
+import org.ref_send.promise.Channel;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Rejected;
-import org.ref_send.promise.eventual.Channel;
-import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Receiver;
-import org.ref_send.promise.eventual.Sink;
+import org.ref_send.promise.Sink;
 
 /**
  * A {@link Wall} implementation.
