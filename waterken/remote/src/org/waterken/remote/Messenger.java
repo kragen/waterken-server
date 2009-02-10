@@ -4,7 +4,7 @@ package org.waterken.remote;
 
 import java.lang.reflect.Method;
 
-import org.ref_send.promise.eventual.Do;
+import org.ref_send.promise.Do;
 
 /**
  * The inter-vat messaging interface.

@@ -6,9 +6,9 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 
 import org.joe_e.array.ConstArray;
+import org.ref_send.promise.Log;
 import org.ref_send.promise.Rejected;
-import org.ref_send.promise.eventual.Log;
-import org.ref_send.promise.eventual.Task;
+import org.ref_send.promise.Task;
 
 /**
  * The server-side state associated with a messaging session.

@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import static org.ref_send.promise.eventual.Failure.maxEntitySize;
+import static org.ref_send.promise.Failure.maxEntitySize;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -14,7 +14,7 @@ import org.joe_e.Struct;
 import org.joe_e.array.ConstArray;
 import org.joe_e.charset.URLEncoding;
 import org.ref_send.deserializer;
-import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.Receiver;
 import org.waterken.db.Database;
 import org.waterken.db.Root;
 import org.waterken.db.Service;

@@ -8,7 +8,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.joe_e.Token;
-import org.ref_send.promise.eventual.Log;
+import org.ref_send.promise.Log;
 import org.waterken.base32.Base32;
 import org.waterken.db.Database;
 import org.waterken.db.Root;

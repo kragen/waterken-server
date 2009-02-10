@@ -10,7 +10,7 @@ import java.net.DatagramSocket;
 import java.net.ServerSocket;
 
 import org.joe_e.Immutable;
-import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.Receiver;
 import org.waterken.db.DatabaseManager;
 import org.waterken.db.Root;
 import org.waterken.db.Transaction;

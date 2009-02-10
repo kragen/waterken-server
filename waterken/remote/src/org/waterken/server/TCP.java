@@ -13,7 +13,7 @@ import java.net.SocketTimeoutException;
 import java.util.Enumeration;
 
 import org.joe_e.array.ByteArray;
-import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.Receiver;
 import org.waterken.dns.Resource;
 import org.waterken.net.TCPDaemon;
 import org.waterken.thread.Yield;

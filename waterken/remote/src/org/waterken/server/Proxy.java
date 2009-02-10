@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.Receiver;
 import org.waterken.cache.Cache;
 import org.waterken.http.Client;
 import org.waterken.http.Request;

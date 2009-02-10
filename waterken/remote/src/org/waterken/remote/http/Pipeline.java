@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import static org.ref_send.promise.eventual.Failure.maxEntitySize;
+import static org.ref_send.promise.Failure.maxEntitySize;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -10,9 +10,9 @@ import java.io.Serializable;
 import org.joe_e.Immutable;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.list.List;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Fulfilled;
-import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Receiver;
+import org.ref_send.promise.Receiver;
 import org.waterken.db.Database;
 import org.waterken.db.Effect;
 import org.waterken.db.Root;
