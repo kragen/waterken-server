@@ -2,6 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 
 /**
- * An interpreted object interface. 
+ * Interface to an object that does its own method dispatch. 
  */
-@org.joe_e.IsJoeE package org.ref_send.data;
+@org.joe_e.IsJoeE package org.ref_send.custom;
