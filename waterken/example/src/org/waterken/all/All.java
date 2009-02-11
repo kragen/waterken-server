@@ -8,6 +8,7 @@ import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
+import org.ref_send.promise.Vat;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Task;
 import org.ref_send.promise.Volatile;
@@ -42,16 +43,17 @@ All {
         r = r.with(SoundCheck.make(_));
         
         _.log.comment("testing argument passing");
-        final Wall wall_ = _.spawn("wall", Bounce.class);
-        r = r.with(Pitch.make(_, wall_));
+        final Vat<Wall> wall = _.spawn("wall", Bounce.class);
+        r = r.with(Pitch.make(_, wall.root));
         
         _.log.comment("testing message pipelining");
-        final Drum drum_ = _.spawn("drum", Bang.class);
-        r = r.with(Beat.make(_, drum_));
+        final Vat<Drum> drum = _.spawn("drum", Bang.class);
+        r = r.with(Beat.make(_, drum.root));
         
         _.log.comment("testing interpreted objects");
-        final Folder<ByteArray> folder_ = _.spawn("folder", FolderMaker.class);
-        r = r.with(SetGet.make(_, folder_));
+        final Vat<Folder<ByteArray>> folder =
+            _.spawn("folder", FolderMaker.class);
+        r = r.with(SetGet.make(_, folder.root));
         
         _.log.comment("testing promise resolution");
         r = r.with(PopPushN.make(_, 4));
