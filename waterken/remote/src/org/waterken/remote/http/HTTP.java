@@ -22,11 +22,10 @@ import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Invoke;
 import org.ref_send.promise.Log;
-import org.ref_send.promise.Sink;
-import org.ref_send.promise.Vat;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Task;
+import org.ref_send.promise.Vat;
 import org.ref_send.type.Typedef;
 import org.waterken.db.Creator;
 import org.waterken.db.Database;
@@ -97,10 +96,12 @@ HTTP extends Eventual implements Serializable {
                 (R)connect.run(rd.get(0), here, R)
             );
         } catch (final BadSyntax e) {
-            return new Vat(new Sink<Void>(),
+            final Receiver<?> destruct = cast(Receiver.class, null);
+            return new Vat(destruct,
                            new Rejected<R>((Exception)e.getCause())._(R));
         } catch (final Exception e) {
-            return new Vat(new Sink<Void>(), new Rejected<R>(e)._(R));
+            final Receiver<?> destruct = cast(Receiver.class, null);
+            return new Vat(destruct, new Rejected<R>(e)._(R));
         }
     }
     
