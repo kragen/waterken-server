@@ -12,6 +12,7 @@ Query<T> extends Interpreted {
 
     /**
      * Gets an identified value.
+     * @param <R>   expected value type
      * @param name  value identifier
      * @return corresponding value, or <code>null</code> if none
      */

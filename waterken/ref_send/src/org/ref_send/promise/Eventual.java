@@ -154,14 +154,6 @@ Eventual implements Receiver<Task<?>>, Serializable {
     public    final Log log;
 
     /**
-     * permission to destruct this vat
-     * <p>
-     * call like: <code>destruct.run(null)</code>
-     * </p>
-     */
-    public    final Receiver<?> destruct;
-
-    /**
      * Constructs an instance.
      * @param deferred  {@link Deferred} permission
      * @param enqueue   raw {@link #run event loop}
@@ -171,12 +163,11 @@ Eventual implements Receiver<Task<?>>, Serializable {
      */
     public
     Eventual(final Token deferred, final Receiver<Task<?>> enqueue,
-             final String here, final Log log, final Receiver<?> destruct) {
+             final String here, final Log log) {
         this.deferred = deferred;
         this.enqueue = enqueue;
         this.here = here;
         this.log = log;
-        this.destruct = destruct;
     }
 
     /**
@@ -185,7 +176,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
      */
     public
     Eventual(final Receiver<Task<?>> enqueue) {
-        this(new Token(), enqueue, "", new NOP(), new Sink<Void>());
+        this(new Token(), enqueue, "", new NOP());
     }
 
     // org.ref_send.promise.eventual.Loop interface
@@ -919,7 +910,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * @param optional  more arguments for <code>maker</code>'s make method
      * @return promise for the object returned by the <code>maker</code>
      */
-    public @SuppressWarnings("unchecked") <R> R
+    public @SuppressWarnings("unchecked") <R> Vat<R>
     spawn(final String label, final Class<?> maker, final Object... optional) {
         /**
          * The default implementation just calls the make method in a separate
@@ -944,7 +935,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
             }
             invoke = new Invoke<Class<?>>(make, argv);
         } catch (final Exception e) { throw new Error(e); }
-        return (R)when(maker, invoke);
+        return new Vat(null, (R)when(maker, invoke));
     }
 
     // Debugging assistance
