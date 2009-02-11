@@ -4,7 +4,6 @@ package org.waterken.http;
 
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Sink;
 import org.waterken.uri.Header;
 
 /**
@@ -60,7 +59,7 @@ TokenList {
             r = r.with(list.substring(beginToken, endToken));
 
             // discard the parameters
-            i = parseParameters(list, i, end, new Sink<Header>());
+            i = parseParameters(list, i, end, null);
         }
         return r;
     }
@@ -120,7 +119,7 @@ TokenList {
                 endValue = i;
             }
             final String value = list.substring(beginValue, endValue);
-            out.run(new Header(name, value));
+            if (null != out) { out.run(new Header(name, value)); }
         }
     	return i;
     }
