@@ -3,8 +3,8 @@
 package org.waterken.folder;
 
 import org.joe_e.array.ByteArray;
-import org.ref_send.data.Query;
-import org.ref_send.data.Update;
+import org.ref_send.custom.Query;
+import org.ref_send.custom.Update;
 
 /**
  * A [ name =&gt; byte array ] mapping.

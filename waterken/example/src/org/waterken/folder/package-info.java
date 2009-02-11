@@ -2,6 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 
 /**
- * Tests the {@link org.ref_send.data} interface.
+ * Tests the {@link org.ref_send.custom} interface.
  */
 @org.joe_e.IsJoeE package org.waterken.folder;
