@@ -22,9 +22,7 @@ import org.ref_send.promise.Receiver;
  */
 public final class
 EventSender {
-
-    private
-    EventSender() {}
+    private EventSender() {}
     
     /**
      * Constructs a log event generator.
@@ -33,8 +31,7 @@ EventSender {
      * @param tracer    stack tracer
      */
     static public Log
-    makeLog(final Receiver<Event> stderr,
-            final Marker mark, final Tracer tracer) {
+    make(final Receiver<Event> stderr, final Marker mark, final Tracer tracer) {
         class LogX implements Log, Equatable, Serializable {
             static private final long serialVersionUID = 1L;
 
