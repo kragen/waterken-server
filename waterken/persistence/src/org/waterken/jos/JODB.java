@@ -566,7 +566,7 @@ JODB<S> extends Database<S> {
                             local.link(Database.destruct,
                                        makeDestructor(effect));
                             local.link(Database.log,
-                                EventSender.makeLog(txerr, turn.mark, tracer));
+                                EventSender.make(txerr, turn.mark, tracer));
                             return setup.run(local);
                         }
                     });
