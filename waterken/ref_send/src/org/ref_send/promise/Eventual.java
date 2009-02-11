@@ -159,7 +159,6 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * @param enqueue   raw {@link #run event loop}
      * @param here      URI for the event loop
      * @param log       {@link #log}
-     * @param destruct  {@link #destruct}
      */
     public
     Eventual(final Token deferred, final Receiver<Task<?>> enqueue,
@@ -886,7 +885,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * Creates a sub-vat.
      * <p>
      * All created vats will be destructed when this vat is
-     * {@linkplain #destruct destructed}.
+     * {@linkplain Vat#destruct destructed}.
      * </p>
      * <p>
      * The <code>maker</code> MUST have a method with signature:
