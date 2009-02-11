@@ -563,9 +563,8 @@ JODB<S> extends Database<S> {
                                 local.fetch(null, Database.effect);
                             final Receiver<Event> txerr =
                                 local.fetch(null, JODB.txerr);
-                            local.link(Database.destruct, EventSender.
-                                makeDestructor(makeDestructor(effect), txerr,
-                                               turn.mark, tracer));
+                            local.link(Database.destruct,
+                                       makeDestructor(effect));
                             local.link(Database.log,
                                 EventSender.makeLog(txerr, turn.mark, tracer));
                             return setup.run(local);
