@@ -16,11 +16,10 @@ import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.promise.Compose;
+import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Fulfilled;
-import org.ref_send.promise.Invoke;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Rejected;
@@ -133,7 +132,7 @@ HTTP extends Eventual implements Serializable {
             if (isPromise(URI.fragment("", href))) {
                 peer(href).when(href, proxy, observer);
             } else {
-                final Class<?> p = Typedef.raw(Compose.parameter(observer));
+                final Class<?> p = Typedef.raw(Deferred.parameter(observer));
                 _.when(Eventual.ref(_.cast(p, proxy)), observer);
             }
         }
@@ -145,7 +144,8 @@ HTTP extends Eventual implements Serializable {
                 // re-dispatch invocation on resolved value of web-key
                 final ConstArray<?> argv =
                     ConstArray.array(null == arg ? new Object[0] : arg);
-                return _.when(proxy, new Invoke<Object>(method, argv));
+                final Do<Object,Object> invoke = Deferred.invoke(method, argv);
+                return _.when(proxy, invoke);
             } else {
                 return peer(href).invoke(href, proxy, method, arg);
             }
