@@ -181,7 +181,7 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
      * @param argv      invocation arguments
      */
     static public <T> Do<T,Object>
-    invoke(final Method method, final @inert ConstArray<?> argv) {
+    curry(final Method method, final @inert ConstArray<?> argv) {
         return new Invoke<T>(method, argv);
     }
     
