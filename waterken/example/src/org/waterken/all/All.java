@@ -17,6 +17,9 @@ import org.waterken.bounce.Bounce;
 import org.waterken.bounce.Pitch;
 import org.waterken.bounce.Wall;
 import org.waterken.eq.SoundCheck;
+import org.waterken.folder.Folder;
+import org.waterken.folder.FolderMaker;
+import org.waterken.folder.SetGet;
 import org.waterken.serial.PopPushN;
 
 /**
@@ -44,6 +47,10 @@ All {
         _.log.comment("testing message pipelining");
         final Drum drum_ = _.spawn("drum", Bang.class);
         r = r.with(Beat.make(_, drum_));
+        
+        _.log.comment("testing interpreted objects");
+        final Folder folder_ = _.spawn("folder", FolderMaker.class);
+        r = r.with(SetGet.make(_, folder_));
         
         _.log.comment("testing promise resolution");
         r = r.with(PopPushN.make(_, 4));
