@@ -907,7 +907,8 @@ Eventual implements Receiver<Task<?>>, Serializable {
      *                  if <code>null</code> a label will be generated
      * @param maker     constructor class
      * @param optional  more arguments for <code>maker</code>'s make method
-     * @return promise for the object returned by the <code>maker</code>
+     * @return sub-vat permissions, including a promise for the object returned
+     *         by the <code>maker</code>
      */
     public @SuppressWarnings("unchecked") <R> Vat<R>
     spawn(final String label, final Class<?> maker, final Object... optional) {
