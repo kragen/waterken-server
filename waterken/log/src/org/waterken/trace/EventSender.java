@@ -6,9 +6,7 @@ import java.io.Serializable;
 import java.lang.reflect.Member;
 
 import org.joe_e.Equatable;
-import org.joe_e.Struct;
 import org.ref_send.log.Comment;
-import org.ref_send.log.Death;
 import org.ref_send.log.Event;
 import org.ref_send.log.Got;
 import org.ref_send.log.Problem;
@@ -27,28 +25,6 @@ EventSender {
 
     private
     EventSender() {}
-    
-    /**
-     * Constructs a loop destructor that outputs a log event.
-     * @param destruct  raw event loop destructor
-     * @param stderr    log event output
-     * @param mark      event counter
-     * @param tracer    stack tracer
-     */
-    static public Receiver<Object>
-    makeDestructor(final Receiver<?> destruct, final Receiver<Event> stderr,
-                   final Marker mark, final Tracer tracer) {
-        class Destruct extends Struct implements Receiver<Object>, Serializable{
-            static private final long serialVersionUID = 1L;
-            
-            public void
-            run(final Object value) {
-                destruct.run(null);
-                stderr.run(new Death(mark.run(), tracer.traceHere()));
-            }
-        }
-        return new Destruct();
-    }
     
     /**
      * Constructs a log event generator.
