@@ -21,8 +21,8 @@ SetGet {
     private SetGet() {}
     
     static public Promise<Boolean>
-    make(final Eventual _, final Folder x) {
-        final Folder x_ = _._(x);
+    make(final Eventual _, final Folder<ByteArray> x) {
+        final Folder<ByteArray> x_ = _._(x);
 
         ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
         
@@ -43,8 +43,8 @@ SetGet {
     static public void
     main(final String[] args) throws Exception {
         final List<Task<?>> work = List.list();
-        final Promise<Boolean> result =
-            make(new Eventual(work.appender()), FolderMaker.make());
+        final Folder<ByteArray> x = FolderMaker.make();
+        final Promise<Boolean> result = make(new Eventual(work.appender()), x);
         while (!work.isEmpty()) { work.pop().run(); }
         if (!result.cast()) { throw new Exception("test failed"); }
     }

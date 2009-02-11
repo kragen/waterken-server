@@ -2,12 +2,11 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.folder;
 
-import org.joe_e.array.ByteArray;
 import org.ref_send.custom.Query;
 import org.ref_send.custom.Update;
 
 /**
- * A [ name =&gt; byte array ] mapping.
+ * A [ name =&gt; value ] mapping.
  */
 public interface
-Folder extends Query<ByteArray>, Update<ByteArray,Void> {}
+Folder<T> extends Query<T>, Update<T,Void> {}

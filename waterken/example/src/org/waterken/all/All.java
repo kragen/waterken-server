@@ -4,6 +4,7 @@ package org.waterken.all;
 
 import static org.ref_send.test.Logic.and;
 
+import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
@@ -49,7 +50,7 @@ All {
         r = r.with(Beat.make(_, drum_));
         
         _.log.comment("testing interpreted objects");
-        final Folder folder_ = _.spawn("folder", FolderMaker.class);
+        final Folder<ByteArray> folder_ = _.spawn("folder", FolderMaker.class);
         r = r.with(SetGet.make(_, folder_));
         
         _.log.comment("testing promise resolution");
