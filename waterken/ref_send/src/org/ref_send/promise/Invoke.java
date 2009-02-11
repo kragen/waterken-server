@@ -12,7 +12,7 @@ import org.joe_e.reflect.Reflection;
 /**
  * Implementation plumbing that users should ignore.
  */
-public final class
+/* package */ final class
 Invoke<T> extends Do<T,Object> implements Serializable {
     static private final long serialVersionUID = 1L;
     

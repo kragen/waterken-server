@@ -272,7 +272,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
         try {
             final R r;
             final Do<T,?> forwarder;
-            final Class<?> R = Typedef.raw(Compose.output(T, observer));
+            final Class<?> R = Typedef.raw(Deferred.output(T, observer));
             if (void.class == R || Void.class == R) {
                 r = null;
                 forwarder = observer;
@@ -347,10 +347,10 @@ Eventual implements Receiver<Task<?>>, Serializable {
         try {
             a = ref(promise.cast()).cast();
         } catch (final Exception reason) {
-            log.got(message, Compose.rejecter(observer));
+            log.got(message, Deferred.rejecter(observer));
             return observer.reject(reason);
         }
-        log.got(message, Compose.fulfiller(a.getClass(), observer));
+        log.got(message, Deferred.fulfiller(a.getClass(), observer));
         return observer.fulfill(a);
     }
 
