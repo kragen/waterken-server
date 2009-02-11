@@ -22,6 +22,7 @@ import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Invoke;
 import org.ref_send.promise.Log;
+import org.ref_send.promise.Sink;
 import org.ref_send.promise.Vat;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Rejected;
@@ -96,9 +97,10 @@ HTTP extends Eventual implements Serializable {
                 (R)connect.run(rd.get(0), here, R)
             );
         } catch (final BadSyntax e) {
-            return new Vat(null, new Rejected<R>((Exception)e.getCause())._(R));
+            return new Vat(new Sink<Void>(),
+                           new Rejected<R>((Exception)e.getCause())._(R));
         } catch (final Exception e) {
-            return new Vat(null, new Rejected<R>(e)._(R));
+            return new Vat(new Sink<Void>(), new Rejected<R>(e)._(R));
         }
     }
     
