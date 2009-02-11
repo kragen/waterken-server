@@ -935,7 +935,8 @@ Eventual implements Receiver<Task<?>>, Serializable {
             }
             invoke = new Invoke<Class<?>>(make, argv);
         } catch (final Exception e) { throw new Error(e); }
-        return new Vat(new Sink<Void>(), (R)when(maker, invoke));
+        final Receiver<?> destruct = cast(Receiver.class, null);
+        return new Vat(destruct, (R)when(maker, invoke));
     }
 
     // Debugging assistance
