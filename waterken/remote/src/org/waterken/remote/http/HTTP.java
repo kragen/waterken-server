@@ -144,7 +144,7 @@ HTTP extends Eventual implements Serializable {
                 // re-dispatch invocation on resolved value of web-key
                 final ConstArray<?> argv =
                     ConstArray.array(null == arg ? new Object[0] : arg);
-                final Do<Object,Object> invoke = Deferred.invoke(method, argv);
+                final Do<Object,Object> invoke = Deferred.curry(method, argv);
                 return _.when(proxy, invoke);
             } else {
                 return peer(href).invoke(href, proxy, method, arg);
