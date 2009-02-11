@@ -24,7 +24,6 @@ Deserializer extends Powerless {
      * @return each deserialized argument
      * @throws Exception    any exception
      */
-    ConstArray<?>
-    run(String base, Importer connect, ConstArray<Type> parameters,
-        ClassLoader code, InputStream content) throws Exception;
+    ConstArray<?> run(String base,Importer connect, ConstArray<Type> parameters,
+                      ClassLoader code, InputStream content) throws Exception;
 }

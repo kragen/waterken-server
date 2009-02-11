@@ -13,6 +13,5 @@ Exporter {
      * @param target    reference to export
      * @return exported URL
      */
-    String
-    run(Object target);
+    String run(Object target);
 }

@@ -18,6 +18,5 @@ Serializer extends Powerless {
      * @param values    each argument to serialize
      * @return serialized content
      */
-    ByteArray
-    run(Exporter export, ConstArray<?> values) throws Exception;
+    ByteArray run(Exporter export, ConstArray<?> values) throws Exception;
 }
