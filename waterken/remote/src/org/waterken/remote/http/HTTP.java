@@ -13,6 +13,7 @@ import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
+import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Compose;
@@ -21,6 +22,7 @@ import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Invoke;
 import org.ref_send.promise.Log;
+import org.ref_send.promise.Vat;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Task;
@@ -55,9 +57,9 @@ HTTP extends Eventual implements Serializable {
 
     private
     HTTP(final Receiver<Task<?>> enqueue,
-         final String here, final Log log, final Receiver<?> destruct,
+         final String here, final Log log,
          final Root local, final Fulfilled<Outbound> outbound) {
-        super(new Token(), enqueue, here, log, destruct);
+        super(new Token(), enqueue, here, log);
         this.local = local;
         this.outbound = outbound;
         
@@ -67,7 +69,7 @@ HTTP extends Eventual implements Serializable {
     
     // org.ref_send.promise.eventual.Eventual interface
 
-    public @Override @SuppressWarnings("unchecked") <R> R
+    public @Override @SuppressWarnings("unchecked") <R> Vat<R>
     spawn(final String label, final Class<?> maker, final Object... argv) {
         Method make = null;
         try {
@@ -85,14 +87,18 @@ HTTP extends Eventual implements Serializable {
             log.sent(here + URLEncoding.encode(label) + "/#make");
             final Exports http = new Exports(this);
             final ByteArray body = new JSONSerializer().run(
-                    http.export(), ConstArray.array(argv));  
-            final String href = creator.run(null, here, label,
-                new VatInitializer(make, here, body)).cast().get(0);
-            return (R)http.connect().run(href, here, R);
+                    http.export(), ConstArray.array(argv)); 
+            final PowerlessArray<String> rd = creator.run(null, here, label,
+                new VatInitializer(make, here, body)).cast();
+            final Importer connect = http.connect();
+            return new Vat(
+                (Receiver<?>)connect.run(rd.get(1), here, Receiver.class),
+                (R)connect.run(rd.get(0), here, R)
+            );
         } catch (final BadSyntax e) {
-            return new Rejected<R>((Exception)e.getCause())._(R);
+            return new Vat(null, new Rejected<R>((Exception)e.getCause())._(R));
         } catch (final Exception e) {
-            return new Rejected<R>(e)._(R);
+            return new Vat(null, new Rejected<R>(e)._(R));
         }
     }
     
@@ -102,8 +108,7 @@ HTTP extends Eventual implements Serializable {
     make(final Receiver<Task<?>> enqueue, final Root local,
          final Log log, final Fulfilled<Outbound> outbound) {
         final String here = local.fetch(null, Database.here);
-        final Receiver<?> destruct = local.fetch(null, Database.destruct);
-        return new Exports(new HTTP(enqueue,here,log,destruct, local,outbound));
+        return new Exports(new HTTP(enqueue, here, log, local, outbound));
     }
     
     static protected final class

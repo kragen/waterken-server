@@ -23,6 +23,7 @@ import org.waterken.db.Effect;
 import org.waterken.db.Root;
 import org.waterken.db.Transaction;
 import org.waterken.http.Server;
+import org.waterken.syntax.Exporter;
 import org.waterken.syntax.json.JSONDeserializer;
 
 /**
@@ -72,8 +73,10 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             argv[i + 1] = optional.get(i);
         }
         final Object value = Reflection.invoke(make, null, argv);
-        return PowerlessArray.array(HTTP.changeBase(
-                exports.getHere(), exports.export(), base).run(value));
+        final Exporter export =
+            HTTP.changeBase(exports.getHere(), exports.export(), base);
+        final Receiver<?> destruct = local.fetch(null, Database.destruct);
+        return PowerlessArray.array(export.run(value), export.run(destruct));
     }
     
     static public String
