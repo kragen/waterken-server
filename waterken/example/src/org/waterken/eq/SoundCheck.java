@@ -13,8 +13,6 @@ import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Log;
-import org.ref_send.promise.NOP;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Task;
@@ -34,7 +32,7 @@ SoundCheck {
     static public Promise<Boolean>
     make(final Eventual _) throws Exception {
         ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
-        r = r.with(testNormal(_, new NOP()));
+        r = r.with(testNormal(_, _));
         r = r.with(testNull(_, null));
         r = r.with(testDouble(_));
         r = r.with(testFloat(_));
@@ -44,7 +42,7 @@ SoundCheck {
     /**
      * Tests promises for a normal reference.
      */
-    static private <T extends Log> Promise<Boolean>
+    static private <T extends Receiver<?>> Promise<Boolean>
     testNormal(final Eventual _, final T x) throws Exception {
         ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
         
@@ -80,7 +78,7 @@ SoundCheck {
     /**
      * Tests promises for a <code>null</code>.
      */
-    static private <T extends Log> Promise<Boolean>
+    static private <T extends Receiver<?>> Promise<Boolean>
     testNull(final Eventual _, final T x) throws Exception {
         ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
         

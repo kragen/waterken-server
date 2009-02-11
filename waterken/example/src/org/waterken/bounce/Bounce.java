@@ -22,9 +22,8 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.array.ShortArray;
 import org.ref_send.promise.Channel;
 import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Log;
-import org.ref_send.promise.NOP;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Rejected;
 
 /**
@@ -40,8 +39,9 @@ Bounce {
      */
     static public Wall
     make(final Eventual _) {
-        final Log normal = new NOP();
-        final Rejected<Log> rejected = new Rejected<Log>(new Exception());
+        final Receiver<?> normal = _;
+        final Rejected<Receiver<?>> rejected =
+            new Rejected<Receiver<?>>(new Exception());
         final Channel<Boolean> d = _.defer(); 
         class WallX extends Struct implements Wall, Serializable {
             static private final long serialVersionUID = 1L;
@@ -67,10 +67,10 @@ Bounce {
                     IntArray.array(0, Integer.MAX_VALUE, Integer.MIN_VALUE),
                     LongArray.array(0L, (1L << 53) - 1, -((1L << 53) - 1)),
                     "a \" \\ / </ < > \b \f \n \r \t \u0085",
-                    new ConstArray<Log>().
+                    new ConstArray<Receiver<?>>().
                         with(normal).
                         with(null).
-                        with(rejected._(Log.class)),
+                        with(rejected._(Receiver.class)),
                     new ConstArray<Promise<?>>().
                         with(ref(false)).
                         with(ref(Integer.MAX_VALUE)).
