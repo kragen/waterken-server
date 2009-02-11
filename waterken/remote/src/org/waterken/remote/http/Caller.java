@@ -116,10 +116,11 @@ Caller extends Struct implements Messenger, Serializable {
             resolver = x.resolver;
         }
         final String base = URI.resolve(here, href);
-        if (1 == arg.length && "get".equals(method.getName()) &&
+        if (null != arg && 1 == arg.length && "get".equals(method.getName()) &&
                    Query.class.isAssignableFrom(method.getDeclaringClass())) {
             get(resolver, base, (String)arg[0], type, method);
-        } else if (2 == arg.length && "run".equals(method.getName()) &&
+        } else if (null != arg && 2 == arg.length &&
+                   "run".equals(method.getName()) &&
                    Update.class.isAssignableFrom(method.getDeclaringClass())) {
             post(resolver, base, (String)arg[0], type, method,
                  ConstArray.array(arg[1]));
