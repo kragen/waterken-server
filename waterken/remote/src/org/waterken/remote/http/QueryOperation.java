@@ -3,7 +3,8 @@
 package org.waterken.remote.http;
 
 /**
- * A {@link Operation} with side-effects.
+ * An idempotent {@link Operation} whose return may be affected by a subsequent
+ * {@link UpdateOperation}.
  */
 /* package */ interface
-Update {}
+QueryOperation {}

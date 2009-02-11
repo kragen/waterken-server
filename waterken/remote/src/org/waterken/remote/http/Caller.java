@@ -10,6 +10,8 @@ import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
+import org.ref_send.data.Query;
+import org.ref_send.data.Update;
 import org.ref_send.promise.Channel;
 import org.ref_send.promise.Compose;
 import org.ref_send.promise.Do;
@@ -114,13 +116,22 @@ Caller extends Struct implements Messenger, Serializable {
             resolver = x.resolver;
         }
         final String base = URI.resolve(here, href);
-        final String property = HTTP.property(method);
-        if (null != property) {
-            get(resolver, base, property, type, method);
+        if (1 == arg.length && "get".equals(method.getName()) &&
+                   Query.class.isAssignableFrom(method.getDeclaringClass())) {
+            get(resolver, base, (String)arg[0], type, method);
+        } else if (2 == arg.length && "run".equals(method.getName()) &&
+                   Update.class.isAssignableFrom(method.getDeclaringClass())) {
+            post(resolver, base, (String)arg[0], type, method,
+                 ConstArray.array(arg[1]));
         } else {
-            // TODO: implement pipeline references?
-            post(resolver, base, method.getName(), type, method,
-                 ConstArray.array(null == arg ? new Object[0] : arg));
+            final String property = HTTP.property(method);
+            if (null != property) {
+                get(resolver, base, property, type, method);
+            } else {
+                // TODO: implement pipeline references?
+                post(resolver, base, method.getName(), type, method,
+                     ConstArray.array(null == arg ? new Object[0] : arg));
+            }
         }
         return r_;
     }
@@ -128,7 +139,7 @@ Caller extends Struct implements Messenger, Serializable {
     private void
     get(final Resolver<Object> resolver, final String href, final String name,
         final Class<?> type, final Method method) {
-        class GET extends Operation implements Query, Serializable {
+        class GET extends Operation implements QueryOperation, Serializable {
             static private final long serialVersionUID = 1L;
 
             public Message<Request>
@@ -166,7 +177,7 @@ Caller extends Struct implements Messenger, Serializable {
     private void
     post(final Resolver<Object> resolver, final String href, final String name,
          final Class<?> type, final Method method, final ConstArray<?> argv) {
-        class POST extends Operation implements Update, Serializable {
+        class POST extends Operation implements UpdateOperation, Serializable {
             static private final long serialVersionUID = 1L;
             
             public Message<Request>

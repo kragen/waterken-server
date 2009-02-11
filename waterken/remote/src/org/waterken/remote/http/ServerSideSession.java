@@ -49,7 +49,8 @@ ServerSideSession implements Serializable {
             r = new Rejected<Object>(e);
         }
         returns = returns.with(r);
-        if (void.class != method.getReturnType()) {
+        final Class<?> R = method.getReturnType();
+        if (void.class != R && Void.class != R) {
             log.returned(name + "-" + window + "-" + message + "-return");
         }
         return r;

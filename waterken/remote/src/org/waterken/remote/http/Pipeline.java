@@ -84,7 +84,7 @@ Pipeline implements Serializable {
         pending.append(operation);
         final long mid = acknowledged + pending.getSize();
         final String guid;
-        if (operation instanceof Update) {
+        if (operation instanceof UpdateOperation) {
             if (0 != queries) {
                 halts += 1;
                 queries = 0;
@@ -95,7 +95,7 @@ Pipeline implements Serializable {
         } else {
             guid = name + "-0-" + mid;
         }
-        if (operation instanceof Query) {
+        if (operation instanceof QueryOperation) {
             queries += 1;
         }
         if (0 == halts) { effect.run(restart(peer, 1, mid)); }
@@ -111,10 +111,10 @@ Pipeline implements Serializable {
             Eventual.near(outbound).remove(this);
         }
         acknowledged += 1;
-        if (front instanceof Update) {
+        if (front instanceof UpdateOperation) {
             activeIndex += 1;
         }
-        if (front instanceof Query) {
+        if (front instanceof QueryOperation) {
             if (0 == halts) {
                 queries -= 1;
             } else {
@@ -126,14 +126,14 @@ Pipeline implements Serializable {
                 long skipTo = acknowledged;
                 for (final Operation x : pending) {
                     ++skipTo;
-                    if (x instanceof Update) {
+                    if (x instanceof UpdateOperation) {
                         halts -= 1;
                         activeWindow += 1;
                         activeIndex = -1;
                         effect.run(restart(peer, max, skipTo));
                         break;
                     }
-                    if (x instanceof Query) { break; }
+                    if (x instanceof QueryOperation) { break; }
                     --max;
                 }
             }
@@ -167,11 +167,11 @@ Pipeline implements Serializable {
                     boolean found = false;
                     int n = max;
                     for (final Operation x : m.pending) {
-                        if (x instanceof Update) {
+                        if (x instanceof UpdateOperation) {
                             if (queried) { break; }
                             index += 1;
                         }
-                        if (x instanceof Query) { queried = true; }
+                        if (x instanceof QueryOperation) { queried = true; }
                         sent += 1;
                         found = found || skipTo == sent;
                         if (!found) { continue; }
@@ -179,7 +179,7 @@ Pipeline implements Serializable {
                        
                         final long mid = sent;
                         final String guid;
-                        if (x instanceof Update) {
+                        if (x instanceof UpdateOperation) {
                             guid = m.name + "-" + window + "-" + index;
                         } else {
                             guid = m.name + "-0-" + mid;
