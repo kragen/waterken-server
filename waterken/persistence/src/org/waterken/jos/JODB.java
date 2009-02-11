@@ -36,11 +36,11 @@ import org.ref_send.promise.NOP;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Rejected;
-import org.ref_send.promise.Sink;
 import org.ref_send.promise.Task;
 import org.waterken.base32.Base32;
 import org.waterken.db.Creator;
 import org.waterken.db.CyclicGraph;
+import org.waterken.db.Database;
 import org.waterken.db.Effect;
 import org.waterken.db.ProhibitedCreation;
 import org.waterken.db.ProhibitedModification;
@@ -48,11 +48,10 @@ import org.waterken.db.Root;
 import org.waterken.db.Service;
 import org.waterken.db.Transaction;
 import org.waterken.db.UnknownClass;
-import org.waterken.db.Database;
 import org.waterken.project.Project;
-import org.waterken.store.WriteOnly;
 import org.waterken.store.Store;
 import org.waterken.store.Update;
+import org.waterken.store.WriteOnly;
 import org.waterken.trace.EventSender;
 import org.waterken.trace.Tracer;
 import org.waterken.trace.TurnCounter;
@@ -545,7 +544,10 @@ JODB<S> extends Database<S> {
                     prng.nextBytes(bits);
                     final ByteArray secretBits = ByteArray.array(bits);
                     final JODB<S> sub = new JODB<S>(null, null,
-                        null == stderr ? new Sink<Event>() : stderr, subStore);
+                        null == stderr ? new Receiver<Event>() {
+                            public void
+                            run(final Event value) {}
+                    } : stderr, subStore);
                     sub.project = null != project ? project : JODB.this.project;
                     sub.code = Project.connect(sub.project);
                     return sub.process(Transaction.update, new Transaction<X>(){
