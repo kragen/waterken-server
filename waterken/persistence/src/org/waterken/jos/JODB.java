@@ -31,8 +31,8 @@ import org.joe_e.file.InvalidFilenameException;
 import org.joe_e.reflect.Reflection;
 import org.joe_e.var.Milestone;
 import org.ref_send.log.Event;
+import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Eventual;
-import org.ref_send.promise.NOP;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Rejected;
@@ -603,7 +603,7 @@ JODB<S> extends Database<S> {
             f2b.put(canonicalize(".root"),          new Bucket(root));
             if (null == stderr) {
                 // short-circuit the log implementation
-                f2b.put(canonicalize(Database.log), new Bucket(new NOP()));
+                f2b.put(canonicalize(Database.log), new Bucket(Deferred.nop()));
             }
             for (final Map.Entry<String,Bucket> x : f2b.entrySet()) {
                 o2f.put(x.getValue().value, x.getKey());
