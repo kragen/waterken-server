@@ -176,6 +176,12 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
     }
     
     /**
+     * Constructs a log event sink.
+     */
+    static public Log
+    nop() { return new NOP(); }
+    
+    /**
      * Constructs a pending invocation.
      * @param method    method to invoke
      * @param argv      invocation arguments

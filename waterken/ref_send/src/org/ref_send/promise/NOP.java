@@ -10,17 +10,9 @@ import org.joe_e.Equatable;
 /**
  * A log that discards all events.
  */
-public final class
+/* package */ final class
 NOP implements Log, Equatable, Serializable {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * Constructs an instance.
-     */
-    public
-    NOP() {}
-    
-    // org.ref_send.promise.eventual.Log interface
     
     /**
      * NOP
