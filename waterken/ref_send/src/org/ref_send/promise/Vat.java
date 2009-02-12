@@ -10,14 +10,14 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * Permissions granted to the creator of a vat.  
+ * A return from a {@linkplain Eventual#spawn vat creation}.
  */
 public class
 Vat<T> extends Struct implements Record, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
-     * permission to destruct the vat
+     * destruct the vat
      * <p>
      * call like: <code>destruct.run(null)</code>
      * </p>
