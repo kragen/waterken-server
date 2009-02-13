@@ -130,7 +130,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         } else if (Void.class == actual) {
             out.writeNull();
         } else if (Scope.class == actual) {
-            final Scope scope = (Scope)value;
+            final Scope<?> scope = (Scope<?>)value;
             /*
              * SECURITY DEPENDENCY: Application code cannot extend ConstArray,
              * so iteration of the scope arrays will not transfer control to
