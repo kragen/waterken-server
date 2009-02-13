@@ -17,9 +17,6 @@ import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.custom.Interpreted;
-import org.ref_send.custom.Query;
-import org.ref_send.custom.Update;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Rejected;
@@ -100,64 +97,6 @@ Callee extends Struct implements Serializable {
         if (HTTP.isPBC(target)) {
             // prevent access to local implementation details
             return new Message<Response>(Response.gone(), null);
-        }
-        
-        if (target instanceof Query &&
-                ("GET".equals(m.head.method) || "HEAD".equals(m.head.method))) {
-            Object value;
-            try {
-                value = ((Query<?>)target).get(p);
-            } catch (final Exception e) {
-                value = new Rejected<Object>(e);
-            }
-            final String etag = exports.getTransactionTag();
-            final Response failed = m.head.allow(etag);
-            if (null != failed) {return new Message<Response>(failed,null);}
-            Message<Response> r = serialize(m.head.method, "200", "OK",
-                                            Server.ephemeral, value);
-            if (!"".equals(etag)) {
-                r = new Message<Response>(r.head.with("ETag",etag), r.body);
-            }
-            return r;
-        }
-        if (target instanceof Update && "POST".equals(m.head.method)) {
-            final Response failed = m.head.allow(null);
-            if (null != failed) { return new Message<Response>(failed, null); }
-            final Method lambda = HTTP.dispatch(target, "run");
-            final Object value= exports.execute(query,lambda,new Task<Object>(){
-                public @SuppressWarnings("unchecked") Object
-                run() throws Exception {
-                    /*
-                     * SECURITY CLAIM: deserialize inside the once block to
-                     * ensure application code cannot detect request replay by
-                     * causing failed deserialization
-                     */ 
-                    final Object arg;
-                    try {
-                        arg = deserialize(m, ConstArray.array(
-                            lambda.getGenericParameterTypes()[1])).get(0);
-                    } catch (final BadSyntax e) {
-                        /*
-                         * strip out the parsing information to avoid leaking
-                         * information to the application layer
-                         */ 
-                        throw (Exception)e.getCause();
-                    }
-
-                    // AUDIT: call to untrusted application code
-                    return ((Update<Object,Object>)target).run(p, arg);
-                }
-            });
-            return serialize(m.head.method,"200","OK", Server.ephemeral, value);
-        }
-        if (target instanceof Interpreted) {
-            PowerlessArray<String> methods =
-                PowerlessArray.array("TRACE", "OPTIONS");
-            if (target instanceof Query) { methods = methods.with("GET"); }
-            if (target instanceof Update){ methods = methods.with("POST");}
-            final String[] allow = methods.toArray(new String[0]);
-            return new Message<Response>("OPTIONS".equals(m.head.method) ?
-                Response.options(allow) : Response.notAllowed(allow), null);
         }
         
         // determine the type of accessed member
@@ -312,11 +251,11 @@ Callee extends Struct implements Serializable {
         return null;
     }
     
-    static private Scope
+    static private Scope<?>
     describe(final Class<?> type) {
         final Object ts = types(type);
-        return new Scope(new Layout(PowerlessArray.array("$")),
-                         ConstArray.array(ts));
+        return new Scope<Object>(new Layout(PowerlessArray.array("$")),
+                                 ConstArray.array(ts));
     }
     
     /**

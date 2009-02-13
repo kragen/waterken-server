@@ -10,8 +10,6 @@ import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
-import org.ref_send.custom.Query;
-import org.ref_send.custom.Update;
 import org.ref_send.promise.Channel;
 import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Do;
@@ -116,23 +114,13 @@ Caller extends Struct implements Messenger, Serializable {
             resolver = x.resolver;
         }
         final String base = URI.resolve(here, href);
-        if (null != arg && 1 == arg.length && "get".equals(method.getName()) &&
-                   Query.class.isAssignableFrom(method.getDeclaringClass())) {
-            get(resolver, base, (String)arg[0], type, method);
-        } else if (null != arg && 2 == arg.length &&
-                   "run".equals(method.getName()) &&
-                   Update.class.isAssignableFrom(method.getDeclaringClass())) {
-            post(resolver, base, (String)arg[0], type, method,
-                 ConstArray.array(arg[1]));
+        final String property = HTTP.property(method);
+        if (null != property) {
+            get(resolver, base, property, type, method);
         } else {
-            final String property = HTTP.property(method);
-            if (null != property) {
-                get(resolver, base, property, type, method);
-            } else {
-                // TODO: implement pipeline references?
-                post(resolver, base, method.getName(), type, method,
-                     ConstArray.array(null == arg ? new Object[0] : arg));
-            }
+            // TODO: implement pipeline references?
+            post(resolver, base, method.getName(), type, method,
+                 ConstArray.array(null == arg ? new Object[0] : arg));
         }
         return r_;
     }
