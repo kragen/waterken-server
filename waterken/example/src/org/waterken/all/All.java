@@ -4,13 +4,12 @@ package org.waterken.all;
 
 import static org.ref_send.test.Logic.and;
 
-import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Vat;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Task;
+import org.ref_send.promise.Vat;
 import org.ref_send.promise.Volatile;
 import org.waterken.bang.Bang;
 import org.waterken.bang.Beat;
@@ -19,9 +18,6 @@ import org.waterken.bounce.Bounce;
 import org.waterken.bounce.Pitch;
 import org.waterken.bounce.Wall;
 import org.waterken.eq.SoundCheck;
-import org.waterken.folder.Folder;
-import org.waterken.folder.FolderMaker;
-import org.waterken.folder.SetGet;
 import org.waterken.serial.PopPushN;
 
 /**
@@ -49,11 +45,6 @@ All {
         _.log.comment("testing message pipelining");
         final Vat<Drum> drum = _.spawn("drum", Bang.class);
         r = r.with(Beat.make(_, drum.root));
-        
-        _.log.comment("testing interpreted objects");
-        final Vat<Folder<ByteArray>> folder =
-            _.spawn("folder", FolderMaker.class);
-        r = r.with(SetGet.make(_, folder.root));
         
         _.log.comment("testing promise resolution");
         r = r.with(PopPushN.make(_, 4));
