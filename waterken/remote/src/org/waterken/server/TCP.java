@@ -89,8 +89,7 @@ TCP implements Runnable {
         try {
             final InetAddress a = dynip();
             if (!a.equals(lastKnownAddress)) {
-                err.println(
-                    "Updating DNS to: " + a.getHostAddress() + "...");
+                err.println("Updating DNS to: " + a.getHostAddress() + "...");
                 updateDNS.run(new Resource(
                     Resource.A, Resource.IN, 60,
                     ByteArray.array(a.getAddress())));
