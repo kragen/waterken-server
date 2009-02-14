@@ -1,5 +1,5 @@
 // adsafe.js
-// 2009-01-02
+// 2009-02-13
 
 //    Public Domain.
 
@@ -396,8 +396,12 @@ ADSAFE = function () {
 
         '': function (node) {
             var e = node.getElementsByTagName(name), i;
-            for (i = 0; i < e.length; i += 1) {
-                result.push(e[i]);
+            for (i = 0; i < 1000; i += 1) {
+                if (e[i]) {
+                    result.push(e[i]);
+                } else {
+                    break;
+                }
             }
         },
         '>': function (node) {
@@ -1585,11 +1589,15 @@ ADSAFE = function () {
 //  document.getElementById function.
 
             scripts = root.getElementsByTagName('script');
-            if (scripts.length === 0) {
-                return error();
-            }
             for (i = 0; i < scripts.length; i += 1) {
-                root.removeChild(scripts[i]);
+                if (scripts[i]) {
+                    root.removeChild(scripts[i]);
+                } else {
+                    if (i === 0) {
+                        return error();
+                    }
+                    break;
+                }
             }
             dom = make_root(root, id);
 
@@ -1658,7 +1666,7 @@ ADSAFE = function () {
             if (!adsafe_id) {
                 return error();
             }
-            adsafe_lib[name] = f();
+            adsafe_lib[name] = f(adsafe_lib);
         },
 
 

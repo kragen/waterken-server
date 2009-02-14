@@ -9,25 +9,7 @@
  * an ADsafe library.
  */
 "use strict";
-ADSAFE.lib('web', function () {
-
-    /**
-     * Construct a rejected promise.
-     * @param reason    reason promise will not be fulfilled
-     */
-    function reject(reason) {
-        var self = function (op, arg1, arg2, arg3) {
-            if (undefined === op) {
-                return {
-                    $: [ 'org.ref_send.promise.Rejected' ],
-                    reason: reason
-                };
-            }
-            if ('WHEN' === op) { return arg2 ? arg2(reason) : self; }
-            return arg1(self);
-        };
-        return self;
-    }
+ADSAFE.lib('web', function (lib) {
 
     /**
      * secret slot to extract the URL from a promise
@@ -161,7 +143,7 @@ ADSAFE.lib('web', function () {
                     var $ = value.$;
                     for (var i = 0; i !== $.length; ++i) {
                         if ($[i] === 'org.ref_send.promise.Rejected') {
-                            return reject(value.reason);
+                            return lib.Q.reject(value.reason);
                         }
                     }
                 }
@@ -174,7 +156,7 @@ ADSAFE.lib('web', function () {
             var see = http.getResponseHeader('Location');
             return see ? proxy(resolveURI(base, see)) : null;
         default:
-            return reject({
+            return lib.Q.reject({
                 $: [ 'org.ref_send.promise.Failure', 'NaO' ],
                 status: http.status,
                 phrase: http.statusText
