@@ -927,7 +927,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
                 }
             }
             ConstArray<Object> argv = ConstArray.array();
-            if (make.getParameterTypes().length != 0) {
+            if (make.getParameterTypes().length != optional.length) {
                 argv = argv.with(this);
             }
             for (final Object x : optional) {

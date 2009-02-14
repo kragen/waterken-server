@@ -4,8 +4,8 @@ package org.waterken.dns.editor;
 
 import org.joe_e.Powerless;
 import org.ref_send.deserializer;
-import org.ref_send.var.Guard;
 import org.waterken.dns.Resource;
+import org.waterken.var.Guard;
 
 /**
  * Conditions on allowed DNS resources.
@@ -28,16 +28,18 @@ ResourceGuard extends Guard<Resource> implements Powerless {
     // org.ref_send.var.Guard interface
     
     public @Override Resource
-    run(final Resource value) {
-        if (Resource.IN != value.clazz) { throw new UnsupportedClass(); }
-        switch (value.type) {
+    run(Resource x) {
+        if (Resource.IN != x.clazz) { throw new UnsupportedClass(); }
+        switch (x.type) {
         case Resource.A:
-            if (minTTL - value.ttl > 0) { throw new UseLongerTTL(minTTL); }
-            if (value.data.length() != 4) { throw new BadFormat(); }
+            if (x.data.length() != 4) { throw new BadFormat(); }
+            if (minTTL - x.ttl > 0) {
+                x = new Resource(x.type, x.clazz, minTTL, x.data);
+            }
             break;
         default:
             throw new UnsupportedType();
         }
-        return value;
+        return x;
     }
 }

@@ -3,24 +3,26 @@
 package org.waterken.dns.udp;
 
 import static org.joe_e.file.Filesystem.file;
+import static org.ref_send.promise.Eventual.near;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.SocketAddress;
 
 import org.joe_e.array.ByteArray;
-import org.joe_e.array.ConstArray;
+import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.ASCII;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.promise.eventual.Do;
-import org.waterken.dns.Domain;
+import org.ref_send.promise.Do;
+import org.waterken.db.Database;
+import org.waterken.db.DatabaseManager;
+import org.waterken.db.Root;
+import org.waterken.db.Transaction;
 import org.waterken.dns.Resource;
+import org.waterken.menu.Menu;
 import org.waterken.udp.UDPDaemon;
-import org.waterken.vat.Pool;
-import org.waterken.vat.Root;
-import org.waterken.vat.Transaction;
-import org.waterken.vat.Vat;
+import org.waterken.uri.Header;
 
 /**
  * A DNS name server.
@@ -30,7 +32,7 @@ NameServer extends UDPDaemon {
     static private final long serialVersionUID = 1L;
 
     private final File master;
-    private final Pool vats;
+    private final DatabaseManager<?> dbs;
     
     /**
      * Constructs an instance.
@@ -40,10 +42,10 @@ NameServer extends UDPDaemon {
     public @deserializer
     NameServer(@name("port") final int port,
                @name("master") final File master,
-               @name("vats") final Pool vats) {
+               @name("dbs") final DatabaseManager<?> dbs) {
         super(port);
         this.master = master;
-        this.vats = vats;
+        this.dbs = dbs;
     }
     
     // org.waterken.udp.Daemon interface
@@ -111,14 +113,19 @@ NameServer extends UDPDaemon {
         }
         
         // see if we've got any answers
-        final ConstArray<Resource> answers;
+        final PowerlessArray<Resource> answers;
         try {
-            answers = vats.connect(file(master, qname.toLowerCase())).enter(
-                    Vat.extend, new Transaction<ConstArray<Resource>>() {
-                public ConstArray<Resource>
+            answers= dbs.connect(file(master, Header.toLowerCase(qname))).enter(
+                Transaction.query, new Transaction<PowerlessArray<Resource>>() {
+                public PowerlessArray<Resource>
                 run(final Root local) throws Exception {
-                    final Domain face = local.fetch(null, Domain.name);
-                    return face.getAnswers();
+                    final Menu<Resource> top = local.fetch(null, Database.top);
+                    final PowerlessArray.Builder<Resource> r =
+                        PowerlessArray.builder(1);
+                    for (final Resource x : near(top.getSnapshot())) {
+                        r.append(x);
+                    }
+                    return r.snapshot();
                 }
             }).cast();
         } catch (final Exception e) {

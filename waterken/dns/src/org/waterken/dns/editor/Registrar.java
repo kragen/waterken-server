@@ -3,20 +3,21 @@
 package org.waterken.dns.editor;
 
 import org.ref_send.promise.Promise;
-import org.web_send.graph.Collision;
+import org.ref_send.promise.Vat;
+import org.waterken.dns.Resource;
+import org.waterken.menu.Menu;
 
 /**
- * A {@link DomainMaster} factory.
+ * A {@link Resource} {@link Menu} factory.
  */
 public interface
 Registrar {
 
     /**
-     * Creates a new domain.
-     * @param hostname  domain's hostname
-     * @return administrator permissions for the domain
-     * @throws Collision    <code>hostname</code> has already been claimed
+     * Registers a hostname.
+     * @param hostname  hostname
+     * @return administrator permissions for the host
+     * @throws RuntimeException <code>hostname</code> already claimed
      */
-    Promise<DomainMaster>
-    claim(String hostname) throws Collision;
+    Promise<Vat<Menu<Resource>>> claim(String hostname) throws RuntimeException;
 }

@@ -27,20 +27,20 @@ For example, select the "Console" tab in Firebug and then enter the following
 commands at the "<kbd><span class="prompt">&gt;&gt;&gt;</span></kbd>" prompt at
 the bottom of the window:</p>
 <pre class="listing">
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">username = Q.defer()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">username = lib.Q.defer()</span>
 <span class="comment">
 // put a marker in the debug log at the point the username is entered</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) {
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.when(username.promise, function (value) {
         ADSAFE.log('username: ' + value);
     })</span>
 <span class="output">function()</span>
 <span class="comment">
 // start updating the page...</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) {
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.when(username.promise, function (value) {
         ADSAFE.log('updating some text on the page...');
     })</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(username.promise, function (value) {
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.when(username.promise, function (value) {
         ADSAFE.log('updating some other text on the page...');
     })</span>
 <span class="output">function()</span>
@@ -52,18 +52,18 @@ the bottom of the window:</p>
 <span class="stdout">updating some other text on the page...</span>
 </pre>
 <p>All of the callbacks registered in the code above, via the
-<code>Q.when()</code> method, will be executed in the same order as they were
+<code>lib.Q.when()</code> method, will be executed in the same order as they were
 registered on the promise. So any console messages output by the callbacks that
 update the DOM will show up after the message that echoes the username.</p>
 <p>In addition to notifying callbacks, a promise can also queue invocations for
 later delivery. For example:</p>
 <pre class="listing">
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">logger = Q.defer()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(logger.promise, 'log', [ 'Starting process...' ])</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">logger = lib.Q.defer()</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(logger.promise, 'log', [ 'Starting process...' ])</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(logger.promise, 'log', [ 'Finished foo setup.' ])</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(logger.promise, 'log', [ 'Finished foo setup.' ])</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(logger.promise, 'log', [ 'Finished bar setup.' ])</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(logger.promise, 'log', [ 'Finished bar setup.' ])</span>
 <span class="output">function()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">logger.resolve(ADSAFE)</span>
 <span class="stdout">Starting process...</span>
@@ -82,27 +82,27 @@ commands:</p>
 // <a href="http://waterken.sf.net/javadoc/org/waterken/bang/Drum.html">org.waterken.bang.Drum</a> object. A Drum is just a counter object that
 // can be incremented. We'll create a new Drum by invoking the factory
 // method.</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">drum = Q.post(web.page, 'makeDrum', [])</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">drum = lib.Q.post(lib.web.getPage(), 'makeDrum', [])</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = Q.get(drum, 'hits')</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
 <span class="output">function()</span>
 <span class="comment">
 // Since I'm just typing in an interactive shell, the response to the GET
 // request sent above will already have been received and processed by the
 // time I hit the 'Enter' key.</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.near(hits)</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
 <span class="output">0</span>
 <span class="comment">
 // Send a POST request to increment the counter...</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(drum, 'bang', [ 1 ])</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ 1 ])</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = Q.get(drum, 'hits')</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.near(hits)</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
 <span class="output">1</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(drum, 'bang', [ 2 ])</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ 2 ])</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = Q.get(drum, 'hits')</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
 <span class="output">function()</span>
 <span class="comment">
 // If we weren't typing in an interactive shell, we might want to setup a
@@ -111,7 +111,7 @@ commands:</p>
 // notified if the promise is fulfilled with a value; and another to be
 // notified if the promise is not fulfilled. Each callback simply prints a
 // message to stdout.</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.when(hits, function (value) {
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.when(hits, function (value) {
         ADSAFE.log('hits = ' + value);
     }, function (reason) {
         ADSAFE.log('request failed');
@@ -122,15 +122,15 @@ commands:</p>
 // A promise can also be used to queue up future messages. Below, the GET
 // request to query the counter is sent on the promise returned by the
 // POST request that increases the counter.</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = Q.get(Q.post(drum, 'bang', [ 3 ]), 'hits')</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.near(hits)</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(lib.Q.post(drum, 'bang', [ 3 ]), 'hits')</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
 <span class="output">6</span>
 <span class="comment">
 // Promises can also be used as arguments...</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(drum, 'bang', [ hits ])</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = Q.get(drum, 'hits')</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ hits ])</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
 <span class="output">function()</span>
-<span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.near(hits)</span>
+<span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
 <span class="output">12</span>
 </pre>
 <pre class="listing" id="SHELL_OUTPUT">
@@ -147,18 +147,16 @@ ADSAFE.go('SHELL_', function (dom, lib) {
     // Promote the widget context...
     window.dom = dom;           // not ADsafe
     window.lib = lib;           // not ADsafe
-    for (var k in lib) {        // not ADsafe
-        window[k] = lib[k];     // not ADsafe
-    }                           // not ADsafe
     // , so that it can be used from the console.
     // Normally, you'd put your code here, instead of writing in the console.
 
     // Do some unit testing of the API.
     var output = dom.q('#SHELL_OUTPUT');
-    var factory = lib.Q.when(lib.Q.get(lib.web.page), function (value) {
+    var page = lib.web.getPage();
+    var factory = lib.Q.when(lib.Q.get(page), function (value) {
         return value.$.filter(function (typename) {
             return 'org.waterken.bang.DrumFactory' === typename;
-        }).length ? lib.web.page : null;
+        }).length ? page : null;
     });
     lib.Q.when(factory, function (value) {
         output.append(dom.text('Running unit tests against drum...')).

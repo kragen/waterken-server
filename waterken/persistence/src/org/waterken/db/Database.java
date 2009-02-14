@@ -64,6 +64,11 @@ Database<S> {
      * accessed by the current transaction, initialized by database
      */
     static public final String tagger = ".tagger";
+    
+    /**
+     * root application object
+     */
+    static public final String top = ".top";
 
     /**
      * {@link Database#extend} {@link Task} to run each time database is loaded

@@ -51,15 +51,15 @@ Settings {
             layout = config.read("storeMaker");
             stderr = config.read("stderr");
         } catch (final Exception e) { throw new Error(e); }
-        config.override("vats",
+        config.override("dbs",
             new JODBManager<Server>(layout, new Proxy(), stderr));
     }
     
     static protected Database<Server>
-    vat() throws Exception {
-        final DatabaseManager<Server> vats = config.read("vats");
+    db() throws Exception {
+        final DatabaseManager<Server> dbs = config.read("dbs");
         final File root = config.read("vatRootFolder");
-        return vats.connect(root);
+        return dbs.connect(root);
     }
     
     /**

@@ -25,6 +25,7 @@ import org.waterken.db.Transaction;
 import org.waterken.http.Server;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.json.JSONDeserializer;
+import org.waterken.syntax.json.JSONSerializer;
 
 /**
  * The vat initialization transaction.
@@ -68,11 +69,12 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             exports.connect(), parameters, exports.getCodebase(),
             body.asInputStream());
         final Object[] argv = new Object[signature.length()];
-        if (argv.length != 0) { argv[0] = exports._; }
+        if (argv.length != optional.length()) { argv[0] = exports._; }
         for (int i = 0; i != optional.length(); ++i) {
             argv[i + 1] = optional.get(i);
         }
         final Object value = Reflection.invoke(make, null, argv);
+        local.link(Database.top, value);
         final Exporter export =
             HTTP.changeBase(exports.getHere(), exports.export(), base);
         final Receiver<?> destruct = local.fetch(null, Database.destruct);
@@ -82,9 +84,10 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     static public String
     create(final Database<Server> parent, final String project,
            final String base, final String label,
-           final Class<?> maker) throws Exception {
+           final Class<?> maker, final Object... argv) throws Exception {
         final Method make = HTTP.dispatch(maker, "make");
-        final ByteArray body = ByteArray.array((byte)'[', (byte)']');
+        final ByteArray body =
+            new JSONSerializer().run(null, ConstArray.array(argv)); 
         return parent.enter(Transaction.update,
                             new Transaction<PowerlessArray<String>>() {
             public PowerlessArray<String>

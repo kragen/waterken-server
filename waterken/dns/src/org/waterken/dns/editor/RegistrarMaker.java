@@ -2,43 +2,47 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.dns.editor;
 
+import static org.ref_send.promise.Eventual.ref;
+
 import java.io.Serializable;
 
 import org.joe_e.Struct;
+import org.joe_e.array.ByteArray;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Vat;
+import org.waterken.dns.Resource;
+import org.waterken.menu.Menu;
+import org.waterken.menu.MenuMaker;
 import org.waterken.uri.Hostname;
-import org.web_send.graph.Framework;
-import org.web_send.graph.Publisher;
 
 /**
  * A {@link Registrar} implementation.
  */
 public final class
 RegistrarMaker {
-    
-    private
-    RegistrarMaker() {}
-    
-    /**
-     * Constructs an instance.
-     * @param framework vat permissions
-     */
-    static public Registrar
-    build(final Framework framework) { return make(framework.publisher); }
+    private RegistrarMaker() {}
 
+    static public final int maxEntries = 8;
+    static public final Resource localhost= new Resource(Resource.A,Resource.IN,
+        ResourceGuard.minTTL, ByteArray.array(new byte[] { 127,0,0,1 }));
+    static public final ResourceGuard guard = new ResourceGuard();
+    
     /**
      * Constructs an instance.
-     * @param publisher sub-vat factory
+     * @param _ eventual operator
      */
     static public Registrar
-    make(final Publisher publisher) {
+    make(final Eventual _) {
         class RegistrarX extends Struct implements Registrar, Serializable {
             static private final long serialVersionUID = 1L;
             
-            public Promise<DomainMaster>
-            claim(final String hostname) {
+            public Promise<Vat<Menu<Resource>>>
+            claim(final String hostname) throws RuntimeException {
                 Hostname.vet(hostname);
-                return publisher.spawn(hostname, DomainMaker.class);
+                final Vat<Menu<Resource>> r = _.spawn(hostname,
+                        MenuMaker.class, maxEntries, localhost, guard); 
+                return ref(r);
             }
         }
         return new RegistrarX();

@@ -2,22 +2,42 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.dns.editor.redirectory;
 
+import java.io.Serializable;
+
+import org.joe_e.Struct;
 import org.ref_send.promise.Promise;
-import org.waterken.dns.editor.DomainMaster;
-import org.web_send.graph.Collision;
+import org.ref_send.promise.Vat;
+import org.waterken.dns.Resource;
+import org.waterken.dns.editor.Registrar;
+import org.waterken.menu.Menu;
 
 /**
- * A fingerprint registry.
+ * A fingerprint registrar.
  */
-public interface
+public final class
 Redirectory {
-
+    private Redirectory() {}
+    
     /**
-     * Registers a public key.
-     * @param fingerprint   domain label
-     * @return administrator permissions for the domain
-     * @throws Collision    <code>fingerprint</code> already registered
+     * Constructs a ( registrar, redirectory ) pair.
+     * @param prefix    required prefix on redirectory hostnames
+     * @param suffix    required suffix on redirectory hostnames
+     * @param registrar underlying registrar
      */
-    Promise<DomainMaster>
-    register(String fingerprint) throws Collision;
+    static public Registrar
+    make(final String prefix, final String suffix, final Registrar registrar) {
+        final int minChars = prefix.length() + (80 / 5) + suffix.length();
+        class RegistrarX extends Struct implements Registrar, Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public Promise<Vat<Menu<Resource>>>
+            claim(final String hostname) throws RuntimeException {
+                if (!hostname.startsWith(prefix)){throw new RuntimeException();}
+                if (!hostname.endsWith(suffix)) { throw new RuntimeException();}
+                if (hostname.length() < minChars){throw new RuntimeException();}
+                return registrar.claim(hostname);
+            }
+        }
+        return new RegistrarX();
+    }
 }

@@ -21,8 +21,7 @@ Root {
      * @param name      name to lookup
      * @return stored value, or <code>otherwise</code>
      */
-    <T> T
-    fetch(Object otherwise, String name);
+    <T> T fetch(Object otherwise, String name);
 
     /**
      * Creates a symbolic link to a given value.
@@ -35,9 +34,8 @@ Root {
      * @throws InvalidFilenameException <code>name</code> is already bound
      * @throws ProhibitedModification   in a {@link Transaction#query}
      */
-    void
-    link(String name, Object value) throws InvalidFilenameException,
-                                           ProhibitedModification;
+    void link(String name, Object value) throws InvalidFilenameException,
+                                                ProhibitedModification;
     
     /**
      * Assigns a name to a given value.
@@ -47,6 +45,7 @@ Root {
      * @return assigned name
      * @throws ProhibitedCreation       in a {@link Transaction#query}
      */
-    String
-    export(Object value, boolean isWeak) throws ProhibitedCreation;
+    String export(Object value, boolean isWeak) throws ProhibitedCreation;
+    // TODO: change interface to be @inert value, and no isWeak argument.
+    // follow with a link call
 }

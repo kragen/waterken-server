@@ -278,9 +278,11 @@ ADSAFE.lib('web', function () {
     return {
 
         /**
-         * A promise for the target of the current web page.
+         * Gets a promise for the current target of this web page.
          */
-        page: proxy(window.document.location.toString()),
+        getPage: function () {
+            return proxy(window.document.location.toString());
+        },
 
         /**
          * Constructs a remote promise.
