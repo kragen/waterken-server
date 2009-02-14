@@ -26,28 +26,28 @@ public final class
 Mux<S> extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
     
-    private final String vatURIPathPrefix;
-    private final File vatRoot;
+    private final String prefix;
+    private final File root;
     private final DatabaseManager<S> vats;
     private final Remoting<S> remoting;
     private final Server next;
     
     /**
      * Constructs an instance.
-     * @param vatURIPathPrefix  URI sub-hierarchy for persistent databases
-     * @param vatRoot           root persistence folder
-     * @param vats              open vat pool
-     * @param remoting          remoting protocol
-     * @param next              default server
+     * @param prefix    URI sub-hierarchy for persistent databases
+     * @param root      root persistence folder
+     * @param vats      open vat pool
+     * @param remoting  remoting protocol
+     * @param next      default server
      */
     public @deserializer
-    Mux(@name("vatURIPathPrefix") final String vatURIPathPrefix,
-        @name("vatRoot") final File vatRoot,
+    Mux(@name("prefix") final String prefix,
+        @name("root") final File root,
         @name("vats") final DatabaseManager<S> vats,
         @name("remoting") final Remoting<S> remoting,
         @name("next") final Server next) {
-        this.vatURIPathPrefix = vatURIPathPrefix;
-        this.vatRoot = vatRoot;
+        this.prefix = prefix;
+        this.root = root;
         this.vats = vats;
         this.remoting = remoting;
         this.next = next;
@@ -60,10 +60,10 @@ Mux<S> extends Struct implements Server, Serializable {
                               final Client client) throws Exception {
         final Server server;
         final String path = URI.path(head.uri);
-        if (path.startsWith(vatURIPathPrefix)) {
-            final String vatPath = path.substring(vatURIPathPrefix.length());
+        if (path.startsWith(prefix)) {
+            final String vatPath = path.substring(prefix.length());
             try {
-                final File folder = Path.descend(vatRoot, vatPath);
+                final File folder = Path.descend(root, vatPath);
                 server = remoting.remote(next, vats.connect(folder));
             } catch (final InvalidFilenameException e) {
                 client.receive(Response.gone(), null);
