@@ -56,9 +56,9 @@ HTTP extends Eventual implements Serializable {
 
     private
     HTTP(final Receiver<Task<?>> enqueue,
-         final String here, final Log log,
+         final String here, final Log log, final Receiver<?> destruct,
          final Root local, final Fulfilled<Outbound> outbound) {
-        super(new Token(), enqueue, here, log);
+        super(new Token(), enqueue, here, log, destruct);
         this.local = local;
         this.outbound = outbound;
         
@@ -107,10 +107,10 @@ HTTP extends Eventual implements Serializable {
     // org.waterken.remote.http.Exports interface
     
     static protected HTTP.Exports
-    make(final Receiver<Task<?>> enqueue, final Root local,
-         final Log log, final Fulfilled<Outbound> outbound) {
+    make(final Receiver<Task<?>> enqueue, final Root local, final Log log,
+         final Receiver<?> destruct, final Fulfilled<Outbound> outbound) {
         final String here = local.fetch(null, Database.here);
-        return new Exports(new HTTP(enqueue, here, log, local, outbound));
+        return new Exports(new HTTP(enqueue,here,log, destruct,local,outbound));
     }
     
     static protected final class

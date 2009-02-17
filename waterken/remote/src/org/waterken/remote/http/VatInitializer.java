@@ -50,9 +50,10 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         final Receiver<Effect<Server>> effect=local.fetch(null,Database.effect);
         
         final List<Task<?>> tasks = List.list();
+        final Receiver<?> destruct = local.fetch(null, Database.destruct);
         final Outbound outbound = new Outbound();
-        final HTTP.Exports exports = HTTP.make(enqueue(effect,tasks),local, log,
-                                               Eventual.detach(outbound));
+        final HTTP.Exports exports = HTTP.make(enqueue(effect,tasks), local,
+                log, destruct, Eventual.detach(outbound));
         log.got(exports.getHere() + "#make", make);
         local.link(VatInitializer.tasks, tasks);
         local.link(VatInitializer.outbound, outbound);
@@ -77,7 +78,6 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         local.link(Database.top, value);
         final Exporter export =
             HTTP.changeBase(exports.getHere(), exports.export(), base);
-        final Receiver<?> destruct = local.fetch(null, Database.destruct);
         return PowerlessArray.array(export.run(value), export.run(destruct));
     }
     
