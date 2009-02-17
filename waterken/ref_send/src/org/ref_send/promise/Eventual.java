@@ -152,6 +152,14 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * debugging output
      */
     public    final Log log;
+    
+    /**
+     * destruct the vat
+     * <p>
+     * call like: <code>destruct.run(null)</code>
+     * </p>
+     */
+    public    final Receiver<?> destruct;
 
     /**
      * Constructs an instance.
@@ -159,14 +167,16 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * @param enqueue   raw {@link #run event loop}
      * @param here      URI for the event loop
      * @param log       {@link #log}
+     * @param destruct  {@link #destruct}
      */
     public
     Eventual(final Token deferred, final Receiver<Task<?>> enqueue,
-             final String here, final Log log) {
+             final String here, final Log log, final Receiver<?> destruct) {
         this.deferred = deferred;
         this.enqueue = enqueue;
         this.here = here;
         this.log = log;
+        this.destruct = destruct;
     }
 
     /**
@@ -175,7 +185,8 @@ Eventual implements Receiver<Task<?>>, Serializable {
      */
     public
     Eventual(final Receiver<Task<?>> enqueue) {
-        this(new Token(), enqueue, "", new NOP());
+        this(new Token(), enqueue, "", new NOP(), new Rejected<Receiver<?>>(
+                new NullPointerException())._(Receiver.class));
     }
 
     // org.ref_send.promise.eventual.Loop interface
