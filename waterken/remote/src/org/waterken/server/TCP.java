@@ -29,14 +29,14 @@ TCP implements Runnable {
     private final TCPDaemon daemon;
     private final String hostname;
     private final ServerSocket port;
-    private final Receiver<Resource> updateDNS;
+    private final Receiver<ByteArray> updateDNS;
     
     private       long connectionCount = 0;
     private       InetAddress lastKnownAddress = null;
     
     TCP(final String serviceName, final PrintStream err,  
         final TCPDaemon daemon, final String hostname,
-        final ServerSocket port, final Receiver<Resource> updateDNS) {
+        final ServerSocket port, final Receiver<ByteArray> updateDNS) {
         this.serviceName = serviceName;
         this.err = err;
         this.daemon = daemon;
@@ -90,9 +90,8 @@ TCP implements Runnable {
             final InetAddress a = dynip();
             if (!a.equals(lastKnownAddress)) {
                 err.println("Updating DNS to: " + a.getHostAddress() + "...");
-                updateDNS.run(new Resource(
-                    Resource.A, Resource.IN, 60,
-                    ByteArray.array(a.getAddress())));
+                updateDNS.run(Resource.rr(
+                        Resource.A, Resource.IN, 60, a.getAddress()));
                 lastKnownAddress = a;
             }
         } catch (final Exception e) {

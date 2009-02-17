@@ -24,8 +24,8 @@ RegistrarMaker {
     private RegistrarMaker() {}
 
     static public final int maxEntries = 8;
-    static public final Resource localhost= new Resource(Resource.A,Resource.IN,
-        ResourceGuard.minTTL, ByteArray.array(new byte[] { 127,0,0,1 }));
+    static public final ByteArray localhost= Resource.rr(
+        Resource.A,Resource.IN, ResourceGuard.minTTL, new byte[] { 127,0,0,1 });
     static public final ResourceGuard guard = new ResourceGuard();
     
     /**
@@ -37,10 +37,10 @@ RegistrarMaker {
         class RegistrarX extends Struct implements Registrar, Serializable {
             static private final long serialVersionUID = 1L;
             
-            public Promise<Vat<Menu<Resource>>>
+            public Promise<Vat<Menu<ByteArray>>>
             claim(final String hostname) throws RuntimeException {
                 Hostname.vet(hostname);
-                final Vat<Menu<Resource>> r = _.spawn(hostname,
+                final Vat<Menu<ByteArray>> r = _.spawn(hostname,
                         MenuMaker.class, maxEntries, localhost, guard); 
                 return ref(r);
             }

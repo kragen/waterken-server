@@ -5,9 +5,9 @@ package org.waterken.dns.editor.redirectory;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
+import org.joe_e.array.ByteArray;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Vat;
-import org.waterken.dns.Resource;
 import org.waterken.dns.editor.Registrar;
 import org.waterken.menu.Menu;
 
@@ -30,7 +30,7 @@ Redirectory {
         class RegistrarX extends Struct implements Registrar, Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Promise<Vat<Menu<Resource>>>
+            public Promise<Vat<Menu<ByteArray>>>
             claim(final String hostname) throws RuntimeException {
                 if (!hostname.startsWith(prefix)){throw new RuntimeException();}
                 if (!hostname.endsWith(suffix)) { throw new RuntimeException();}

@@ -3,6 +3,7 @@
 package org.waterken.dns.editor;
 
 import org.joe_e.Powerless;
+import org.joe_e.array.ByteArray;
 import org.ref_send.deserializer;
 import org.waterken.dns.Resource;
 import org.waterken.var.Guard;
@@ -11,7 +12,7 @@ import org.waterken.var.Guard;
  * Conditions on allowed DNS resources.
  */
 public final class
-ResourceGuard extends Guard<Resource> implements Powerless {
+ResourceGuard extends Guard<ByteArray> implements Powerless {
     static private final long serialVersionUID = 1L;
     
     /**
@@ -27,14 +28,16 @@ ResourceGuard extends Guard<Resource> implements Powerless {
     
     // org.ref_send.var.Guard interface
     
-    public @Override Resource
-    run(Resource x) {
-        if (Resource.IN != x.clazz) { throw new UnsupportedClass(); }
-        switch (x.type) {
+    public @Override ByteArray
+    run(ByteArray x) {
+        if (Resource.IN != Resource.clazz(x)) { throw new UnsupportedClass(); }
+        switch (Resource.type(x)) {
         case Resource.A:
-            if (x.data.length() != 4) { throw new BadFormat(); }
-            if (minTTL - x.ttl > 0) {
-                x = new Resource(x.type, x.clazz, minTTL, x.data);
+            if (Resource.length(x) != 4) { throw new BadFormat(); }
+            if (2 + 2 + 4 + 2 + 4 != x.length()) { throw new BadFormat(); }
+            if (minTTL - Resource.ttl(x) > 0) {
+                x = Resource.rr(Resource.type(x), Resource.clazz(x), minTTL,
+                                Resource.data(x).toByteArray());
             }
             break;
         default:

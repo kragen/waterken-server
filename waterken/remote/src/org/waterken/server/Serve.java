@@ -10,11 +10,11 @@ import java.net.DatagramSocket;
 import java.net.ServerSocket;
 
 import org.joe_e.Immutable;
+import org.joe_e.array.ByteArray;
 import org.ref_send.promise.Receiver;
 import org.waterken.db.DatabaseManager;
 import org.waterken.db.Root;
 import org.waterken.db.Transaction;
-import org.waterken.dns.Resource;
 import org.waterken.http.Server;
 import org.waterken.net.TCPDaemon;
 import org.waterken.udp.UDPDaemon;
@@ -64,7 +64,7 @@ Serve {
         Settings.summarize(hostname, err);
 
         // start the network services
-        final Receiver<Resource> updateDNS_ = Settings.config.read("updateDNS");
+        final Receiver<ByteArray> updateDNS_ = Settings.config.read("updateDNS");
         for (final String service : services) {
         	try {
 	            final Object config = Settings.config.read(service);

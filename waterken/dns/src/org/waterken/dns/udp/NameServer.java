@@ -113,16 +113,16 @@ NameServer extends UDPDaemon {
         }
         
         // see if we've got any answers
-        final PowerlessArray<Resource> answers;
+        final PowerlessArray<ByteArray> answers;
         try {
             answers= dbs.connect(file(master, Header.toLowerCase(qname))).enter(
-                Transaction.query, new Transaction<PowerlessArray<Resource>>() {
-                public PowerlessArray<Resource>
+                Transaction.query, new Transaction<PowerlessArray<ByteArray>>(){
+                public PowerlessArray<ByteArray>
                 run(final Root local) throws Exception {
-                    final Menu<Resource> top = local.fetch(null, Database.top);
-                    final PowerlessArray.Builder<Resource> r =
+                    final Menu<ByteArray> top = local.fetch(null, Database.top);
+                    final PowerlessArray.Builder<ByteArray> r =
                         PowerlessArray.builder(1);
-                    for (final Resource x : near(top.getSnapshot())) {
+                    for (final ByteArray x : near(top.getSnapshot())) {
                         r.append(x);
                     }
                     return r.snapshot();
@@ -135,42 +135,31 @@ NameServer extends UDPDaemon {
 
         // encode the corresponding answers
         final ByteArray.Builder response = ByteArray.builder(512); 
-        header[2] |= 0x04;                          // set the AA bit
-        header[5] = 1;                              // qdcount = 1
         response.append(header);                    // output a header
         response.append(in, header.length, qlen);   // echo the question
         int ancount = 0;
         boolean truncated = false;
-        for (final Resource a : answers) {
-            if ((255 == qtype || qtype == a.type) &&
-                (255 == qclass || qclass == a.clazz)) {
-                final byte[] data = a.data.toByteArray();
-                if (response.length() + 12 + data.length > 512) {
+        for (final ByteArray a : answers) {
+            if ((255 == qtype || qtype == Resource.type(a)) &&
+                (255 == qclass || qclass == Resource.clazz(a))) {
+                if (response.length() + 12 + Resource.length(a) > 512) {
                     truncated = true;
                     continue;
                 }
                 
                 response.append((byte)(QP >>> 8));
                 response.append((byte)(QP      ));
-                response.append((byte)(a.type >>> 8));
-                response.append((byte)(a.type      ));
-                response.append((byte)(a.clazz >>> 8));
-                response.append((byte)(a.clazz      ));
-                response.append((byte)(a.ttl >>> 24));
-                response.append((byte)(a.ttl >>> 16));
-                response.append((byte)(a.ttl >>>  8));
-                response.append((byte)(a.ttl       ));
-                response.append((byte)(data.length >>>  8));
-                response.append((byte)(data.length       ));
-                response.append(data);
+                response.append(a.toByteArray());
                 
                 ++ancount;
             }
         }
         final byte[] out = response.snapshot().toByteArray();
+        out[2] |= 0x04;         // set the AA bit
         if (truncated) {
-            out[2] |= 0x20; // set the TC bit
+            out[2] |= 0x20;     // set the TC bit
         }
+        out[5] = 1;             // qdcount = 1
         out[6] = (byte)(ancount >>> 8);
         out[7] = (byte)(ancount      );
         return ByteArray.array(out);
