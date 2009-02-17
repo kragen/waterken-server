@@ -7,5 +7,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/persistence"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/network"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/shared"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/log"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
