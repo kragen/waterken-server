@@ -23,19 +23,19 @@ RedirectoryMaker {
     private RedirectoryMaker() {}
     
     /**
-     * Return from {@link #make Redirectory.make()}.
+     * Return from {@link #make RedirectoryMaker.make()}.
      */
     static public class
     Return extends Struct implements Record, Serializable {
         static private final long serialVersionUID = 1L;
         
         /**
-         * corresponding {@link RedirectoryMaker}
+         * corresponding {@link Redirectory}
          */
         public final Registrar redirectory;
         
         /**
-         * a {@link RegistrarMaker}
+         * unrestricted registrar
          */
         public final Registrar registrar;
         
