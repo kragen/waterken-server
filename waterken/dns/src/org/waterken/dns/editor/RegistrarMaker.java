@@ -11,11 +11,8 @@ import org.joe_e.array.ByteArray;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Vat;
-import org.waterken.dns.Resource;
 import org.waterken.menu.Menu;
-import org.waterken.menu.MenuMaker;
 import org.waterken.uri.Hostname;
-import org.waterken.var.Guard;
 
 /**
  * A {@link Registrar} implementation.
@@ -23,29 +20,20 @@ import org.waterken.var.Guard;
 public final class
 RegistrarMaker {
     private RegistrarMaker() {}
-
-    static public final int maxEntries = 8;
-    static public final ByteArray localhost = Resource.rr(
-        Resource.A,Resource.IN, ResourceGuard.minTTL, new byte[] { 127,0,0,1 });
     
     /**
      * Constructs an instance.
-     * @param _     eventual operator
-     * @param guard hostname guard (optional)
+     * @param _ eventual operator
      */
     static public Registrar
-    make(final Eventual _, final Guard<String> guard) {
+    make(final Eventual _) {
         class RegistrarX extends Struct implements Registrar, Serializable {
             static private final long serialVersionUID = 1L;
             
-            public Guard<String>
-            getHostnameGuard() { return guard; }
-            
             public Promise<Vat<Menu<ByteArray>>>
             claim(final String hostname) throws RuntimeException {
-                final Vat<Menu<ByteArray>> r = _.spawn(
-                    null!=guard ? guard.run(hostname) : Hostname.vet(hostname),
-                    MenuMaker.class, maxEntries, localhost,new ResourceGuard()); 
+                final Vat<Menu<ByteArray>> r =
+                    _.spawn(Hostname.vet(hostname), HostMaker.class); 
                 return ref(r);
             }
         }

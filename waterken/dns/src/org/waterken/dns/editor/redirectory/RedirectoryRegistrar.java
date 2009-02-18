@@ -12,7 +12,6 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
-import org.waterken.dns.editor.HostnameGuard;
 import org.waterken.dns.editor.Registrar;
 import org.waterken.dns.editor.RegistrarMaker;
 
@@ -20,18 +19,18 @@ import org.waterken.dns.editor.RegistrarMaker;
  * A fingerprint registrar.
  */
 public final class
-Redirectory {
-    private Redirectory() {}
+RedirectoryRegistrar {
+    private RedirectoryRegistrar() {}
     
     /**
-     * Return from {@link #make RedirectoryRegistrar.make()}.
+     * Return from {@link #make Redirectory.make()}.
      */
     static public class
     Return extends Struct implements Record, Serializable {
         static private final long serialVersionUID = 1L;
         
         /**
-         * corresponding {@link Redirectory}
+         * corresponding {@link RedirectoryRegistrar}
          */
         public final Registrar redirectory;
         
@@ -61,9 +60,8 @@ Redirectory {
      */
     static public Promise<Return>
     make(final Eventual _, final String prefix, final String suffix) {
-        final int length = prefix.length() + (80 / 5) + suffix.length();
         return ref(new Return(
-            RegistrarMaker.make(_, new HostnameGuard(length, prefix, suffix)),
-            RegistrarMaker.make(_, null)));
+            RedirectoryMaker.make(_, prefix, suffix),
+            RegistrarMaker.make(_)));
     }
 }

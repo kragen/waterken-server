@@ -16,7 +16,7 @@ Menu<T> {
     /**
      * Gets a snapshot of the current variable values.
      */
-    Promise<ConstArray<T>> getSnapshot();
+    Promise<? extends ConstArray<T>> getSnapshot();
     
     /**
      * Generates a new entry.
