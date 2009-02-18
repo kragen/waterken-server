@@ -55,13 +55,13 @@ RedirectoryRegistrar {
     /**
      * Constructs a ( redirectory, registrar ) pair.
      * @param _         eventual operator
-     * @param prefix    required prefix on {@link Return#redirectory} hostnames
-     * @param suffix    required suffix on {@link Return#redirectory} hostnames
+     * @param prefix    {@link Redirectory#prefix}
+     * @param suffix    {@link Redirectory#suffix}
      */
     static public Promise<Return>
     make(final Eventual _, final String prefix, final String suffix) {
         return ref(new Return(
-            RedirectoryMaker.make(_, prefix, suffix),
+            new Redirectory(_, prefix, suffix),
             RegistrarMaker.make(_)));
     }
 }
