@@ -2,14 +2,19 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.dns.editor.redirectory;
 
+import static org.ref_send.promise.Eventual.ref;
+
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.joe_e.array.ByteArray;
+import org.ref_send.Record;
+import org.ref_send.deserializer;
+import org.ref_send.name;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Vat;
+import org.waterken.dns.editor.HostnameGuard;
 import org.waterken.dns.editor.Registrar;
-import org.waterken.menu.Menu;
+import org.waterken.dns.editor.RegistrarMaker;
 
 /**
  * A fingerprint registrar.
@@ -19,25 +24,46 @@ Redirectory {
     private Redirectory() {}
     
     /**
-     * Constructs a ( registrar, redirectory ) pair.
-     * @param prefix    required prefix on redirectory hostnames
-     * @param suffix    required suffix on redirectory hostnames
-     * @param registrar underlying registrar
+     * Return from {@link #make RedirectoryRegistrar.make()}.
      */
-    static public Registrar
-    make(final String prefix, final String suffix, final Registrar registrar) {
-        final int minChars = prefix.length() + (80 / 5) + suffix.length();
-        class RegistrarX extends Struct implements Registrar, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Promise<Vat<Menu<ByteArray>>>
-            claim(final String hostname) throws RuntimeException {
-                if (!hostname.startsWith(prefix)){throw new RuntimeException();}
-                if (!hostname.endsWith(suffix)) { throw new RuntimeException();}
-                if (hostname.length() < minChars){throw new RuntimeException();}
-                return registrar.claim(hostname);
-            }
+    static public class
+    Return extends Struct implements Record, Serializable {
+        static private final long serialVersionUID = 1L;
+        
+        /**
+         * corresponding {@link Redirectory}
+         */
+        public final Registrar redirectory;
+        
+        /**
+         * a {@link RegistrarMaker}
+         */
+        public final Registrar registrar;
+        
+        /**
+         * Constructs an instance.
+         * @param redirectory   {@link #redirectory}
+         * @param registrar     {@link #registrar}
+         */
+        public @deserializer
+        Return(@name("redirectory") final Registrar redirectory,
+               @name("registrar") final Registrar registrar) {
+            this.redirectory = redirectory;
+            this.registrar = registrar;
         }
-        return new RegistrarX();
+    }
+    
+    /**
+     * Constructs a ( redirectory, registrar ) pair.
+     * @param _         eventual operator
+     * @param prefix    required prefix on {@link Return#redirectory} hostnames
+     * @param suffix    required suffix on {@link Return#redirectory} hostnames
+     */
+    static public Promise<Return>
+    make(final Eventual _, final String prefix, final String suffix) {
+        final int length = prefix.length() + (80 / 5) + suffix.length();
+        return ref(new Return(
+            RegistrarMaker.make(_, new HostnameGuard(length, prefix, suffix)),
+            RegistrarMaker.make(_, null)));
     }
 }

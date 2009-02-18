@@ -7,12 +7,18 @@ import org.ref_send.promise.Promise;
 import org.ref_send.promise.Vat;
 import org.waterken.dns.Resource;
 import org.waterken.menu.Menu;
+import org.waterken.var.Guard;
 
 /**
  * A {@link Resource} {@link Menu} factory.
  */
 public interface
 Registrar {
+    
+    /**
+     * Gets the restrictions on the hostname.
+     */
+    Guard<String> getHostnameGuard();
 
     /**
      * Registers a hostname.
