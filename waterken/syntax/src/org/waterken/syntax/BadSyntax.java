@@ -3,6 +3,8 @@
 package org.waterken.syntax;
 
 import org.joe_e.Powerless;
+import org.joe_e.array.IntArray;
+import org.joe_e.array.PowerlessArray;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
@@ -20,29 +22,22 @@ BadSyntax extends Exception implements Powerless, Record {
     public final String source;
 
     /**
-     * line number
+     * location within {@link #source}
      */
-    public final int line;
-    
-    /**
-     * column number
-     */
-    public final int column;
+    public final PowerlessArray<IntArray> span;
     
     /**
      * Constructs an instance.
      * @param source    {@link #source}
-     * @param line      {@link #line}
-     * @param column    {@link #column}
+     * @param span      {@link #span}
+     * @param cause     {@link #getCause}
      */
     public @deserializer
     BadSyntax(@name("source") final String source,
-              @name("line") final int line,
-              @name("column") final int column,
+              @name("span") final PowerlessArray<IntArray> span,
               @name("cause") final Exception cause) {
-        super("<" + source + "> ( " + line + ", " + column + " ) : ", cause);
+        super("<" + source + "> " + span + " : ", cause);
         this.source = source;
-        this.line = line;
-        this.column = column;
+        this.span = span;
     }
 }

@@ -6,6 +6,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
 
+import org.joe_e.array.IntArray;
+import org.joe_e.array.PowerlessArray;
+
 /**
  * A JSON token reader.
  */
@@ -89,19 +92,17 @@ JSONLexer {
     // org.waterken.syntax.json.JSONLexer interface
     
     /**
-     * Gets the start line of the most recent token {@linkplain #next read}.
+     * Gets the location of the most recently {@linkplain #next read} token.
      */
-    public int
-    getStartLine() { return line; }
+    public PowerlessArray<IntArray>
+    getSpan() {
+        return PowerlessArray.array(
+                IntArray.array(line, column),
+                IntArray.array(s.getLine(), s.getColumn()));
+    }
     
     /**
-     * Gets the start column of the most recent token {@linkplain #next read}.
-     */
-    public int
-    getStartColumn() { return column; }
-    
-    /**
-     * Gets the most recent token {@linkplain #next read}.
+     * Gets the most recently {@linkplain #next read} token.
      * @return most recent token, or <code>null</code> if EOF
      */
     public String
