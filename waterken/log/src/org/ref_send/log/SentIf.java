@@ -14,6 +14,7 @@ import org.ref_send.name;
  * The {@link #message} identifies the queued message, and the
  * {@link #condition} identifies the promise the message is queued on.
  * </p>
+ * @see Resolved
  */
 public class
 SentIf extends Sent {

@@ -7,6 +7,7 @@ import org.ref_send.name;
 
 /**
  * Logs a message send.
+ * @see Got
  */
 public class
 Sent extends Event {

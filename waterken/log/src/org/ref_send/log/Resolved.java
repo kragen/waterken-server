@@ -11,6 +11,7 @@ import org.ref_send.name;
  * This kind of event is produced when a promise is
  * {@linkplain org.ref_send.promise.Resolver#resolve resolved}.
  * </p>
+ * @see SentIf
  */
 public class
 Resolved extends Event {
