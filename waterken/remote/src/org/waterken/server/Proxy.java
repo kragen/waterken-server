@@ -22,7 +22,7 @@ import org.waterken.uri.Location;
 /**
  * The HTTPS gateway for this JVM.
  */
-public final class
+/* package */ final class
 Proxy extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
 
@@ -46,8 +46,7 @@ Proxy extends Struct implements Server, Serializable {
     static private   final Locator http = Loopback.client(80);
     static protected final Credentials credentials = Settings.keys.isFile()
         ? SSL.keystore("TLS", Settings.keys, "nopass") : null;
-    static private   final Locator https =
-        null != credentials ? SSL.client(443, credentials) : null;
+    static private   final Locator https = SSL.client(443, credentials);
     
     public void
     serve(final Request head,

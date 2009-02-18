@@ -72,10 +72,14 @@ SSL {
             locate(final String authority,
                    final SocketAddress x) throws IOException{
                 if (null == factory) {
-                    try {
-                        factory = credentials.getContext().getSocketFactory();
-                    } catch (final GeneralSecurityException e) {
-                        throw (IOException)new IOException().initCause(e);  
+                    if (null != credentials) {
+                        try {
+                            factory=credentials.getContext().getSocketFactory();
+                        } catch (final GeneralSecurityException e) {
+                            throw (IOException)new IOException().initCause(e);  
+                        }
+                    } else {
+                        factory=(SSLSocketFactory)SSLSocketFactory.getDefault();
                     }
                 }
                 
