@@ -15,12 +15,13 @@ Hostname {
      * Checks a hostname for invalid characters.
      * @param hostname  hostname to vet
      */
-    static public void
+    static public String
     vet(final String hostname) throws InvalidLabel {
         for (int j = hostname.length(); -1 != j;) {
             final int dot = hostname.lastIndexOf('.', j - 1); 
             Label.vet(hostname, dot + 1, j);
             j = dot;
         }
+        return hostname;
     }
 }
