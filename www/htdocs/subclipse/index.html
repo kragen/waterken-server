@@ -93,15 +93,13 @@ the order is the order of compiler dependencies):
 <li>remote</li>
 <li>shared</li>
 <li>example</li>
+<li>config</li>
+<li>genkey</li>
 </ol>
 </li>
 <li>At this point, you should have all the sources for the Waterken server
 installed.  Switch from the Repository view to the Java view, and run
 "Project/Clean..." to ensure it all builds.</li>
-<li>Go back into the Subversion view and checkout the "config" folder.  This is
-not a source folder, so you get additional dialogs. Simply choose "Checkout as
-a Project in the Workspace".
-Click "Finish".</li>
 </ol>
 <h3><a name="update" href="#update">Updating from the repository</a></h3>
 <p>To update, in the Java view, select the folders you want to sync/update,
@@ -116,6 +114,24 @@ to "Other", click "Variables", choose "workspace_loc".  Press "Debug". You
 should see server messages appearing in the Console. Open a browser on
 <code>&lt;<a href="http://localhost:8080/">http://localhost:8080/</a>&gt;</code>
 to see the welcome message from the server.</p>
+<h3><a name="cmdline">Build the command line interface</a></h3>
+<ol>
+<li><p>Go into the remote folder and find the files <code>jars.sh</code> and
+<code>jars.bat</code>. Run the one appropriate for your operating system. This
+will put <code>spawn.jar</code> and <code>serve.jar</code> in the main folder:
+<code>spawn.jar</code> is used to create a new database, and
+<code>serve.jar</code> allows you to run the server without running
+eclipse.</p></li>
+<li><p>For non-local applications (and why would you want only-local
+applications?), you will need to produce a public/private key pair. In the
+genkey folder you will find another pair of files <code>jar.sh</code> and
+<code>jar.bat</code>. Run the appropriate one. In the main folder you will now
+have <code>genkey.jar</code>. Use this to generate a keypair for the server. If
+you are behind a firewall, you may need to configure the proxy settings so
+genkey can get out, if so the command line will look something like this:</p>
+<p><kbd>java -DproxyHost=web-proxy.hpl.hp.com -DproxyPort=8088 -DproxySet=true -jar genkey.jar</kbd></p>
+</li>
+</ol>
 <p>Congratulations! You are now on your own.</p>
 </div>
 <p class="footer">
