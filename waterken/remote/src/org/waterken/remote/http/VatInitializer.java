@@ -64,7 +64,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             ConstArray.array(make.getGenericParameterTypes());
         final Object[] argv = new Object[signature.length()];
         ConstArray<Type> parameters = signature;
-        if (parameters.length() != 0 && Eventual.class == parameters.get(0)) {
+        if (0 != parameters.length() && Eventual.class == parameters.get(0)) {
             parameters = parameters.without(0);
             argv[0] = exports._;
         }
