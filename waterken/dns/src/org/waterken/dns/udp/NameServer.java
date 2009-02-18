@@ -120,12 +120,7 @@ NameServer extends UDPDaemon {
                 public PowerlessArray<ByteArray>
                 run(final Root local) throws Exception {
                     final Menu<ByteArray> top = local.fetch(null, Database.top);
-                    final PowerlessArray.Builder<ByteArray> r =
-                        PowerlessArray.builder(1);
-                    for (final ByteArray x : near(top.getSnapshot())) {
-                        r.append(x);
-                    }
-                    return r.snapshot();
+                    return (PowerlessArray<ByteArray>)near(top.getSnapshot());
                 }
             }).cast();
         } catch (final Exception e) {
@@ -142,7 +137,9 @@ NameServer extends UDPDaemon {
         for (final ByteArray a : answers) {
             if ((255 == qtype || qtype == Resource.type(a)) &&
                 (255 == qclass || qclass == Resource.clazz(a))) {
-                if (response.length() + 12 + Resource.length(a) > 512) {
+                final int length = Resource.length(a);
+                if (10 + length != a.length()) { continue; }    // malformed
+                if (response.length() + 12 + length > 512) {
                     truncated = true;
                     continue;
                 }
