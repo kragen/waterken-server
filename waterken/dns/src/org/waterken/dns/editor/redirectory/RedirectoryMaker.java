@@ -19,8 +19,8 @@ import org.waterken.dns.editor.RegistrarMaker;
  * A fingerprint registrar.
  */
 public final class
-RedirectoryRegistrar {
-    private RedirectoryRegistrar() {}
+RedirectoryMaker {
+    private RedirectoryMaker() {}
     
     /**
      * Return from {@link #make Redirectory.make()}.
@@ -30,7 +30,7 @@ RedirectoryRegistrar {
         static private final long serialVersionUID = 1L;
         
         /**
-         * corresponding {@link RedirectoryRegistrar}
+         * corresponding {@link RedirectoryMaker}
          */
         public final Registrar redirectory;
         
