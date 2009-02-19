@@ -218,7 +218,10 @@ Eventual implements Receiver<Task<?>>, Serializable {
 
             public Void
             run() throws Exception {
-                log.got(here+"#t"+id, Reflection.method(task.getClass(),"run"));
+                if (!(log instanceof NOP)) {
+                    log.got(here + "#t" + id,
+                            Reflection.method(task.getClass(), "run"));
+                }
                 try { task.run(); } catch (final Exception e) {log.problem(e);}
                 return null;
             }
@@ -358,10 +361,14 @@ Eventual implements Receiver<Task<?>>, Serializable {
         try {
             a = ref(promise.cast()).cast();
         } catch (final Exception reason) {
-            log.got(message, Deferred.rejecter(observer));
+            if (!(log instanceof NOP)) {
+                log.got(message, Deferred.rejecter(observer));
+            }
             return observer.reject(reason);
         }
-        log.got(message, Deferred.fulfiller(a.getClass(), observer));
+        if (!(log instanceof NOP)) {
+            log.got(message, Deferred.fulfiller(a.getClass(), observer));
+        }
         return observer.fulfill(a);
     }
 
@@ -461,6 +468,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
             block.condition = 0;    // ensure block is not run again
             
             if (null != block.next) {
+                enqueue.run(new Forward<T>(condition, value, block.next));
                 final String message = here + "#w" + block.message;
                 if (Deferred.trusted(deferred, value)) {
                     log.got(message, null);
@@ -469,9 +477,11 @@ Eventual implements Receiver<Task<?>>, Serializable {
                     try {
                         // AUDIT: call to untrusted application code
                         sample(value, block.observer, log, message);
-                    } catch (final Exception e) { log.problem(e); }
+                    } catch (final Exception e) {
+                        log.problem(e);
+                        throw e;
+                    }
                 }
-                enqueue.run(new Forward<T>(condition, value, block.next));
             }
             freeWhen(next, block);
             return null;
