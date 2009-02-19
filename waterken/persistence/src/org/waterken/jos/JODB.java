@@ -257,7 +257,14 @@ JODB<S> extends Database<S> {
                              update.includes(filename + ext);
                 } catch (final Exception e) { throw new Error(e); }
                 if (exists) { throw new InvalidFilenameException(); }
-                f2b.put(filename,new Bucket(true,new SymbolicLink(value),null));
+                final Object s;
+                if (Database.log.equals(filename)) {
+                    s = value;
+                    o2f.put(s, filename);
+                } else {
+                    s = new SymbolicLink(value);
+                }
+                f2b.put(filename, new Bucket(true, s, null));
                 xxx.add(filename);
             }
 
