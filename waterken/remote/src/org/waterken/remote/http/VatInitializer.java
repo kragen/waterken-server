@@ -152,7 +152,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
                         task.run();
                         return null;
                     }
-                });
+                }).cast();
             }
         };
     }
@@ -164,5 +164,5 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     
     static protected final String outbound = ".outbound";
     static private   final String tasks = ".tasks";
-    static protected final String exports = ".exports";
+    static public    final String exports = ".exports";
 }

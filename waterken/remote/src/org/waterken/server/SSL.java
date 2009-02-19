@@ -64,7 +64,7 @@ SSL {
                 final String location = Authority.location(authority);
                 final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
-                return hostname.toLowerCase() +
+                return Header.toLowerCase(hostname) +
                        (standardPort == port ? "" : ":" + port);
             }
             
@@ -229,7 +229,7 @@ SSL {
             ? hostname.regionMatches(true,
                 hostname.length() - pattern.length() + 1,
                 pattern, 1, pattern.length() - 1)
-        : hostname.equalsIgnoreCase(pattern);
+        : Header.equivalent(hostname, pattern);
     }
 
     /**
@@ -352,7 +352,7 @@ SSL {
                 final String dn = cert.getSubjectX500Principal().getName();
                 if (!dn.startsWith("CN=")) { return false; }
                 final String cn = dn.substring("CN=".length());
-                final String hostname = cn.toLowerCase();
+                final String hostname = Header.toLowerCase(cn);
                 if (!hostname.startsWith("y-")) { return false; }
                 if (!hostname.endsWith(".yurl.net")) { return false; }
                 final String fingerprint = hostname.substring("y-".length(),

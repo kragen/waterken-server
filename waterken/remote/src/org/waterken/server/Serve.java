@@ -64,7 +64,7 @@ Serve {
         Settings.summarize(hostname, err);
 
         // start the network services
-        final Receiver<ByteArray> updateDNS_ = Settings.config.read("updateDNS");
+        final Receiver<ByteArray> updateDNS_= Settings.config.read("updateDNS");
         for (final String service : services) {
         	try {
 	            final Object config = Settings.config.read(service);

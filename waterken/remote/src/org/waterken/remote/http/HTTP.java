@@ -44,7 +44,7 @@ import org.waterken.uri.URI;
 /**
  * A web-key interface to a {@link Root}.
  */
-/* package */ final class
+public final class
 HTTP extends Eventual implements Serializable {
     static private final long serialVersionUID = 1L;    
     
@@ -113,11 +113,11 @@ HTTP extends Eventual implements Serializable {
         return new Exports(new HTTP(enqueue,here,log, destruct,local,outbound));
     }
     
-    static protected final class
+    static public final class
     Exports extends Struct implements Messenger, Serializable {
         static private final long serialVersionUID = 1L;
         
-        protected final HTTP _;
+        public final HTTP _;
         
         private
         Exports(final HTTP _) {
@@ -169,16 +169,16 @@ HTTP extends Eventual implements Serializable {
         /**
          * Gets the base URL for this URL space.
          */
-        protected String
+        public String
         getHere() { return _.here; }
         
-        protected ClassLoader
+        public ClassLoader
         getCodebase() { return _.local.fetch(null, Database.code); }
         
         /**
          * Constructs a reference importer.
          */
-        protected Importer
+        public Importer
         connect() {
             final Importer next=Remote.connect(_, _.deferred, this, _.here);
             class ImporterX extends Struct implements Importer, Serializable {
@@ -199,7 +199,7 @@ HTTP extends Eventual implements Serializable {
         /**
          * Constructs a reference exporter.
          */
-        protected Exporter
+        public Exporter
         export() {
             class ExporterX extends Struct implements Exporter, Serializable {
                 static private final long serialVersionUID = 1L;

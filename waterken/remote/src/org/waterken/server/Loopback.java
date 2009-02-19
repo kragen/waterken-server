@@ -12,6 +12,7 @@ import java.net.UnknownHostException;
 
 import org.waterken.net.Locator;
 import org.waterken.uri.Authority;
+import org.waterken.uri.Header;
 import org.waterken.uri.Location;
 
 /**
@@ -40,7 +41,7 @@ Loopback {
                 final String location = Authority.location(authority);
                 final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
-                return hostname.toLowerCase() +
+                return Header.toLowerCase(hostname) +
                        (standardPort == port ? "" : ":" + port);
             }
             
@@ -50,7 +51,7 @@ Loopback {
                 final String location = Authority.location(authority);
                 final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
-                if (!"localhost".equalsIgnoreCase(hostname)) {
+                if (!Header.equivalent("localhost", hostname)) {
                     throw new ConnectException();
                 }
                 return new Socket(addr, port);

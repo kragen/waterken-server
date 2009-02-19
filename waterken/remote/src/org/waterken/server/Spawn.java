@@ -73,7 +73,7 @@ Spawn {
         // create the database
         final ClassLoader code = Project.connect(project);
         final Class<?> maker = code.loadClass(typename);
-        final String r = VatInitializer.create(Settings.db(), project,
+        final String r = VatInitializer.create(Settings.db(""), project,
                                                here, label, maker, argv);
         System.out.println(r);
     }

@@ -16,6 +16,7 @@ import org.waterken.project.Project;
 import org.waterken.remote.http.AMP;
 import org.waterken.store.StoreMaker;
 import org.waterken.syntax.config.Config;
+import org.waterken.uri.Path;
 
 /**
  * Server settings.
@@ -52,14 +53,14 @@ Settings {
             stderr = config.read("stderr");
         } catch (final Exception e) { throw new Error(e); }
         config.override("dbs",
-            new JODBManager<Server>(layout, new Proxy(), stderr));
+                        new JODBManager<Server>(layout, new Proxy(), stderr));
     }
     
-    static protected Database<Server>
-    db() throws Exception {
+    static public Database<Server>
+    db(final String path) throws Exception {
         final DatabaseManager<Server> dbs = config.read("dbs");
         final File root = config.read("vatRootFolder");
-        return dbs.connect(root);
+        return dbs.connect(Path.descend(root, path));
     }
     
     /**
