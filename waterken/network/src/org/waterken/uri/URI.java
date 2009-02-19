@@ -243,7 +243,7 @@ URI {
     static public String
     relate(final String base, final String target) {
         final int first = serviceLast(base);
-        if (!base.regionMatches(0, target, 0, first)) { return target; }
+        if (!base.regionMatches(0, target, 0, first + 1)) { return target; }
         
         // determine the common parent folder
         final int last = hierarchyLast(base, first);

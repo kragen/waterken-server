@@ -135,7 +135,7 @@ HTTPD extends TCPDaemon {
 	                throw new Exception("Bad Transfer-Encoding");
 	            }
 	            r = new ChunkedInputStream(connection);
-	        } else if ("identity".equalsIgnoreCase(encoding.get(i))) {
+	        } else if (Header.equivalent("identity", encoding.get(i))) {
 	        } else { throw new Exception("Encoding Not Implemented"); }
 	    }
 	    if (null == r) {
