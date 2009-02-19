@@ -3,36 +3,50 @@
 package org.waterken.genkey;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 
+import org.joe_e.Immutable;
+import org.joe_e.array.ByteArray;
+import org.joe_e.charset.ASCII;
 import org.joe_e.file.Filesystem;
-import org.ref_send.promise.eventual.Do;
-import org.ref_send.promise.eventual.Eventual;
-import org.ref_send.promise.eventual.Task;
-import org.ref_send.var.Variable;
+import org.ref_send.promise.Do;
+import org.ref_send.promise.Eventual;
+import org.ref_send.promise.Receiver;
+import org.ref_send.promise.Vat;
 import org.waterken.base32.Base32;
-import org.waterken.dns.Resource;
-import org.waterken.dns.editor.DomainMaster;
-import org.waterken.dns.editor.redirectory.Redirectory;
+import org.waterken.db.Root;
+import org.waterken.db.Transaction;
+import org.waterken.dns.editor.Registrar;
+import org.waterken.menu.Menu;
 import org.waterken.net.http.HTTPD;
+import org.waterken.remote.http.HTTP;
+import org.waterken.remote.http.VatInitializer;
 import org.waterken.server.Settings;
-import org.waterken.server.Proxy;
+import org.waterken.uri.URI;
 
 /**
  * A self-signed certificate generator.
  */
 final class
 GenKey {
-
-    private
-    GenKey() {}
+    private GenKey() {}
+    
+    static private final String defaultSuffix = ".yurl.net";
+    static private final String defaultRegistrar =
+        "http://localhost:8080/-/dns/#s=yq76ja5dzgbzvz";
     
     /**
      * The argument string is:
@@ -46,7 +60,7 @@ GenKey {
     static public void
     main(final String[] args) throws Exception {
         final int strength = 0 < args.length ? Integer.parseInt(args[0]) : 80;
-        final String suffix = 1 < args.length ? args[1] : ".yurl.net";
+        final String suffix = 1 < args.length ? args[1] : defaultSuffix;
         final int keysize =
             80 >= strength
                 ? 1024
@@ -55,33 +69,46 @@ GenKey {
             : 128 >= strength
                 ? 3072
             : 4096;
-
         System.err.println("Generating RSA key pair...");
         System.err.println("with keysize: " + keysize);
-        System.err.println("under domain: " + suffix);
 
-        // generate a new key pair
         final KeyPairGenerator g = KeyPairGenerator.getInstance("RSA");
         g.initialize(keysize);
         final KeyPair p = g.generateKeyPair();
-        final byte[] subjectPublicKeyInfo = p.getPublic().getEncoded();
+        final String hostname = "y-"+fingerprint(strength,p.getPublic())+suffix;
+        System.err.println("for hostname: " + hostname);
+                
+        final Certificate cert = certify(hostname, p);
+        System.err.println("Storing self-signed certificate...");
+        store(p.getPrivate(), cert);
+        
+        System.err.println("Registering the hostname...");
+        register(hostname, 2 < args.length ? args[2] : defaultRegistrar);
+        
+        Thread.sleep(60 * 1000);    // TODO
+        
+        return;
+    }
+    
+    static private String
+    fingerprint(final int strength,
+                final PublicKey key) throws NoSuchAlgorithmException {
+        final MessageDigest SHA1 = MessageDigest.getInstance("SHA-1");
+        final byte[] hash = SHA1.digest(key.getEncoded());
+        final byte[] guid = new byte[strength / Byte.SIZE];
+        System.arraycopy(hash, 0, guid, 0, guid.length);
+        return Base32.encode(guid);
+    }
+    
+    static private Certificate
+    certify(final String hostname,
+            final KeyPair p) throws GeneralSecurityException {
         
         // produce the DER encoded CN field
-        final String fingerprint;
         final byte[] cn; {
-            
-            // calculate the hostname
-            final MessageDigest SHA1 = MessageDigest.getInstance("SHA-1");
-            final byte[] hash = SHA1.digest(subjectPublicKeyInfo);
-            final byte[] guid = new byte[strength / Byte.SIZE];
-            System.arraycopy(hash, 0, guid, 0, guid.length);
-            fingerprint = "y-" + Base32.encode(guid);
-            final byte[] hostname = (fingerprint + suffix).getBytes("US-ASCII");
-            
-            System.err.println("fingerprint: " + fingerprint);
-
-            final DER out = new DER(11 + hostname.length);
-            out.writeValue(hostname);
+            final byte[] hostnameBytes = ASCII.encode(hostname);
+            final DER out = new DER(11 + hostnameBytes.length);
+            out.writeValue(hostnameBytes);
             out.writeLen();
             out.writeByte(0x13);
             out.writeByte(0x03);
@@ -116,8 +143,8 @@ GenKey {
         
         // produce the validity
         final byte[] validity; {
-            final byte[] start = "071007000059Z".getBytes("US-ASCII");
-            final byte[] end = "491231235959Z".getBytes("US-ASCII");
+            final byte[] start = ASCII.encode("071007000059Z");
+            final byte[] end = ASCII.encode("491231235959Z");
             validity = new byte[2 + 2 + start.length + 2 + end.length];
             int i = 0;
             validity[i++] = 0x30;
@@ -134,6 +161,7 @@ GenKey {
         
         // produce the tbsCertificate
         final byte[] tbsCertificate; {
+            final byte[] subjectPublicKeyInfo = p.getPublic().getEncoded();
             final DER out = new DER(4 +
                                     version.length +
                                     serialNumber.length +
@@ -184,62 +212,74 @@ GenKey {
         
         // parse the certificate
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        final Certificate cert = cf.generateCertificate(
-                new ByteArrayInputStream(certificate));
+        final Certificate cert =
+            cf.generateCertificate(new ByteArrayInputStream(certificate));
         cert.verify(p.getPublic());     // sanity check
         
-        // store the private key and certificate
-        System.err.println("Storing self-signed certificate...");
+        return cert;
+    }
+    
+    static private void
+    store(final PrivateKey key,
+          final Certificate cert) throws GeneralSecurityException, IOException {
         final char[] password = "nopass".toCharArray();
         final KeyStore certs = KeyStore.getInstance(KeyStore.getDefaultType());
         certs.load(null, password);
-        certs.setKeyEntry("mykey", p.getPrivate(), password,
-                          new Certificate[] { cert });
+        certs.setKeyEntry("mykey", key, password, new Certificate[] { cert });
         final OutputStream fout = Filesystem.writeNew(Settings.keys);
         certs.store(fout, password);
         fout.close();
-        
-        // register the public key
-        System.err.println("Registering the public key...");
-        Proxy.init();
-        final Eventual _ = Settings.browser._;
-        final String redirectoryURL = 2 < args.length
-            ? args[2]
-        : "https://y-hzpaiycw7dur5zcyena5qzq.yurl.net/-/dns/#redirectory";
-        _.enqueue.run(new Task() {
-           public void
-           run() throws Exception {
-               final Redirectory redirectory_ = (Redirectory)Settings.browser.
-                   connect.run(redirectoryURL, null, Redirectory.class);
-               _.when(redirectory_.register(fingerprint),
-                      new Do<DomainMaster,Void>() {
-                   public Void
-                   fulfill(final DomainMaster master) throws Exception {
-                       Settings.config.init("registration", master);
-                       
-                       // setup an IP updater
-                       _.when(master.answers.grow(),
-                              new Do<Variable<Resource>,Void>() {
-                           public Void
-                           fulfill(final Variable<Resource> a) throws Exception{
-                               Settings.config.init("ip", a);
-                               
-                               final HTTPD https= Settings.config.read("https");
-                               final int portN = https.port;
-                               final String port= 443 == portN ? "" : ":"+portN;
-                               System.err.println(
-                                   "Restart your server and visit:");
-                               System.out.println(
-                                   "https://" + fingerprint+suffix+port +"/");
-                               return null;
-                           }
-                       });
-                       
-                       return null;
-                   }
-               });
-           }
+    }
+    
+    static private void
+    register(final String hostname,
+             final String redirectoryURL) throws Exception {
+        final String top = VatInitializer.create(
+            Settings.db(""), "dns", "http://localhost/", null,
+            org.waterken.genkey.maker.Maker.class);
+        Settings.db(URI.path(top)).enter(Transaction.update,
+                                         new Transaction<Immutable>() {
+            public Immutable
+            run(final Root local) throws Exception {
+                final HTTP.Exports exports =
+                    local.fetch(null, VatInitializer.exports);
+                claim(exports._, hostname, (Registrar)exports.connect().
+                        run(redirectoryURL, null, Registrar.class));
+                return null;
+            }
         });
+    }
+    
+    static private void
+    claim(final Eventual _, final String hostname,final Registrar redirectory_){
+        class StoreRegistration extends Do<Vat<Menu<ByteArray>>,Void>
+                                implements Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public Void
+            fulfill(final Vat<Menu<ByteArray>> master) throws Exception{
+                Settings.config.init("registration", master);
+
+                class StoreUpdater extends Do<Receiver<?>,Void>
+                                   implements Serializable {
+                    static private final long serialVersionUID = 1L;
+
+                    public Void
+                    fulfill(final Receiver<?> a) throws Exception {
+                        Settings.config.init("updateDNS", a);
+
+                        final HTTPD https = Settings.config.read("https");
+                        final String port=443==https.port ? "" : ":"+https.port;
+                        System.err.println("Restart your server and visit:");
+                        System.out.println("https://" + hostname + port + "/");
+                        return null;
+                    }
+                }
+                _.when(master.root.grow(), new StoreUpdater());
+                return null;
+            }
+        }
+        _.when(redirectory_.claim(hostname), new StoreRegistration());
     }
     
     static private class

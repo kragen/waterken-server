@@ -9,9 +9,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/persistence"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/ref_send"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/remote"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/server"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/shared"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/web_send"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/syntax"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
