@@ -345,7 +345,12 @@ Eventual implements Receiver<Task<?>>, Serializable {
                 public Void
                 run() throws Exception {
                     // AUDIT: call to untrusted application code
-                    sample(untrusted, observer, _.log, _.here + "#t" + id);
+                    try {
+                        sample(untrusted, observer, _.log, _.here + "#t" + id);
+                    } catch (final Exception e) {
+                        _.log.problem(e);
+                        throw e;
+                    }
                     return null;
                 }
             }
