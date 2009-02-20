@@ -85,10 +85,6 @@ GenKey {
         
         System.err.println("Registering the hostname...");
         register(hostname, 2 < args.length ? args[2] : defaultRegistrar);
-        
-        Thread.sleep(60 * 1000);    // TODO
-        
-        return;
     }
     
     static private String
