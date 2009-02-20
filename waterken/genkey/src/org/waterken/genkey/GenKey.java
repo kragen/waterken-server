@@ -70,20 +70,20 @@ GenKey {
             : 128 >= strength
                 ? 3072
             : 4096;
-        System.err.println("Generating RSA key pair...");
-        System.err.println("with keysize: " + keysize);
+        System.out.println("Generating RSA key pair...");
+        System.out.println("with keysize: " + keysize);
 
         final KeyPairGenerator g = KeyPairGenerator.getInstance("RSA");
         g.initialize(keysize);
         final KeyPair p = g.generateKeyPair();
         final String hostname = "y-"+fingerprint(strength,p.getPublic())+suffix;
-        System.err.println("for hostname: " + hostname);
+        System.out.println("for hostname: " + hostname);
                 
         final Certificate cert = certify(hostname, p);
-        System.err.println("Storing self-signed certificate...");
+        System.out.println("Storing self-signed certificate...");
         store(p.getPrivate(), cert);
         
-        System.err.println("Registering the hostname...");
+        System.out.println("Registering the hostname...");
         register(hostname, 2 < args.length ? args[2] : defaultRegistrar);
     }
     
@@ -268,7 +268,7 @@ GenKey {
 
                         final HTTPD https = Settings.config.read("https");
                         final String port=443==https.port ? "" : ":"+https.port;
-                        System.err.println("Restart your server and visit:");
+                        System.out.println("Restart your server and visit:");
                         System.out.println("https://" + hostname + port + "/");
                         return null;
                     }
