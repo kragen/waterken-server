@@ -43,15 +43,14 @@ Report {
      */
     static public void
     main(final String[] args) throws Exception {
+        final PrintStream out = System.out;
         if (0 == args.length) {
-            final PrintStream log = System.err;
-            log.println("Reports on file usage by a persistence folder.");
-            log.println("use: java -jar report.jar <folder-path>");
+            out.println("Reports on file usage by a persistence folder.");
+            out.println("use: java -jar report.jar <folder-path>");
             System.exit(-1);
             return;
         }
 
-        final PrintStream out = System.out;
         final File topic = new File(args[0]);
         final File dir = topic.isDirectory() ? topic : topic.getParentFile();
         final String project =

@@ -28,7 +28,7 @@ Touch {
      */
     static public void
     main(final String[] args) throws Exception {
-        final PrintStream log = System.err;
+        final PrintStream log = System.out;
         if (0 == args.length) {
             log.println("Touches all mutable objects in a persistence folder.");
             log.println("use: java -jar touch.jar <folder-path>");
