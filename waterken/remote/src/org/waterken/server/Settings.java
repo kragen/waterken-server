@@ -37,9 +37,17 @@ Settings {
             code = Project.connect("dns");
         } catch (final Exception e) { throw new Error(e); }
     }
+    
+    /**
+     * file containing the SSL configuration
+     */
     static public    final File keys= Filesystem.file(configFolder, "keys.jks");
     
     // remaining configuration is stored in the config folder
+    
+    /**
+     * configuration settings
+     */
     static public    final Config config =
         new Config(configFolder, code, "file:///",
                    AMP.connect(new Proxy()), null);
@@ -56,6 +64,10 @@ Settings {
                         new JODBManager<Server>(layout, new Proxy(), stderr));
     }
     
+    /**
+     * Connects to a named database.
+     * @param path  path to the database
+     */
     static public Database<Server>
     db(final String path) throws Exception {
         final DatabaseManager<Server> dbs = config.read("dbs");
