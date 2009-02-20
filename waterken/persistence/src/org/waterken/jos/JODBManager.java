@@ -4,13 +4,11 @@ package org.waterken.jos;
 
 import java.io.File;
 
-import org.ref_send.deserializer;
-import org.ref_send.name;
 import org.ref_send.log.Event;
 import org.ref_send.promise.Receiver;
 import org.waterken.cache.Cache;
-import org.waterken.db.Service;
 import org.waterken.db.DatabaseManager;
+import org.waterken.db.Service;
 import org.waterken.store.StoreMaker;
 import org.waterken.thread.Concurrent;
 import org.waterken.thread.Sleep;
@@ -35,10 +33,9 @@ JODBManager<S> implements DatabaseManager<S> {
      * @param stderr    standard error output for all vats
      * @param layout    store maker
      */
-    public @deserializer
-    JODBManager(@name("layout") final StoreMaker layout,
-                @name("session") final S session,
-                @name("stderr") final Receiver<Event> stderr) {
+    public
+    JODBManager(final StoreMaker layout, final S session,
+                final Receiver<Event> stderr) {
         this.layout = layout;
         this.session = session;
         this.stderr = stderr;
