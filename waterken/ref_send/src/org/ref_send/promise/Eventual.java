@@ -185,7 +185,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
      */
     public
     Eventual(final Receiver<Task<?>> enqueue) {
-        this(new Token(), enqueue, "", new NOP(), new Rejected<Receiver<?>>(
+        this(new Token(), enqueue, "", new Log(), new Rejected<Receiver<?>>(
                 new NullPointerException())._(Receiver.class));
     }
 
@@ -218,7 +218,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
 
             public Void
             run() throws Exception {
-                if (NOP.class != log.getClass()) {
+                if (Log.class != log.getClass()) {
                     log.got(here + "#t" + id,
                             Reflection.method(task.getClass(), "run"));
                 }
@@ -366,12 +366,12 @@ Eventual implements Receiver<Task<?>>, Serializable {
         try {
             a = ref(promise.cast()).cast();
         } catch (final Exception reason) {
-            if (NOP.class != log.getClass()) {
+            if (Log.class != log.getClass()) {
                 log.got(message, Deferred.rejecter(observer));
             }
             return observer.reject(reason);
         }
-        if (NOP.class != log.getClass()) {
+        if (Log.class != log.getClass()) {
             log.got(message, Deferred.fulfiller(a.getClass(), observer));
         }
         return observer.fulfill(a);
