@@ -2,10 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.trace;
 
-import java.io.Serializable;
 import java.lang.reflect.Member;
 
-import org.joe_e.Equatable;
 import org.ref_send.log.Comment;
 import org.ref_send.log.Event;
 import org.ref_send.log.Got;
@@ -32,43 +30,43 @@ EventSender {
      */
     static public Log
     make(final Receiver<Event> stderr, final Marker mark, final Tracer tracer) {
-        class LogX implements Log, Equatable, Serializable {
+        class LogX extends Log {
             static private final long serialVersionUID = 1L;
 
-            public void
+            public @Override void
             comment(final String text) {
                 stderr.run(new Comment(mark.run(), tracer.traceHere(), text));
             }
             
-            public void
+            public @Override void
             problem(final Exception reason) {
                 stderr.run(new Problem(mark.run(),tracer.traceException(reason),
                                        tracer.readException(reason), reason));
             }
 
-            public void
+            public @Override void
             got(final String message, final Member member) {
                 stderr.run(new Got(mark.run(),
                     null!=member ? tracer.traceMember(member) : null, message));
             }
 
-            public void
+            public @Override void
             returned(final String message) {
                 stderr.run(new Returned(mark.run(), null, message));
             }
 
-            public void
+            public @Override void
             sent(final String message) {
                 stderr.run(new Sent(mark.run(), tracer.traceHere(), message));
             }
 
-            public void
+            public @Override void
             resolved(final String condition) {
                 stderr.run(new Resolved(mark.run(), tracer.traceHere(),
                                         condition));
             }
 
-            public void
+            public @Override void
             sentIf(final String message, final String condition) {
                 stderr.run(new SentIf(mark.run(), tracer.traceHere(),
                                       message, condition));
