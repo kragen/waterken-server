@@ -35,6 +35,7 @@ import org.waterken.net.http.HTTPD;
 import org.waterken.remote.http.HTTP;
 import org.waterken.remote.http.VatInitializer;
 import org.waterken.server.Settings;
+import org.waterken.syntax.Exporter;
 import org.waterken.uri.URI;
 
 /**
@@ -243,22 +244,23 @@ GenKey {
             run(final Root local) throws Exception {
                 final HTTP.Exports exports =
                     local.fetch(null, VatInitializer.exports);
-                claim(exports._, hostname, (Registrar)exports.connect().
-                        run(redirectoryURL, null, Registrar.class));
+                claim(exports._, exports.export(), hostname, (Registrar)exports.
+                        connect().run(redirectoryURL, null, Registrar.class));
                 return null;
             }
         });
     }
     
     static private void
-    claim(final Eventual _, final String hostname,final Registrar redirectory_){
+    claim(final Eventual _, final Exporter export,
+          final String hostname, final Registrar redirectory_){
         class StoreRegistration extends Do<Vat<Menu<ByteArray>>,Void>
                                 implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public Void
             fulfill(final Vat<Menu<ByteArray>> master) throws Exception{
-                Settings.config.init("registration", master);
+                Settings.config.init("registration", master, export);
 
                 class StoreUpdater extends Do<Receiver<?>,Void>
                                    implements Serializable {
@@ -266,7 +268,7 @@ GenKey {
 
                     public Void
                     fulfill(final Receiver<?> a) throws Exception {
-                        Settings.config.init("updateDNS", a);
+                        Settings.config.init("updateDNS", a, export);
 
                         final HTTPD https = Settings.config.read("https");
                         final String port=443==https.port ? "" : ":"+https.port;
