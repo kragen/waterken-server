@@ -249,8 +249,6 @@ Config {
         if (!tmp.renameTo(Filesystem.file(root, name + output.ext))) {
             throw new IOException();
         }
-        cacheKeys = cacheKeys.with(baseURI + name);
-        cacheValues = cacheValues.with(value);
     }
     
     /**
