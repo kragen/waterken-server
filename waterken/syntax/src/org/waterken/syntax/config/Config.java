@@ -3,6 +3,7 @@
 package org.waterken.syntax.config;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 
@@ -224,13 +225,30 @@ Config {
      */
     public void
     init(final String name, final Object value) throws Exception {
+        init(name, value, export);
+    }
+    
+    /**
+     * Initializes a configuration setting.
+     * @param name      setting name
+     * @param value     setting value
+     * @param export    remote reference exporter, may be <code>null</code>
+     * @throws Exception    any problem persisting the <code>value</code>
+     */
+    public void
+    init(final String name, final Object value,
+                            final Exporter export) throws Exception {
         final ByteArray content =
             output.serialize.run(export, ConstArray.array(value));
-        final OutputStream out =
-            Filesystem.writeNew(Filesystem.file(root, name + output.ext));
+        final File tmp = Filesystem.file(root, name + output.ext + ".tmp");
+        tmp.delete();
+        final OutputStream out = Filesystem.writeNew(tmp);
         out.write(content.toByteArray());
         out.flush();
         out.close();
+        if (!tmp.renameTo(Filesystem.file(root, name + output.ext))) {
+            throw new IOException();
+        }
         cacheKeys = cacheKeys.with(baseURI + name);
         cacheValues = cacheValues.with(value);
     }
