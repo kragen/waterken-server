@@ -3,7 +3,6 @@
 package org.waterken.syntax.config;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 
@@ -240,15 +239,11 @@ Config {
                             final Exporter export) throws Exception {
         final ByteArray content =
             output.serialize.run(export, ConstArray.array(value));
-        final File tmp = Filesystem.file(root, name + output.ext + ".tmp");
-        tmp.delete();
-        final OutputStream out = Filesystem.writeNew(tmp);
+        final OutputStream out =
+            Filesystem.writeNew(Filesystem.file(root, name + output.ext));
         out.write(content.toByteArray());
         out.flush();
         out.close();
-        if (!tmp.renameTo(Filesystem.file(root, name + output.ext))) {
-            throw new IOException();
-        }
     }
     
     /**
