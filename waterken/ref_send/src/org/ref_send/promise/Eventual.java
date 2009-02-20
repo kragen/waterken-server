@@ -469,18 +469,18 @@ Eventual implements Receiver<Task<?>>, Serializable {
             
             if (null != block.next) {
                 enqueue.run(new Forward<T>(condition, value, block.next));
-                final String message = here + "#w" + block.message;
-                if (Deferred.trusted(deferred, value)) {
-                    log.got(message, null);
-                    ((Deferred<T>)value).when(block.observer);
-                } else {
-                    try {
+                try {
+                    final String message = here + "#w" + block.message;
+                    if (Deferred.trusted(deferred, value)) {
+                        log.got(message, null);
+                        ((Deferred<T>)value).when(block.observer);
+                    } else {
                         // AUDIT: call to untrusted application code
                         sample(value, block.observer, log, message);
-                    } catch (final Exception e) {
-                        log.problem(e);
-                        throw e;
                     }
+                } catch (final Exception e) {
+                    log.problem(e);
+                    throw e;
                 }
             }
             freeWhen(next, block);
