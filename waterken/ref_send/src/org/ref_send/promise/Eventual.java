@@ -218,7 +218,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
 
             public Void
             run() throws Exception {
-                if (!(log instanceof NOP)) {
+                if (NOP.class != log.getClass()) {
                     log.got(here + "#t" + id,
                             Reflection.method(task.getClass(), "run"));
                 }
@@ -366,12 +366,12 @@ Eventual implements Receiver<Task<?>>, Serializable {
         try {
             a = ref(promise.cast()).cast();
         } catch (final Exception reason) {
-            if (!(log instanceof NOP)) {
+            if (NOP.class != log.getClass()) {
                 log.got(message, Deferred.rejecter(observer));
             }
             return observer.reject(reason);
         }
-        if (!(log instanceof NOP)) {
+        if (NOP.class != log.getClass()) {
             log.got(message, Deferred.fulfiller(a.getClass(), observer));
         }
         return observer.fulfill(a);
