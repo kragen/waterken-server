@@ -61,7 +61,7 @@ Serve {
             null != credentials ? credentials.getHostname() : "localhost";
 
         // summarize the configuration information
-        Settings.summarize(hostname, err);
+        Settings.summarize(hostname, System.out);
 
         // start the network services
         final Receiver<ByteArray> updateDNS_= Settings.config.read("updateDNS");
