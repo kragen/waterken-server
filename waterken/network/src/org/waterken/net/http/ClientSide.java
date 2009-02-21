@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
 import java.util.LinkedList;
 
 import org.joe_e.Powerless;
@@ -232,7 +233,7 @@ ClientSide implements Server {
                     });
                 }
                 on.retry();
-                throw e;
+                if (SocketException.class != e.getClass()) { throw e; }
             }
             return null;
         }
