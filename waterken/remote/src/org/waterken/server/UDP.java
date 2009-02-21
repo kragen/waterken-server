@@ -18,14 +18,12 @@ import org.waterken.udp.UDPDaemon;
 final class
 UDP extends Struct implements Runnable {
 
-    private final String service;
     private final PrintStream err;
     private final UDPDaemon daemon;
     private final DatagramSocket port;
     
-    UDP(final String service, final PrintStream err,
+    UDP(final PrintStream err,
         final UDPDaemon daemon, final DatagramSocket port) {
-        this.service = service;
         this.err = err;
         this.daemon = daemon;
         this.port = port;
@@ -33,7 +31,8 @@ UDP extends Struct implements Runnable {
     
     public void
     run() {
-        err.println(service + ": " + "running at " +
+        final Thread thread = Thread.currentThread();
+        err.println(thread + ": " + "running at " +
                     port.getLocalSocketAddress() + " ...");
         while (true) {
             try {
@@ -52,7 +51,8 @@ UDP extends Struct implements Runnable {
                     }
                 });
             } catch (final Throwable e) {
-                err.println(service + ": " + e);
+                err.println(thread + ": problem");
+                e.printStackTrace(err);
             }
         }
     }

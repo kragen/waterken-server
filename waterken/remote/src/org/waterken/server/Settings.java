@@ -81,8 +81,8 @@ Settings {
      * @param err       output stream
      */
     static protected void
-    summarize(final String hostname, final PrintStream err) throws Exception {
-        err.println("hostname: <" + hostname + ">");
+    summarize(final String hostname, final PrintStream err) {
         err.println("config folder: <" + configFolder + ">");
+        err.println("hostname: <" + hostname + ">");
     }
 }

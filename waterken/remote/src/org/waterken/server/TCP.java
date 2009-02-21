@@ -24,20 +24,16 @@ import org.waterken.thread.Yield;
 final class
 TCP implements Runnable {
     
-    private final String serviceName;
     private final PrintStream err;
     private final TCPDaemon daemon;
     private final String hostname;
     private final ServerSocket port;
     private final Receiver<ByteArray> updateDNS;
     
-    private       long connectionCount = 0;
     private       InetAddress lastKnownAddress = null;
     
-    TCP(final String serviceName, final PrintStream err,  
-        final TCPDaemon daemon, final String hostname,
+    TCP(final PrintStream err,  final TCPDaemon daemon, final String hostname,
         final ServerSocket port, final Receiver<ByteArray> updateDNS) {
-        this.serviceName = serviceName;
         this.err = err;
         this.daemon = daemon;
         this.hostname = hostname;
@@ -47,55 +43,55 @@ TCP implements Runnable {
 
     public void
     run() {
-        err.println(serviceName + ": " + "running at " +
+        final Thread thread = Thread.currentThread();
+        err.println(thread + ": " + "running at " +
                     port.getLocalSocketAddress() + " ...");
         
-        final ThreadGroup threads = new ThreadGroup(serviceName);
-        if (null != updateDNS) { updateHostAddress(); }
+        final ThreadGroup threads = new ThreadGroup(thread.getName());
+        if (null != updateDNS) { updateHostAddress(thread); }
         while (true) {
-            final Socket socket;
             try {
-                socket = port.accept();
-            } catch (final SocketTimeoutException e) {
-                if (null != updateDNS) { updateHostAddress(); }
-                continue;
-            } catch (final Exception e) {
-                // something strange happened
-                e.printStackTrace();
-                continue;
-            }
-            final String name = serviceName + "-" + connectionCount++;
-            new Thread(threads, new Runnable() {
-                public void
-                run() {
-                    try {
-                        err.println(name + ": processing...");
-                        daemon.accept(hostname, socket, new Yield()).run();
-                    } catch (final SocketTimeoutException e) {
-                    	// normal end to a TCP connection
-                    } catch (final Throwable e) {
-                    	e.printStackTrace(err);
-                    } finally {
-                        try { socket.close(); } catch (final Exception e) {}
+                final Socket socket = port.accept();
+                new Thread(threads, "" + socket.getRemoteSocketAddress()) {
+                    public void
+                    run() {
+                        try {
+                            err.println(this + ": open...");
+                            daemon.accept(hostname, socket, new Yield()).run();
+                        } catch (final SocketTimeoutException e) {
+                            // normal end to a TCP connection
+                        } catch (final Throwable e) {
+                            err.println(this + ": problem");
+                            e.printStackTrace(err);
+                        } finally {
+                            try { socket.close(); } catch (final Exception e) {}
+                        }
+                        err.println(this + ": closed");
                     }
-                    err.println(name + ": done");
-                }
-            }, name).start();
+                }.start();
+            } catch (final SocketTimeoutException e) {
+                if (null != updateDNS) { updateHostAddress(thread); }
+            } catch (final Throwable e) {
+                err.println(thread + ": problem");
+                e.printStackTrace(err);
+            }
         }
     }
     
     private void
-    updateHostAddress() {
+    updateHostAddress(final Thread thread) {
         try {
             final InetAddress a = dynip();
             if (!a.equals(lastKnownAddress)) {
-                err.println("Updating DNS to: " + a.getHostAddress() + "...");
+                err.println(thread + ": updating DNS to: " +
+                            a.getHostAddress() + "...");
                 updateDNS.run(Resource.rr(
                         Resource.A, Resource.IN, 60, a.getAddress()));
                 lastKnownAddress = a;
             }
-        } catch (final Exception e) {
-            e.printStackTrace();
+        } catch (final Throwable e) {
+            err.println(thread + ": problem");
+            e.printStackTrace(err);
         }
     }
     

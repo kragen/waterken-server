@@ -34,9 +34,9 @@ Proxy extends Struct implements Server, Serializable {
         Server r = connections.fetch(null, peer);
         if (null == r) {
             final Receiver<ClientSide.Outbound> sender =
-                Concurrent.make(threads, "=>" + peer);
+                Concurrent.make(threads, "->" + peer);
             final Receiver<ClientSide.Inbound> receiver =
-                Concurrent.make(threads, "<=" + peer);
+                Concurrent.make(threads, "<-" + peer);
             r = ClientSide.make(peer, transport, new Sleep(), sender, receiver);
             connections.put(peer, r);
         }
