@@ -39,7 +39,7 @@ Concurrent {
                     new Thread(group, name) {
                         public void
                         run() {
-                            System.err.println(this + ": processing...");
+                            System.out.println(this + ": processing...");
                             try {
                                 while (true) {
                                     final T todo;
@@ -53,16 +53,16 @@ Concurrent {
                                     try {
                                         todo.run();
                                     } catch (final Exception e) {
-                                        System.err.println(this + ": problem");
-                                        e.printStackTrace();
+                                        System.err.println(this + ": " + e);
+                                        e.printStackTrace(System.err);
                                     }
                                     Thread.yield();
                                 }
                             } catch (final Throwable e) {
-                                System.err.println(this + ": problem");
-                                e.printStackTrace();
+                                System.err.println(this + ": " + e);
+                                e.printStackTrace(System.err);
                             }
-                            System.err.println(this + ": idling...");
+                            System.out.println(this + ": idling...");
                         }
                     }.start();
                     running = true;
