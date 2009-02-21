@@ -43,10 +43,10 @@ Proxy extends Struct implements Server, Serializable {
         return r;
     }
 
-    static private   final Locator http = Loopback.client(80);
     static protected final Credentials credentials = Settings.keys.isFile()
         ? SSL.keystore("TLS", Settings.keys, "nopass") : null;
-    static private   final Locator https = SSL.client(443, credentials);
+    static private final Locator https = SSL.client(443,credentials,System.out);
+    static private final Locator http = Loopback.client(80, System.out);
     
     public void
     serve(final Request head,

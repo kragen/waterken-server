@@ -2,8 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
-import java.io.PrintStream;
-
 import org.waterken.net.http.HTTPD;
 import org.waterken.project.Project;
 import org.waterken.remote.http.VatInitializer;
@@ -26,9 +24,8 @@ Spawn {
 
         // extract the arguments
         if (args.length < 2) {
-            final PrintStream log = System.err;
-            log.println("Creates a new persistent object folder.");
-            log.println("use: java -jar spawn.jar " +
+            System.err.println("Creates a new persistent object folder.");
+            System.err.println("use: java -jar spawn.jar " +
                 "<project-name> <maker-typename> <database-label>");
             System.exit(-1);
             return;

@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
-import java.io.PrintStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketAddress;
@@ -18,13 +17,10 @@ import org.waterken.udp.UDPDaemon;
 final class
 UDP extends Struct implements Runnable {
 
-    private final PrintStream err;
     private final UDPDaemon daemon;
     private final DatagramSocket port;
     
-    UDP(final PrintStream err,
-        final UDPDaemon daemon, final DatagramSocket port) {
-        this.err = err;
+    UDP(final UDPDaemon daemon, final DatagramSocket port) {
         this.daemon = daemon;
         this.port = port;
     }
@@ -32,8 +28,8 @@ UDP extends Struct implements Runnable {
     public void
     run() {
         final Thread thread = Thread.currentThread();
-        err.println(thread + ": " + "running at <" +
-                    port.getLocalSocketAddress() + ">...");
+        System.out.println(thread + ": " + "running at <" +
+                           port.getLocalSocketAddress() + ">...");
         while (true) {
             try {
                 final DatagramPacket in = new DatagramPacket(new byte[512],512);
@@ -51,8 +47,8 @@ UDP extends Struct implements Runnable {
                     }
                 });
             } catch (final Throwable e) {
-                err.println(thread + ": problem");
-                e.printStackTrace(err);
+                System.err.println(thread + ": " + e);
+                e.printStackTrace(System.err);
             }
         }
     }

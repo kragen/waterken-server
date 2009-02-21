@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
-import java.io.PrintStream;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -24,7 +23,6 @@ import org.waterken.thread.Yield;
 final class
 TCP implements Runnable {
     
-    private final PrintStream err;
     private final TCPDaemon daemon;
     private final String hostname;
     private final ServerSocket port;
@@ -32,9 +30,8 @@ TCP implements Runnable {
     
     private       InetAddress lastKnownAddress = null;
     
-    TCP(final PrintStream err,  final TCPDaemon daemon, final String hostname,
+    TCP(final TCPDaemon daemon, final String hostname,
         final ServerSocket port, final Receiver<ByteArray> updateDNS) {
-        this.err = err;
         this.daemon = daemon;
         this.hostname = hostname;
         this.port = port;
@@ -44,8 +41,8 @@ TCP implements Runnable {
     public void
     run() {
         final Thread thread = Thread.currentThread();
-        err.println(thread + ": " + "running at <" +
-                    port.getLocalSocketAddress() + ">...");
+        System.out.println(thread + ": " + "running at <" +
+                           port.getLocalSocketAddress() + ">...");
         
         final ThreadGroup threads = new ThreadGroup(thread.getName());
         if (null != updateDNS) { updateHostAddress(thread); }
@@ -56,24 +53,24 @@ TCP implements Runnable {
                     public void
                     run() {
                         try {
-                            err.println(this + ": open...");
+                            System.out.println(this + ": open...");
                             daemon.accept(hostname, socket, new Yield()).run();
                         } catch (final SocketTimeoutException e) {
                             // normal end to a TCP connection
                         } catch (final Throwable e) {
-                            err.println(this + ": problem");
-                            e.printStackTrace(err);
+                            System.err.println(this + ": " + e);
+                            e.printStackTrace(System.err);
                         } finally {
                             try { socket.close(); } catch (final Exception e) {}
                         }
-                        err.println(this + ": closed");
+                        System.out.println(this + ": closed");
                     }
                 }.start();
             } catch (final SocketTimeoutException e) {
                 if (null != updateDNS) { updateHostAddress(thread); }
             } catch (final Throwable e) {
-                err.println(thread + ": problem");
-                e.printStackTrace(err);
+                System.err.println(thread + ": " + e);
+                e.printStackTrace(System.err);
             }
         }
     }
@@ -83,15 +80,15 @@ TCP implements Runnable {
         try {
             final InetAddress a = dynip();
             if (!a.equals(lastKnownAddress)) {
-                err.println(thread + ": updating DNS to: " +
-                            a.getHostAddress() + "...");
+                System.out.println(thread + ": updating DNS to: " +
+                                   a.getHostAddress() + "...");
                 updateDNS.run(Resource.rr(
                         Resource.A, Resource.IN, 60, a.getAddress()));
                 lastKnownAddress = a;
             }
         } catch (final Throwable e) {
-            err.println(thread + ": problem");
-            e.printStackTrace(err);
+            System.err.println(thread + ": " + e);
+            e.printStackTrace(System.err);
         }
     }
     

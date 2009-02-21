@@ -4,7 +4,6 @@ package org.waterken.server;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.PrintStream;
 import java.net.BindException;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
@@ -38,24 +37,23 @@ Serve {
                 ? new String[] { "http", "https" }
             : new String[] { "http" };
         }
-        final PrintStream err = System.err;
         try {
-            start(err, args);
+            start(args);
             return;
         } catch (final Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(System.err);
         } catch (final Error e) {
             final Throwable cause = e.getCause();
             final Throwable reason = null != cause ? cause : e;
-            reason.printStackTrace();
+            reason.printStackTrace(System.err);
         }
-        err.println();
-        err.println("!!! server exiting due to configuration error !!!");
+        System.err.println();
+        System.err.println("!!! server exiting due to configuration error !!!");
         System.exit(-1);
     }
     
     static private void
-    start(final PrintStream err, final String... services) throws Exception {
+    start(final String... services) throws Exception {
         final Credentials credentials = Proxy.credentials;
         final String hostname =
             null != credentials ? credentials.getHostname() : "localhost";
@@ -76,12 +74,11 @@ Serve {
 	                        createServerSocket(daemon.port, daemon.backlog)
 	                : new ServerSocket(daemon.port, daemon.backlog,
 	                				   Loopback.addr);
-	                task = new TCP(err, daemon,
-	                               daemon.SSL ? hostname : "localhost",
+	                task = new TCP(daemon, daemon.SSL ? hostname : "localhost",
 	                               listen, updateDNS_);
 	            } else if (config instanceof UDPDaemon) {
 	                final UDPDaemon daemon = (UDPDaemon)config;
-	                task= new UDP(err, daemon, new DatagramSocket(daemon.port));
+	                task = new UDP(daemon, new DatagramSocket(daemon.port));
 	            } else if (config instanceof Runnable) {
 	                task = (Runnable)config;
 	            } else {
@@ -91,19 +88,19 @@ Serve {
 	            // run the corresponding daemon
 	            new Thread(task, service).start();
 	        } catch (final BindException e) {
-	        	err.println("Unable to use configured port for: " + service);
-	        	err.println("Try configuring a different port number using " +
-	        				"the corresponding file in the config/ folder.");
+	        	System.err.println("Cannot use configured port for: "+service);
+	        	System.err.println("Try configuring a different port number " +
+	        	    "using the corresponding file in the config/ folder.");
 	        	throw e;
 	        }
         }
 
         // ping all the persistent vats to restart any pending tasks
-        err.println(Thread.currentThread() + ": restarting all vats...");
+        System.out.println(Thread.currentThread() + ": restarting all vats...");
         final DatabaseManager<Server> vats = Settings.config.read("dbs");
         final File root = Settings.config.read("vatRootFolder");
         ping(vats, root);
-        err.println(Thread.currentThread() + ": all vats restarted");
+        System.out.println(Thread.currentThread() + ": all vats restarted");
     }
     
     static private void
