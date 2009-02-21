@@ -22,6 +22,8 @@ Sleep extends Struct implements Receiver<Long>, Serializable {
 
     public void
     run(final Long ms) {
+        System.err.println(Thread.currentThread() + ": " + ms + " sleeping...");
         try { Thread.sleep(ms); } catch (final InterruptedException e) {}
+        System.err.println(Thread.currentThread() + ": awake");
     }
 }

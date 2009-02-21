@@ -39,8 +39,7 @@ Concurrent {
                     new Thread(group, name) {
                         public void
                         run() {
-                            final String id = group.getName() + ":" + name;
-                            System.err.println("Processing: " + id);
+                            System.err.println(this + ": processing...");
                             try {
                                 while (true) {
                                     final T todo;
@@ -61,7 +60,7 @@ Concurrent {
                             } catch (final Throwable e) {
                                 e.printStackTrace();
                             }
-                            System.err.println("Idle: " + id);
+                            System.err.println(this + ": idling...");
                         }
                     }.start();
                     running = true;
