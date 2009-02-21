@@ -58,7 +58,7 @@ TCP implements Runnable {
                         } catch (final SocketTimeoutException e) {
                             // normal end to a TCP connection
                         } catch (final Throwable e) {
-                            System.err.println(this + ": " + e);
+                            System.err.println(this + ":");
                             e.printStackTrace(System.err);
                         } finally {
                             try { socket.close(); } catch (final Exception e) {}
@@ -69,7 +69,7 @@ TCP implements Runnable {
             } catch (final SocketTimeoutException e) {
                 if (null != updateDNS) { updateHostAddress(thread); }
             } catch (final Throwable e) {
-                System.err.println(thread + ": " + e);
+                System.err.println(thread + ":");
                 e.printStackTrace(System.err);
             }
         }
@@ -87,7 +87,7 @@ TCP implements Runnable {
                 lastKnownAddress = a;
             }
         } catch (final Throwable e) {
-            System.err.println(thread + ": " + e);
+            System.err.println(thread + ":");
             e.printStackTrace(System.err);
         }
     }

@@ -47,7 +47,7 @@ UDP extends Struct implements Runnable {
                     }
                 });
             } catch (final Throwable e) {
-                System.err.println(thread + ": " + e);
+                System.err.println(thread + ":");
                 e.printStackTrace(System.err);
             }
         }

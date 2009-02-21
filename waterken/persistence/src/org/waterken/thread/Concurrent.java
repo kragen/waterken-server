@@ -53,13 +53,13 @@ Concurrent {
                                     try {
                                         todo.run();
                                     } catch (final Exception e) {
-                                        System.err.println(this + ": " + e);
+                                        System.err.println(this + ":");
                                         e.printStackTrace(System.err);
                                     }
                                     Thread.yield();
                                 }
                             } catch (final Throwable e) {
-                                System.err.println(this + ": " + e);
+                                System.err.println(this + ":");
                                 e.printStackTrace(System.err);
                             }
                             System.out.println(this + ": idling...");
