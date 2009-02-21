@@ -44,8 +44,8 @@ TCP implements Runnable {
     public void
     run() {
         final Thread thread = Thread.currentThread();
-        err.println(thread + ": " + "running at " +
-                    port.getLocalSocketAddress() + " ...");
+        err.println(thread + ": " + "running at <" +
+                    port.getLocalSocketAddress() + ">...");
         
         final ThreadGroup threads = new ThreadGroup(thread.getName());
         if (null != updateDNS) { updateHostAddress(thread); }

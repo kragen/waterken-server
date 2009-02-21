@@ -49,6 +49,10 @@ Loopback {
             locate(final String authority,
                    final SocketAddress mostRecent) throws IOException {
                 final String location = Authority.location(authority);
+                
+                System.err.println(Thread.currentThread() +
+                                   ": connecting to <" + location + ">...");
+                
                 final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
                 if (!Header.equivalent("localhost", hostname)) {

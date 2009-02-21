@@ -84,6 +84,10 @@ SSL {
                 }
                 
                 final String location = Authority.location(authority);
+                
+                System.err.println(Thread.currentThread() +
+                                   ": connecting to <" + location + ">...");
+                
                 final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
                 final InetAddress[] addrs = InetAddress.getAllByName(hostname);

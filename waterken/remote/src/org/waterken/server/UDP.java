@@ -32,8 +32,8 @@ UDP extends Struct implements Runnable {
     public void
     run() {
         final Thread thread = Thread.currentThread();
-        err.println(thread + ": " + "running at " +
-                    port.getLocalSocketAddress() + " ...");
+        err.println(thread + ": " + "running at <" +
+                    port.getLocalSocketAddress() + ">...");
         while (true) {
             try {
                 final DatagramPacket in = new DatagramPacket(new byte[512],512);
