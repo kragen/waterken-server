@@ -82,7 +82,7 @@ Caller extends Struct implements Messenger, Serializable {
 
             public void
             fulfill(final String request, final Message<Response> response) {
-                _.log.got(request, null);
+                _.log.got(request, null, null);
                 _.when(receive(base, response, Deferred.parameter(observer)),
                        observer);
                 // TODO: implement polling on a 404 response?
@@ -90,7 +90,7 @@ Caller extends Struct implements Messenger, Serializable {
             
             public void
             reject(final String request, final Exception reason) {
-                _.log.got(request, null);
+                _.log.got(request, null, null);
                 _.when(new Rejected<Object>(reason), observer);
             }
         }
@@ -146,7 +146,7 @@ Caller extends Struct implements Messenger, Serializable {
             public void
             fulfill(final String request, final Message<Response> response) {
                 if (null != resolver) {
-                    _.log.got(request, null);
+                    _.log.got(request, null, null);
                     resolver.resolve(receive(href, response,
                         Typedef.bound(method.getGenericReturnType(), type)));
                 }
@@ -155,7 +155,7 @@ Caller extends Struct implements Messenger, Serializable {
             public void
             reject(final String request, final Exception reason) {
                 if (null != resolver) {
-                    _.log.got(request, null);
+                    _.log.got(request, null, null);
                     resolver.reject(reason);
                 }
             }
@@ -177,7 +177,7 @@ Caller extends Struct implements Messenger, Serializable {
             public void
             fulfill(final String request, final Message<Response> response) {
                 if (null != resolver) {
-                    _.log.got(request + "-return", null);
+                    _.log.got(request + "-return", null, null);
                     resolver.resolve(receive(href, response,
                         Typedef.bound(method.getGenericReturnType(), type)));
                 }
@@ -186,7 +186,7 @@ Caller extends Struct implements Messenger, Serializable {
             public void
             reject(final String request, final Exception reason) {
                 if (null != resolver) {
-                    _.log.got(request + "-return", null);
+                    _.log.got(request + "-return", null, null);
                     resolver.reject(reason);
                 }
             }

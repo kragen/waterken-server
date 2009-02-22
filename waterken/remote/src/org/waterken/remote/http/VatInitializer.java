@@ -54,7 +54,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         final Outbound outbound = new Outbound();
         final HTTP.Exports exports = HTTP.make(enqueue(effect,tasks), local,
                 log, destruct, Eventual.detach(outbound));
-        log.got(exports.getHere() + "#make", make);
+        log.got(exports.getHere() + "#make", null, make);
         local.link(VatInitializer.tasks, tasks);
         local.link(VatInitializer.outbound, outbound);
         local.link(VatInitializer.exports, exports);

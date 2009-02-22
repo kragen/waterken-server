@@ -3,7 +3,7 @@
 package org.ref_send.promise;
 
 import java.io.Serializable;
-import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 
 import org.joe_e.Equatable;
 
@@ -35,9 +35,10 @@ Log implements Equatable, Serializable {
     /**
      * Logs receipt of a message.
      * @param message   message identifier
-     * @param member    member that received the message
+     * @param concrete  concrete type of invocation target
+     * @param method    declaration of invoked method
      */
-    public void got(String message, Member member) {}
+    public void got(String message, Class<?> concrete, Method method) {}
     
     /**
      * Logs sending of a return value.

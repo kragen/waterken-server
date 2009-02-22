@@ -2,8 +2,9 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.trace;
 
-import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 
+import org.joe_e.reflect.Reflection;
 import org.ref_send.log.Comment;
 import org.ref_send.log.Event;
 import org.ref_send.log.Got;
@@ -45,9 +46,15 @@ EventSender {
             }
 
             public @Override void
-            got(final String message, final Member member) {
+            got(final String message, final Class<?> concrete, Method method) {
+                if (null != concrete) {
+                    try {
+                        method = Reflection.method(concrete, method.getName(),
+                                                   method.getParameterTypes());
+                    } catch (final NoSuchMethodException e) {}
+                }
                 stderr.run(new Got(mark.run(),
-                    null!=member ? tracer.traceMember(member) : null, message));
+                    null!=method ? tracer.traceMember(method) : null, message));
             }
 
             public @Override void

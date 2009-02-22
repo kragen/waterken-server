@@ -199,6 +199,13 @@ Eventual implements Receiver<Task<?>>, Serializable {
      */
     private long tasks;
     
+    static private final Method run;
+    static {
+        try {
+            run = Reflection.method(Task.class, "run");
+        } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
+    }
+    
     /**
      * Schedules a task for execution in a future turn.
      * <p>
@@ -218,10 +225,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
 
             public Void
             run() throws Exception {
-                if (Log.class != log.getClass()) {
-                    log.got(here + "#t" + id,
-                            Reflection.method(task.getClass(), "run"));
-                }
+                log.got(here + "#t" + id, task.getClass(), run);
                 try { task.run(); } catch (final Exception e) {log.problem(e);}
                 return null;
             }
@@ -359,6 +363,20 @@ Eventual implements Receiver<Task<?>>, Serializable {
         }
     }
     
+    static private final Method fulfill;
+    static {
+        try {
+            fulfill = Reflection.method(Do.class, "fulfill", Object.class);
+        } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
+    }
+    
+    static private final Method reject;
+    static {
+        try {
+            reject = Reflection.method(Do.class, "reject", Exception.class);
+        } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
+    }
+    
     static private <P,R> R
     sample(final Volatile<P> promise, final Do<P,R> observer,
            final Log log, final String message) throws Exception {
@@ -366,14 +384,24 @@ Eventual implements Receiver<Task<?>>, Serializable {
         try {
             a = ref(promise.cast()).cast();
         } catch (final Exception reason) {
-            if (Log.class != log.getClass()) {
-                log.got(message, Deferred.rejecter(observer));
-            }
+            final Class<?> c = (observer instanceof Compose
+                ? ((Compose<?,?>)observer).block : observer).getClass();
+            log.got(message, c, reject);
             return observer.reject(reason);
         }
-        if (Log.class != log.getClass()) {
-            log.got(message, Deferred.fulfiller(a.getClass(), observer));
+        final Method m;
+        final Class<?> c; {
+            final Do<?,?> inner = observer instanceof Compose
+                ? ((Compose<?,?>)observer).block : observer;
+            if (inner instanceof Invoke) {
+                m = ((Invoke<?>)inner).method;
+                c = Modifier.isStatic(m.getModifiers()) ? null : a.getClass();
+            } else {
+                m = fulfill; 
+                c = inner.getClass();
+            }
         }
+        log.got(message, c, m);
         return observer.fulfill(a);
     }
 
@@ -467,7 +495,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
                  * and all subsequent when blocks registered on this promise.
                  */
                 log.problem(e);
-                return null;
+                throw e;
             }
             if (condition != block.condition) { return null; }  // already done
             block.condition = 0;    // ensure block is not run again
@@ -477,7 +505,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
                 try {
                     final String message = here + "#w" + block.message;
                     if (Deferred.trusted(deferred, value)) {
-                        log.got(message, null);
+                        log.got(message, null, null);
                         ((Deferred<T>)value).when(block.observer);
                     } else {
                         // AUDIT: call to untrusted application code

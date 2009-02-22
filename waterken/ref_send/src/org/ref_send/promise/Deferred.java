@@ -4,9 +4,7 @@ package org.ref_send.promise;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -183,38 +181,6 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
     static public <T> Do<T,Object>
     curry(final Method method, final @inert ConstArray<?> argv) {
         return new Invoke<T>(method, argv);
-    }
-    
-    /**
-     * Determines the corresponding fulfill method.
-     * @param p block's parameter type
-     * @param x block to introspect on
-     */
-    static protected Member
-    fulfiller(final Class<?> p,
-              final @inert Do<?,?> x) throws NoSuchMethodException {
-        final @inert Do<?,?> inner =
-            x instanceof Compose ? ((Compose<?,?>)x).block : x;
-        if (inner instanceof Invoke) {
-            final Method m = ((Invoke<?>)inner).method;
-            return Modifier.isStatic(m.getModifiers())
-                ? m
-            : Reflection.method(p, m.getName(), m.getParameterTypes());
-        }
-        return Reflection.method(inner.getClass(), "fulfill", Object.class);
-    }
-    
-    /**
-     * Determines the corresponding reject method.
-     * @param x block to introspect on
-     */
-    static protected Member
-    rejecter(final @inert Do<?,?> x) throws NoSuchMethodException {
-        final @inert Do<?,?> inner =
-            x instanceof Compose ? ((Compose<?,?>)x).block : x;
-        return inner instanceof Invoke
-            ? ((Invoke<?>)inner).method
-        : Reflection.method(inner.getClass(), "reject", Exception.class);
     }
 
     /**

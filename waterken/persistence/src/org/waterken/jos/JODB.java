@@ -258,7 +258,7 @@ JODB<S> extends Database<S> {
                 } catch (final Exception e) { throw new Error(e); }
                 if (exists) { throw new InvalidFilenameException(); }
                 final Object s;
-                if (Database.log.equals(filename)) {
+                if (canonicalize(Database.log).equals(filename)) {
                     s = value;
                     o2f.put(s, filename);
                 } else {

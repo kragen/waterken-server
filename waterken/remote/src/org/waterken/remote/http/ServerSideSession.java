@@ -41,7 +41,7 @@ ServerSideSession implements Serializable {
             current = window;
             returns = ConstArray.array();
         }
-        log.got(name + "-" + window + "-" + message, method);
+        log.got(name + "-" + window + "-" + message, null, method);
         Object r;
         try {
             r = op.run();
