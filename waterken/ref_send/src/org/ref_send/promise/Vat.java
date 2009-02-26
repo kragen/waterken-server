@@ -15,6 +15,11 @@ import org.ref_send.name;
 public class
 Vat<T> extends Struct implements Record, Serializable {
     static private final long serialVersionUID = 1L;
+
+    /**
+     * object created by the vat's maker
+     */
+    public final T top;
     
     /**
      * destruct the vat
@@ -25,19 +30,14 @@ Vat<T> extends Struct implements Record, Serializable {
     public final Receiver<?> destruct;
 
     /**
-     * object created by the vat's maker
-     */
-    public final T root;
-
-    /**
      * Constructs an instance.
+     * @param top       {@link #top}
      * @param destruct  {@link #destruct}
-     * @param root      {@link #root}
      */
     public @deserializer
-    Vat(@name("destruct") final Receiver<?> destruct,
-        @name("root") final T root) {
+    Vat(@name("top") final T top,
+        @name("destruct") final Receiver<?> destruct) {
+        this.top = top;
         this.destruct = destruct;
-        this.root = root;
     }
 }

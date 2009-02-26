@@ -130,7 +130,7 @@ import org.ref_send.type.Typedef;
  *      Unified Approach to Access Control and Concurrency Control"</a>
  */
 public class
-Eventual implements Receiver<Task<?>>, Serializable {
+Eventual implements Receiver<Promise<?>>, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -141,7 +141,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
     /**
      * raw {@link #run event loop}
      */
-    private   final Receiver<Task<?>> enqueue;
+    private   final Receiver<Promise<?>> enqueue;
     
     /**
      * URI for the event loop
@@ -170,7 +170,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * @param destruct  {@link #destruct}
      */
     public
-    Eventual(final Token deferred, final Receiver<Task<?>> enqueue,
+    Eventual(final Token deferred, final Receiver<Promise<?>> enqueue,
              final String here, final Log log, final Receiver<?> destruct) {
         this.deferred = deferred;
         this.enqueue = enqueue;
@@ -184,7 +184,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * @param enqueue   raw {@link #run event loop}
      */
     public
-    Eventual(final Receiver<Task<?>> enqueue) {
+    Eventual(final Receiver<Promise<?>> enqueue) {
         this(new Token(), enqueue, "", new Log(), new Rejected<Receiver<?>>(
                 new NullPointerException())._(Receiver.class));
     }
@@ -199,10 +199,10 @@ Eventual implements Receiver<Task<?>>, Serializable {
      */
     private long tasks;
     
-    static private final Method run;
+    static private final Method call;
     static {
         try {
-            run = Reflection.method(Task.class, "run");
+            call = Reflection.method(Promise.class, "call");
         } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
     }
     
@@ -211,22 +211,23 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * <p>
      * The implementation preserves the <i>F</i>irst <i>I</i>n <i>F</i>irst
      * <i>O</i>ut ordering of tasks, meaning the tasks will be
-     * {@linkplain Task#run executed} in the same order as they were enqueued.
+     * {@linkplain Promise#call executed} in the same order as they were
+     * enqueued.
      * </p>
      */
     public final void
-    run(final Task<?> task) {
+    run(final Promise<?> task) {
         if (null == task) { return; }
         
         final long id = ++tasks;
         if (0 == id) { throw new AssertionError(); }
-        class TaskX extends Struct implements Task<Void>, Serializable {
+        class TaskX extends Struct implements Promise<Void>, Serializable {
             static private final long serialVersionUID = 1L;
 
             public Void
-            run() throws Exception {
-                log.got(here + "#t" + id, task.getClass(), run);
-                try { task.run(); } catch (final Exception e) {log.problem(e);}
+            call() throws Exception {
+                log.got(here + "#t" + id, task.getClass(), call);
+                try { task.call(); } catch (final Exception e) {log.problem(e);}
                 return null;
             }
         }
@@ -281,12 +282,12 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * @throws Error    invalid <code>observer</code> argument  
      */
     public final <T,R> R
-    when(final Volatile<T> promise, final Do<T,R> observer) {
+    when(final Promise<T> promise, final Do<T,R> observer) {
         return when(Object.class, promise, observer);
     }
     
     protected final <T,R> R
-    when(final Class<?> T, final Volatile<T> promise, final Do<T,R> observer) {
+    when(final Class<?> T, final Promise<T> p, final Do<T,R> observer) {
         try {
             final R r;
             final Do<T,?> forwarder;
@@ -299,13 +300,14 @@ Eventual implements Receiver<Task<?>>, Serializable {
                 r = cast(R, x.promise);
                 forwarder = new Compose<T,R>(observer, x.resolver);
             }
-            trust(promise).when(forwarder);
+            trust(p instanceof Detachable ? ((Detachable<T>)p).getState() : p).
+                when(forwarder);
             return r;
         } catch (final Exception e) { throw new Error(e); }
     }
 
     private final <T> Deferred<T>
-    trust(final Volatile<T> untrusted) {
+    trust(final Promise<T> untrusted) {
         return null == untrusted
             ? new Enqueue<T>(this, new Rejected<T>(new NullPointerException()))
         : Deferred.trusted(deferred, untrusted)
@@ -317,9 +319,9 @@ Eventual implements Receiver<Task<?>>, Serializable {
     Enqueue<T> extends Deferred<T> {
         static private final long serialVersionUID = 1L;
 
-        final Volatile<T> untrusted;
+        final Promise<T> untrusted;
 
-        Enqueue(final Eventual _, final Volatile<T> untrusted) {
+        Enqueue(final Eventual _, final Promise<T> untrusted) {
             super(_, _.deferred);
             this.untrusted = untrusted;
         }
@@ -337,17 +339,17 @@ Eventual implements Receiver<Task<?>>, Serializable {
         }
 
         public T
-        cast() throws Exception { return untrusted.cast(); }
+        call() throws Exception { return untrusted.call(); }
 
         public void
         when(final Do<T,?> observer) {
             final long id = ++_.tasks;
             if (0 == id) { throw new AssertionError(); }
-            class Sample extends Struct implements Task<Void>, Serializable {
+            class Sample extends Struct implements Promise<Void>, Serializable {
                 static private final long serialVersionUID = 1L;
 
                 public Void
-                run() throws Exception {
+                call() throws Exception {
                     // AUDIT: call to untrusted application code
                     try {
                         sample(untrusted, observer, _.log, _.here + "#t" + id);
@@ -378,11 +380,11 @@ Eventual implements Receiver<Task<?>>, Serializable {
     }
     
     static private <P,R> R
-    sample(final Volatile<P> promise, final Do<P,R> observer,
+    sample(final Promise<P> promise, final Do<P,R> observer,
            final Log log, final String message) throws Exception {
         final P a;
         try {
-            a = ref(promise.cast()).cast();
+            a = ref(promise.call()).call();
         } catch (final Exception reason) {
             final Class<?> c = (observer instanceof Compose
                 ? ((Compose<?,?>)observer).block : observer).getClass();
@@ -416,7 +418,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
         long condition;             // id for the corresponding promise
         long message;               // id for this when block
         Do<T,?> observer;           // client's when block code
-        Fulfilled<When<T>> next;    // next when block registered on the promise
+        Promise<When<T>> next;     // next when block registered on the promise
     }
     
     /**
@@ -434,22 +436,22 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * persistence don't accumulate lots of dead objects.
      * </p>
      */
-    private Fulfilled<When<?>> whenPool;
+    private Promise<When<?>> whenPool;
     
-    private final @SuppressWarnings("unchecked") <T> Fulfilled<When<T>>
+    private final @SuppressWarnings("unchecked") <T> Promise<When<T>>
     allocWhen(final long condition) {
         final long message = ++whens;
         if (0 == message) { throw new AssertionError(); }
         
-        final Fulfilled<When<T>> r;
+        final Promise<When<T>> r;
         final When<T> block;
         if (null == whenPool) {
             block = new When<T>();
-            r = detach(block);
+            r = ref(block);
         } else {
-            r = (Fulfilled)whenPool;
+            r = (Promise)whenPool;
             block = (When)near(r);
-            whenPool = (Fulfilled)block.next;
+            whenPool = (Promise)block.next;
             block.next = null;
         }
         block.condition = condition;
@@ -458,24 +460,24 @@ Eventual implements Receiver<Task<?>>, Serializable {
     }
     
     private final @SuppressWarnings("unchecked") void
-    freeWhen(final Fulfilled pBlock, final When block) {
+    freeWhen(final Promise pBlock, final When block) {
         block.condition = 0;
         block.message = 0;
         block.observer = null;
-        block.next = (Fulfilled)whenPool;
+        block.next = (Promise)whenPool;
         whenPool = pBlock;
     }
     
     private final class
-    Forward<T> extends Struct implements Task<Void>, Serializable {
+    Forward<T> extends Struct implements Promise<Void>, Serializable {
         static private final long serialVersionUID = 1L;
 
         private final long condition;           // id of corresponding promise
-        private final Volatile<T> value;        // resolved value of promise
-        private final Fulfilled<When<T>> next;  // when block to run
+        private final Promise<T> value;        // resolved value of promise
+        private final Promise<When<T>> next;   // when block to run
         
-        Forward(final long condition, final Volatile<T> value,
-                final Fulfilled<When<T>> next) {
+        Forward(final long condition, final Promise<T> value,
+                final Promise<When<T>> next) {
             this.condition = condition;
             this.value = value;
             this.next = next;
@@ -485,10 +487,10 @@ Eventual implements Receiver<Task<?>>, Serializable {
          * Notifies the next observer of the resolved value.
          */
         public Void
-        run() throws Exception {
+        call() throws Exception {
             final When<T> block;
             try {
-                block = next.cast();
+                block = next.call();
             } catch (final Exception e) {
                 /*
                  * There was a problem loading the saved when block. Ignore it
@@ -522,13 +524,13 @@ Eventual implements Receiver<Task<?>>, Serializable {
     }
     
     private final class
-    State<T> extends Milestone<Volatile<T>> {
+    State<T> extends Milestone<Promise<T>> {
         static private final long serialVersionUID = 1L;
         
         private final long condition;       // id of this promise
-        private Fulfilled<When<T>> back;    // observer list sentinel
+        private Promise<When<T>> back;      // observer list sentinel
         
-        State(final long condition, final Fulfilled<When<T>> back) {
+        State(final long condition, final Promise<When<T>> back) {
             this.condition = condition;
             this.back = back;
         }
@@ -554,7 +556,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
     }
     
     static private final class
-    Tail<T> extends Deferred<T> implements Promise<T> {
+    Tail<T> extends Deferred<T> {
         static private final long serialVersionUID = 1L;
 
         private final State<T> state;   // mutable store for promise's value
@@ -573,7 +575,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
         }
 
         public T
-        cast() throws Exception { return state.get().cast(); }
+        call() throws Exception { return state.get().call(); }
 
         public void
         when(final Do<T,?> observer) { state.observe(observer); }
@@ -584,32 +586,36 @@ Eventual implements Receiver<Task<?>>, Serializable {
         static private final long serialVersionUID = 1L;
 
         private final long condition;           // id of corresponding promise
-        private final Volatile<State<T>> state; // promise's mutable state
-        private final Fulfilled<When<T>> front; // first when block to run
+        private final Promise<State<T>> state;  // promise's mutable state
+        private final Promise<When<T>> front;   // first when block to run
         
-        Head(final long condition, final Volatile<State<T>> state,
-                final Fulfilled<When<T>> front) {
+        Head(final long condition, final Promise<State<T>> state,
+                                   final Promise<When<T>> front) {
             this.condition = condition;
             this.state = state;
             this.front = front;
         }
         
         public void
-        run(final T referent) { chain(promised(referent)); }
+        run(final T referent) { resolve(ref(referent)); }
 
         public void
         reject(final Exception reason) { chain(new Rejected<T>(reason)); }
         
         public void
-        resolve(final Volatile<T> p) {
-            chain(null != p ? p : new Rejected<T>(new NullPointerException()));
+        resolve(final Promise<T> p) {
+            chain(p instanceof Detachable
+                ? ((Detachable<T>)p).getState()
+            : null != p
+                ? p
+            : new Rejected<T>(new NullPointerException()));
         }
         
         private void
-        chain(final Volatile<T> promise) {
+        chain(final Promise<T> promise) {
             log.resolved(here + "#p" + condition);
             enqueue.run(new Forward<T>(condition, promise, front));
-            try { state.cast().mark(promise); } catch (final Exception e) {}
+            try { state.call().mark(promise); } catch (final Exception e) {}
         }
     }
     
@@ -646,10 +652,10 @@ Eventual implements Receiver<Task<?>>, Serializable {
     defer() {
         final long condition = ++deferrals;
         if (0 == condition) { throw new AssertionError(); }
-        final Fulfilled<When<T>> front = allocWhen(condition);
+        final Promise<When<T>> front = allocWhen(condition);
         final State<T> state = new State<T>(condition, front);
         return new Channel<T>(new Tail<T>(this, state),
-            new Head<T>(condition, new WeakPromise<State<T>>(state), front));
+            new Head<T>(condition, new Detachable<State<T>>(true,state),front));
         /**
          * The resolver only holds a weak reference to the promise's mutable
          * state, allowing it to be garbage collected even if the resolver is
@@ -708,7 +714,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
      *         <code>type</code> is not eventualizable
      */
 	public final @SuppressWarnings("unchecked") <T> T
-    cast(final Class<?> type, final Volatile<T> promise) {
+    cast(final Class<?> type, final Promise<T> promise) {
         try {
             return (T)(Void.class == type || void.class == type
                 ? null
@@ -805,7 +811,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
             } catch (final Exception e) {}
         }
         try {
-            return new Enqueue<T>(this, detach(reference)).
+            return new Enqueue<T>(this, ref(reference)).
                 mimic(reference.getClass());
         } catch (final Exception e) { throw new Error(e); }
     }
@@ -814,7 +820,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * Registers an observer on an {@linkplain #cast eventual reference}.
      * <p>
      * The implementation behavior is the same as that documented for the
-     * promise based {@link #when(Volatile, Do) when} statement.
+     * promise based {@link #when(Promise, Do) when} statement.
      * </p>
      * @param <T> referent type
      * @param <R> <code>observer</code>'s return type
@@ -827,11 +833,11 @@ Eventual implements Receiver<Task<?>>, Serializable {
     public final <T,R> R
     when(final T reference, final Do<T,R> observer) {
         return when(null != reference ? reference.getClass() : Object.class,
-                    promised(reference), observer);
+                    ref(reference), observer);
     }
     
     /**
-     * Gets the corresponding immediate reference.
+     * Gets a corresponding immediate reference.
      * <p>
      * This method is the inverse of {@link #_(Object) _}; it gets the
      * corresponding immediate reference for a given eventual reference.
@@ -844,95 +850,69 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * @return corresponding immediate reference
      */
     static public <T> T
-    near(final T reference) { return near(promised(reference)); }
+    near(final T reference) { return near(ref(reference)); }
 
     /**
-     * Gets the corresponding reference for a fulfilled promise.
+     * Gets a corresponding immediate reference.
      * <p>
-     * This method is the inverse of {@link #detach detach}.
+     * This method is the inverse of {@link #ref ref}.
      * </p>
      * <p>
      * This method will not throw an {@link Exception}.
      * </p>
      * @param <T> referent type
-     * @param promise   {@linkplain Fulfilled fulfilled} promise
+     * @param promise   a promise
      * @return {@linkplain #cast corresponding} reference
      */
     static public <T> T
-    near(final Volatile<T> promise) {
+    near(final Promise<T> promise) {
         try {
-            return ((Fulfilled<T>)promise).cast();
+            return promise.call();
         } catch (final Exception e) { throw new Error(e); }
-    }
-
-    /**
-     * Marks a point where deserialization of an object graph may be deferred.
-     * <p>
-     * If a referrer holds the promise returned by this method, instead of a
-     * direct reference to the referent, the persistence engine may defer
-     * deserialization of the referent until it is {@linkplain #cast accessed}.
-     * </p>
-     * @param <T> referent type
-     * @param value {@linkplain #cast referent}
-     * @return {@linkplain Fulfilled fulfilled} promise for <code>value</code>
-     */
-    static public <T> Fulfilled<T>
-    detach(final T value) { return new Detachable<T>(value); }
-
-    /**
-     * Adapts an immediate reference to the {@link Promise} interface.
-     * @param <T> referent type
-     * @param value immediate referent
-     * @return promise that {@linkplain #cast refers} to the <code>value</code>
-     */
-    static public <T> Promise<T>
-    ref(final T value) {
-        if (null==value) { return new Rejected<T>(new NullPointerException()); }
-        if (value instanceof Double) {
-            final Double d = (Double)value;
-            if (d.isNaN()) {return new Rejected<T>(new ArithmeticException());}
-            if (d.isInfinite()) {
-                return new Rejected<T>(new ArithmeticException());
-            }
-        } else if (value instanceof Float) {
-            final Float f = (Float)value;
-            if (f.isNaN()) {return new Rejected<T>(new ArithmeticException());}
-            if (f.isInfinite()) {
-                return new Rejected<T>(new ArithmeticException());
-            }
-        }
-        return new Inline<T>(value);
     }
     
     /**
-	 * Gets the corresponding {@linkplain Volatile promise}.
+	 * Gets a corresponding {@linkplain Promise promise}.
 	 * <p>
 	 * This method is the inverse of {@link #cast cast}; it gets the
-	 * corresponding {@linkplain Volatile promise} for a given reference.
+	 * corresponding {@linkplain Promise promise} for a given reference.
 	 * </p>
 	 * <p>
-	 * This method will not throw an {@link Exception}. The
-	 * <code>reference</code> argument will not be given the opportunity to
+	 * This method will not throw an {@link Exception}. The 
+	 * <code>referent</code> argument will not be given the opportunity to
 	 * execute.
 	 * </p>
 	 * @param <T> referent type
-	 * @param reference	immediate or eventual reference
-	 * @return corresponding {@linkplain Volatile promise}
+	 * @param referent immediate or eventual reference
+	 * @return corresponding {@linkplain Promise promise}
 	 */
-    static public @SuppressWarnings("unchecked") <T> Volatile<T>
-    promised(final T reference) {
-        if (reference instanceof Volatile) { return (Volatile<T>)reference; }
-        if (reference instanceof Proxy) {
+    static public @SuppressWarnings("unchecked") <T> Promise<T>
+    ref(final T referent) {
+        if (referent instanceof Promise) { return (Promise<T>)referent; }
+        if (referent instanceof Proxy) {
             try {
-                final Object handler = Proxies.getHandler((Proxy)reference);
-                if (handler instanceof Volatile){
+                final Object handler = Proxies.getHandler((Proxy)referent);
+                if (handler instanceof Promise) {
                     return handler instanceof Enqueue
-                        ? ((Enqueue<T>)handler).untrusted
-                    : (Volatile<T>)handler;
+                        ? ((Enqueue<T>)handler).untrusted : (Promise<T>)handler;
                 }
             } catch (final Exception e) {}
         }
-        return ref(reference);
+        try {
+            if (null == referent)   { throw new NullPointerException(); }
+            if (referent instanceof Double) {
+                final Double d = (Double)referent;
+                if (d.isNaN())      { throw new ArithmeticException(); }
+                if (d.isInfinite()) { throw new ArithmeticException(); }
+            } else if (referent instanceof Float) {
+                final Float f = (Float)referent;
+                if (f.isNaN())      { throw new ArithmeticException(); }
+                if (f.isInfinite()) { throw new ArithmeticException(); }
+            }
+            return new Detachable<T>(false, referent);
+        } catch (final Exception e) {
+            return new Rejected<T>(e);
+        }
     }
     
     /**
@@ -990,7 +970,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
             invoke = new Invoke<Class<?>>(make, argv);
         } catch (final Exception e) { throw new Error(e); }
         final Receiver<?> destruct = cast(Receiver.class, null);
-        return new Vat(destruct, (R)when(maker, invoke));
+        return new Vat((R)when(maker, invoke), destruct);
     }
 
     // Debugging assistance
@@ -1029,7 +1009,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * @throws Error    always thrown
      */
     public final <R extends Serializable> void
-    cast(final Class<R> type, final Volatile<?> promise) throws Exception {
+    cast(final Class<R> type, final Promise<?> promise) throws Exception {
         throw new Error();
     }
 
@@ -1061,7 +1041,7 @@ Eventual implements Receiver<Task<?>>, Serializable {
      * @throws Error    always thrown
      */
     public final <T,R extends Serializable> void
-    when(final Volatile<T> promise, final Do<T,R> observer) throws Exception {
+    when(final Promise<T> promise, final Do<T,R> observer) throws Exception {
         throw new Error();
     }
 

@@ -5,7 +5,7 @@ package org.ref_send.promise;
 import org.joe_e.Struct;
 
 /**
- * A deferred code block.
+ * An eventual conditional code block.
  * @param <P> parameter type
  * @param <R> return type
  */
@@ -24,8 +24,7 @@ Do<P,R> extends Struct {
      * @return code block's return value
      * @throws Exception    any exception produced by the code block
      */
-    public abstract R
-    fulfill(P arg) throws Exception;
+    public abstract R fulfill(P arg) throws Exception;
 
     /**
      * Notification of a rejected argument.
@@ -36,6 +35,5 @@ Do<P,R> extends Struct {
      * @return code block's return value
      * @throws Exception    any exception produced by the code block
      */
-    public R
-    reject(final Exception reason) throws Exception { throw reason; }
+    public R reject(final Exception reason) throws Exception { throw reason; }
 }

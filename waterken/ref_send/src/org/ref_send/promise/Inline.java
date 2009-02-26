@@ -2,33 +2,43 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.promise;
 
+import java.io.Serializable;
+
+import org.joe_e.Selfless;
 
 /**
- * A fulfilled promise that should not use persistent object faulting.
+ * A direct promise for a referent.
  */
-final class
-Inline<T> extends Fulfilled<T> {
+/* package */ final class
+Inline<T> implements Promise<T>, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
      * referent
      */
-    public final T value;
+    private final T referent;
 
     /**
      * Construct an instance.
-     * @param value {@link #value value}
+     * @param referent  {@link #referent}
      */
     protected
-    Inline(final T value) {
-        this.value = value;
+    Inline(final T referent) {
+        this.referent = referent;
     }
+    
+    // java.lang.Object interface
+    
+    public boolean
+    equals(final Object x) {
+        return x instanceof Inline && referent.equals(((Inline<?>)x).referent);
+    }
+    
+    public int
+    hashCode() { return 0xFA571A2E; }
 
-    // org.ref_send.promise.Volatile interface
+    // org.ref_send.promise.Promise interface
 
-    /**
-     * Gets the {@link #value}.
-     */
     public T
-    cast() { return value; }
+    call() { return referent; }
 }

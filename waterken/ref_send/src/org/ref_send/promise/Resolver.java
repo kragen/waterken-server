@@ -16,12 +16,11 @@ Resolver<T> extends Receiver<T> {
      * This method is syntactic sugar for:
      * </p>
      * <pre>
-     * {@link #resolve resolve}({@link Eventual#promised promised}(referent));
+     * {@link #resolve resolve}({@link Eventual#ref ref}(referent));
      * </pre>
      * @param referent  resolved value of the corresponding promise
      */
-    void
-    run(T referent);
+    void run(T referent);
 
     /**
      * Put the corresponding promise in the rejected state.
@@ -33,13 +32,11 @@ Resolver<T> extends Receiver<T> {
      * </pre>
      * @param reason    reason the corresponding promise will not be fulfilled
      */
-    void
-    reject(Exception reason);
+    void reject(Exception reason);
     
     /**
      * Resolve the corresponding promise to the given promise.
      * @param promise   promise to forward requests to
      */
-    void
-    resolve(Volatile<T> promise);
+    void resolve(Promise<T> promise);
 }

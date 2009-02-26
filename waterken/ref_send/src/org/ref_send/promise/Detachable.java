@@ -2,33 +2,75 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.promise;
 
+import java.io.Serializable;
 
 /**
- * A promise whose referent should be left on disk until needed. 
+ * A fulfilled promise.
  */
 /* package */ final class
-Detachable<T> extends Fulfilled<T> {
+Detachable<T> implements Promise<T>, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * referent
+     * Is the referent only weakly referred to?
      */
-    private final T value;
+    private final boolean isWeak;
+    
+    /**
+     * promise for referent
+     */
+    private       Promise<T> state;
 
     /**
-     * Construct an instance.
-     * @param value {@link #cast value}
+     * Constructs an instance.
+     * @param isWeak    {@link #isWeak}
+     * @param referent  referent
      */
     protected
-    Detachable(final T value) {
-        this.value = value;
+    Detachable(final boolean isWeak, final T referent) {
+        this.isWeak = isWeak;
+        this.state = new Inline<T>(referent);
     }
-
-    // org.ref_send.promise.Volatile interface
+    
+    protected Promise<T>
+    getState() { return state; }
+    
+    // java.lang.Object interface
 
     /**
-     * Gets the fulfilled value.
+     * Is the given object a fulfilled promise for the same referent?
+     * @param x compared to object
+     * @return <code>true</code> if equivalent, else <code>false</code>
+     */
+    public boolean
+    equals(final Object x) {
+        try {
+            return x instanceof Detachable &&
+                isWeak == ((Detachable<?>)x).isWeak &&
+                (state.getClass() == ((Detachable<?>)x).state.getClass()
+                    ? state.equals(((Detachable<?>)x).state)
+                 : same(call(), ((Detachable<?>)x).call()));
+        } catch (final Exception e) {
+            return false;
+        }
+    }
+
+    static private boolean
+    same(final Object a, final Object b) {
+        return null != a ? a.equals(b) : null == b;
+    }
+
+    /**
+     * Calculates the hash code.
+     */
+    public final int
+    hashCode() { return 0xD7ACAB1E; }
+
+    // org.ref_send.promise.Promise interface
+
+    /**
+     * Gets the current referent.
      */
     public T
-    cast() { return value; }
+    call() throws Exception { return state.call(); }
 }

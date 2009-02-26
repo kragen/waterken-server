@@ -18,6 +18,5 @@ Receiver<T> {
      * Receives a notification.
      * @param value any additional details about the notification
      */
-    void
-    run(T value);
+    void run(T value);
 }

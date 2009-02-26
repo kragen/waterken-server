@@ -60,14 +60,14 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
     public int
     hashCode() { return 0xDEADBEA7; }
 
-    // org.ref_send.promise.Volatile interface
+    // org.ref_send.promise.Promise interface
 
     /**
      * Throws the {@link #reason}.
      * @throws  Exception   {@link #reason}
      */
     public T
-    cast() throws Exception { throw reason; }
+    call() throws Exception { throw reason; }
 
     // java.lang.reflect.InvocationHandler interface
 

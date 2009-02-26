@@ -27,17 +27,26 @@ package org.ref_send.promise;
  * promise is in neither the success nor failure state. The inverse of deferred
  * is resolved, meaning the promise is in either the success or failure state.
  * </p>
- * <p>
- * A promise alleges it will transition only once from deferred to either
- * fulfilled or rejected. If static analysis of a program guarantees that a
- * promise was produced by code trusted to implement these semantics, the
- * promise should be held in a variable of type {@link Promise}; otherwise, the
- * variable should be of type {@link Volatile}. For example, the return from
- * the {@link org.ref_send.promise.Eventual#ref ref} function should be
- * held in a variable of type {@link Promise}; whereas a promise parameter in
- * the declaration of a public method should be of type {@link Volatile}.
- * </p>
  * @param <T> referent type
  */
 public interface
-Promise<T> extends Volatile<T> {}
+Promise<T> {
+    
+    /**
+     * Gets the current referent.
+     * <p>
+     * For example:
+     * </p>
+     * <pre>
+     * final Promise&lt;Foo&gt; foo = &hellip;
+     * try {
+     *     foo.call().bar();
+     * } catch (final Exception reason) {
+     *     // Either there is no referent, or the bar() invocation failed.
+     *     throw reason;
+     * }
+     * </pre>
+     * @throws Exception    reason the referent is not known
+     */
+    T call() throws Exception;
+}

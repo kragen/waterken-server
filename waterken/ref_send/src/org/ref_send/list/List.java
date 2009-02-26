@@ -2,8 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.list;
 
-import static org.ref_send.promise.Eventual.detach;
 import static org.ref_send.promise.Eventual.near;
+import static org.ref_send.promise.Eventual.ref;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -53,7 +53,7 @@ List<T> implements Iterable<T>, Serializable {
     private
     List() {
         last = new Link<T>();
-        last.next = detach(last);
+        last.next = ref(last);
         first = last.next;
         capacity = 1;
         size = 0;
@@ -148,7 +148,7 @@ List<T> implements Iterable<T>, Serializable {
         if (capacity == size) {
             final Link<T> spare = new Link<T>();
             spare.next = last.next;
-            last.next = detach(spare);
+            last.next = ref(spare);
             capacity += 1;
         }
         last = near(last.next);

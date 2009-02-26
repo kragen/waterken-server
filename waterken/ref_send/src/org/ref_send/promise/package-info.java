@@ -20,17 +20,16 @@
  * an exception, instead returning a special value called a <code>NaN</code> and
  * allowing the current flow of control to continue.</p>
  * <p>Like a floating point number, a promise can represent either a normal
- * value or an error condition. A {@link org.ref_send.promise.Fulfilled} promise
- * is a wrapper containing a normal Java reference. A
- * {@link org.ref_send.promise.Rejected} promise is a wrapper containing an
- * {@link java.lang.Exception} specifying the details of the error condition.
- * Instead of throwing an exception, thus terminating the current flow of
- * control, an expression that returns a {@link org.ref_send.promise.Promise}
- * can return a {@link org.ref_send.promise.Rejected} promise to indicate an
- * error condition, or a {@link org.ref_send.promise.Fulfilled} promise for a
- * normal result. Most often, an expression will only need to be coded to return
- * a {@link org.ref_send.promise.Fulfilled} promise, so some syntactic sugar is
- * provided to facilitate construction. For example:</p>
+ * value or an error condition. A fulfilled promise is a wrapper containing a
+ * normal Java reference. A {@link org.ref_send.promise.Rejected} promise is a
+ * wrapper containing an {@link java.lang.Exception} specifying the details of
+ * the error condition. Instead of throwing an exception, thus terminating the
+ * current flow of control, an expression that returns a
+ * {@link org.ref_send.promise.Promise} can return a
+ * {@link org.ref_send.promise.Rejected} promise to indicate an error condition,
+ * or a fulfilled promise for a normal result. Most often, an expression will
+ * only need to be coded to return a fulfilled promise, so some syntactic sugar
+ * is provided to facilitate construction. For example:</p>
  * <pre>
  * import static org.ref_send.promise.eventual.Eventual.ref;
  * &hellip;

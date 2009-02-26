@@ -25,13 +25,8 @@ import org.ref_send.type.Typedef;
  * @param <T> referent type
  */
 public abstract class
-Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
+Deferred<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * weak promise type
-     */
-    static public final Class<?> WeakPromise = WeakPromise.class;
     
     /**
      * corresponding eventual operator
@@ -97,10 +92,10 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
             new Invoke<T>(method, null == arg ? null : ConstArray.array(arg)));
     }
 
-    // org.ref_send.promise.Volatile interface
+    // org.ref_send.promise.Promise interface
 
     public abstract T
-    cast() throws Exception;
+    call() throws Exception;
 
     // org.ref_send.promise.eventual.Deferred interface
     
@@ -112,17 +107,10 @@ Deferred<T> implements Volatile<T>, InvocationHandler, Selfless, Serializable {
     when(Do<T,?> observer);
     
     /**
-     * Creates a remote reference.
-     * @param type  referent type
-     */
-    public Object
-    _(final Class<?> type) { return _.cast(type, this);  }
-    
-    /**
      * Creates a remote reference that mimics the interface of a concrete type.
      * @param concrete  type to mimic
      */
-    public @SuppressWarnings("unchecked") T
+    protected @SuppressWarnings("unchecked") T
     mimic(final Class<?> concrete) {
         // build the list of types to implement
         Class<?>[] types = virtualize(concrete);
