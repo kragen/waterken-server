@@ -12,7 +12,7 @@ Windows
 Unix
 ----
 
-1. cd remote
+1. cd genkey
 2. Build the server using: ./buildAll.sh
 3. cd ..
 4. Launch the server with: java -jar serve.jar
