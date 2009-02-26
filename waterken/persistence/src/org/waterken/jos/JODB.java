@@ -366,7 +366,7 @@ JODB<S> extends Database<S> {
         
         private void
         markDirty(final String f, final Object o, final Bucket b) {
-            if (null == tx.o2f.put(o, f)) {
+            if (!b.created && null == tx.o2f.put(o, f)) {
                 if (!JoeE.isFrozen(o)) { tx.xxx.add(f); }
                 for (final String splice : b.splices) {
                     final Bucket spliced = f2b.get(splice);
@@ -463,33 +463,24 @@ JODB<S> extends Database<S> {
             
             // check for an existing weak identity
             f = tx.o2wf.get(o);
-            if (null != f) {
-                if (!isWeak) {
-                    tx.o2wf.remove(o);
-                    tx.o2f.put(o, f);
-                    tx.xxx.add(f);
-                }
-                return f;
+            if (null == f) {
+                // assign a new identity
+                try {
+                    do {
+                        final byte[] id = new byte[keyBytes];
+                        prng.nextBytes(id);
+                        f = filename(id);
+                    } while (exists(f));
+                } catch (final Exception e) { throw new Error(e); }
             }
-
-            // assign a new persistent identity
-            try {
-                do {
-                    final byte[] id = new byte[keyBytes];
-                    prng.nextBytes(id);
-                    f = filename(id);
-                } while (exists(f));
-            } catch (final Exception e) { throw new Error(e); }
             
             // persist the persistent identity
             if (isWeak) {
                 tx.o2wf.put(o, f);
             } else {
-                tx.o2f.put(o, f);
-                tx.xxx.add(f);
+                tx.o2wf.remove(o);
+                create(f, o, null);
             }
-            f2b.put(f, new Bucket(new CacheReference<String,Object>(f,o,wiped),
-                    true, null, false, null));
             return f;
         }
     };
