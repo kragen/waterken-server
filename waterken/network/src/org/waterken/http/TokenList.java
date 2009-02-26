@@ -40,15 +40,15 @@ TokenList {
      */
     static public PowerlessArray<String>
     decode(final String list) {
-        PowerlessArray<String> r = PowerlessArray.array();
+        PowerlessArray.Builder<String> r = PowerlessArray.builder();
         final int end = list.length();
         int i = 0;
         while (true) {
-        	i = skip(whitespace, nothing, list, i, end);
+            i = skip(whitespace, nothing, list, i, end);
             if (i == end) { break; }
             if (',' == list.charAt(i)) {
-            	++i;
-            	continue;	// null elements permitted
+                ++i;
+                continue;   // null elements permitted
             } 
 
             // parse the token
@@ -56,34 +56,34 @@ TokenList {
             i = skip(token, nothing, list, i, end);
             final int endToken = i;
             if (beginToken == endToken) { throw new RuntimeException(); }
-            r = r.with(list.substring(beginToken, endToken));
+            r.append(list.substring(beginToken, endToken));
 
             // discard the parameters
             i = parseParameters(list, i, end, null);
         }
-        return r;
+        return r.snapshot();
     }
     
     /**
      * Decodes a <code>parameter</code> list.
-     * @param list	<code>parameter</code> list
+     * @param list  <code>parameter</code> list
      * @param i     initial search position in <code>text</code>
      * @param end   maximum search position in <code>text</code>
-     * @param out	<code>parameter</code> output stream
+     * @param out   <code>parameter</code> output stream
      * @return end of the parsed text
      */
     static protected int
     parseParameters(final String list, int i, final int end,
-    				final Receiver<Header> out) {
+                    final Receiver<Header> out) {
         while (true) {
-        	i = skip(whitespace, nothing, list, i, end);
+            i = skip(whitespace, nothing, list, i, end);
 
             // check for token delimiter
             if (i == end || ',' == list.charAt(i)) { break; }
 
             // start parameter
             if (';' != list.charAt(i++)) { throw new RuntimeException(); }
-        	i = skip(whitespace, nothing, list, i, end);
+            i = skip(whitespace, nothing, list, i, end);
 
             // parse the name
             final int beginName = i;
@@ -92,36 +92,36 @@ TokenList {
             final String name = list.substring(beginName, endName);
 
             // start the value
-        	i = skip(whitespace, nothing, list, i, end);
+            i = skip(whitespace, nothing, list, i, end);
             if ('=' != list.charAt(i++)) { throw new RuntimeException(); }
-        	i = skip(whitespace, nothing, list, i, end);
+            i = skip(whitespace, nothing, list, i, end);
 
             // parse the value
             final int beginValue;
             final int endValue;
-            if ('\"' == list.charAt(i)) {	// quoted-string value
-            	beginValue = ++i;
+            if ('\"' == list.charAt(i)) {   // quoted-string value
+                beginValue = ++i;
                 while (true) {
                     final char c = list.charAt(i);
                     if ('\\' == c) {
-                    	final char escaped = list.charAt(++i);
-                    	if (escaped > 127) { throw new RuntimeException(); }
+                        final char escaped = list.charAt(++i);
+                        if (escaped > 127) { throw new RuntimeException(); }
                     } else if (!qdtext(c)) {
-                    	break;
+                        break;
                     }
                     ++i;
                 }
                 endValue = i;
                 if ('\"' != list.charAt(i++)) { throw new RuntimeException(); }
-            } else {						// token value
-            	beginValue = i;
-            	i = skip(token, nothing, list, i, end);
+            } else {                        // token value
+                beginValue = i;
+                i = skip(token, nothing, list, i, end);
                 endValue = i;
             }
             final String value = list.substring(beginValue, endValue);
             if (null != out) { out.run(new Header(name, value)); }
         }
-    	return i;
+        return i;
     }
     
     static public    final String nothing = "";
@@ -130,13 +130,13 @@ TokenList {
     static private   final String separator = "()<>@,;:\\\"/[]?={} \t";
     static public    final String token;
     static {
-    	final StringBuilder buffer = new StringBuilder(127);
-    	for (char c = 32; c != 127; ++c) {
-    		if (separator.indexOf(c) == -1) {
-    			buffer.append(c);
-    		}
-    	}
-    	token = buffer.toString();
+        final StringBuilder buffer = new StringBuilder(127);
+        for (char c = 32; c != 127; ++c) {
+            if (separator.indexOf(c) == -1) {
+                buffer.append(c);
+            }
+        }
+        token = buffer.toString();
     }
     static public    final String text;
     static {
@@ -180,8 +180,8 @@ TokenList {
     static public void
     vet(final String allowed, final String disallowed,
                               final String text) throws Exception {
-    	final int end = text.length();
-    	if (end != skip(allowed,disallowed,text,0,end)) {throw new Exception();}
+        final int end = text.length();
+        if (end != skip(allowed,disallowed,text,0,end)) {throw new Exception();}
     }
 
     /**

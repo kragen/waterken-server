@@ -4,6 +4,7 @@ package org.waterken.net.http;
 
 import java.io.InputStream;
 import java.net.Socket;
+import java.net.SocketException;
 
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.promise.Promise;
@@ -59,7 +60,10 @@ ServerSide implements Promise<Void> {
             // read the Request-Line
             final LineInput hin =
                 new LineInput(Limited.input(32 * 1024, connection));
-            final String requestLine = hin.readln();
+            final String requestLine;
+            try {
+                requestLine = hin.readln();
+            } catch (final SocketException e) { break; }
             final int endRequestLine = requestLine.length();
 
             // empty line is ignored
@@ -95,7 +99,7 @@ ServerSide implements Promise<Void> {
             } else if (version.startsWith("HTTP/0.")) {
                 // old HTTP client; no headers, no content
                 current.closing.mark(true);
-                headers = PowerlessArray.array();
+                headers = PowerlessArray.array(new Header[] {});
                 body = null;
             } else {
                 throw new Exception("HTTP Version Not Supported: " + version);
