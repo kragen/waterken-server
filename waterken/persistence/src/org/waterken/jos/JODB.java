@@ -61,8 +61,6 @@ import org.waterken.trace.Tracer;
 import org.waterken.trace.TurnCounter;
 import org.waterken.trace.application.ApplicationTracer;
 
-import com.sun.jmx.snmp.tasks.Task;
-
 /**
  * An object graph stored as a set of Java Object Serialization files.
  */
@@ -153,7 +151,7 @@ JODB<S> extends Database<S> {
     }
     
     /**
-     * Has the {@link #wake wake} {@link Task} been run?
+     * Has the {@link #wake wake} task been run?
      */
     private final Milestone<Boolean> awake = Milestone.plan();
     
@@ -274,7 +272,8 @@ JODB<S> extends Database<S> {
             
             final int startCycle = stack.lastIndexOf(f);
             if (-1 != startCycle) {
-                PowerlessArray<String> cycle = PowerlessArray.array();
+                PowerlessArray<String> cycle =
+                    PowerlessArray.array(new String[] {});
                 for (final String at : stack.subList(startCycle,stack.size())) {
                     Class<?> type;
                     InputStream in = null;
@@ -410,13 +409,13 @@ JODB<S> extends Database<S> {
             create(filename, new SymbolicLink(value), null);
         }
 
-        public @SuppressWarnings("unchecked") Object
+        public @SuppressWarnings("unchecked") <T> T
         fetch(final Object otherwise, final String name) {
             try {
                 final Object value = load(canonicalize(name));
-                return value instanceof SymbolicLink
-                    ? ((SymbolicLink)value).target : value;
-            } catch (final FileNotFoundException e) { return otherwise; }
+                return (T)(value instanceof SymbolicLink
+                    ? ((SymbolicLink)value).target : value);
+            } catch (final FileNotFoundException e) { return (T)otherwise; }
         }
 
         public String
