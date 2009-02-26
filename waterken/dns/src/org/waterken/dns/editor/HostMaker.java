@@ -35,7 +35,8 @@ HostMaker {
         class MenuX implements Menu<ByteArray>, Serializable {
             static private final long serialVersionUID = 1L;
 
-            private ConstArray<ResourceVariable> vars = ConstArray.array();
+            private ConstArray<ResourceVariable> vars =
+                ConstArray.array(new ResourceVariable[] {});
 
             public Promise<PowerlessArray<ByteArray>>
             getSnapshot() {
