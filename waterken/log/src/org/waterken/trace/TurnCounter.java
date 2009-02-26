@@ -7,7 +7,7 @@ import java.io.Serializable;
 import org.joe_e.Struct;
 import org.ref_send.log.Anchor;
 import org.ref_send.log.Turn;
-import org.ref_send.promise.Task;
+import org.ref_send.promise.Receiver;
 
 /**
  * An event loop turn counter.
@@ -24,7 +24,7 @@ TurnCounter extends Struct implements Serializable {
     /**
      * increment the turn counter
      */
-    public final Task<Turn> flip;
+    public final Receiver<?> flip;
     
     /**
      * increment the anchor counter
@@ -32,9 +32,7 @@ TurnCounter extends Struct implements Serializable {
     public final Marker mark;
     
     private
-    TurnCounter(final String loop,
-                final Task<Turn> flip,
-                final Marker mark) {
+    TurnCounter(final String loop, final Receiver<?> flip, final Marker mark) {
         this.loop = loop;
         this.flip = flip;
         this.mark = mark;
@@ -53,13 +51,13 @@ TurnCounter extends Struct implements Serializable {
             long anchors = 0;   // id of next anchor
         }
         final State m = new State();
-        class Flip extends Struct implements Task<Turn>, Serializable {
+        class Flip extends Struct implements Receiver<Object>, Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Turn
-            run() { 
+            public void
+            run(final Object ignored) {
+                m.turns += 1;
                 m.anchors = 0;
-                return new Turn(loop, ++m.turns);
             }
         }
         class Mark extends Struct implements Marker, Serializable {

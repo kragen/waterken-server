@@ -3,13 +3,12 @@
 package org.waterken.trace;
 
 import org.ref_send.log.Anchor;
-import org.ref_send.promise.Task;
 
 /**
  * An event anchor generator.
  */
 public interface
-Marker extends Task<Anchor> {
+Marker {
     
     /**
      * Generates an event anchor.
