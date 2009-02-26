@@ -189,7 +189,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
                 new NullPointerException())._(Receiver.class));
     }
 
-    // org.ref_send.promise.eventual.Loop interface
+    // org.ref_send.promise.Receiver interface
 
     /**
      * number of tasks {@link #run enqueued}
@@ -235,7 +235,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         log.sent(here + "#t" + id);
     }
 
-    // org.ref_send.promise.eventual.Eventual interface
+    // org.ref_send.promise.Eventual interface
 
     /**
      * Registers an observer on a promise.

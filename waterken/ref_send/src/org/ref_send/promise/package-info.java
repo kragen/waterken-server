@@ -31,7 +31,7 @@
  * only need to be coded to return a fulfilled promise, so some syntactic sugar
  * is provided to facilitate construction. For example:</p>
  * <pre>
- * import static org.ref_send.promise.eventual.Eventual.ref;
+ * import static org.ref_send.promise.Eventual.ref;
  * &hellip;
  *
  *     private int balance;
@@ -47,7 +47,7 @@
  * <p>Constructing a {@link org.ref_send.promise.Rejected} promise is a little
  * more verbose. For example:</p>
  * <pre>
- * import static org.ref_send.promise.eventual.Eventual.ref;
+ * import static org.ref_send.promise.Eventual.ref;
  * &hellip;
  *
  *     private int balance;

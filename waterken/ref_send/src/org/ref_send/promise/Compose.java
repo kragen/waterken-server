@@ -27,7 +27,7 @@ Compose<P,R> extends Do<P,Void> implements Serializable {
         this.resolver = resolver;
     }
     
-    // org.ref_send.promise.eventual.Do interface
+    // org.ref_send.promise.Do interface
     
     public Void
     fulfill(final P a) {

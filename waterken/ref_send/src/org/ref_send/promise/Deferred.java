@@ -97,7 +97,7 @@ Deferred<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
     public abstract T
     call() throws Exception;
 
-    // org.ref_send.promise.eventual.Deferred interface
+    // org.ref_send.promise.Deferred interface
     
     /**
      * Notifies an observer in a future event loop turn.
