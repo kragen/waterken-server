@@ -4,8 +4,10 @@ Windows
 -------
 
 1. Build the server using your IDE
-2. Launch the server by double clicking on serve.jar.
-3. In your browser, visit <http://localhost:8080/>.
+2. cd remote
+3. Build the command JAR files using: jars.bat
+4. Launch the server by double clicking on serve.jar.
+5. In your browser, visit <http://localhost:8080/>.
 
 Unix
 ----
