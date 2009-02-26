@@ -27,8 +27,8 @@ import org.joe_e.array.ShortArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
-import org.ref_send.promise.Volatile;
 import org.ref_send.scope.Layout;
 import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
@@ -96,7 +96,7 @@ JSONParser {
         }
     }
 
-    static private final TypeVariable<?> R = Typedef.var(Volatile.class, "T");
+    static private final TypeVariable<?> R = Typedef.var(Promise.class, "T");
     static private final TypeVariable<?> T = Typedef.var(Iterable.class, "T");
     
     private Object

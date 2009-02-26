@@ -18,10 +18,7 @@ import org.joe_e.charset.UTF8;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
-import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Rejected;
-import org.ref_send.promise.Volatile;
 import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.Exporter;
@@ -88,10 +85,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         text.close();
     }
 
-    static private final TypeVariable<?> R = Typedef.var(Volatile.class, "T");
     static private final TypeVariable<?> T = Typedef.var(Iterable.class, "T");
-
-    static private final Class<?> Inline = Eventual.ref(0).getClass();
     
     static private void
     serialize(final Exporter export, final Type implicit, final Object value,
@@ -146,14 +140,6 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 }
             }
             oout.finish();
-        } else if (Inline == actual) {
-            final Type r = Typedef.value(R, implicit);
-            serialize(export, null != r ? r : Object.class,
-                      ((Fulfilled<?>)value).cast(), out);
-            /*
-             * SECURITY DEPENDENCY: The Inline.cast() method simply returns the
-             * value of the final field containing the promise's referent.
-             */ 
         } else if (value instanceof ConstArray) {
             /*
              * SECURITY DEPENDENCY: Application code cannot extend ConstArray,
