@@ -5,12 +5,13 @@
 DAEMON="/usr/bin/java"
 HOME="/usr/local/waterken/"
 JAR="serve.jar"
+SERVICES=""
 
 test -x $DAEMON || exit 0
 test -r "$HOME$JAR" || exit 0
 
 # Build the command.
-START="--start --background --make-pidfile --pidfile /var/run/waterken.pid --chdir $HOME --startas $DAEMON -- -jar $JAR dns http https"
+START="--start --background --make-pidfile --pidfile /var/run/waterken.pid --chdir $HOME --startas $DAEMON -- -jar $JAR $SERVICES"
 STOP="--stop --oknodo --pidfile /var/run/waterken.pid"
 
 # The action starts here.
