@@ -20,7 +20,7 @@ Outbound implements Serializable {
     
     protected
     Outbound() {
-        pending = ConstArray.array();
+        pending = ConstArray.array(new Pipeline[] {});
     }
     
     // org.waterken.remote.http.Outbound interface

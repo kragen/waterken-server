@@ -134,8 +134,8 @@ HTTP extends Eventual implements Serializable {
             if (isPromise(URI.fragment("", href))) {
                 peer(href).when(href, proxy, observer);
             } else {
-                final Class<?> p = Typedef.raw(Deferred.parameter(observer));
-                _.when(Eventual.ref(_.cast(p, proxy)), observer);
+                final Class<?> P = Typedef.raw(Deferred.parameter(observer));
+                _.when(P, HTTP.inline(_.cast(P, proxy)), observer);
             }
         }
         
