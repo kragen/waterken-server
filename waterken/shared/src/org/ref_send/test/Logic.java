@@ -12,7 +12,6 @@ import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Resolver;
-import org.ref_send.promise.Volatile;
 
 /**
  * Test condition operations.
@@ -49,12 +48,12 @@ Logic {
      * @return promise for the logical AND of each <code>condition</code>
      */
     static public Promise<Boolean>
-    and(final Eventual _, final ConstArray<? extends Volatile<Boolean>> tests) {
+    and(final Eventual _, final ConstArray<? extends Promise<Boolean>> tests) {
         if (0 == tests.length()) { return ref(true); }
         final Channel<Boolean> answer = _.defer();
         final int[] todo = { tests.length() };
         final Resolver<Boolean> resolver = answer.resolver;
-        for (final Volatile<Boolean> test : tests) {
+        for (final Promise<Boolean> test : tests) {
             class AND extends Do<Boolean,Void> implements Serializable {
                 static private final long serialVersionUID = 1L;
 
