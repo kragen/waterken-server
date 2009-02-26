@@ -476,8 +476,8 @@ JODB<S> extends Database<S> {
             if (isWeak) {
                 tx.o2wf.put(o, f);
             } else {
-                tx.o2wf.remove(o);
                 create(f, o, null);
+                tx.o2wf.remove(o);
             }
             return f;
         }
