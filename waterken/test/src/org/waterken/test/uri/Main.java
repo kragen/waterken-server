@@ -7,11 +7,9 @@ import org.waterken.uri.URI;
 /**
  * Package test.
  */
-final class
+public final class
 Main {
-
-    private
-    Main() {}
+    private Main() {}
 
     static public void
     main(final String[] args) throws Exception {
