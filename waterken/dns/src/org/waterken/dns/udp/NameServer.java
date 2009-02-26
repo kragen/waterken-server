@@ -122,7 +122,7 @@ NameServer extends UDPDaemon {
                     final Menu<ByteArray> top = local.fetch(null, Database.top);
                     return (PowerlessArray<ByteArray>)near(top.getSnapshot());
                 }
-            }).cast();
+            }).call();
         } catch (final Exception e) {
             header[3] |= (e instanceof FileNotFoundException ? 3 : 2);
             return ByteArray.array(header);
