@@ -58,24 +58,24 @@ Cache<K,V> implements Serializable {
 
     /**
      * Fetches a value.
-     * @param otherwise The default value.
-     * @param id        The identifier.
-     * @return The cached value, or the default value.
+     * @param otherwise default value
+     * @param key       cache entry key
+     * @return cached value, or <code>otherwise</code>
      */
     public V
-    fetch(final V otherwise, final K id) {
-        final CacheReference<K,V> rv = entries.get(id);
+    fetch(final V otherwise, final K key) {
+        final CacheReference<K,V> rv = entries.get(key);
         final V v = null != rv ? rv.get() : null;
         return null != v ? (v instanceof Null ? null : v) : otherwise;
     }
 
     /**
      * Caches a value.
-     * @param id    The identifier.
-     * @param value The value to cache.
+     * @param key   cache entry key
+     * @param value cached value
      */
     public void
-    put(final K id, final V value) {
+    put(final K key, final V value) {
 
         // Wipe old entries.
         while (true) {
@@ -84,7 +84,7 @@ Cache<K,V> implements Serializable {
             entries.remove(((CacheReference<?,?>)old).key);
         }
 
-        entries.put(id, new CacheReference<K,V>(nonNull(value), wiped, id));
+        entries.put(key, new CacheReference<K,V>(key, nonNull(value), wiped));
     }
     
 	static private @SuppressWarnings("unchecked") <V> V

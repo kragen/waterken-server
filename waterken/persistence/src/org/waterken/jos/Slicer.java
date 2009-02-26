@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.jos;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -10,13 +11,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.HashSet;
 
 import org.joe_e.JoeE;
 import org.joe_e.Selfless;
-import org.ref_send.promise.Deferred;
+import org.joe_e.array.PowerlessArray;
+import org.joe_e.var.Milestone;
 import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Fulfilled;
-import org.ref_send.promise.Volatile;
 import org.waterken.db.Root;
 
 /**
@@ -25,21 +26,37 @@ import org.waterken.db.Root;
 final class
 Slicer extends ObjectOutputStream {
     
-    private final Object value;
+    private final Object top;
     private final Root root;
     
-    Slicer(final Object value, final Root root,
+    private final Milestone<Boolean> unmanaged = Milestone.plan();
+    private final HashSet<String> splices = new HashSet<String>(8);
+    
+    Slicer(final Object top, final Root root,
            final OutputStream out) throws IOException {
         super(out);
-        this.value = value;
+        this.top = top;
         this.root = root;
         enableReplaceObject(true);
     }
     
-    static private final Class<?> Detachable = Eventual.detach(0).getClass();
+    static private final Class<?> Fulfilled;
+    static private final Field isWeak;
+    static private final Field state;
+    static {
+        try {
+            Fulfilled = Eventual.ref(0).getClass();
+            isWeak = Fulfilled.getDeclaredField("isWeak");
+            isWeak.setAccessible(true);
+            state = Fulfilled.getDeclaredField("state");
+            state.setAccessible(true);
+        } catch (final Exception e) { throw new AssertionError(e); }
+    }
 
     protected Object
     replaceObject(Object x) throws IOException {
+        if (x instanceof File) { unmanaged.mark(true); }
+        
         final Class<?> type = null != x ? x.getClass() : Void.class;
         // BEGIN: persistence for non-Serializable types
         if (Field.class == type) {
@@ -53,29 +70,36 @@ Slicer extends ObjectOutputStream {
         } else if (BigDecimal.class == type) {
             x = new BigDecimalWrapper((BigDecimal)x);
         // END: persistence for non-Serializable types
-        } else if (value == x) {
+        } else if (top == x) {
         // BEGIN: slicing of the object graph into trees
-        } else if (Detachable == type) {
-            x = new Faulting(root,
-                    root.export(Eventual.near((Fulfilled<?>)x), false));
-        } else if (Deferred.WeakPromise == type) {
-            final Object referent;
+        } else if (Fulfilled == type) {
             try {
-                referent = ((Volatile<?>)x).cast();
+                final Object p = state.get(x);
+                if (!(p instanceof Faulting)) {
+                    state.set(x, new Faulting(root,
+                        root.export(Eventual.near(p), isWeak.getBoolean(x))));
+                }
             } catch (final Exception e) { throw new AssertionError(e); }
-            x = new Faulting(root, root.export(referent, true));
         } else if (!inline(type)) {
-            if (value instanceof Throwable &&
+            if (top instanceof Throwable &&
                 StackTraceElement.class == type.getComponentType()) {
                 // This must be the contained stack trace array. Just let it
                 // go by, since it acts like it's selfless.
             } else {
-                x = new Splice(root.export(x, false));
+                final String name = root.export(x, false);
+                splices.add(name);
+                x = new Splice(name);
             }
         }
         // END: slicing of the object graph into trees
         return x;
     }
+    
+    protected boolean
+    isManaged() { return !unmanaged.is(); }
+    
+    protected PowerlessArray<String>
+    getSplices() {return PowerlessArray.array(splices.toArray(new String[0]));}
 
     /**
      * Can the object's creation identity be ignored?

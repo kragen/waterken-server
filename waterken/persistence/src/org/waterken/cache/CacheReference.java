@@ -6,19 +6,25 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 
 /**
- * A {@link Cache} entry reference.
+ * A {@link Cache} entry.
  */
-final class
+public class
 CacheReference<K,V> extends SoftReference<V> {
 
     /**
      * cache entry key
      */
-    protected final K key;
+    public final K key;
 
-    protected
-    CacheReference(final V referent, final ReferenceQueue<V> q, final K key) {
-        super(referent, q);
-        this.key = key;
+    /**
+     * Constructs an instance.
+     * @param k {@link #key}
+     * @param v {@linkplain #get value}
+     * @param q reference queue 
+     */
+    public
+    CacheReference(final K k, final V v, final ReferenceQueue<? super V> q) {
+        super(v, q);
+        this.key = k;
     }
 }

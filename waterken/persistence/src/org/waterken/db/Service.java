@@ -2,10 +2,10 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.db;
 
-import org.ref_send.promise.Task;
+import org.ref_send.promise.Promise;
 
 /**
  * A transient {@link Database#service}.
  */
 public interface
-Service extends Task<Void> {}
+Service extends Promise<Void> {}

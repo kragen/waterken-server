@@ -8,7 +8,6 @@ import org.joe_e.Immutable;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Task;
 
 /**
  * A persistent object graph.
@@ -45,9 +44,14 @@ Database<S> {
     static public final String here = ".here";
     
     /**
-     * {@linkplain Log logger}, initialized by database
+     * {@linkplain Log}, initialized by database
      */
     static public final String log = ".log";
+    
+    /**
+     * {@link TransactionMonitor}, initialized by database
+     */
+    static public final String monitor = ".monitor";
     
     /**
      * always bound to <code>null</code>, initialized by database
@@ -60,22 +64,16 @@ Database<S> {
     static public final String project = ".project";
     
     /**
-     * {@link Task} to generate an HTTP entity-tag identifying all the state
-     * accessed by the current transaction, initialized by database
-     */
-    static public final String tagger = ".tagger";
-    
-    /**
      * root application object
      */
     static public final String top = ".top";
 
     /**
-     * {@link Database#extend} {@link Task} to run each time database is loaded
+     * {@link Database#extend} {@link Receiver task} run when database is opened
      */
     static public final String wake = ".wake";
 
-    // org.waterken.database.Database interface
+    // org.waterken.db.Database interface
     
     /**
      * session state shared across all vats
@@ -134,7 +132,7 @@ Database<S> {
      * <p>
      * If invocation of this method returns normally, all modifications to
      * objects in the database MUST be committed. Only if the current
-     * transaction commits will the {@linkplain Root#effect enqueued}
+     * transaction commits will the {@linkplain #effect enqueued}
      * {@link Effect}s be {@linkplain #enter executed}; otherwise, the
      * implementation MUST discard them. The effects MUST be executed in the
      * same order as they were enqueued. Effects from a subsequent transaction

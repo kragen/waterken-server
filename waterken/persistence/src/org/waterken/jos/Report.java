@@ -134,29 +134,21 @@ Report {
         // Determine the type of object stored in the file.
         String typename;
         try {
-            final Class<?>[] type = { Void.class };
             final SubstitutionStream in = new SubstitutionStream(true,
                     code, Filesystem.read(file)) {
                 protected Object
-                resolveObject(Object x) throws IOException {
-                    if (x instanceof Splice) {
-                        type[0] = x.getClass();
-                        x = null;
-                    } else if (x instanceof Wrapper) {
-                        x = ((Wrapper)x).peel(null);
-                    }
-                    return x;
+                resolveObject(final Object x) throws IOException {
+                    return x instanceof Splice ? null : x;
                 }
             };
             final Object x = in.readObject();
             in.close();
             if (x instanceof SymbolicLink) {
                 final Object sx = ((SymbolicLink)x).target;
-                final Class<?> sxt = null != sx ? sx.getClass() : type[0];
+                final Class<?> sxt = null != sx ? sx.getClass() : Splice.class;
                 typename = "-> " + sxt.getName();
             } else {
-                if (null != x) { type[0] = x.getClass(); }
-                typename = type[0].getName();
+                typename = (null != x ? x.getClass() : Splice.class).getName();
             }
         } catch (final Exception e) {
             typename = "! " + e.getClass().getName();

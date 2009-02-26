@@ -2,50 +2,26 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.jos;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.math.BigInteger;
 
 import org.joe_e.Powerless;
-import org.waterken.db.Root;
+import org.joe_e.Struct;
+import org.joe_e.array.ByteArray;
 
 /**
  * Hides the mutable state inside a {@link BigInteger}.
  */
-final class
-BigIntegerWrapper implements Wrapper, Powerless {
+/* package */ final class
+BigIntegerWrapper extends Struct implements Powerless, Serializable {
     static private final long serialVersionUID = 1;
 
-    private transient BigInteger value;
+    private final ByteArray bytes;
     
     BigIntegerWrapper(final BigInteger value) {
-        this.value = value;
+        bytes = ByteArray.array(value.toByteArray());
     }
     
-    // java.io.Serializable interface
-    
-    private void
-    writeObject(final ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-
-        final byte[] bytes = value.toByteArray();
-        out.writeInt(bytes.length);
-        out.write(bytes);
-    }
-
-    private void
-    readObject(final ObjectInputStream in) throws IOException,
-                                                  ClassNotFoundException {
-        in.defaultReadObject();
-
-        final byte[] bytes = new byte[in.readInt()];
-        in.readFully(bytes);
-        value = new BigInteger(bytes);
-    }
-
-    // org.waterken.jos.Wrapper interface
-    
-    public BigInteger
-    peel(final Root root) { return value; }
+    private Object
+    readResolve() { return new BigInteger(bytes.toByteArray());}
 }

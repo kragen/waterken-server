@@ -10,40 +10,40 @@ import javax.crypto.Mac;
 /**
  * Updates a MAC calculation. 
  */
-class
+/* package */ final class
 MacOutputStream extends OutputStream {
 
-    protected final OutputStream out;
-    protected final Mac mac;
+    private final Mac mac;
+    private final OutputStream out;
     
-    MacOutputStream(final OutputStream out, final Mac mac) {
-        this.out = out;
+    MacOutputStream(final Mac mac, final OutputStream out) {
         this.mac = mac;
+        this.out = out;
     }
     
     // java.io.OutputStream interface
 
     @Override public void
     write(final int b) throws IOException {
-        out.write(b);
+        if (null != out) { out.write(b); }
         mac.update((byte)b);
     }
 
     @Override public void
     write(final byte[] v, final int off, final int len) throws IOException {
-        out.write(v, off, len);
+        if (null != out) { out.write(v, off, len); }
         mac.update(v, off, len);
     }
 
     @Override public void
     write(final byte[] v) throws IOException {
-        out.write(v);
+        if (null != out) { out.write(v); }
         mac.update(v);
     }
 
     @Override public void
-    close() throws IOException { out.close(); }
+    close() throws IOException { if (null != out) { out.close(); } }
 
     @Override public void
-    flush() throws IOException { out.flush(); }
+    flush() throws IOException { if (null != out) { out.flush(); } }
 }

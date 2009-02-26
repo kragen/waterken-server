@@ -2,66 +2,45 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.jos;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InvalidClassException;
+import java.io.Serializable;
 import java.lang.reflect.Constructor;
 
 import org.joe_e.Powerless;
-import org.waterken.db.Root;
+import org.joe_e.Struct;
+import org.joe_e.array.ConstArray;
 
 /**
  * A persistent constructor. 
  */
-final class
-ConstructorWrapper implements Wrapper, Powerless {
+/* package */ final class
+ConstructorWrapper extends Struct implements Powerless, Serializable {
     static private final long serialVersionUID = 1;
 
-    private transient Constructor<?> code;
+    private final Class<?> declarer;
+    private final ConstArray<Class<?>> params;
     
     ConstructorWrapper(final Constructor<?> code) {
-        this.code = code;
-    }
-    
-    // java.io.Serializable interface
-    
-    private void
-    writeObject(final ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-
-        out.writeObject(code.getDeclaringClass());
-        final Class<?>[] params = code.getParameterTypes();
-        out.writeInt(params.length);
-        for (final Class<?> param : params) { out.writeObject(param); } 
-    }
-
-    private void
-    readObject(final ObjectInputStream in) throws IOException,
-                                                  ClassNotFoundException {
-        in.defaultReadObject();
-
-        final Class<?> declarer = (Class<?>)in.readObject();
-        final Class<?>[] params = new Class[in.readInt()];
-        for (int i = 0; i != params.length; ++i) {
-            params[i] = (Class<?>)in.readObject();
-        }
-        try {
-            code = declarer.getConstructor(params);
-        } catch (final NoSuchMethodException e) {
-            final StringBuilder buffer = new StringBuilder();
-            buffer.append(declarer.getName());
-            buffer.append("#new(");
-            for (int i = 0; i != params.length; ++i) {
-                if (0 != i) { buffer.append(","); }
-                buffer.append(params[i].getName());
-            }
-            buffer.append(")");
-            throw new ClassNotFoundException(buffer.toString());
-        }
+        declarer = code.getDeclaringClass();
+        params = ConstArray.array(code.getParameterTypes());
     }
 
     // org.waterken.jos.Wrapper interface
     
-    public Constructor<?>
-    peel(final Root root) { return code; }
+    private Object
+    readResolve() throws InvalidClassException { 
+        try {
+            return declarer.getConstructor(params.toArray(new Class<?>[0]));
+        } catch (final NoSuchMethodException e) {
+            final StringBuilder buffer = new StringBuilder();
+            buffer.append(declarer.getName());
+            buffer.append("#(");
+            for (int i = 0; i != params.length(); ++i) {
+                if (0 != i) { buffer.append(","); }
+                buffer.append(params.get(i).getName());
+            }
+            buffer.append(")");
+            throw new InvalidClassException(buffer.toString());
+        }
+    }
 }

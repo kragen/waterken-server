@@ -2,14 +2,17 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.jos;
 
-import org.ref_send.promise.Fulfilled;
+import java.io.Serializable;
+
+import org.joe_e.Selfless;
+import org.ref_send.promise.Promise;
 import org.waterken.db.Root;
 
 /**
  * An object faulting promise.
  */
-final class
-Faulting extends Fulfilled<Object>  {
+/* package */ final class
+Faulting implements Promise<Object>, Selfless, Serializable  {
     static private final long serialVersionUID = 1L;
 
     private final Root root;
@@ -27,14 +30,13 @@ Faulting extends Fulfilled<Object>  {
 
     public boolean
     equals(final Object x) {
-        return x instanceof Faulting
-            ? name.equals(((Faulting)x).name) &&
-              root.equals(((Faulting)x).root)
-            : super.equals(x);
+        return x instanceof Faulting &&
+               name.equals(((Faulting)x).name) &&
+               root.equals(((Faulting)x).root);
     }
 
-    // org.ref_send.promise.Volatile interface
+    // org.ref_send.promise.Promise interface
 
     public Object
-    cast() { return root.fetch(null, name); }
+    call() { return root.fetch(null, name); }
 }

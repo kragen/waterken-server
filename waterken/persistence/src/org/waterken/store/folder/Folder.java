@@ -85,14 +85,19 @@ Folder extends Struct implements StoreMaker, Serializable {
                     }
 
                     public InputStream
-                    read(final String filename) throws InvalidFilenameException,
-                                                       IOException {
+                    read(final String filename) throws IOException {
                         if (done.is()) { throw new AssertionError(); }
-                        if (written.is()) {
-                            final File file= Filesystem.file(pending, filename);
-                            if (file.isFile()) { return Filesystem.read(file); }
+                        try {
+                            if (written.is()) {
+                                final File file =
+                                    Filesystem.file(pending, filename);
+                                if(file.isFile()){return Filesystem.read(file);}
+                            }
+                            final File file = Filesystem.file(dir, filename);
+                            return Filesystem.read(file);
+                        } catch (final InvalidFilenameException e) {
+                            throw new FileNotFoundException();
                         }
-                        return Filesystem.read(Filesystem.file(dir, filename));
                     }
                     
                     public void
@@ -107,8 +112,7 @@ Folder extends Struct implements StoreMaker, Serializable {
                     private boolean isWriting = false;
                     
                     public OutputStream
-                    write(final String filename)throws InvalidFilenameException,
-                                                       IOException {
+                    write(final String filename) throws IOException {
                         if (done.is()) { throw new AssertionError(); }
                         if (isWriting) { throw new AssertionError(); }
                         if (written.mark(true) && !nested.is()){mkdir(pending);}
@@ -141,8 +145,7 @@ Folder extends Struct implements StoreMaker, Serializable {
                     }
                     
                     public Store
-                    nest(final String filename) throws InvalidFilenameException,
-                                                       IOException {
+                    nest(final String filename) throws IOException {
                         if (done.is()) { throw new AssertionError(); }
                         final String was = "." + filename + ".was";
                         if (filename.startsWith(".") || !ok(filename) ||

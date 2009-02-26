@@ -10,15 +10,15 @@ import javax.crypto.Mac;
 /**
  * Updates a MAC calculation. 
  */
-class
+/* package */ final class
 MacInputStream extends InputStream {
 
-    protected final InputStream in;
-    protected final Mac mac;
+    private final Mac mac;
+    private final InputStream in;
     
-    MacInputStream(final InputStream in, final Mac mac) {
-        this.in = in;
+    MacInputStream(final Mac mac, final InputStream in) {
         this.mac = mac;
+        this.in = in;
     }
     
     // java.io.InputStream interface

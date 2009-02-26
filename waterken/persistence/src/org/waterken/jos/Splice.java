@@ -2,21 +2,22 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.jos;
 
+import java.io.Serializable;
+
 import org.joe_e.Powerless;
 import org.joe_e.Selfless;
-import org.waterken.db.Root;
 
 /**
  * An object graph splice.
  */
-final class
-Splice implements Wrapper, Powerless, Selfless  {
+/* package */ final class
+Splice implements Powerless, Selfless, Serializable  {
     static private final long serialVersionUID = 1L;
 
     /**
      * name to fetch
      */
-    private final String name;
+    protected final String name;
 
     Splice(final String name) {
         if (null == name) { throw new NullPointerException(); }
@@ -33,9 +34,4 @@ Splice implements Wrapper, Powerless, Selfless  {
 
     public int
     hashCode() { return 0x591CE4EF + name.hashCode(); }
-    
-    // org.waterken.jos.Wrapper interface
-
-    public Object
-    peel(final Root root) { return root.fetch(null, name); }
 }

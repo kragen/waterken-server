@@ -69,7 +69,7 @@ Touch {
                         return false;
                     }
                 });
-                return null;
+                return new Immutable() {};
             }
         });
     }

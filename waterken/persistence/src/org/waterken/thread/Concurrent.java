@@ -4,8 +4,8 @@ package org.waterken.thread;
 
 import java.util.LinkedList;
 
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Task;
 
 /**
  * A concurrent loop.
@@ -21,7 +21,7 @@ Concurrent {
      * @param group thread group
      * @param name  thread name
      */
-    static public <T extends Task<?>> Receiver<T>
+    static public <T extends Promise<?>> Receiver<T>
     make(final ThreadGroup group, final String name) {
         if (null == group) { throw new NullPointerException(); }
         if (null == name) { throw new NullPointerException(); }
@@ -51,7 +51,7 @@ Concurrent {
                                         todo = tasks.removeFirst();
                                     }
                                     try {
-                                        todo.run();
+                                        todo.call();
                                     } catch (final Exception e) {
                                         System.err.println(this + ":");
                                         e.printStackTrace(System.err);

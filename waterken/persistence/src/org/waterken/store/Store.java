@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.store;
 
+import java.io.IOException;
+
 /**
  * A <code>byte</code> storage interface.
  */
@@ -10,16 +12,16 @@ Store {
     
     /**
      * Recursively deletes all contained entries. 
-     * @throws Exception                any I/O problem
+     * @throws IOException  any I/O problem
      */
-    void clean() throws Exception;
+    void clean() throws IOException;
     
     /**
      * Creates a transaction.
      * <p>
      * Only one transaction can be active at a time.
      * </p>
-     * @throws Exception                any I/O problem
+     * @throws IOException  any I/O problem
      */
-    Update update() throws Exception;
+    Update update() throws IOException;
 }

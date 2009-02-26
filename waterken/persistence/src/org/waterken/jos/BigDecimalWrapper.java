@@ -2,48 +2,28 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.jos;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.joe_e.Powerless;
-import org.waterken.db.Root;
+import org.joe_e.Struct;
 
 /**
  * Hides the mutable state inside a {@link BigDecimal}.
  */
-final class
-BigDecimalWrapper implements Wrapper, Powerless {
+/* package */ final class
+BigDecimalWrapper extends Struct implements Powerless, Serializable {
     static private final long serialVersionUID = 1;
 
-    private transient BigDecimal value;
+    private final BigInteger unscaled;
+    private final int scale;
     
     BigDecimalWrapper(final BigDecimal value) {
-        this.value = value;
+        unscaled = value.unscaledValue();
+        scale = value.scale();
     }
     
-    // java.io.Serializable interface
-    
-    private void
-    writeObject(final ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-
-        out.writeObject(value.unscaledValue());
-        out.writeInt(value.scale());
-    }
-
-    private void
-    readObject(final ObjectInputStream in) throws IOException,
-                                                  ClassNotFoundException {
-        in.defaultReadObject();
-
-        value = new BigDecimal((BigInteger)in.readObject(), in.readInt());
-    }
-
-    // org.waterken.jos.Wrapper interface
-    
-    public BigDecimal
-    peel(final Root root) { return value; }
+    private Object
+    readResolve() { return new BigDecimal(unscaled, scale); }
 }
