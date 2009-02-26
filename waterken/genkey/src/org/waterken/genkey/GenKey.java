@@ -242,7 +242,7 @@ GenKey {
                     local.fetch(null, VatInitializer.exports);
                 claim(exports._, exports.export(), hostname, (Registrar)exports.
                         connect().run(redirectoryURL, null, Registrar.class));
-                return null;
+                return new Immutable() {};
             }
         });
     }
@@ -273,7 +273,7 @@ GenKey {
                         return null;
                     }
                 }
-                _.when(master.root.grow(), new StoreUpdater());
+                _.when(master.top.grow(), new StoreUpdater());
                 return null;
             }
         }
