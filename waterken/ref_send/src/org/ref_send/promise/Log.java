@@ -5,13 +5,11 @@ package org.ref_send.promise;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
-import org.joe_e.Equatable;
-
 /**
  * A log interface.
  */
 public class
-Log implements Equatable, Serializable {
+Log implements Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
