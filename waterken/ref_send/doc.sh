@@ -8,7 +8,9 @@ else
     OVERVIEW='ref_send/src/overview.html'
 fi
 NAME="ref_send"
+MAJOR=2
 MINOR=`cat minor-version.txt`
+VERSION="$MAJOR.$MINOR"
 SLOGAN='defensive programming in Java'
 BOTTOM='<a href="https://lists.sourceforge.net/lists/listinfo/waterken-server">Submit a bug or feature, or get help</a><p>Copyright 1998-2007 Waterken Inc. under the terms of the <a href="http://www.opensource.org/licenses/mit-license.html">MIT X license</a>.</p>'
 
