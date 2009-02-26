@@ -9,7 +9,6 @@ import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Task;
 
 /**
  * An introduction to eventual operations in Java.
@@ -151,10 +150,10 @@ Beat {
          * implementation that supports multiple concurrent event loops with
          * transparent persistence and across the network messaging.
          */
-        final List<Task<?>> work = List.list();
+        final List<Promise<?>> work = List.list();
         final Eventual _ = new Eventual(work.appender());
         final Promise<Boolean> result = make(_, Bang.make());
-        while (!work.isEmpty()) { work.pop().run(); }
-        if (!result.cast()) { throw new Exception("test failed"); }
+        while (!work.isEmpty()) { work.pop().call(); }
+        if (!result.call()) { throw new Exception("test failed"); }
     }
 }

@@ -17,8 +17,8 @@ import org.joe_e.array.ShortArray;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Volatile;
 
 /**
  * A record containing a field of each type.
@@ -80,7 +80,7 @@ AllTypes extends Struct implements Record, Serializable {
     /**
      * promise
      */
-    public final ConstArray<? extends Volatile<?>> p;
+    public final ConstArray<? extends Promise<?>> p;
     
     /**
      * unknown type
@@ -112,7 +112,7 @@ AllTypes extends Struct implements Record, Serializable {
              @name("l") final LongArray l,
              @name("t") final String t,
              @name("r") final ConstArray<Receiver<?>> r,
-             @name("p") final ConstArray<? extends Volatile<?>> p,
+             @name("p") final ConstArray<? extends Promise<?>> p,
              @name("a") final Object a) {
         this.b = b;
         this.c = c;

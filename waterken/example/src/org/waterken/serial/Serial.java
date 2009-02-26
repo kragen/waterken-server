@@ -9,7 +9,7 @@ import org.joe_e.Struct;
 import org.ref_send.promise.Channel;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Resolver;
-import org.ref_send.promise.Volatile;
+import org.ref_send.promise.Promise;
 
 /**
  * A {@link Series} maker.
@@ -37,9 +37,9 @@ Serial {
             private Element<T> front_ = _.cast(Element.class, initial.promise);
             private Resolver<Element<T>> back = initial.resolver;
 
-            public Iterator<Volatile<T>>
+            public Iterator<Promise<T>>
             iterator() {
-                class IteratorX implements Iterator<Volatile<T>>, Serializable {
+                class IteratorX implements Iterator<Promise<T>>, Serializable {
                     static private final long serialVersionUID = 1L;
 
                     private Element<T> current_ = front_;
@@ -47,7 +47,7 @@ Serial {
                     public boolean
                     hasNext() { return true; }  // The future is unlimited.
 
-                    public Volatile<T>
+                    public Promise<T>
                     next() {
                         /*
                          * Produce a promise for what will be the value of the
@@ -55,7 +55,7 @@ Serial {
                          * for what will be the next element in the list, which
                          * is now the current element in the iteration order.
                          */
-                        final Volatile<T> r = current_.getValue();
+                        final Promise<T> r = current_.getValue();
                         current_ = current_.getNext();
                         return r;
                     }
@@ -68,7 +68,7 @@ Serial {
 
 
             public void
-            produce(final Volatile<T> value) {
+            produce(final Promise<T> value) {
                 /*
                  * Resolve the promise for the last element in the list with an
                  * actual element containing the provided value, and an eventual
@@ -80,14 +80,14 @@ Serial {
                 back = x.resolver;
             }
 
-            public Volatile<T>
+            public Promise<T>
             consume() {
                 /*
                  * Produce a promise for what will be the value of the first
                  * element and hold onto an eventual reference for what will be
                  * the next element in the list, which is now the first element.
                  */
-                final Volatile<T> r = front_.getValue();
+                final Promise<T> r = front_.getValue();
                 front_ = front_.getNext();
                 return r;
             }
@@ -102,11 +102,11 @@ Serial {
      * @param next  {@link Element#getNext}
      */
     static private <T> Element<T>
-    link(final Volatile<T> value, final Element<T> next) {
+    link(final Promise<T> value, final Element<T> next) {
         class ElementX extends Struct implements Element<T>, Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Volatile<T>
+            public Promise<T>
             getValue() { return value; }
 
             public Element<T>

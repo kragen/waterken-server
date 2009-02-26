@@ -7,7 +7,6 @@ import static org.ref_send.test.Logic.was;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Task;
 
 /**
  * Eventual invocation tests.
@@ -41,9 +40,9 @@ FactorialN {
     main(final String[] args) throws Exception {
         final int n = args.length > 0 ? Integer.parseInt(args[0]) : 4;
         
-        final List<Task<?>> work = List.list();
+        final List<Promise<?>> work = List.list();
         final Promise<Boolean> result = make(new Eventual(work.appender()), n);
-        while (!work.isEmpty()) { work.pop().run(); }
-        if (!result.cast()) { throw new Exception("test failed"); }
+        while (!work.isEmpty()) { work.pop().call(); }
+        if (!result.call()) { throw new Exception("test failed"); }
     }
 }

@@ -14,8 +14,6 @@ import org.ref_send.list.List;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Task;
-import org.ref_send.promise.Volatile;
 
 /**
  * An argument passing test.
@@ -32,7 +30,7 @@ Pitch {
     static public Promise<Boolean>
     make(final Eventual _, final Wall x) {
         final Wall x_ = _._(x);
-        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
+        ConstArray<Promise<Boolean>> r = new ConstArray<Promise<Boolean>>();
 
         class Re extends Do<AllTypes,Promise<Boolean>>
                  implements Serializable {
@@ -63,10 +61,10 @@ Pitch {
      */
     static public void
     main(final String[] args) throws Exception {
-        final List<Task<?>> work = List.list();
+        final List<Promise<?>> work = List.list();
         final Eventual _ = new Eventual(work.appender());
         final Promise<Boolean> result = make(_, Bounce.make(_));
-        while (!work.isEmpty()) { work.pop().run(); }
-        if (!result.cast()) { throw new Exception("test failed"); }
+        while (!work.isEmpty()) { work.pop().call(); }
+        if (!result.call()) { throw new Exception("test failed"); }
     }
 }

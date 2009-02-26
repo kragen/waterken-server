@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.eq;
 
-import static org.ref_send.promise.Eventual.detach;
 import static org.ref_send.promise.Eventual.near;
 import static org.ref_send.promise.Eventual.ref;
 import static org.ref_send.test.Logic.and;
@@ -15,8 +14,6 @@ import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Task;
-import org.ref_send.promise.Volatile;
 
 /**
  * Checks invariants of the ref_send API.
@@ -31,7 +28,7 @@ SoundCheck {
      */
     static public Promise<Boolean>
     make(final Eventual _) throws Exception {
-        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
+        ConstArray<Promise<Boolean>> r = new ConstArray<Promise<Boolean>>();
         r = r.with(testNormal(_, _));
         r = r.with(testNull(_, null));
         r = r.with(testDouble(_));
@@ -44,12 +41,12 @@ SoundCheck {
      */
     static private <T extends Receiver<?>> Promise<Boolean>
     testNormal(final Eventual _, final T x) throws Exception {
-        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
+        ConstArray<Promise<Boolean>> r = new ConstArray<Promise<Boolean>>();
         
         final Promise<T> p = ref(x);
         check(p.equals(p));
         check(ref(x).equals(p));
-        check(x.equals(p.cast()));
+        check(x.equals(p.call()));
         class EQ extends Do<T,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -61,14 +58,14 @@ SoundCheck {
         }
         r = r.with(_.when(p, new EQ()));
         r = r.with(_.when(x, new EQ()));
-        r = r.with(_.when(detach(x), new EQ()));
+        r = r.with(_.when(new Sneaky<T>(x), new EQ()));
         
         final T x_ = _._(x);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
         check(_._(x).equals(x_));
         check(_.cast(Receiver.class, p).equals(x_));
-        check(Eventual.promised(x_).equals(p));
+        check(ref(x_).equals(p));
         check(x == near(x_));
         r = r.with(_.when(x_, new EQ()));
         
@@ -80,13 +77,13 @@ SoundCheck {
      */
     static private <T extends Receiver<?>> Promise<Boolean>
     testNull(final Eventual _, final T x) throws Exception {
-        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
+        ConstArray<Promise<Boolean>> r = new ConstArray<Promise<Boolean>>();
         
         final Promise<T> p = ref(x);
         check(p.equals(p));
         check(!ref(x).equals(p));
         try {
-            p.cast();
+            p.call();
             check(false);
         } catch (final NullPointerException e) {}
         class NE extends Do<T,Promise<Boolean>> implements Serializable {
@@ -103,13 +100,13 @@ SoundCheck {
         }
         r = r.with(_.when(p, new NE()));
         r = r.with(_.when(x, new NE()));
-        r = r.with(_.when(detach(x), new NE()));
+        r = r.with(_.when(new Sneaky<T>(x), new NE()));
         
         final T x_ = _.cast(Receiver.class, p);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
         check(_.cast(Receiver.class, p).equals(x_));
-        check(Eventual.promised(x_).equals(p));
+        check(ref(x_).equals(p));
         r = r.with(_.when(x_, new NE()));
         
         return and(_, r);
@@ -117,13 +114,13 @@ SoundCheck {
     
     static private <T> Promise<Boolean>
     testNaN(final Eventual _, final T x) throws Exception {
-        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
+        ConstArray<Promise<Boolean>> r = new ConstArray<Promise<Boolean>>();
         
         final Promise<T> p = ref(x);
         check(p.equals(p));
         check(!p.equals(ref(x)));
         try {
-            p.cast();
+            p.call();
             check(false);
         } catch (final ArithmeticException e) {}
         class ENaN extends Do<T,Promise<Boolean>> implements Serializable {
@@ -140,7 +137,7 @@ SoundCheck {
         }
         r = r.with(_.when(p, new ENaN()));
         r = r.with(_.when(x, new ENaN()));
-        r = r.with(_.when(detach(x), new ENaN()));
+        r = r.with(_.when(new Sneaky<T>(x), new ENaN()));
 
         return and(_, r);
     }
@@ -150,13 +147,13 @@ SoundCheck {
      */
     static private Promise<Boolean>
     testDouble(final Eventual _) throws Exception {
-        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
+        ConstArray<Promise<Boolean>> r = new ConstArray<Promise<Boolean>>();
         
         // check normal handling
         final Promise<Double> pMin = ref(Double.MIN_VALUE);
         check(pMin.equals(pMin));
         check(ref(Double.MIN_VALUE).equals(pMin));
-        check(Double.MIN_VALUE == pMin.cast());
+        check(Double.MIN_VALUE == pMin.call());
         class EQ extends Do<Double,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -181,13 +178,13 @@ SoundCheck {
      */
     static private Promise<Boolean>
     testFloat(final Eventual _) throws Exception {
-        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
+        ConstArray<Promise<Boolean>> r = new ConstArray<Promise<Boolean>>();
         
         // check normal handling
         final Promise<Float> pMin = ref(Float.MIN_VALUE);
         check(pMin.equals(pMin));
         check(ref(Float.MIN_VALUE).equals(pMin));
-        check(Float.MIN_VALUE == pMin.cast());
+        check(Float.MIN_VALUE == pMin.call());
         class EQ extends Do<Float,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -221,9 +218,9 @@ SoundCheck {
      */
     static public void
     main(final String[] args) throws Exception {
-        final List<Task<?>> work = List.list();
+        final List<Promise<?>> work = List.list();
         final Promise<Boolean> result = make(new Eventual(work.appender()));
-        while (!work.isEmpty()) { work.pop().run(); }
-        if (!result.cast()) { throw new Exception("test failed"); }
+        while (!work.isEmpty()) { work.pop().call(); }
+        if (!result.call()) { throw new Exception("test failed"); }
     }
 }

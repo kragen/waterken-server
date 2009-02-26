@@ -10,8 +10,6 @@ import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Task;
-import org.ref_send.promise.Volatile;
 
 /**
  * Eventual invocation tests.
@@ -39,7 +37,7 @@ PopPushN {
          * Check that the first n integers in the series will be the
          * numbers from 0 through n.
          */
-        ConstArray<Volatile<Boolean>> r = new ConstArray<Volatile<Boolean>>();
+        ConstArray<Promise<Boolean>> r = new ConstArray<Promise<Boolean>>();
         for (int i = 0; i != n; ++i) {
             r = r.with(_.when(x.consume(), was(i)));
         }
@@ -65,9 +63,9 @@ PopPushN {
     main(final String[] args) throws Exception {
         final int n = args.length > 0 ? Integer.parseInt(args[0]) : 4;
         
-        final List<Task<?>> work = List.list();
+        final List<Promise<?>> work = List.list();
         final Promise<Boolean> result = make(new Eventual(work.appender()), n);
-        while (!work.isEmpty()) { work.pop().run(); }
-        if (!result.cast()) { throw new Exception("test failed"); }
+        while (!work.isEmpty()) { work.pop().call(); }
+        if (!result.call()) { throw new Exception("test failed"); }
     }
 }

@@ -72,9 +72,6 @@ Bounce {
                         with(null).
                         with(rejected._(Receiver.class)),
                     new ConstArray<Promise<?>>().
-                        with(ref(false)).
-                        with(ref(Integer.MAX_VALUE)).
-                        with(ref("a")).
                         with(d.promise),
                     ConstArray.array(
                         new ImmutableArray<PowerlessArray<Boolean>>().

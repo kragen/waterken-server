@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.serial;
 
-import org.ref_send.promise.Volatile;
+import org.ref_send.promise.Promise;
 
 /**
  * An element in a series.
@@ -14,7 +14,7 @@ Element<T> {
     /**
      * element value
      */
-    Volatile<T> getValue();
+    Promise<T> getValue();
 
     /**
      * next element

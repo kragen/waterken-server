@@ -2,7 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.serial;
 
-import org.ref_send.promise.Volatile;
+import org.ref_send.promise.Promise;
 
 /**
  * An infinite series of elements.
@@ -14,17 +14,17 @@ import org.ref_send.promise.Volatile;
  * </p> 
  */
 public interface
-Series<T> extends Iterable<Volatile<T>> {
+Series<T> extends Iterable<Promise<T>> {
 
     /**
      * Appends a value to the end of the series.
      * @param value value to append
      */
-    void produce(Volatile<T> value);
+    void produce(Promise<T> value);
     
     /**
      * Removes the first element in the series.
      * @return value of the removed element
      */
-    Volatile<T> consume();
+    Promise<T> consume();
 }
