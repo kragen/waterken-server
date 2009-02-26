@@ -23,7 +23,7 @@ import org.waterken.db.Root;
 /**
  * Slices an object graph at selfish object references.
  */
-final class
+/* package */ final class
 Slicer extends ObjectOutputStream {
     
     private final Object top;
