@@ -141,7 +141,7 @@ Remote extends Deferred<Object> {
         } catch (final Exception e) { throw new Error(e); }
     }
     
-    // org.ref_send.promise.eventual.Deferred interface
+    // org.ref_send.promise.Deferred interface
 
     public void
     when(final Do<Object,?> observer) { messenger.when(href, this, observer); }

@@ -66,7 +66,7 @@ HTTP extends Eventual implements Serializable {
         effect = local.fetch(null, Database.effect);
     }
     
-    // org.ref_send.promise.eventual.Eventual interface
+    // org.ref_send.promise.Eventual interface
 
     public @Override @SuppressWarnings("unchecked") <R> Vat<R>
     spawn(final String label, final Class<?> maker, final Object... argv) {
