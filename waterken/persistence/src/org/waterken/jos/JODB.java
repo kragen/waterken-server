@@ -465,13 +465,11 @@ JODB<S> extends Database<S> {
             f = tx.o2wf.get(o);
             if (null == f) {
                 // assign a new identity
-                try {
-                    do {
-                        final byte[] id = new byte[keyBytes];
-                        prng.nextBytes(id);
-                        f = filename(id);
-                    } while (exists(f));
-                } catch (final Exception e) { throw new Error(e); }
+                do {
+                    final byte[] id = new byte[keyBytes];
+                    prng.nextBytes(id);
+                    f = filename(id);
+                } while (exists(f));
             }
             
             // persist the persistent identity
