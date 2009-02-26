@@ -73,27 +73,27 @@ List<T> implements Iterable<T>, Serializable {
      * @return forward iterator over this list
      */
     public final Iterator<T>
-    iterator() {
-        class IteratorX implements Iterator<T>, Serializable {
-            static private final long serialVersionUID = 1L;
+    iterator() { return new IteratorX(); }
 
-            private Link<T> current = near(first);
+    private final class
+    IteratorX implements Iterator<T>, Serializable {
+        static private final long serialVersionUID = 1L;
 
-            public boolean
-            hasNext() { return current != last; }
+        private Link<T> current = near(first);
 
-            public T
-            next() {
-                if (current == last) { throw new NoSuchElementException(); }
-                final T r = current.value;
-                current = near(current.next);
-                return r;
-            }
+        public boolean
+        hasNext() { return current != last; }
 
-            public void
-            remove() { throw new UnsupportedOperationException(); }
+        public T
+        next() {
+            if (current == last) { throw new NoSuchElementException(); }
+            final T r = current.value;
+            current = near(current.next);
+            return r;
         }
-        return new IteratorX();
+
+        public void
+        remove() { throw new UnsupportedOperationException(); }
     }
 
     // org.ref_send.list.List interface
@@ -158,13 +158,13 @@ List<T> implements Iterable<T>, Serializable {
      * Constructs an {@linkplain #append appender}.
      */
     public Receiver<T>
-    appender() {
-        class Appender extends Struct implements Receiver<T>, Serializable {
-            static private final long serialVersionUID = 1L;
+    appender() { return new Appender(); }
 
-            public void
-            run(final T value) { append(value); }
-        }
-        return new Appender();
+    private final class
+    Appender extends Struct implements Receiver<T>, Serializable {
+        static private final long serialVersionUID = 1L;
+
+        public void
+        run(final T value) { append(value); }
     }
 }

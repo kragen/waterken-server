@@ -270,7 +270,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * <code>promise</code>, nor the <code>observer</code>, argument will be
      * given the opportunity to execute in the current event loop turn.
      * </p>
-     * @param <T> referent type
+     * @param <P> referent type
      * @param <R> <code>observer</code>'s return type, MUST be {@link Void}, an
      *            {@linkplain Proxies#isImplementable allowed} proxy type, or
      *            assignable from {@link Promise} 
@@ -281,30 +281,35 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      *         <code>observer</code>'s return type is <code>Void</code>
      * @throws Error    invalid <code>observer</code> argument  
      */
-    public final <T,R> R
-    when(final Promise<T> promise, final Do<T,R> observer) {
-        return when(Object.class, promise, observer);
+    public final @SuppressWarnings("unchecked") <P,R> R
+    when(final Object promise, final Do<P,R> observer) {
+        final Class<?> P = null != promise ? promise.getClass() : Object.class;
+        final Promise<P> p = (Promise<P>)ref(promise);
+        return when(P, p, observer);
     }
     
-    protected final <T,R> R
-    when(final Class<?> T, final Promise<T> p, final Do<T,R> observer) {
+    protected final <P,R> R
+    when(final Class<?> P, final Promise<P> p, final Do<P,R> observer) {
         try {
             final R r;
-            final Do<T,?> forwarder;
-            final Class<?> R = Typedef.raw(Deferred.output(T, observer));
+            final Do<P,?> forwarder;
+            final Class<?> R = Typedef.raw(Deferred.output(P, observer));
             if (void.class == R || Void.class == R) {
                 r = null;
                 forwarder = observer;
             } else {
                 final Channel<R> x = defer();
                 r = cast(R, x.promise);
-                forwarder = new Compose<T,R>(observer, x.resolver);
+                forwarder = new Compose<P,R>(observer, x.resolver);
             }
-            trust(p instanceof Detachable ? ((Detachable<T>)p).getState() : p).
+            trust(p instanceof Detachable ? ((Detachable<P>)p).getState() : p).
                 when(forwarder);
             return r;
         } catch (final Exception e) { throw new Error(e); }
     }
+    
+    static protected <T> Promise<T>
+    inline(final T referent) { return new Inline<T>(referent); }
 
     private final <T> Deferred<T>
     trust(final Promise<T> untrusted) {
@@ -713,7 +718,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * @return corresponding eventual reference, or <code>null</code> if
      *         <code>type</code> is not eventualizable
      */
-	public final @SuppressWarnings("unchecked") <T> T
+    public final @SuppressWarnings("unchecked") <T> T
     cast(final Class<?> type, final Promise<T> promise) {
         try {
             return (T)(Void.class == type || void.class == type
@@ -801,7 +806,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * @throws Error    <code>null</code> <code>reference</code> or
      *                  <code>T</code> not an allowed proxy type
      */
-	public final <T> T
+    public final <T> T
     _(final T reference) {
         if (reference instanceof Proxy) {
             try {
@@ -814,26 +819,6 @@ Eventual implements Receiver<Promise<?>>, Serializable {
             return new Enqueue<T>(this, ref(reference)).
                 mimic(reference.getClass());
         } catch (final Exception e) { throw new Error(e); }
-    }
-
-    /**
-     * Registers an observer on an {@linkplain #cast eventual reference}.
-     * <p>
-     * The implementation behavior is the same as that documented for the
-     * promise based {@link #when(Promise, Do) when} statement.
-     * </p>
-     * @param <T> referent type
-     * @param <R> <code>observer</code>'s return type
-     * @param reference observed reference
-     * @param observer  observer, MUST NOT be <code>null</code>
-     * @return promise, or {@linkplain #cast eventual reference}, for the
-     *         <code>observer</code>'s return, or <code>null</code> if the
-     *         <code>observer</code>'s return type is <code>Void</code>
-     */
-    public final <T,R> R
-    when(final T reference, final Do<T,R> observer) {
-        return when(null != reference ? reference.getClass() : Object.class,
-                    ref(reference), observer);
     }
     
     /**
@@ -872,20 +857,20 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     }
     
     /**
-	 * Gets a corresponding {@linkplain Promise promise}.
-	 * <p>
-	 * This method is the inverse of {@link #cast cast}; it gets the
-	 * corresponding {@linkplain Promise promise} for a given reference.
-	 * </p>
-	 * <p>
-	 * This method will not throw an {@link Exception}. The 
-	 * <code>referent</code> argument will not be given the opportunity to
-	 * execute.
-	 * </p>
-	 * @param <T> referent type
-	 * @param referent immediate or eventual reference
-	 * @return corresponding {@linkplain Promise promise}
-	 */
+     * Gets a corresponding {@linkplain Promise promise}.
+     * <p>
+     * This method is the inverse of {@link #cast cast}; it gets the
+     * corresponding {@linkplain Promise promise} for a given reference.
+     * </p>
+     * <p>
+     * This method will not throw an {@link Exception}. The 
+     * <code>referent</code> argument will not be given the opportunity to
+     * execute.
+     * </p>
+     * @param <T> referent type
+     * @param referent immediate or eventual reference
+     * @return corresponding {@linkplain Promise promise}
+     */
     static public @SuppressWarnings("unchecked") <T> Promise<T>
     ref(final T referent) {
         if (referent instanceof Promise) { return (Promise<T>)referent; }
