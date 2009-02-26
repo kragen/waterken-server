@@ -14,15 +14,29 @@
 &rarr; <a class="heading" href="./">deploy</a>
 </div>
 <div class="main">
-<h1><a name="title" href="#title">Configuring the Waterken<sup>TM</sup> server</a></h1>
-<h2><a name="setup" href="#setup">Setup</a></h2>
-<p>When the
-<a href="http://sourceforge.net/project/platformdownload.php?group_id=93988">waterken-server</a>
-distribution is unpacked, it creates an installation which is ready to be used.
-This default setup can be configured in various ways to match your desired
-deployment. This section explains the provided configuration options. You can
-<a href="#using">skip to the section on using</a> the server if you're content
-to use the provided setup.</p>
+<h1><a name="title" href="#title">Deploying the Waterken<sup>TM</sup> server</a></h1>
+<h2><a name="checkout" href="#checkout">Checkout and build the source</a></h2>
+<p>Checkout a copy of the server from the subversion repository using the
+command:</p>
+<p><kbd>svn co <a href="https://waterken.svn.sourceforge.net/svnroot/waterken/server/trunk/waterken">https://waterken.svn.sourceforge.net/svnroot/waterken/server/trunk/waterken</a></kbd></p>
+<p>Build the source, using the following instructions for your environment.</p>
+<h3><a name="windows" href="#windows">Windows</a></h3>
+<ol>
+<li>build the server using your IDE</li>
+<li><kbd>cd remote</kbd></li>
+<li>build the command JAR files using: <kbd>jars.bat</kbd></li>
+</ol>
+<h3><a name="unix" href="#unix">Unix</a></h3>
+<ol>
+<li><kbd>cd genkey</kbd></li>
+<li>build the server using: <kbd>./buildAll.sh</kbd></li>
+</ol>
+<h2><a name="configure" href="#configure">Configure your installation</a></h2>
+<p>Following the <a href="#checkout">checkout instructions</a> creates an
+installation which is ready to be used.  This default setup can be configured
+in various ways to match your desired deployment. This section explains the
+available configuration options. You can <a href="#using">skip to the section
+on using</a> the server if you're content to use the provided setup.</p>
 <h3><a name="system_properties" href="#system_properties">Java system properties</a></h3>
 <p>To bootstrap its configuration, the server needs to know the locations of the
 following folders:</p>
@@ -65,17 +79,18 @@ get the name of the folder, or JAR file, containing the project's class files
 <code>*.json</code> files in this folder are used to initialize the HTTP request
 routing code. For example, settings of interest include:</p>
 <dl>
-<dt><a name="www" href="#www"><code>www/</code> folder</a></dt>
+<dt><a name="www" href="#www">static web pages</a></dt>
 <dd>The <code>next.next.next.root</code> setting of <code>server.json</code>
 provides the path to a folder containing files to be served, such as CSS files
-and Javascript.  By default, this setting refers to the <code>www/</code> folder
-created by the waterken-server distribution.</dd>
+and Javascript.  By default, this setting refers to the
+<code>config/file/</code> folder created by the waterken-server
+distribution.</dd>
 <dt><a name="MIME" href="#MIME">known MIME types</a></dt>
-<dd><code>mime.json</code> provides an array of known MIME types to be consulted
-when serving files from the <code>www/</code> folder.</dd>
+<dd>The <code>mime.json</code> setting provides an array of known MIME types
+consulted when serving static web pages.</dd>
 <dt><a name="vat" href="#vat"><code>vat/</code></a></dt>
-<dd><code>vatRootFolder.json</code> specifies the root folder of all persistent
-vats</dd>
+<dd>The <code>vatRootFolder.json</code> setting specifies the root folder for
+all persistent vats.</dd>
 <dt><a name="ports" href="#ports">server ports</a></dt>
 <dd>Service specific configuration options, such as the server port number, are
 specified in a corresponding configuration file. For example, the HTTP server
@@ -85,15 +100,8 @@ port number is specified by the <code>port</code> member in the
 </dl>
 <h2><a name="using" href="#using">Using the server</a></h2>
 <p>The server supports SSL, use of an HTTP proxy and can host two kinds of
-resources: files and Java objects. This section shows how to configure the
-server and add new resources.</p>
-<h3><a name="build" href="#build">Build the server</a></h3>
-<p>The Waterken server is primarily intended for use by developers, so the
-<a href="http://sourceforge.net/project/platformdownload.php?group_id=93988">waterken-server</a>
-distribution is a source-only distribution which must be compiled before the
-server can be executed. The source distribution includes Eclipse project files,
-and also includes a shell script for compilation from the command line. The
-<code>build.sh</code> script should work on either Unix or Cygwin.</p>
+resources: files and Java objects. This section explains how to run the server
+and add resources.</p>
 <h3><a name="start" href="#start">Start the server</a></h3>
 <p>Once compilation is complete, the server can be run using the <code>serve.jar</code> command. For example,</p>
 <p><kbd>java -jar serve.jar</kbd></p>
@@ -146,9 +154,10 @@ You can specify a higher bit strength with an argument to the
 <code>genkey.jar</code> command.  Specify 112 to get a 2048 bit RSA key, or 128
 to get a 3072 bit RSA key.</p>
 <h3><a name="add_file" href="#add_file">Add served files</a></h3>
-<p>The content of any file under the <code><a href="#www">www/</a></code> folder
-can be fetched using a URL whose path names the file. For example, your site's
-homepage is at <code>www/index.html</code> and can be fetched using the URL:
+<p>The content of any file under the <code><a
+href="#www">config/file/</a></code> folder can be fetched using a URL whose
+path names the file. For example, your site's homepage is at
+<code>config/file/index.html</code> and can be fetched using the URL:
 <code>&lt;<a href="http://localhost:8080/index.html">http://localhost:8080/index.html</a>&gt;</code>.
 </p>
 <p>By convention, the
@@ -161,12 +170,14 @@ server.</p>
 <h3><a name="add_vat" href="#add_vat">Add a new vat</a></h3>
 <p>Persistent Java objects hosted by the Waterken server are grouped into
 collections, each of which is called a "vat". The persistent state of each vat
-is held in a sub-folder of the <code><a href="#vat">vat/</a></code> folder.  You
-can create a new vat from the command line using <code>spawn.jar</code>:
+is held in a sub-folder of the <code><a href="#vat">config/vat/</a></code>
+folder.  You can create a new vat from the command line using
+<code>spawn.jar</code>:
 </p>
-<p><kbd>java -jar spawn.jar example org.waterken.bang.Main test</kbd></p>
-<p>The above command enables execution of the
-<code><a href="../javadoc/org/web_send/graph/Publisher.html#spawn(java.lang.String,%20java.lang.Class)">Publisher#spawn()</a></code>
+<p><kbd>java -jar spawn.jar example org.waterken.bang.DrumFactory bang</kbd></p>
+<p>The above command enables execution of the <code><a
+href="../javadoc/org/reb_send/promise/Eventual.html#spawn(java.lang.String,
+java.lang.Class, java.lang.Object...)">Eventual#spawn(&hellip;)</a></code>
 method from the command line. The last argument is the vat name and the second
 to last is the fully qualified name of the maker class used to construct the
 first application object in the new vat. The web-key for the created object is
@@ -188,16 +199,16 @@ folder and put your class files in a <code>bin/</code> sub-folder, so your
 classes are at <code>myProject/bin/</code>.</p>
 <h4><a name="configure_project_web_page" href="#configure_project_web_page">Configure project web page</a></h4>
 <p>Every web-key exported from a given vat references the same web page. This
-web page is stored in a sub-folder of the <code>www/site/</code> folder, again
-named by the project. For example, the web page for the "example" project is at
-<code>www/site/example/index.html</code>. You can customize this web page for
-your own application by creating a corresponding entry for your project. For
-example, to setup the web page for the "myProject" application, copy the
-<code>index.html</code> file to a new folder at
-<code>www/site/myProject/</code>. You can also use other formats for your
-application's web page. The server only expects the application's web page to be
-in a file whose name starts with "<code>index.</code>", so a flash web page
-would be named <code>index.swf</code>.</p>
+web page is stored in a sub-folder of the <code>config/file/site/</code>
+folder, again named by the project. For example, the web page for the "example"
+project is at <code>config/file/site/example/index.html</code>. You can
+customize this web page for your own application by creating a corresponding
+entry for your project. For example, to setup the web page for the "myProject"
+application, copy the <code>index.html</code> file to a new folder at
+<code>config/file/site/myProject/</code>. You can also use other formats for
+your application's web page. The server only expects the application's web page
+to be in a file whose name starts with "<code>index.</code>", so a flash web
+page would be named <code>index.swf</code>.</p>
 </div>
 <p class="footer">
 </p>
