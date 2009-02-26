@@ -1,9 +1,9 @@
 #!/bin/sh
 if [ "$OS" = 'Windows_NT' ]
 then
-    CLASSPATH='..\joe-e\bin;..\ref_send\bin;..\network\bin;..\log\bin;..\persistence\bin;..\remote\bin;..\server\bin;..\shared\bin;..\dns\bin'
+    CLASSPATH='..\joe-e\bin;..\ref_send\bin;..\network\bin;..\log\bin;..\persistence\bin;..\syntax\bin;..\remote\bin;..\shared\bin;..\dns\bin'
 else
-    CLASSPATH='../joe-e/bin:../ref_send/bin:../network/bin:../log/bin:../persistence/bin:../remote/bin:../server/bin:../shared/bin:../dns/bin'
+    CLASSPATH='../joe-e/bin:../ref_send/bin:../network/bin:../log/bin:../persistence/bin:../syntax/bin:../remote/bin:../shared/bin:../dns/bin'
 fi
 
 echo 'Building genkey project...'
