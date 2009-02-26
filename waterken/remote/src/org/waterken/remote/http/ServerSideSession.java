@@ -7,8 +7,8 @@ import java.lang.reflect.Method;
 
 import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Log;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
-import org.ref_send.promise.Task;
 
 /**
  * The server-side state associated with a messaging session.
@@ -34,7 +34,7 @@ ServerSideSession implements Serializable {
     
     protected Object
     once(final long window, final int message,
-         final Method method, final Task<?> op) {
+         final Method method, final Promise<?> op) {
         if (window == current) {
             if (message != returns.length()) { return returns.get(message); }
         } else {
@@ -44,7 +44,7 @@ ServerSideSession implements Serializable {
         log.got(name + "-" + window + "-" + message, null, method);
         Object r;
         try {
-            r = op.run();
+            r = op.call();
         } catch (final Exception e) {
             r = new Rejected<Object>(e);
         }

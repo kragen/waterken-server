@@ -11,7 +11,7 @@ import org.joe_e.Immutable;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Fulfilled;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.waterken.db.Database;
 import org.waterken.db.Effect;
@@ -41,7 +41,7 @@ Pipeline implements Serializable {
     private   final String key;                     // messaging session key
     private   final String name;                    // messaging session name
     private   final Receiver<Effect<Server>> effect;
-    private   final Fulfilled<Outbound> outbound;
+    private   final Promise<Outbound> outbound;
    
     private         long activeWindow = 1;  // id of on-the-air window
     private         int  activeIndex = -1;  // last acknowledged window index
@@ -60,7 +60,7 @@ Pipeline implements Serializable {
     protected
     Pipeline(final String peer, final String key, final String name,
              final Receiver<Effect<Server>> effect,
-             final Fulfilled<Outbound> outbound) {
+             final Promise<Outbound> outbound) {
         this.peer = peer;
         this.key = key;
         this.name = name;
@@ -212,7 +212,7 @@ Pipeline implements Serializable {
                             });
                         }
                     }
-                    return null;
+                    return new Immutable() {};
                 }
             });
         }
@@ -226,7 +226,7 @@ Pipeline implements Serializable {
         receive(final Response head, final InputStream body) throws Exception {
             vat.service.run(new Service() {
                 public Void
-                run() throws Exception {
+                call() throws Exception {
                     vat.enter(Transaction.update, new Transaction<Immutable>() {
                         public Immutable
                         run(final Root local) throws Exception {
@@ -234,7 +234,7 @@ Pipeline implements Serializable {
                                 local.fetch(null, VatInitializer.outbound);
                             outbound.find(peer).dequeue(mid).
                                 reject(request, reason);
-                            return null;
+                            return new Immutable() {};
                         }
                     });
                     return null;
@@ -265,7 +265,7 @@ Pipeline implements Serializable {
             final Message<Response> response = r;
             vat.service.run(new Service() {
                 public Void
-                run() throws Exception {
+                call() throws Exception {
                     vat.enter(Transaction.update, new Transaction<Immutable>() {
                         public Immutable
                         run(final Root local) throws Exception {
@@ -273,7 +273,7 @@ Pipeline implements Serializable {
                                 local.fetch(null, VatInitializer.outbound);
                             outbound.find(peer).dequeue(mid).
                                 fulfill(request, response);
-                            return null;
+                            return new Immutable() {};
                         }
                     });
                     return null;

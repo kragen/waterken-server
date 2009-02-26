@@ -54,7 +54,7 @@ TCP implements Runnable {
                     run() {
                         try {
                             System.out.println(this + ": open...");
-                            daemon.accept(hostname, socket, new Yield()).run();
+                            daemon.accept(hostname, socket, new Yield()).call();
                         } catch (final SocketTimeoutException e) {
                             // normal end to a TCP connection
                         } catch (final Throwable e) {

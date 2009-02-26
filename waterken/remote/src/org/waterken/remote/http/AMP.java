@@ -74,7 +74,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                                          Limited.input(maxEntitySize, body)));
             vat.service.run(new Service() {
                 public Void
-                run() throws Exception {
+                call() throws Exception {
                     if (!client.isStillWaiting()) {
                         client.fail(new Exception());
                         return null;
@@ -93,7 +93,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                                     local.fetch(null, VatInitializer.exports);
                                 return new Callee(exports).run(q, m);
                             }
-                        }).cast();
+                        }).call();
                     } catch (final FileNotFoundException e) {
                         client.receive(Response.gone(), null);
                         throw e;

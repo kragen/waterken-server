@@ -19,17 +19,17 @@ import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Fulfilled;
 import org.ref_send.promise.Log;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Rejected;
-import org.ref_send.promise.Task;
 import org.ref_send.promise.Vat;
 import org.ref_send.type.Typedef;
 import org.waterken.db.Creator;
 import org.waterken.db.Database;
 import org.waterken.db.Effect;
 import org.waterken.db.Root;
+import org.waterken.db.TransactionMonitor;
 import org.waterken.http.Server;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
@@ -49,15 +49,15 @@ HTTP extends Eventual implements Serializable {
     static private final long serialVersionUID = 1L;    
     
     private   final Root local;                         // vat root
-    private   final Fulfilled<Outbound> outbound;       // active msg pipelines
+    private   final Promise<Outbound> outbound;       // active msg pipelines
     
     private   final Creator creator;                    // sub-vat factory
     private   final Receiver<Effect<Server>> effect;    // tx effect scheduler
 
     private
-    HTTP(final Receiver<Task<?>> enqueue,
+    HTTP(final Receiver<Promise<?>> enqueue,
          final String here, final Log log, final Receiver<?> destruct,
-         final Root local, final Fulfilled<Outbound> outbound) {
+         final Root local, final Promise<Outbound> outbound) {
         super(new Token(), enqueue, here, log, destruct);
         this.local = local;
         this.outbound = outbound;
@@ -88,27 +88,27 @@ HTTP extends Eventual implements Serializable {
             final ByteArray body = new JSONSerializer().run(
                     http.export(), ConstArray.array(argv)); 
             final PowerlessArray<String> rd = creator.run(null, here, label,
-                new VatInitializer(make, here, body)).cast();
+                new VatInitializer(make, here, body)).call();
             final Importer connect = http.connect();
             return new Vat(
-                (Receiver<?>)connect.run(rd.get(1), here, Receiver.class),
-                (R)connect.run(rd.get(0), here, R)
+                (R)connect.run(rd.get(0), here, R),
+                (Receiver<?>)connect.run(rd.get(1), here, Receiver.class)
             );
         } catch (final BadSyntax e) {
             final Receiver<?> destruct = cast(Receiver.class, null);
-            return new Vat(destruct,
-                           new Rejected<R>((Exception)e.getCause())._(R));
+            return new Vat(new Rejected<R>((Exception)e.getCause())._(R),
+                           destruct);
         } catch (final Exception e) {
             final Receiver<?> destruct = cast(Receiver.class, null);
-            return new Vat(destruct, new Rejected<R>(e)._(R));
+            return new Vat(new Rejected<R>(e)._(R), destruct);
         }
     }
     
     // org.waterken.remote.http.Exports interface
     
     static protected HTTP.Exports
-    make(final Receiver<Task<?>> enqueue, final Root local, final Log log,
-         final Receiver<?> destruct, final Fulfilled<Outbound> outbound) {
+    make(final Receiver<Promise<?>> enqueue, final Root local, final Log log,
+         final Receiver<?> destruct, final Promise<Outbound> outbound) {
         final String here = local.fetch(null, Database.here);
         return new Exports(new HTTP(enqueue,here,log, destruct,local,outbound));
     }
@@ -118,10 +118,12 @@ HTTP extends Eventual implements Serializable {
         static private final long serialVersionUID = 1L;
         
         public final HTTP _;
+        private final TransactionMonitor tagger;
         
         private
         Exports(final HTTP _) {
             this._ = _;
+            tagger = _.local.fetch(null, Database.monitor);
         }
         
         // org.waterken.remote.Messenger interface
@@ -195,6 +197,8 @@ HTTP extends Eventual implements Serializable {
             }
             return new ImporterX();
         }
+        
+        static private final Class<?> Fulfilled = Eventual.ref(0).getClass();
 
         /**
          * Constructs a reference exporter.
@@ -207,20 +211,14 @@ HTTP extends Eventual implements Serializable {
                 public String
                 run(final Object object) {
                     return href(_.local.export(object, false), isPBC(object) ||
-                        !(Eventual.promised(object) instanceof Fulfilled));
+                        !(Fulfilled.isInstance(Eventual.ref(object))));
                 }
             }
             return Remote.export(_.deferred, new ExporterX());
         }
 
-        /**
-         * Calls {@link Root#getTransactionTag()}.
-         */
         protected String
-        getTransactionTag() {
-            final Task<String> tagger = _.local.fetch(null, Database.tagger);
-            try { return tagger.run(); } catch (final Exception e) {return "";}
-        }
+        getTransactionTag() { return tagger.tag(); }
         
         /**
          * Receives an operation.
@@ -230,11 +228,12 @@ HTTP extends Eventual implements Serializable {
          * @return <code>op</code> return value
          */
         protected Object
-        execute(final String query, final Method method, final Task<Object> op){
+        execute(final String query,
+                final Method method, final Promise<Object> op){
             final String x = session(query);
             if (null == x) {
                 try {
-                    return op.run();
+                    return op.call();
                 } catch (final Exception e) { return new Rejected<Object>(e); }
             }
             final ServerSideSession session = new SessionMaker(_.local).open(x);
@@ -378,7 +377,7 @@ HTTP extends Eventual implements Serializable {
             org.ref_send.Record.class.isAssignableFrom(type) ||
             Throwable.class.isAssignableFrom(type) ||
             org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
-            org.ref_send.promise.Volatile.class.isAssignableFrom(type);
+            org.ref_send.promise.Promise.class.isAssignableFrom(type);
     }
     
     /**

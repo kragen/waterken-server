@@ -15,8 +15,8 @@ import org.joe_e.reflect.Reflection;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Log;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Task;
 import org.waterken.db.Creator;
 import org.waterken.db.Database;
 import org.waterken.db.Effect;
@@ -49,11 +49,11 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         final Log log = local.fetch(null, Database.log);
         final Receiver<Effect<Server>> effect=local.fetch(null,Database.effect);
         
-        final List<Task<?>> tasks = List.list();
+        final List<Promise<?>> tasks = List.list();
         final Receiver<?> destruct = local.fetch(null, Database.destruct);
         final Outbound outbound = new Outbound();
         final HTTP.Exports exports = HTTP.make(enqueue(effect,tasks), local,
-                log, destruct, Eventual.detach(outbound));
+                log, destruct, Eventual.ref(outbound));
         log.got(exports.getHere() + "#make", null, make);
         local.link(VatInitializer.tasks, tasks);
         local.link(VatInitializer.outbound, outbound);
@@ -74,11 +74,11 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         for (int i = optional.length(), j = argv.length; 0 != i;) {
             argv[--j] = optional.get(--i);
         }
-        final Object value = Reflection.invoke(make, null, argv);
-        local.link(Database.top, value);
+        final Object top = Reflection.invoke(make, null, argv);
+        local.link(Database.top, top);
         final Exporter export =
             HTTP.changeBase(exports.getHere(), exports.export(), base);
-        return PowerlessArray.array(export.run(value), export.run(destruct));
+        return PowerlessArray.array(export.run(top), export.run(destruct));
     }
     
     static public String
@@ -94,40 +94,36 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             run(final Root local) throws Exception {
                 final Creator creator = local.fetch(null, Database.creator);
                 return creator.run(project, base, label,
-                                   new VatInitializer(make, null, body)).cast();
+                                   new VatInitializer(make, null, body)).call();
             }
-        }).cast().get(0);
+        }).call().get(0);
     }
     
-    static private Receiver<Task<?>>
-    enqueue(final Receiver<Effect<Server>> effect, final List<Task<?>> tasks) {
-        class Enqueue extends Struct implements Receiver<Task<?>>, Serializable{
+    static private Receiver<Promise<?>>
+    enqueue(final Receiver<Effect<Server>> effect,final List<Promise<?>> tasks){
+        class Enqueue extends Struct
+                      implements Receiver<Promise<?>>, Serializable {
             static private final long serialVersionUID = 1L;
 
             public void
-            run(final Task<?> task) {
-                if (tasks.isEmpty()) {
-                    effect.run(runTask());
-                }
+            run(final Promise<?> task) {
+                if (tasks.isEmpty()) { effect.run(runTask()); }
                 tasks.append(task);
             }
         }
         return new Enqueue();
     }
     
-    static private Task<?>
-    wake(final List<Task<?>> tasks, final Outbound outbound,
+    static private Receiver<?>
+    wake(final List<Promise<?>> tasks, final Outbound outbound,
          final Receiver<Effect<Server>> effect) {
-        class Wake extends Struct implements Task<Void>, Serializable {
+        class Wake extends Struct implements Receiver<Object>, Serializable {
             static private final long serialVersionUID = 1L;
             
-            public Void
-            run() throws Exception {
-                if (!tasks.isEmpty()) {
-                    effect.run(runTask());
-                }
+            public void
+            run(final Object ignored) {
+                if (!tasks.isEmpty()) { effect.run(runTask()); }
                 for (final Pipeline x : outbound.getPending()) { x.resend(); }
-                return null;
             }
         }
         return new Wake();
@@ -141,18 +137,18 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
                 vat.enter(Transaction.update, new Transaction<Immutable>() {
                     public Immutable
                     run(final Root local) throws Exception {
-                        final List<Task<?>> tasks =
+                        final List<Promise<?>> tasks =
                             local.fetch(null, VatInitializer.tasks);
-                        final Task<?> task = tasks.pop();
+                        final Promise<?> task = tasks.pop();
                         if (!tasks.isEmpty()) {
                             final Receiver<Effect<Server>> effect =
                                 local.fetch(null, Database.effect);
                             effect.run(runTask());
                         }
-                        task.run();
-                        return null;
+                        task.call();
+                        return new Immutable() {};
                     }
-                }).cast();
+                }).call();
             }
         };
     }

@@ -14,7 +14,6 @@ import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Promise;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
@@ -24,7 +23,7 @@ import org.waterken.uri.URI;
  * A remote reference.
  */
 public final class
-Remote extends Deferred<Object> implements Promise<Object> {
+Remote extends Deferred<Object> {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -64,7 +63,7 @@ Remote extends Deferred<Object> implements Promise<Object> {
             run(final String href, final String base, final Type type) {
                 final String url = null!=base ? URI.resolve(base, href) : href;
                 return _.cast(Typedef.raw(type),
-                    new Remote(_, deferred, messenger, URI.relate(here, url)));
+                    new Remote(_, deferred, messenger, URI.relate(here,url)));
             }
         }
         return new ImporterX();
@@ -115,13 +114,13 @@ Remote extends Deferred<Object> implements Promise<Object> {
     public int
     hashCode() { return 0x4E307E4F; }
 
-    // org.ref_send.promise.Volatile interface
+    // org.ref_send.promise.Promise interface
 
     /**
      * @return <code>this</code>
      */
     public Object
-    cast() { return this; }
+    call() { return this; }
     
     // java.lang.reflect.InvocationHandler interface
 

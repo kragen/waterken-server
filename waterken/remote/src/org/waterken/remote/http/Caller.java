@@ -15,10 +15,9 @@ import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Failure;
-import org.ref_send.promise.Fulfilled;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Resolver;
-import org.ref_send.promise.Volatile;
 import org.ref_send.type.Typedef;
 import org.waterken.http.Message;
 import org.waterken.http.Request;
@@ -194,10 +193,10 @@ Caller extends Struct implements Messenger, Serializable {
         _.log.sent(msgs.enqueue(new POST()));
     }
     
-    private Volatile<Object>
+    private Promise<Object>
     receive(final String base, final Message<Response> response, final Type R) {
         try {
-            return Eventual.promised(deserialize(base, response, R));
+            return Eventual.ref(deserialize(base, response, R));
         } catch (final BadSyntax e) {
             /*
              * strip out the parsing information to avoid leaking
@@ -232,16 +231,17 @@ Caller extends Struct implements Messenger, Serializable {
         throw new Failure(m.head.status, m.head.phrase);
     }
     
-    static private final Class<?> Inline = Eventual.ref(0).getClass();
+    static private final Class<?> Fulfilled = Eventual.ref(0).getClass();
     
     static protected Message<Request>
     serialize(final String here, final Exporter export,
-              final String target, final ConstArray<?> argv) throws Exception {
+              final String target, ConstArray<?> argv) throws Exception {
         final String contentType;
         final ByteArray content;
         Object arg = argv.length() == 1 ? argv.get(0) : null;
-        if (Inline.isInstance(arg)) {
-            arg = ((Fulfilled<?>)arg).cast();
+        if (Fulfilled.isInstance(arg)) {
+            arg = ((Promise<?>)arg).call();
+            argv = ConstArray.array(arg);
         }
         if (arg instanceof ByteArray) {
             contentType = FileType.unknown.name;

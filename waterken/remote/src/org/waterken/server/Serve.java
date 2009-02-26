@@ -118,7 +118,7 @@ Serve {
             vats.connect(dir).enter(Transaction.query,
                                     new Transaction<Immutable>() {
                 public Immutable
-                run(final Root local) { return null; }
-            }).cast();
+                run(final Root local) { return new Immutable() {}; }
+            }).call();
         } catch (final Exception e) { e.printStackTrace(); }
     }}
