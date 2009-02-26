@@ -464,7 +464,7 @@ JODB<S> extends Database<S> {
             // check for an existing weak identity
             f = tx.o2wf.get(o);
             if (null == f) {
-                // assign a new identity
+                // create a new identity
                 do {
                     final byte[] id = new byte[keyBytes];
                     prng.nextBytes(id);
@@ -472,7 +472,7 @@ JODB<S> extends Database<S> {
                 } while (exists(f));
             }
             
-            // persist the persistent identity
+            // assign the identity
             if (isWeak) {
                 tx.o2wf.put(o, f);
             } else {
