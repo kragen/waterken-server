@@ -101,8 +101,8 @@ Config {
         this.supported = supported;
         this.output = output;
         
-        cacheKeys = PowerlessArray.array();
-        cacheValues = ConstArray.array();
+        cacheKeys = PowerlessArray.array(new String[] {});
+        cacheValues = ConstArray.array(new Object[] {});
     }
     
     /**
@@ -136,8 +136,11 @@ Config {
      * @return <code>{@link #read(String, Type) read}(name, Object.class)</code>
      * @throws Exception    any problem connecting to the identified reference
      */
-    public <T> T
-    read(final String name) throws Exception {return read(name, Object.class);}
+    public @SuppressWarnings("unchecked") <T> T
+    read(final String name) throws Exception {
+        final Object r = read(name, Object.class);
+        return (T)r;
+    }
     
     /**
      * Reads a configuration setting.
