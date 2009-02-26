@@ -527,8 +527,8 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     State<T> extends Milestone<Promise<T>> {
         static private final long serialVersionUID = 1L;
         
-        private final long condition;       // id of this promise
-        private Promise<When<T>> back;      // observer list sentinel
+        private final long condition;           // id of this promise
+        private       Promise<When<T>> back;    // observer list sentinel
         
         State(final long condition, final Promise<When<T>> back) {
             this.condition = condition;
