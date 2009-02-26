@@ -46,7 +46,7 @@ ServerSide implements Promise<Void> {
         this.socket = socket;
     }
 
-    // org.ref_send.promise.eventual.Task interface
+    // org.ref_send.promise.Promise interface
 
     public Void
     call() throws Exception {
