@@ -19,8 +19,8 @@ import org.joe_e.inert;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.ASCII;
 import org.joe_e.var.Milestone;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Task;
 import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
@@ -79,13 +79,13 @@ ClientSide implements Server {
      * An operation on the connection's output stream.
      */
     static public interface
-    Outbound extends Task<Void> {}
+    Outbound extends Promise<Void> {}
     
     /**
      * An operation on the connection's input stream.
      */
     static public interface
-    Inbound extends Task<Void> {}
+    Inbound extends Promise<Void> {}
     
     private final String location;
     private final Locator locator;
@@ -139,7 +139,7 @@ ClientSide implements Server {
         }
         
         public Void
-        run() {
+        call() {
             for (long a = 0, b = minSleep; true;) {
                 try {
                     socket = locator.locate(location, mostRecent);
@@ -211,7 +211,7 @@ ClientSide implements Server {
         }
         
         public Void
-        run() throws Exception {
+        call() throws Exception {
             // Only proceed if the connection is still active. Once a
             // response has failed, no more can be received. The first
             // failure is responsible for scheduling the connection retry.
@@ -226,7 +226,7 @@ ClientSide implements Server {
                 if (e instanceof Nap) {
                     sender.run(new Outbound() {
                         public Void
-                        run() throws Exception {
+                        call() throws Exception {
                             sleep.run(maxSleep);
                             return null;
                         }
@@ -248,7 +248,7 @@ ClientSide implements Server {
         }
         
         public Void
-        run() {
+        call() {
             if (null == x.head) {
                 // nothing to send since request failed to render
                 receiver.run(new Receive(on, x));
@@ -271,12 +271,12 @@ ClientSide implements Server {
         private final LinkedList<Exchange> pending = new LinkedList<Exchange>();
         
         public Void
-        run() {
+        call() {
             current = new Connection(mostRecent, this);
             sender.run(current);
             sender.run(new Outbound() {
                 public Void
-                run() {
+                call() {
                     mostRecent = current.socket.getRemoteSocketAddress();
                     return null;
                 }
@@ -295,14 +295,14 @@ ClientSide implements Server {
             }
             final Exchange x = new Exchange(head, body, client, new Outbound() {
                 public Void
-                run() {
+                call() {
                     pending.removeFirst();
                     return null;
                 }
             });
             sender.run(new Outbound() {
                 public Void
-                run() {
+                call() {
                     pending.addLast(x);
                     sender.run(new Send(current, x));
                     return null;

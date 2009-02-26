@@ -6,8 +6,8 @@ import java.io.Serializable;
 import java.net.Socket;
 
 import org.joe_e.Struct;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Task;
 
 /**
  * A TCP service daemon.
@@ -47,6 +47,6 @@ TCPDaemon extends Struct implements Serializable {
      * @param socket    incoming TCP connection
      * @param yield     yield to other threads
      */
-    public abstract Task<Void>
+    public abstract Promise<?>
     accept(String hostname, Socket socket, Receiver<?> yield);
 }

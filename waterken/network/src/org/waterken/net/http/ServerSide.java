@@ -6,8 +6,8 @@ import java.io.InputStream;
 import java.net.Socket;
 
 import org.joe_e.array.PowerlessArray;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Task;
 import org.waterken.http.Request;
 import org.waterken.http.TokenList;
 import org.waterken.io.limited.Limited;
@@ -17,7 +17,7 @@ import org.waterken.uri.Header;
  * The server side of the HTTP protocol.
  */
 final class
-ServerSide implements Task<Void> {
+ServerSide implements Promise<Void> {
 
     private final HTTPD config;
     private final Receiver<?> yield;
@@ -49,7 +49,7 @@ ServerSide implements Task<Void> {
     // org.ref_send.promise.eventual.Task interface
 
     public Void
-    run() throws Exception {
+    call() throws Exception {
         socket.setTcpNoDelay(true);
         socket.setSoTimeout(config.soTimeout);
         final InputStream connection = socket.getInputStream();
