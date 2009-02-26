@@ -1,16 +1,34 @@
 h1 { text-align: center }
 h1 a, h2 a, h3 a, h4 a, .heading {
     font-family: Arial, Helvetica, sans-serif;
-    color: #007FB2
+    color: #007FB2;
 }
+h2 { text-transform: uppercase }
+h4 { font-style: italic }
 a { text-decoration: none }
 a:hover { color: blue; text-decoration: underline }
+img { border: none }
 sup { font-size: small }
 .highlight { background-color: yellow }
+.comment { color: gray; font-style: italic }
 .figure { padding-left: 5em; width: 400px }
 caption, .caption { font-size: large; font-weight: bold }
 form { padding: 0px; margin: 0px }
-th { text-align: right; vertical-align: baseline; background-color: #99CCCC }
-.navigation { padding-bottom: 2px }
-.main { border-top: 2px solid #007FB2; border-bottom: 2px solid #007FB2 }
-.comment { color: gray; font-style: italic }
+th {
+    text-align: right;
+    vertical-align: baseline;
+    background-color: #99CCCC;
+}
+body {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.navigation {
+    padding-bottom: 2px;
+    border-bottom: 2px solid #007FB2;
+}
+.footer {
+    border-top: 2px solid #007FB2;
+    padding-top: 2px;
+}
