@@ -54,21 +54,18 @@ Beat {
         final Drum drum_ = _._(drum);
         
         /*
-         * Start the test sequence by checking that the caller provided
-         * the correct value for the current hit count on the provided
-         * drum. We get the initial hit count by doing an eventual
-         * invocation of the getHits() method. If the provided drum is
-         * in another vat, this invocation will result in an HTTP GET
-         * request being sent to the hosting server. The return from the
-         * getHits() invocation is a promise for the number of hits.
-         * Using the when() operation, we register an observer on this
-         * promise, to receive a notification after the HTTP GET
-         * response has come back. The observer, constructed by the
-         * was() method, produces a promise for a boolean, indicating
-         * whether or not the number of hits specified in the HTTP GET
-         * response was the number expected. We'll hold onto this
-         * promise and use it to produce the promise returned to our
-         * caller.
+         * Start the test sequence by checking that the caller provided a new
+         * drum. We get the initial hit count by doing an eventual invocation of
+         * the getHits() method. If the provided drum is in another vat, this
+         * invocation will result in an HTTP GET request being sent to the
+         * hosting server. The return from the getHits() invocation is a promise
+         * for the number of hits. Using the when() operation, we register an
+         * observer on this promise, to receive a notification after the HTTP
+         * GET response has come back. The observer, constructed by the was()
+         * method, produces a promise for a boolean, indicating whether or not
+         * the number of hits specified in the HTTP GET response was the number
+         * expected. We'll hold onto this promise and use it to produce the
+         * promise returned to our caller.
          */
         final Promise<Boolean> zero = _.when(drum_.getHits(), was(0));
         
