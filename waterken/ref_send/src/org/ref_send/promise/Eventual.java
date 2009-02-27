@@ -42,15 +42,15 @@ import org.ref_send.type.Typedef;
  * Account {
  *
  *  private int balance;
- *  private final ArrayList&lt;Observer&gt; observers;
+ *  private final ArrayList&lt;Receiver&lt;Integer&gt;&gt; observers;
  *
  *  Account(final int initial) {
  *      balance = initial;
- *      observers = new ArrayList&lt;Observer&gt;();
+ *      observers = new ArrayList&lt;Receiver&lt;Integer&gt;&gt;();
  *  }
  *
  *  public void
- *  observe(final Observer observer) throws NullPointerException {
+ *  observe(final Receiver&lt;Integer&gt; observer) {
  *      if (null == observer) {
  *          throw new NullPointerException();
  *      }
@@ -63,8 +63,8 @@ import org.ref_send.type.Typedef;
  *  public void
  *  setBalance(final int newBalance) {
  *      balance = newBalance;
- *      for (final Observer observer : observers) {
- *          observer.currentBalance(newBalance);
+ *      for (final Receiver&lt;Integer&gt; observer : observers) {
+ *          observer.run(newBalance);
  *      }
  *  }
  * }
@@ -75,10 +75,10 @@ import org.ref_send.type.Typedef;
  * invariants or because the request is malformed. Unfortunately, throwing an
  * exception may terminate not just the current plan, but also any other
  * currently executing plans. For example, if one of the observers throws a
- * {@link RuntimeException} from its <code>currentBalance()</code>
- * implementation, the remaining observers are not notified of the new account
- * balance. These other observers may then continue operating using stale data
- * about the account balance.</p>
+ * {@link RuntimeException} from its <code>run()</code> implementation, the
+ * remaining observers are not notified of the new account balance. These other
+ * observers may then continue operating using stale data about the account
+ * balance.</p>
  * <h4>Nested execution</h4>
  * <p>When a method implementation invokes a method on another object, it
  * temporarily suspends progress on its own plan to let the called method
@@ -86,11 +86,11 @@ import org.ref_send.type.Typedef;
  * resumes its own plan where it left off. Unfortunately, the called method
  * may have changed the application state in such a way that resuming the
  * original plan no longer makes sense.  For example, if one of the observers
- * invokes <code>setBalance()</code> in its <code>currentBalance()</code>
- * implementation, the remaining observers will first be notified of the
- * balance after the update, and then be notified of the balance before the
- * update. Again, these other observers may then continue operating using
- * stale data about the account balance.</p>
+ * invokes <code>setBalance()</code> in its <code>run()</code> implementation,
+ * the remaining observers will first be notified of the balance after the
+ * update, and then be notified of the balance before the update. Again, these
+ * other observers may then continue operating using stale data about the
+ * account balance.</p>
  * <h4>Interrupted transition</h4>
  * <p>A called method may also initiate an unanticipated state transition in
  * the calling object, while the current transition is still incomplete.  For
@@ -98,10 +98,10 @@ import org.ref_send.type.Typedef;
  * accept a new observer; however, this constraint is temporarily not met when
  * the observer list is being iterated over. An observer could catch the
  * <code>Account</code> in this transitional state by invoking
- * <code>observe()</code> in its <code>currentBalance()</code> implementation.
- * As a result, a {@link java.util.ConcurrentModificationException} will be
- * thrown when iteration over the observer list resumes. Again, this exception
- * prevents notification of the remaining observers.</p>
+ * <code>observe()</code> in its <code>run()</code> implementation. As a result,
+ * a {@link java.util.ConcurrentModificationException} will be thrown when
+ * iteration over the observer list resumes. Again, this exception prevents
+ * notification of the remaining observers.</p>
  * <h3>Plan isolation</h3>
  * <p>The above plan interference problems are only possible because execution
  * of one plan is interleaved with execution of another. Interleaving plan
@@ -686,12 +686,12 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * <pre>
      *  // Register an observer now, even though we don't know what we plan
      *  // to do with the notifications.
-     *  final Channel&lt;Observer&gt; x = _.defer();
-     *  account.observe(_.cast(Observer.class, x.promise));
+     *  final Channel&lt;Receiver&lt;Integer&gt;&gt; x = _.defer();
+     *  account.observe(_.cast(Receiver.class, x.promise));
      *  &hellip;
      *  // A log output has been determined, so fulfill the observer promise.
-     *  final Observer log = &hellip;
-     *  x.resolver.fulfill(log);   // Logs all past, and future, notifications.
+     *  final Receiver&lt;Integer&gt; log = &hellip;
+     *  x.resolver.run(log);    // Logs all past, and future, notifications.
      * </pre>
      * <p>
      * If this method returns successfully, the returned eventual reference
@@ -753,7 +753,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      *
      *     private final Eventual _;
      *     private int balance;
-     *     private ConstArray&lt;Observer&gt; observer_s;
+     *     private ConstArray&lt;Receiver&lt;Integer&gt;&gt; observer_s;
      *
      *     public
      *     Account(final Eventual _, final int initial) {
@@ -763,9 +763,9 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      *     }
      *
      *     public void
-     *     observe(final Observer observer) throws NullPointerException {
+     *     observe(final Receiver&lt;Integer&gt; observer) {
      *         // Vet the received arguments.
-     *         final Observer observer_ = _.<b>_</b>(observer);
+     *         final Receiver&lt;Integer&gt; observer_ = _.<b>_</b>(observer);
      *
      *         // Use the <em>vetted</em> arguments.
      *         observer_s = observer_s.with(observer_);
@@ -777,9 +777,9 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      *     public void
      *     setBalance(final int newBalance) {
      *          balance = newBalance;
-     *          for (final Observer observer_ : observer_s) {
+     *          for (final Receiver&lt;Integer&gt; observer_ : observer_s) {
      *              // Schedule future execution of notification.
-     *              observer_.currentBalance(newBalance);
+     *              observer_.run(newBalance);
      *          }
      *     }
      * }
@@ -968,14 +968,14 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * method, insert an explicit cast to the
      * {@linkplain Proxies#isImplementable allowed} proxy type. For example,
      * </p>
-     * <kbd>_._(this).run();</kbd>
+     * <kbd>_._(this).run(null);</kbd>
      * <p>becomes:</p>
-     * <kbd>_._((Runnable)this).run();</kbd>
+     * <kbd>_._((Receiver&lt;?&gt;)this).run(null);</kbd>
      * @param x ignored
      * @throws Error    always thrown
      */
     public final <T extends Serializable> void
-    _(final T x) throws Exception { throw new Error(); }
+    _(final T x) throws Exception { throw new AssertionError(); }
 
     /**
      * Causes a compile error for code that attempts to create an
@@ -985,9 +985,9 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * method, replace the specified concrete type with an
      * {@linkplain Proxies#isImplementable allowed} proxy type. For example,
      * </p>
-     * <kbd>final Logger o_ = _.cast(Logger.class, op);</kbd>
-     * <p>becomes:</p>
      * <kbd>final Observer o_ = _.cast(Observer.class, op);</kbd>
+     * <p>becomes:</p>
+     * <kbd>final Receiver&lt;?&gt; o_ = _.cast(Receiver.class, op);</kbd>
      * @param <R> referent type to implement
      * @param type      ignored
      * @param promise   ignored
@@ -995,7 +995,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      */
     public final <R extends Serializable> void
     cast(final Class<R> type, final Promise<?> promise) throws Exception {
-        throw new Error();
+        throw new AssertionError();
     }
 
     /**
@@ -1026,41 +1026,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * @throws Error    always thrown
      */
     public final <T,R extends Serializable> void
-    when(final Promise<T> promise, final Do<T,R> observer) throws Exception {
-        throw new Error();
-    }
-
-    /**
-     * Causes a compile error for code that attempts to return a concrete type
-     * from a when block.
-     * <p>
-     * If you encounter a compile error because your code is linking to this
-     * method, change your when block return type to a promise. For example,
-     * </p>
-     * <pre>
-     * final Account a = &hellip;
-     * final Observer o_ = &hellip;
-     * final Integer initial = _.when(o_, new Do&lt;Observer,Integer&gt;() {
-     *     public Integer
-     *     fulfill(final Observer o) { return a.getBalance(); }
-     * });
-     * </pre>
-     * <p>becomes:</p>
-     * <pre>
-     * final Account a = &hellip;
-     * final Observer o_ = &hellip;
-     * final Promise&lt;Integer&gt; initial =
-     *  _.when(o_, new Do&lt;Observer,Promise&lt;Integer&gt;&gt;() {
-     *     public Promise&lt;Integer&gt;
-     *     fulfill(final Observer o) { return ref(a.getBalance()); }
-     * });
-     * </pre>
-     * @param reference ignored
-     * @param observer  ignored
-     * @throws Error    always thrown
-     */
-    public final <T,R extends Serializable> void
-    when(final T reference, final Do<T,R> observer) throws Exception {
-        throw new Error();
+    when(final Object promise, final Do<T,R> observer) throws Exception {
+        throw new AssertionError();
     }
 }
