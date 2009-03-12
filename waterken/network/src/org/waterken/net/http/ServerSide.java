@@ -2,9 +2,9 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.net.http;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import java.net.SocketException;
 
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.promise.Promise;
@@ -63,7 +63,7 @@ ServerSide implements Promise<Void> {
             final String requestLine;
             try {
                 requestLine = hin.readln();
-            } catch (final SocketException e) { break; }
+            } catch (final IOException e) { break; }
             final int endRequestLine = requestLine.length();
 
             // empty line is ignored
