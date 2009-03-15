@@ -1,18 +1,16 @@
-// Copyright 2002-2007 Waterken Inc. under the terms of the MIT X license
+// Copyright 2002-2009 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.http.file;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.joe_e.array.PowerlessArray;
-import org.joe_e.file.Filesystem;
-import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.waterken.archive.Archive;
 import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
@@ -32,22 +30,18 @@ public final class
 Files extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
 
-    private final File folder;
-    private final Tag tag;
+    private final Archive archive;
     private final MIME formats;
     
     /**
      * Constructs an instance.
-     * @param folder    folder
-     * @param tag       ETag generator
+     * @param archive   files to serve
      * @param formats   each known file type
      */
     public @deserializer
-    Files(@name("folder") final File folder,
-          @name("tag") final Tag tag,
+    Files(@name("archive") final Archive archive,
           @name("formats") final MIME formats) {
-        this.folder = folder;
-        this.tag = tag;
+        this.archive = archive;
         this.formats = formats;
     }
     
@@ -57,63 +51,54 @@ Files extends Struct implements Server, Serializable {
 
         // determine the request target
         FileType contentType = FileType.unknown;
-        final File file;
+        String etag;
+        String filename;
         try {
-            final String name = Path.name(URI.path(head.uri));
-            final String filename = "".equals(name) ? "index" : name;
-            final String ext = Filename.ext(filename);
-            if (filename.startsWith(".")) { throw new FileNotFoundException(); }
-            final File exact = Filesystem.file(folder, filename);
-            if (exact.isFile()) {
-                file = exact;
+            final String pathName = Path.name(URI.path(head.uri));
+            final String name = "".equals(pathName) ? "index" : pathName;
+            final String ext = Filename.ext(name);
+            final String exact = archive.tag(name);
+            if (null != exact) {
+                filename = name;
+                etag = exact;
                 for (final FileType format : formats.known) {
                     if (Header.equivalent(format.ext, ext)) {
                         contentType = format;
                         break;
                     }
                 }
-            } else if (exact.isDirectory()) {
-                client.receive(new Response(
-                    "HTTP/1.1", "307", "Temporary Redirect",
-                    PowerlessArray.array(
-                        new Header("Location", head.uri + "/"),
-                        new Header("Content-Length", "0")
-                    )), null);
-                return;
             } else if ("".equals(ext)) {
-                File negotiated = null;
+                filename = null;
+                etag = null;
                 for (final FileType format : formats.known) {
-                    final File f = Filesystem.file(folder, filename+format.ext);
-                    if (f.isFile()) {
-                        negotiated = f;
+                    final String candidate = name + format.ext;
+                    final String found = archive.tag(candidate);
+                    if (null != found) {
+                        filename = candidate;
+                        etag = found;
                         contentType = format;
                         break;
                     }
                 }
-                if (null == negotiated) { throw new FileNotFoundException(); }
-                file = negotiated;
+                if (null == filename) { throw new FileNotFoundException(); }
             } else { throw new FileNotFoundException(); }
         } catch (final FileNotFoundException e) {
             client.receive(Response.notFound(), null);
             return;
-        } catch (final InvalidFilenameException e) {
-            client.receive(Response.gone(), null);
-            return;
         }
 
         // obey any request restrictions
-        final String etag = tag.run(file); 
         if (!head.respond(etag,client,"GET","HEAD","OPTIONS","TRACE")) {return;}
 
         // output the corresponding representation
         final String promise = Query.arg(null, URI.query("", head.uri), "o");
-        final InputStream in = Filesystem.read(file);
+        final InputStream in = archive.read(filename);
         try {
             PowerlessArray<Header> header = PowerlessArray.array(
                 new Header("ETag", etag),
                 new Header("Cache-Control",
                            null != promise ? "max-age=" + forever : "no-cache"),
-                new Header("Content-Length", "" + Filesystem.length(file)),
+                new Header("Content-Length", "" + archive.measure(filename)),
                 new Header("Content-Type", contentType.name)
             );
             if (null != contentType.encoding) {

@@ -1,20 +1,19 @@
 // Copyright 2007 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.http.file;
+package org.waterken.archive.dir;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 
 /**
- * Generates an ETag for a file
+ * File meta data.
  */
 public interface
-Tag {
+FileMetadata {
 
     /**
      * Generates an ETAG for a file.
      * @param file  file to tag
      */
-    String
-    run(File file) throws FileNotFoundException;
+    String tag(File file) throws FileNotFoundException;
 }

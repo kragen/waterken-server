@@ -11,9 +11,7 @@ import java.io.OutputStream;
  */
 public final class
 Open {
-
-    private
-    Open() {}
+    private Open() {}
     
     /**
      * Constructs an instance.

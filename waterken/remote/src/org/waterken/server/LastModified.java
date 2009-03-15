@@ -7,21 +7,20 @@ import java.io.File;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.waterken.http.file.Tag;
+import org.waterken.archive.dir.FileMetadata;
 
 /**
  * Generates a tag based on the file's last modified time.
  */
 public final class
-LastModified extends Struct implements Tag, Serializable {
+LastModified extends Struct implements FileMetadata, Serializable {
     static private final long serialVersionUID = 1L;
 
-    // org.waterken.http.file.Tag interface
+    // org.waterken.archive.dir.FileMetadata interface
 
     public String
-    run(final File file) {
-        return '\"' + 
-                (file.isFile() ? Long.toHexString(file.lastModified()) : "") +
-               '\"';
+    tag(final File file) {
+        return file.isFile()
+            ? '\"' + Long.toHexString(file.lastModified()) + '\"' : null;
     }
 }
