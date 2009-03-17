@@ -1,0 +1,49 @@
+@echo off
+echo 'Building example project...'
+mkdir bin
+javac -d bin ^
+  -classpath "..\joe-e\bin;..\ref_send\bin;..\shared\bin" ^
+  src\org\waterken\all\All.java ^
+  src\org\waterken\all\package-info.java ^
+  src\org\waterken\bang\Bang.java ^
+  src\org\waterken\bang\Beat.java ^
+  src\org\waterken\bang\Drum.java ^
+  src\org\waterken\bang\DrumFactory.java ^
+  src\org\waterken\bang\package-info.java ^
+  src\org\waterken\bounce\AllTypes.java ^
+  src\org\waterken\bounce\Bounce.java ^
+  src\org\waterken\bounce\package-info.java ^
+  src\org\waterken\bounce\Pitch.java ^
+  src\org\waterken\bounce\Wall.java ^
+  src\org\waterken\eq\package-info.java ^
+  src\org\waterken\eq\Sneaky.java ^
+  src\org\waterken\eq\SoundCheck.java ^
+  src\org\waterken\factorial\Factorial.java ^
+  src\org\waterken\factorial\FactorialN.java ^
+  src\org\waterken\factorial\package-info.java ^
+  src\org\waterken\purchase_ajax\AsyncAnd.java ^
+  src\org\waterken\purchase_ajax\Callback.java ^
+  src\org\waterken\purchase_ajax\CreditBureau.java ^
+  src\org\waterken\purchase_ajax\CreditBureauMaker.java ^
+  src\org\waterken\purchase_ajax\Inventory.java ^
+  src\org\waterken\purchase_ajax\InventoryMaker.java ^
+  src\org\waterken\purchase_ajax\Main.java ^
+  src\org\waterken\purchase_ajax\package-info.java ^
+  src\org\waterken\purchase_ajax\Product.java ^
+  src\org\waterken\purchase_ajax\Shipper.java ^
+  src\org\waterken\purchase_ajax\ShipperMaker.java ^
+  src\org\waterken\purchase_promise\AsyncAnd.java ^
+  src\org\waterken\purchase_promise\Buyer.java ^
+  src\org\waterken\purchase_promise\CreditBureau.java ^
+  src\org\waterken\purchase_promise\CreditBureauMaker.java ^
+  src\org\waterken\purchase_promise\Inventory.java ^
+  src\org\waterken\purchase_promise\InventoryMaker.java ^
+  src\org\waterken\purchase_promise\package-info.java ^
+  src\org\waterken\purchase_promise\Product.java ^
+  src\org\waterken\purchase_promise\Shipper.java ^
+  src\org\waterken\purchase_promise\ShipperMaker.java ^
+  src\org\waterken\serial\Element.java ^
+  src\org\waterken\serial\package-info.java ^
+  src\org\waterken\serial\PopPushN.java ^
+  src\org\waterken\serial\Serial.java ^
+  src\org\waterken\serial\Series.java
