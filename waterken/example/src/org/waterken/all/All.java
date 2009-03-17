@@ -31,23 +31,23 @@ All {
      */
     static public Promise<Boolean>
     make(final Eventual _) throws Exception {
-        ConstArray<Promise<Boolean>> r = new ConstArray<Promise<Boolean>>();
+        final ConstArray.Builder<Promise<Boolean>> r = ConstArray.builder();
         
         _.log.comment("testing EQ operations on promises");
-        r = r.with(SoundCheck.make(_));
+        r.append(SoundCheck.make(_));
         
         _.log.comment("testing argument passing");
         final Vat<Wall> wall = _.spawn("wall", Bounce.class);
-        r = r.with(Pitch.make(_, wall.top));
+        r.append(Pitch.make(_, wall.top));
         
         _.log.comment("testing message pipelining");
         final Vat<Drum> drum = _.spawn("drum", Bang.class);
-        r = r.with(Beat.make(_, drum.top));
+        r.append(Beat.make(_, drum.top));
         
         _.log.comment("testing promise resolution");
-        r = r.with(PopPushN.make(_, 4));
+        r.append(PopPushN.make(_, 4));
 
-        return and(_, r);
+        return and(_, r.snapshot());
     }
     
     // Command line interface

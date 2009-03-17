@@ -37,9 +37,9 @@ PopPushN {
          * Check that the first n integers in the series will be the
          * numbers from 0 through n.
          */
-        ConstArray<Promise<Boolean>> r = new ConstArray<Promise<Boolean>>();
+        final ConstArray.Builder<Promise<Boolean>> r = ConstArray.builder();
         for (int i = 0; i != n; ++i) {
-            r = r.with(_.when(x.consume(), was(i)));
+            r.append(_.when(x.consume(), was(i)));
         }
         
         /*
@@ -49,7 +49,7 @@ PopPushN {
             x.produce(ref(i));
         }
         
-        return and(_, r);
+        return and(_, r.snapshot());
     }
     
     // Command line interface

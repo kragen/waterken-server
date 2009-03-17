@@ -30,7 +30,7 @@ Pitch {
     static public Promise<Boolean>
     make(final Eventual _, final Wall x) {
         final Wall x_ = _._(x);
-        ConstArray<Promise<Boolean>> r = new ConstArray<Promise<Boolean>>();
+        final ConstArray.Builder<Promise<Boolean>> r = ConstArray.builder();
 
         class Re extends Do<AllTypes,Promise<Boolean>>
                  implements Serializable {
@@ -41,15 +41,15 @@ Pitch {
                 return _.when(x_.bounce(a), was(a));
             }
         }
-        r = r.with(_.when(x_.getAll(), new Re()));
+        r.append(_.when(x_.getAll(), new Re()));
         final AllTypes a = near(Bounce.make(_).getAll());
-        r = r.with(_.when(x_.bounce(a), was(a)));
+        r.append(_.when(x_.bounce(a), was(a)));
 
         final ByteArray payload =
             ByteArray.array(new byte[] { 0,1,2,3,4,5,6,7,8,9 });
-        r = r.with(_.when(x_.bounce(payload), was(payload)));
+        r.append(_.when(x_.bounce(payload), was(payload)));
 
-        return and(_, r);
+        return and(_, r.snapshot());
     }
     
     // Command line interface
