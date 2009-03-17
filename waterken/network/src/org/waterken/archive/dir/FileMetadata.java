@@ -3,7 +3,6 @@
 package org.waterken.archive.dir;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 /**
  * File meta data.
@@ -12,8 +11,9 @@ public interface
 FileMetadata {
 
     /**
-     * Generates an ETAG for a file.
+     * Generates an ETag for a file.
      * @param file  file to tag
+     * @return corresponding ETag, or <code>null</code> if file does not exist
      */
-    String tag(File file) throws FileNotFoundException;
+    String tag(File file);
 }

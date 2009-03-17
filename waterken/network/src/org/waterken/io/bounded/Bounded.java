@@ -24,8 +24,9 @@ Bounded {
      * @param in        underlying stream
      */
     static public InputStream
-    input(final long length, @inert final InputStream in) {
+    input(final long length, final InputStream in) {
         if (0 > length) { throw new RuntimeException(); }
+        in.mark(0);
         return new InputStream() {
             private long remaining = length;    // number of bytes remaining
             private long marked = length;       // marked position

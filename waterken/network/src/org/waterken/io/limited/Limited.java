@@ -23,8 +23,9 @@ Limited {
      * @param in    underlying stream
      */
     static public InputStream
-    input(final long max, @inert final InputStream in) {
+    input(final long max, final InputStream in) {
         if (0 > max) { throw new RuntimeException(); }
+        in.mark(0);
         return new InputStream() {
             private long remaining = max;   // number of bytes remaining 
             private long marked = max;      // marked position

@@ -40,6 +40,13 @@ Directory extends Struct implements Archive, Serializable {
     }
     
     // org.waterken.archive.Archive interface
+
+    public String
+    tag(final String filename) throws IOException {
+        try {
+            return meta.tag(Filesystem.file(parent, filename));
+        } catch (final InvalidFilenameException e) { return null; }
+    }
     
     public long
     measure(final String filename) throws IOException {
@@ -47,14 +54,6 @@ Directory extends Struct implements Archive, Serializable {
             return Filesystem.length(Filesystem.file(parent, filename));
         } catch (final InvalidFilenameException e) { return -1;
         } catch (final FileNotFoundException e)    { return -1; }
-    }
-
-    public String
-    tag(final String filename) throws IOException {
-        try {
-            return meta.tag(Filesystem.file(parent, filename));
-        } catch (final InvalidFilenameException e) { return null;
-        } catch (final FileNotFoundException e)    { return null; }
     }
 
     public InputStream

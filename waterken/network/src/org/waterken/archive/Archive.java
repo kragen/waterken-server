@@ -13,20 +13,20 @@ public interface
 Archive {
     
     /**
-     * Gets the length of an existing file.
-     * @param filename  name of file to measure
-     * @return number of bytes, or <code>-1</code> if file does not exist
-     * @throws IOException              any I/O problem
-     */
-    long measure(String filename) throws IOException;
-    
-    /**
      * Gets the version tag for an existing file.
      * @param filename  name of file to version
      * @return corresponding ETag, or <code>null</code> if file does not exist
      * @throws IOException              any I/O problem
      */
     String tag(String filename) throws IOException;
+    
+    /**
+     * Gets the length of an existing file.
+     * @param filename  name of file to measure
+     * @return number of bytes, or <code>-1</code> if file does not exist
+     * @throws IOException              any I/O problem
+     */
+    long measure(String filename) throws IOException;
     
     /**
      * Opens an existing file for reading.
