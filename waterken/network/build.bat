@@ -1,0 +1,64 @@
+@echo off
+echo 'Building network project...'
+mkdir bin
+javac -d bin ^
+  -classpath "..\joe-e\bin;..\ref_send\bin" ^
+  src\org\waterken\archive\Archive.java ^
+  src\org\waterken\archive\package-info.java ^
+  src\org\waterken\archive\dir\Directory.java ^
+  src\org\waterken\archive\dir\FileMetadata.java ^
+  src\org\waterken\archive\dir\package-info.java ^
+  src\org\waterken\archive\n2v\N2V.java ^
+  src\org\waterken\archive\n2v\package-info.java ^
+  src\org\waterken\dns\package-info.java ^
+  src\org\waterken\dns\Resource.java ^
+  src\org\waterken\http\Client.java ^
+  src\org\waterken\http\Message.java ^
+  src\org\waterken\http\package-info.java ^
+  src\org\waterken\http\Request.java ^
+  src\org\waterken\http\Response.java ^
+  src\org\waterken\http\Server.java ^
+  src\org\waterken\http\TokenList.java ^
+  src\org\waterken\http\file\Files.java ^
+  src\org\waterken\http\file\package-info.java ^
+  src\org\waterken\http\mirror\Mirror.java ^
+  src\org\waterken\http\mirror\package-info.java ^
+  src\org\waterken\http\trace\package-info.java ^
+  src\org\waterken\http\trace\Trace.java ^
+  src\org\waterken\io\FileType.java ^
+  src\org\waterken\io\MIME.java ^
+  src\org\waterken\io\package-info.java ^
+  src\org\waterken\io\Stream.java ^
+  src\org\waterken\io\bounded\Bounded.java ^
+  src\org\waterken\io\bounded\package-info.java ^
+  src\org\waterken\io\limited\Limited.java ^
+  src\org\waterken\io\limited\package-info.java ^
+  src\org\waterken\io\limited\TooBig.java ^
+  src\org\waterken\io\open\Open.java ^
+  src\org\waterken\io\open\package-info.java ^
+  src\org\waterken\net\Locator.java ^
+  src\org\waterken\net\package-info.java ^
+  src\org\waterken\net\TCPDaemon.java ^
+  src\org\waterken\net\http\ChunkedInputStream.java ^
+  src\org\waterken\net\http\ChunkedOutputStream.java ^
+  src\org\waterken\net\http\ClientSide.java ^
+  src\org\waterken\net\http\HTTPD.java ^
+  src\org\waterken\net\http\LineInput.java ^
+  src\org\waterken\net\http\package-info.java ^
+  src\org\waterken\net\http\Responder.java ^
+  src\org\waterken\net\http\ServerSide.java ^
+  src\org\waterken\udp\package-info.java ^
+  src\org\waterken\udp\UDPDaemon.java ^
+  src\org\waterken\uri\Authority.java ^
+  src\org\waterken\uri\Filename.java ^
+  src\org\waterken\uri\Header.java ^
+  src\org\waterken\uri\Hostname.java ^
+  src\org\waterken\uri\InvalidLabel.java ^
+  src\org\waterken\uri\InvalidLocation.java ^
+  src\org\waterken\uri\InvalidURI.java ^
+  src\org\waterken\uri\Label.java ^
+  src\org\waterken\uri\Location.java ^
+  src\org\waterken\uri\package-info.java ^
+  src\org\waterken\uri\Path.java ^
+  src\org\waterken\uri\Query.java ^
+  src\org\waterken\uri\URI.java
