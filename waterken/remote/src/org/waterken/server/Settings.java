@@ -14,9 +14,9 @@ import org.waterken.http.Server;
 import org.waterken.jos.JODBManager;
 import org.waterken.project.Project;
 import org.waterken.remote.http.AMP;
+import org.waterken.remote.mux.Mux;
 import org.waterken.store.StoreMaker;
 import org.waterken.syntax.config.Config;
-import org.waterken.uri.Path;
 
 /**
  * Server settings.
@@ -72,7 +72,7 @@ Settings {
     db(final String path) throws Exception {
         final DatabaseManager<Server> dbs = config.read("dbs");
         final File root = config.read("vatRootFolder");
-        return dbs.connect(Path.descend(root, path));
+        return dbs.connect(Mux.descend(root, path));
     }
     
     /**

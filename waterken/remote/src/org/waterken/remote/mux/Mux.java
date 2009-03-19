@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
+import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.deserializer;
 import org.ref_send.name;
@@ -63,7 +64,7 @@ Mux<S> extends Struct implements Server, Serializable {
         if (path.startsWith(prefix)) {
             final String vatPath = path.substring(prefix.length());
             try {
-                final File folder = Path.descend(root, vatPath);
+                final File folder = descend(root, vatPath);
                 server = remoting.remote(next, dbs.connect(folder));
             } catch (final InvalidFilenameException e) {
                 client.receive(Response.gone(), null);
@@ -76,5 +77,22 @@ Mux<S> extends Struct implements Server, Serializable {
             server = next;
         }
         server.serve(head, body, client);
+    }
+    
+    /**
+     * Walks down a file path.
+     * @param root  root folder
+     * @param path  canonicalized path to walk
+     * @return named file
+     * @throws InvalidFilenameException invalid name in <code>path</code> 
+     */
+    static public File
+    descend(final File root, final String path) throws InvalidFilenameException{
+        File r = root;
+        for (final String segment : Path.walk(path)) {
+            if (segment.startsWith(".")) {throw new InvalidFilenameException();}
+            r = Filesystem.file(r, segment);
+        }
+        return r;
     }
 }
