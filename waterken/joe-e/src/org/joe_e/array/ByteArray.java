@@ -209,6 +209,13 @@ public final class ByteArray extends PowerlessArray<Byte> {
    }
    
    /**
+    * Views this array as an input stream.
+    */
+  public InputStream asInputStream(final int offset, final int length) {
+      return new ByteArrayInputStream(bytes, offset, length);
+  }
+   
+   /**
     * Return a new <code>ByteArray</code> that contains the same elements
     * as this one excluding the element at a specified index
     * @param i the index of the element to exclude
