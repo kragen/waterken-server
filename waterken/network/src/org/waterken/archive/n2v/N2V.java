@@ -187,7 +187,9 @@ N2V implements Archive, Serializable {
             length = readExtensionInt(summary);
             address = readExtensionInt(summary);
             final int commentLength = readExtensionInt(summary);
-            summary.position(summary.position() + commentLength);
+            if (0 != commentLength) {
+                summary.position(summary.position() + commentLength);
+            }
         }
 
         public String
@@ -207,7 +209,7 @@ N2V implements Archive, Serializable {
             if (0 == length) { return new ByteArrayInputStream(new byte[0]); }
             data.position(address);
             final ByteBuffer r = data.slice();
-            r.limit((int)length);
+            r.limit(length);
             return new ByteBufferInputStream(r);
         }
     }
