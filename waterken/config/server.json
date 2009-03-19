@@ -17,8 +17,11 @@
       "formats" : { "@" : "mime" },
       "next" : {
         "$" : [ "org.waterken.http.mirror.Mirror" ],
-        "root" : { "@" : "file/" },
-        "meta" : { "@" : "fileMetadata" },
+        "archive" : {
+          "$" : [ "org.waterken.archive.dir.Directory" ],
+          "meta" : { "@" : "fileMetadata" },
+          "root" : { "@" : "file/" }
+        },
         "formats" : { "@" : "mime" }
       }
     }
