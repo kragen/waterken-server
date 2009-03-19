@@ -63,7 +63,10 @@ Directory extends Struct implements Archive, Serializable {
                     try {
                         final ConstArray<File> children = Filesystem.list(r);
                         for (int i = children.length(); 0 != i--;) {
-                            todo.add(children.get(i));
+                            final File child = children.get(i);
+                            if (child.isFile() || child.isDirectory()) {
+                                todo.add(child);
+                            }
                         }
                     } catch (final IOException e) {}
                 }
