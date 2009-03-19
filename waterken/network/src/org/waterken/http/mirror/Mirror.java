@@ -2,27 +2,26 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.http.mirror;
 
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.joe_e.inert;
 import org.joe_e.array.PowerlessArray;
-import org.joe_e.file.Filesystem;
-import org.joe_e.file.InvalidFilenameException;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.waterken.archive.dir.Directory;
-import org.waterken.archive.dir.FileMetadata;
+import org.waterken.archive.Archive;
 import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
-import org.waterken.http.file.Files;
+import org.waterken.io.FileType;
 import org.waterken.io.MIME;
+import org.waterken.uri.Filename;
 import org.waterken.uri.Header;
 import org.waterken.uri.Path;
+import org.waterken.uri.Query;
 import org.waterken.uri.URI;
 
 /**
@@ -32,22 +31,18 @@ public final class
 Mirror extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
     
-    private final File root;
-    private final FileMetadata meta;
+    private final Archive archive;
     private final MIME formats;
     
     /**
      * Constructs an instance.
-     * @param root      root folder
-     * @param meta      ETag generator
+     * @param archive   file archive
      * @param formats   each known file type
      */
     public @deserializer
-    Mirror(@name("root") @inert final File root,
-           @name("meta") @inert final FileMetadata meta,
+    Mirror(@name("archive") @inert final Archive archive,
            @name("formats") final MIME formats) {
-        this.root = root;
-        this.meta = meta;
+        this.archive = archive;
         this.formats = formats;
     }
 
@@ -55,29 +50,77 @@ Mirror extends Struct implements Server, Serializable {
     
     public void
     serve(final Request head, final InputStream body,
-                              final Client client) throws Exception {        
-        final File folder;
-        final File file;
+                              final Client client) throws Exception {
+
+        // determine the request target
+        FileType contentType = FileType.unknown;
+        Archive.Entry target;
         try {
             final String path = URI.path(head.uri);
-            folder = Path.descend(root, Path.folder(path));
-            final String name = Path.name(path);
-            if (name.startsWith(".")) { throw new InvalidFilenameException(); }
-            file = "".equals(name) ? null : Filesystem.file(folder, name);
-        } catch (final InvalidFilenameException e) {
-            client.receive(Response.gone(), null);
+            final String folder = Path.folder(path);
+            final String pathName = Path.name(path);
+            final String name = "".equals(pathName) ? "index" : pathName;
+            final String ext = Filename.ext(name);
+            final Archive.Entry exact = archive.find(folder + name);
+            if (null != exact) {
+                target = exact;
+                for (final FileType format : formats.known) {
+                    if (Header.equivalent(format.ext, ext)) {
+                        contentType = format;
+                        break;
+                    }
+                }
+            } else if ("".equals(ext)) {
+                target = null;
+                for (final FileType t : formats.known) {
+                    final Archive.Entry x = archive.find(folder + name + t.ext);
+                    if (null != x) {
+                        target = x;
+                        contentType = t;
+                        break;
+                    }
+                }
+                if (null == target) { throw new FileNotFoundException(); }
+            } else { throw new FileNotFoundException(); }
+        } catch (final FileNotFoundException e) {
+            client.receive(Response.notFound(), null);
             return;
         }
-        if (null != file && file.isDirectory()) {
+
+        // obey any request restrictions
+        final String etag = target.getETag();
+        if (!head.respond(etag,client,"GET","HEAD","OPTIONS","TRACE")) {return;}
+
+        // output the corresponding representation
+        if (target.isDirectory()) {
             client.receive(new Response(
                 "HTTP/1.1", "307", "Temporary Redirect",
                 PowerlessArray.array(
                     new Header("Location", head.uri + "/"),
                     new Header("Content-Length", "0")
                 )), null);
-        } else {
-            new Files(new Directory(folder, meta), formats).
-                serve(head, body, client);
+            return;
         }
+        final String promise = Query.arg(null, URI.query("", head.uri), "o");
+        final InputStream in = target.open();
+        try {
+            PowerlessArray<Header> header = PowerlessArray.array(
+                new Header("ETag", etag),
+                new Header("Cache-Control",
+                           null != promise ? "max-age=" + forever : "no-cache"),
+                new Header("Content-Length", "" + target.getLength()),
+                new Header("Content-Type", contentType.name)
+            );
+            if (null != contentType.encoding) {
+                header = header.with(new Header("Content-Encoding",
+                                                contentType.encoding));
+            }
+            client.receive(new Response("HTTP/1.1", "200", "OK", header),
+                           "HEAD".equals(head.method) ? null : in);
+        } catch (final Exception e) {
+            try { in.close(); } catch (final Exception e2) {}
+            throw e;
+        }
+        in.close();
     }
 }
