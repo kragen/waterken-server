@@ -32,13 +32,13 @@ List {
             System.exit(-1);
             return;
         }
-        final N2V n2v = N2V.open(new File(args[0]));
+        final Archive archive = N2V.open(new File(args[0]));
         if (1 == args.length) {
-            listAll(n2v);
+            listAll(archive);
         } else {
             final String[] selected = new String[args.length - 1];
             System.arraycopy(args, 1, selected, 0, selected.length);
-            listSelected(n2v, selected);
+            listSelected(archive, selected);
         }
     }
     
@@ -48,7 +48,7 @@ List {
      * @throws IOException  any I/O problem
      */
     static public void
-    listAll(final N2V archive) throws IOException {
+    listAll(final Archive archive) throws IOException {
         for (final Archive.Entry entry : archive) { list(entry); }
     }
     
@@ -59,7 +59,7 @@ List {
      * @throws IOException  any I/O problem
      */
     static public void
-    listSelected(final N2V archive,
+    listSelected(final Archive archive,
                  final String... selected) throws IOException {
         for (final String filename : selected) {
             final Archive.Entry entry = archive.find(filename);

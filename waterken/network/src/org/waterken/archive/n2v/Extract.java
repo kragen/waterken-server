@@ -35,13 +35,13 @@ Extract {
             System.exit(-1);
             return;
         }
-        final N2V n2v = N2V.open(new File(args[0]));
+        final Archive archive = N2V.open(new File(args[0]));
         if (1 == args.length) {
-            extractAll(n2v);
+            extractAll(archive);
         } else {
             final String[] selected = new String[args.length - 1];
             System.arraycopy(args, 1, selected, 0, selected.length);
-            extractSelected(n2v, selected);
+            extractSelected(archive, selected);
         }
     }
     
@@ -51,7 +51,7 @@ Extract {
      * @throws IOException  any I/O problem
      */
     static public void
-    extractAll(final N2V archive) throws IOException {
+    extractAll(final Archive archive) throws IOException {
         for (final Archive.Entry entry : archive) { reify(entry); }
     }
     
@@ -62,7 +62,7 @@ Extract {
      * @throws IOException  any I/O problem
      */
     static public void
-    extractSelected(final N2V archive,
+    extractSelected(final Archive archive,
                     final String... selected) throws IOException {
         for (final String filename : selected) {
             final Archive.Entry entry = archive.find(filename);
