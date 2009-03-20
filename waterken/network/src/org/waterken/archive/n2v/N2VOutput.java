@@ -20,8 +20,19 @@ N2VOutput {
     private final OutputStream out;
     private       long total = 0;
     private final ByteArrayBuilder meta = new ByteArrayBuilder(2048);
-    private       Integer[] offsets = new Integer[32];
+    private       Offset[] offsets = new Offset[32];
     private       int offsetCount = 0;
+    
+    static private final class
+    Offset {
+        protected final int summary;
+        protected final long data;
+        
+        Offset(final int summary, final long data) {
+            this.summary = summary;
+            this.data = data;
+        }
+    }
     
     /**
      * Constructs an instance.
@@ -32,7 +43,7 @@ N2VOutput {
     N2VOutput(final OutputStream out) throws IOException {
         this.out = out;
         
-        writeFixedLong(out, N2V.magicSize, N2V.beginMagic);
+        N2V.writeFixedLong(out, N2V.magicSize, N2V.beginMagic);
         total += N2V.magicSize;
     }
     
@@ -93,31 +104,17 @@ N2VOutput {
                     current = null;
                     if (offsets.length == offsetCount) {
                         System.arraycopy(offsets, 0,
-                            offsets=new Integer[2*offsetCount], 0, offsetCount);
+                            offsets= new Offset[2*offsetCount], 0, offsetCount);
                     }
-                    offsets[offsetCount++] = Integer.valueOf(meta.size());
-                    appendSummary(path, length,
-                                  0 != length ? total : N2V.emptyFileAddress);
+                    offsets[offsetCount++] = new Offset(meta.size(), total);
+                    meta.write(path.getBytes("UTF-8"));
+                    meta.write(0);
+                    N2V.writeExtensionLong(meta, length);   // valueLength
+                    N2V.writeExtensionLong(meta, 0);        // commentLength
                     total += length;
                 }
             }
         };
-    }
-    
-    private void
-    appendSummary(final String path, final long length,
-                  final long address) throws UnsupportedEncodingException {
-        meta.write(path.getBytes("UTF-8"));
-        meta.write(0);
-        writeExtensionLong(meta, length);   // valueLength
-        writeExtensionLong(meta, address);  // valueStart
-        writeExtensionLong(meta, 0);        // commentLength
-    }
-    
-    public void
-    appendDirectory(final String path) throws IOException {
-        if (null != current) { throw new RuntimeException(); }
-        appendSummary(path, 0, N2V.directoryAddress);
     }
     
     /**
@@ -131,52 +128,34 @@ N2VOutput {
         
         final long summaryAddress = total;
         final long indexAddress = total + meta.size();
+        final int summaryOffsetSize = N2V.sizeof(meta.size());
+        final int dataOffsetSize = N2V.sizeof(summaryAddress);
         
-        Arrays.sort(offsets, 0, offsetCount, new Comparator<Integer>() {
-            public int compare(final Integer a, final Integer b) {
+        Arrays.sort(offsets, 0, offsetCount, new Comparator<Offset>() {
+            public int
+            compare(final Offset a, final Offset b) {
                 int iv = 1;
                 int jv = 1;
-                for (int i = a, j = b; iv == jv && 0 != iv; ++i, ++j) {
+                for (int i=a.summary, j=b.summary; iv==jv && 0!=iv; ++i, ++j) {
                     iv = 0xFF & meta.get(i);
                     jv = 0xFF & meta.get(j);
                 }
                 return iv - jv;
             }
         });
-        final int offsetSize = N2V.sizeof(offsetCount);
         for (int i = 0; i != offsetCount; ++i) {
-            writeFixedLong(meta, offsetSize, offsets[i]);
+            N2V.writeFixedLong(meta, summaryOffsetSize, offsets[i].summary);
+            N2V.writeFixedLong(meta, dataOffsetSize, offsets[i].data);
         }
         
         total += meta.size();
         final int addressSize =
             N2V.sizeof(total + 3 * N2V.sizeof(total) + N2V.magicSize);
-        writeFixedLong(meta, addressSize, offsetCount);
-        writeFixedLong(meta, addressSize, indexAddress);
-        writeFixedLong(meta, addressSize, summaryAddress);
-        writeFixedLong(meta, N2V.magicSize, N2V.endMagic);
+        N2V.writeFixedLong(meta, addressSize, offsetCount);
+        N2V.writeFixedLong(meta, addressSize, indexAddress);
+        N2V.writeFixedLong(meta, addressSize, summaryAddress);
+        N2V.writeFixedLong(meta, N2V.magicSize, N2V.endMagic);
 
         meta.writeTo(out);
-    }
-    
-    static private void
-    writeExtensionLong(final ByteArrayBuilder out, final long n) {
-        int todo = 9 * 7;                   // number of bits to output
-        long mask = 0x7FL << (todo -= 7);   // mask for next output bits
-        for (; 0L == (n & mask) && 0 != todo; todo -= 7, mask >>= 7) {}
-        for (;                     0 != todo; todo -= 7, mask >>= 7) {
-            out.write(0x80 | (int)((n & mask) >> todo));
-        }
-        out.write((int)(n & mask));
-    }
-    
-    static private void
-    writeFixedLong(final OutputStream out,
-                   final int size, final long n) throws IOException {
-        int todo = size * Byte.SIZE;                // number of bits to output
-        long mask = 0xFFL << (todo -= Byte.SIZE);   // mask for next output bits
-        for (; 0L != mask; todo -= Byte.SIZE, mask >>>= Byte.SIZE) {
-            out.write((int)((n & mask) >>> todo));
-        }
     }
 }

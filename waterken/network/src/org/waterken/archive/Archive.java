@@ -23,12 +23,6 @@ Archive extends Iterable<Archive.Entry> {
         String getPath();
         
         /**
-         * Is this entry a directory?
-         * @return <code>true</code> if a directory, else <code>false</code>
-         */
-        boolean isDirectory();
-        
-        /**
          * Gets the version identifier.
          */
         String getETag();

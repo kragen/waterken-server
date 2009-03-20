@@ -48,8 +48,8 @@ Directory extends Struct implements Archive, Serializable {
 
     public Iterator<Archive.Entry>
     iterator() {
-        final ArrayList<File> todo = new ArrayList<File>();
-        todo.add(root);
+        final ArrayList<Entry> todo = new ArrayList<Entry>();
+        list(todo, new Entry(meta, "", root));
         return new Iterator<Archive.Entry>() {
 
             public boolean
@@ -58,19 +58,9 @@ Directory extends Struct implements Archive, Serializable {
             public Archive.Entry
             next() {
                 if (todo.isEmpty()) { throw new NoSuchElementException(); }
-                final File r = todo.remove(todo.size() - 1);
-                if (r.isDirectory()) {
-                    try {
-                        final ConstArray<File> children = Filesystem.list(r);
-                        for (int i = children.length(); 0 != i--;) {
-                            final File child = children.get(i);
-                            if (child.isFile() || child.isDirectory()) {
-                                todo.add(child);
-                            }
-                        }
-                    } catch (final IOException e) {}
-                }
-                return new Entry(meta, r);
+                final Entry r = todo.remove(todo.size() - 1);
+                if (r.path.endsWith("/")) { list(todo, r); }
+                return r;
             }
 
             public void
@@ -78,34 +68,46 @@ Directory extends Struct implements Archive, Serializable {
         };
     }
     
+    static private void
+    list(final ArrayList<Entry> todo, final Entry dir) {
+        final ConstArray<File> files;
+        try {
+            files = Filesystem.list(dir.file);
+        } catch (final IOException e) { return; }
+        for (int i = files.length(); 0 != i--;) {
+            final File f = files.get(i);
+            if (f.isFile()) {
+                todo.add(new Entry(dir.meta, dir.path + f.getName(), f));
+            } else if (f.isDirectory()) {
+                todo.add(new Entry(dir.meta, dir.path + f.getName() + '/', f));
+            }
+        }
+    }
+    
     static private final class
     Entry extends Struct implements Archive.Entry, Serializable {
         static private final long serialVersionUID = 1L;
 
-        private final FileMetadata meta;
-        private final File file;
+        protected final FileMetadata meta;
+        protected final String path;
+        protected final File file;
         
-        Entry(final FileMetadata meta, final File file) {
+        Entry(final FileMetadata meta, final String path, final File file) {
             this.meta = meta;
+            this.path = path;
             this.file = file;
         }
 
         public String
-        getPath() { return file.getPath(); }
-
-        public boolean
-        isDirectory() { return file.isDirectory(); }
+        getPath() { return path; }
 
         public String
         getETag() { return meta.tag(file); }
 
         public long
         getLength() {
-            try {
-                return Filesystem.length(file);
-            } catch (final FileNotFoundException e) {
-                return 0;
-            }
+            try { return Filesystem.length(file);
+            } catch (final FileNotFoundException e) { return 0; }
         }
 
         public InputStream
@@ -117,13 +119,13 @@ Directory extends Struct implements Archive, Serializable {
     public Archive.Entry
     find(final String path) throws IOException {
         try {
-            File r = root;
+            File f = root;
             for (final String segment : Path.walk(path)) {
-                r = Filesystem.file(r, segment);
+                f = Filesystem.file(f, segment);
             }
-            return r.isFile() || r.isDirectory() ? new Entry(meta, r) : null;
-        } catch (final InvalidFilenameException e) {
-            return null;
-        }
+            return path.endsWith("/")
+                ? (f.isDirectory() ? new Entry(meta, path, f) : null)
+            : (f.isFile() ? new Entry(meta, path, f) : null);
+        } catch (final InvalidFilenameException e) { return null; }
     }
 }

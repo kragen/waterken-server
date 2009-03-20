@@ -73,9 +73,10 @@ Extract {
     
     static private void
     reify(final Archive.Entry entry) throws IOException {
-        final File file = new File(entry.getPath());
+        final String path = entry.getPath();
+        final File file = new File(path);
         file.delete();
-        if (entry.isDirectory()) {
+        if (path.endsWith("/")) {
             file.mkdirs();
         } else {
             final File parent = file.getParentFile();

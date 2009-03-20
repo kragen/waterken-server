@@ -9,11 +9,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -52,27 +54,24 @@ N2V implements Archive, Serializable {
      * number of entries
      */
     public  final int entryCount;
-    private final int indexOffsetSize;
+    private final int summaryAddress;
+    private final int summaryOffsetSize;
+    private final int dataOffsetSize;
     private final ByteBuffer data;
     private final ByteBuffer summary;
     private final ByteBuffer index;
     
     /*
      * archive ::= beginMagic
-     *             value* summary index
+     *             data summary index
      *             entryCount indexAddress summaryAddress
      *             endMagic
+     * data ::= value*
      * value ::= byte*
      * summary ::= entry*
-     * index ::= offset*
-     * entry ::= name NULL
-     *           valueLength valueStart
-     *           commentLength commentByte*
+     * entry ::= name NULL valueLength commentLength commentByte*
+     * index ::= (summaryOffset dataOffset)*
      */
-    
-    // special values for the valueStart
-    static protected final int emptyFileAddress = 0;
-    static protected final int directoryAddress = 1;
     
     /**
      * Constructs an instance.
@@ -84,15 +83,18 @@ N2V implements Archive, Serializable {
         this.etag = etag;
         this.raw = raw;
         
-        final int archiveLength = raw.limit();
-        final int addressSize = sizeof(archiveLength);
-        final int totalsAddress = archiveLength - magicSize - 3 * addressSize;
+        final int rawLength = raw.limit();
+        final int rawOffsetSize = sizeof(rawLength);
+        final int totalsAddress = rawLength - magicSize - 3 * rawOffsetSize;
         raw.position(totalsAddress);
-        entryCount = readFixedInt(raw, addressSize);
-        indexOffsetSize = sizeof(entryCount);
-        final int indexAddress = readFixedInt(raw, addressSize);
-        final int summaryAddress = readFixedInt(raw, addressSize);
+        entryCount = readFixedInt(raw, rawOffsetSize);
+        final int indexAddress = readFixedInt(raw, rawOffsetSize);
+        summaryAddress = readFixedInt(raw, rawOffsetSize);
         if (endMagic != readFixedInt(raw,magicSize)) {throw new EOFException();}
+        
+        final int summaryLength = indexAddress - summaryAddress;
+        summaryOffsetSize = sizeof(summaryLength);
+        dataOffsetSize = sizeof(summaryAddress);
 
         raw.position(0);
         data = raw.slice();
@@ -101,7 +103,7 @@ N2V implements Archive, Serializable {
         
         raw.position(summaryAddress);
         summary = raw.slice();
-        summary.limit(indexAddress - summaryAddress);
+        summary.limit(summaryLength);
         
         raw.position(indexAddress);
         index = raw.slice();
@@ -120,6 +122,18 @@ N2V implements Archive, Serializable {
         if (archiveLength > Integer.MAX_VALUE) { throw new IOException(); }
         return new N2V('\"' + Long.toHexString(file.lastModified()) + '\"',
             ch.map(FileChannel.MapMode.READ_ONLY, 0, (int)archiveLength));
+    }
+    
+    static public void
+    merge(final WritableByteChannel out,
+          final N2V... versions) throws IOException {
+        long total = 0;
+        versions[versions.length - 1].data.rewind();
+        out.write(versions[versions.length - 1].data);
+        total += versions[versions.length - 1].data.limit();
+        for (int i = versions.length; --i != 0;) {
+            // TODO
+        }
     }
     
     static protected int
@@ -142,6 +156,16 @@ N2V implements Archive, Serializable {
         : buffer.getInt();
     }
     
+    static protected void
+    writeFixedLong(final OutputStream out,
+                   final int size, final long n) throws IOException {
+        int todo = size * Byte.SIZE;                // number of bits to output
+        long mask = 0xFFL << (todo -= Byte.SIZE);   // mask for next output bits
+        for (; 0L != mask; todo -= Byte.SIZE, mask >>>= Byte.SIZE) {
+            out.write((int)((n & mask) >>> todo));
+        }
+    }
+    
     // java.lang.Iterable interface
 
     public Iterator<Archive.Entry>
@@ -149,9 +173,11 @@ N2V implements Archive, Serializable {
         final ByteBuffer summary = this.summary.duplicate();
         summary.position(0);
         return new Iterator<Archive.Entry>() {
+            
+            private int address = magicSize;
 
             public boolean
-            hasNext() { return summary.position() != summary.limit(); }
+            hasNext() { return summaryAddress != address; }
 
             public Archive.Entry
             next() {
@@ -162,7 +188,10 @@ N2V implements Archive, Serializable {
                         if (0 == b) { break; }
                         path.write(b);
                     }
-                    return new Entry(path.toString("UTF-8"), summary);
+                    final Entry r =
+                        new Entry(address, path.toString("UTF-8"), summary);
+                    address += r.length;
+                    return r;
                 } catch (final BufferUnderflowException e) {
                     throw new NoSuchElementException();
                 } catch (final UnsupportedEncodingException e) {
@@ -177,15 +206,15 @@ N2V implements Archive, Serializable {
     
     private final class
     Entry implements Archive.Entry {
-        
+
+        private final int address;
         private final String path;
         private final int length;
-        private final int address;
         
-        Entry(final String path, final ByteBuffer summary) {
+        Entry(final int address, final String path, final ByteBuffer summary) {
+            this.address = address;
             this.path = path;
             length = readExtensionInt(summary);
-            address = readExtensionInt(summary);
             final int commentLength = readExtensionInt(summary);
             if (0 != commentLength) {
                 summary.position(summary.position() + commentLength);
@@ -194,9 +223,6 @@ N2V implements Archive, Serializable {
 
         public String
         getPath() { return path; }
-
-        public boolean
-        isDirectory() { return directoryAddress == address; }
 
         public String
         getETag() { return etag; }
@@ -226,6 +252,17 @@ N2V implements Archive, Serializable {
         throw new RuntimeException();
     }
     
+    static protected void
+    writeExtensionLong(final ByteArrayBuilder out, final long n) {
+        int todo = 9 * 7;                   // number of bits to output
+        long mask = 0x7FL << (todo -= 7);   // mask for next output bits
+        for (; 0L == (n & mask) && 0 != todo; todo -= 7, mask >>= 7) {}
+        for (;                     0 != todo; todo -= 7, mask >>= 7) {
+            out.write(0x80 | (int)((n & mask) >> todo));
+        }
+        out.write((int)(n & mask));
+    }
+    
     // org.waterken.archive.Archive interface
     
     public Archive.Entry
@@ -236,13 +273,16 @@ N2V implements Archive, Serializable {
 
         while (low <= high) {
             final int mid = (low + high) >>> 1;
-            index.position(mid * indexOffsetSize);
-            summary.position(readFixedInt(index, indexOffsetSize));
+            index.position(mid * (summaryOffsetSize + dataOffsetSize));
+            summary.position(readFixedInt(index, summaryOffsetSize));
             int d = 0;
             for (int i = 0; 0 == d; ++i) {
                 d = 0xFF & summary.get();
                 if (i == key.length) {
-                    if (0 == d) { return new Entry(path, summary); }
+                    if (0 == d) {
+                        return new Entry(readFixedInt(index, dataOffsetSize),
+                                         path, summary);
+                    }
                 } else {
                     d -= 0xFF & key[i];
                 }

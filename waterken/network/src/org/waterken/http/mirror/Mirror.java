@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.http.mirror;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.Serializable;
 
@@ -54,35 +53,47 @@ Mirror extends Struct implements Server, Serializable {
 
         // determine the request target
         FileType contentType = FileType.unknown;
-        Archive.Entry target;
-        try {
+        Archive.Entry target; {
             final String path = URI.path(head.uri);
-            final String folder = Path.folder(path);
-            final String pathName = Path.name(path);
-            final String name = "".equals(pathName) ? "index" : pathName;
+            final String name = Path.name(path);
             final String ext = Filename.ext(name);
-            final Archive.Entry exact = archive.find(folder + name);
-            if (null != exact) {
-                target = exact;
-                for (final FileType format : formats.known) {
-                    if (Header.equivalent(format.ext, ext)) {
-                        contentType = format;
-                        break;
+            if ("".equals(ext)) {
+                if (!"".equals(path)) {
+                    final Archive.Entry dir = archive.find(path + "/");
+                    if (null != dir) {
+                        client.receive(new Response(
+                            "HTTP/1.1", "307", "Temporary Redirect",
+                            PowerlessArray.array(
+                                new Header("Location", head.uri + "/"),
+                                new Header("Content-Length", "0")
+                            )), null);
+                        return;
                     }
                 }
-            } else if ("".equals(ext)) {
                 target = null;
+                final String pathname =
+                    Path.folder(path) + ("".equals(name) ? "index" : name);
                 for (final FileType t : formats.known) {
-                    final Archive.Entry x = archive.find(folder + name + t.ext);
+                    final Archive.Entry x = archive.find(pathname + t.ext);
                     if (null != x) {
                         target = x;
                         contentType = t;
                         break;
                     }
                 }
-                if (null == target) { throw new FileNotFoundException(); }
-            } else { throw new FileNotFoundException(); }
-        } catch (final FileNotFoundException e) {
+            } else {
+                target = archive.find(path);
+                if (null != target) {
+                    for (final FileType format : formats.known) {
+                        if (Header.equivalent(format.ext, ext)) {
+                            contentType = format;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (null == target) {
             client.receive(Response.notFound(), null);
             return;
         }
@@ -92,15 +103,6 @@ Mirror extends Struct implements Server, Serializable {
         if (!head.respond(etag,client,"GET","HEAD","OPTIONS","TRACE")) {return;}
 
         // output the corresponding representation
-        if (target.isDirectory()) {
-            client.receive(new Response(
-                "HTTP/1.1", "307", "Temporary Redirect",
-                PowerlessArray.array(
-                    new Header("Location", head.uri + "/"),
-                    new Header("Content-Length", "0")
-                )), null);
-            return;
-        }
         final String promise = Query.arg(null, URI.query("", head.uri), "o");
         final InputStream in = target.open();
         try {

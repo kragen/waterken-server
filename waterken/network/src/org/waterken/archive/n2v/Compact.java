@@ -63,9 +63,10 @@ Compact {
             out.flush();
             out.close();
         } else if (file.isDirectory()) {
-            n2v.appendDirectory(path(file));
+            n2v.append(path(file) + '/').close();
             file.listFiles(new FileFilter() {
-                public boolean accept(final File child) {
+                public boolean
+                accept(final File child) {
                     try {
                         append(n2v, child);
                     } catch (final IOException e) {
