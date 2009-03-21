@@ -1,21 +1,22 @@
 [ {
   "$" : [ "org.waterken.io.MIME" ],
   "known" : [
-    { "ext" : ".html", "name" : "text/html" },
-    { "ext" : ".htm",  "name" : "text/html" },
-    { "ext" : ".json", "name" : "application/json" },
-    { "ext" : ".js",   "name" : "application/javascript" },
-    { "ext" : ".css",  "name" : "text/css; charset=ISO-8859-1" },
-    { "ext" : ".png",  "name" : "image/png" },
-    { "ext" : ".gif",  "name" : "image/gif" },
-    { "ext" : ".jpg",  "name" : "image/jpg" },
-    { "ext" : ".ico",  "name" : "image/vnd.microsoft.icon" },
-    { "ext" : ".swf",  "name" : "application/x-shockwave-flash" },
-    { "ext" : ".xml",  "name" : "application/xml" },
-    { "ext" : ".rdf",  "name" : "application/rdf+xml" },
-    { "ext" : ".xsl",  "name" : "application/xsl" },
-    { "ext" : ".txt",  "name" : "text/plain" },
-    { "ext" : ".zip",  "name" : "application/zip" },
-    { "ext" : ".uri",  "name" : "text/uri-list; charset=US-ASCII" }
+    { "ext" : ".html",  "name" : "text/html" },
+    { "ext" : ".swf",   "name" : "application/x-shockwave-flash" },
+
+    { "ext" : ".htm",   "name" : "text/html" },
+    { "ext" : ".js",    "name" : "application/javascript" },
+    { "ext" : ".css",   "name" : "text/css; charset=ISO-8859-1" },
+    { "ext" : ".png",   "name" : "image/png" },
+    { "ext" : ".gif",   "name" : "image/gif" },
+    { "ext" : ".jpg",   "name" : "image/jpg" },
+    { "ext" : ".ico",   "name" : "image/vnd.microsoft.icon" },
+    { "ext" : ".xml",   "name" : "application/xml" },
+    { "ext" : ".rdf",   "name" : "application/rdf+xml" },
+    { "ext" : ".xsl",   "name" : "application/xsl" },
+    { "ext" : ".txt",   "name" : "text/plain" },
+    { "ext" : ".zip",   "name" : "application/zip" },
+    { "ext" : ".json",  "name" : "application/json" },
+    { "ext" : ".uri",   "name" : "text/uri-list; charset=US-ASCII" }
   ]
   } ]
