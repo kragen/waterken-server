@@ -107,7 +107,7 @@ N2VOutput {
                             offsets= new Offset[2*offsetCount], 0, offsetCount);
                     }
                     offsets[offsetCount++] = new Offset(meta.size(), total);
-                    meta.write(path.getBytes("UTF-8"));
+                    meta.write(N2V.charset.encode(path).array());
                     meta.write(0);
                     N2V.writeExtensionLong(meta, length);   // valueLength
                     N2V.writeExtensionLong(meta, 0);        // commentLength

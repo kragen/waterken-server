@@ -3,7 +3,6 @@
 package org.waterken.archive.n2v;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.waterken.archive.Archive;
@@ -12,8 +11,8 @@ import org.waterken.archive.Archive;
  * Command to list entries in an archive.
  */
 public final class
-List {
-    private List() {}
+Ls {
+    private Ls() {}
     
     /**
      * command line arguments format: {@value}
@@ -63,8 +62,7 @@ List {
                  final String... selected) throws IOException {
         for (final String filename : selected) {
             final Archive.Entry entry = archive.find(filename);
-            if (null == entry) { throw new FileNotFoundException(filename); }
-            list(entry);
+            if (null != entry) { list(entry); }
         }
     }
     

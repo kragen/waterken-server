@@ -3,6 +3,9 @@
 package org.waterken.archive.n2v;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * Provides more convenient read access to a {@link ByteArrayOutputStream}.
@@ -20,4 +23,9 @@ ByteArrayBuilder extends ByteArrayOutputStream {
     
     public byte
     get(final int i) { return buf[i]; }
+    
+    public void
+    writeTo(final WritableByteChannel out) throws IOException {
+        out.write(ByteBuffer.wrap(buf, 0, count));
+    }
 }
