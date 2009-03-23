@@ -8,7 +8,6 @@ javac -d bin ^
   src\org\waterken\archive\n2v\*.java ^
   src\org\waterken\dns\*.java ^
   src\org\waterken\http\*.java ^
-  src\org\waterken\http\file\*.java ^
   src\org\waterken\http\mirror\*.java ^
   src\org\waterken\http\trace\*.java ^
   src\org\waterken\io\*.java ^

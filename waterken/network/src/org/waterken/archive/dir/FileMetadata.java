@@ -9,11 +9,11 @@ import java.io.File;
  */
 public interface
 FileMetadata {
-
+    
     /**
-     * Generates an ETag for a file.
-     * @param file  file to tag
-     * @return corresponding ETag, or <code>null</code> if file does not exist
+     * Gets the last modified time of a file.
+     * @param file  file to check
+     * @return corresponding last modified time, or -1 if file does not exist
      */
-    String tag(File file);
+    long getLastModified(File file);
 }

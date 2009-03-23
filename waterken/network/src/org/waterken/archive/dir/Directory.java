@@ -102,7 +102,10 @@ Directory extends Struct implements Archive, Serializable {
         getName() { return path; }
 
         public String
-        getETag() { return meta.tag(file); }
+        getETag() {
+            final long version = meta.getLastModified(file);
+            return version > 0 ? '\"' + Long.toHexString(version) + '\"' : null;
+        }
 
         public long
         getLength() {
