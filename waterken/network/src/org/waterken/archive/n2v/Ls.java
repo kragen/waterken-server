@@ -68,6 +68,6 @@ Ls {
     
     static private void
     list(final Archive.Entry entry) {
-        System.out.println(entry.getPath());
+        System.out.println(entry.getName());
     }
 }

@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Read-only access to a collection of files.
+ * A read-only [ name =&gt; byte stream ] mapping.
  */
 public interface
 Archive extends Iterable<Archive.Entry> {
@@ -18,9 +18,9 @@ Archive extends Iterable<Archive.Entry> {
     Entry {
         
         /**
-         * Gets the file path.
+         * Gets the entry name.
          */
-        String getPath();
+        String getName();
         
         /**
          * Gets the version identifier.
@@ -28,7 +28,7 @@ Archive extends Iterable<Archive.Entry> {
         String getETag();
         
         /**
-         * Gets the length of corresponding {@linkplain data stream #open}.
+         * Gets the length of the corresponding {@linkplain data stream #open}.
          */
         long getLength();
         
@@ -39,10 +39,10 @@ Archive extends Iterable<Archive.Entry> {
     }
     
     /**
-     * Gets the named file.
-     * @param path  path to file
-     * @return corresponding entry, or <code>null</code> if file does not exist
+     * Finds a named entry.
+     * @param name  name of entry to find
+     * @return corresponding entry, or <code>null</code> if one does not exist
      * @throws IOException              any I/O problem
      */
-    Entry find(String path) throws IOException;
+    Entry find(String name) throws IOException;
 }

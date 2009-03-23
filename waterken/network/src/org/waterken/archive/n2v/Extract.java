@@ -73,7 +73,7 @@ Extract {
     
     static private void
     reify(final Archive.Entry entry) throws IOException {
-        final String path = entry.getPath();
+        final String path = entry.getName();
         final File file = new File(path);
         file.delete();
         if (path.endsWith("/")) {

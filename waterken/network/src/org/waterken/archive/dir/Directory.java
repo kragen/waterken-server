@@ -99,7 +99,7 @@ Directory extends Struct implements Archive, Serializable {
         }
 
         public String
-        getPath() { return path; }
+        getName() { return path; }
 
         public String
         getETag() { return meta.tag(file); }

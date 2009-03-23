@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.archive.n2v;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.File;
@@ -15,7 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
-import java.util.BitSet;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -57,9 +58,9 @@ N2V implements Archive, Serializable {
      * number of entries
      */
     public  final int entryCount;
-    private final int summaryAddress;
-    private final int summaryOffsetSize;
     private final int dataOffsetSize;
+    private final int summaryOffsetSize;
+    private final int indexEntrySize;
     private final ByteBuffer data;
     private final ByteBuffer summary;
     private final ByteBuffer index;
@@ -92,12 +93,13 @@ N2V implements Archive, Serializable {
         raw.position(totalsAddress);
         entryCount = readFixedInt(raw, rawOffsetSize);
         final int indexAddress = readFixedInt(raw, rawOffsetSize);
-        summaryAddress = readFixedInt(raw, rawOffsetSize);
+        final int summaryAddress = readFixedInt(raw, rawOffsetSize);
         if (endMagic != readFixedInt(raw,magicSize)) {throw new EOFException();}
         
         final int summaryLength = indexAddress - summaryAddress;
-        summaryOffsetSize = sizeof(summaryLength);
         dataOffsetSize = sizeof(summaryAddress);
+        summaryOffsetSize = sizeof(summaryLength);
+        indexEntrySize = summaryOffsetSize + dataOffsetSize;
 
         raw.position(0);
         data = raw.slice();
@@ -127,138 +129,139 @@ N2V implements Archive, Serializable {
             ch.map(FileChannel.MapMode.READ_ONLY, 0, (int)archiveLength));
     }
     
+    /**
+     * Merges the entries from multiple archives.
+     * @param out   output channel for created archive
+     * @param versions  archives to merge, ordered from oldest to newest
+     * @throws IOException  any I/O problem
+     */
     static public void
     merge(final WritableByteChannel out,
           final List<N2V> versions) throws IOException {
-        final int n = versions.size();
-        if (0 == n) { return; }
-        
-        // write out all data values in the most recent version
-        long dataLength;
-        long count; {
-            final N2V top = versions.get(n - 1);
-            dataLength = top.data.limit();
-            count = top.entryCount;
-            top.data.position(0);
-            if (dataLength != out.write(top.data)) { throw new IOException(); }
-        }
-        
-        // write out the most recent data values from the preceding versions
-        final BitSet[] lives = new BitSet[n - 1];
-        for (int i = n - 1; 0 != i--;) {
+        final int versionCount = versions.size();
+                
+        // write out the most recent data values and reconstruct the indices
+        final long[][] dataTable = new long[versionCount][];
+        final long[][] summaryTable = new long[versionCount][];
+        final ArrayList<ByteBuffer> summaryChunks =
+            new ArrayList<ByteBuffer>(versionCount * 8);
+        long dataOffset = magicSize;
+        long summaryOffset = 0;
+        long entryCount = 0;
+        for (int i = versionCount; 0 != i--;) {
             final N2V m = versions.get(i);
-            final BitSet live = lives[i] = new BitSet(m.entryCount);
-            m.data.position(magicSize);
+            final long[] dataOffsets =  dataTable[i]   = new long[m.entryCount];
+            final long[] summaryOffsets=summaryTable[i]= new long[m.entryCount];
             m.summary.position(0);
-            int todo = 0;               // pending data bytes to be written
+            final ByteBuffer names = m.summary.duplicate();
+            int beginSummaryChunk = 0;
+            int todo = versionCount - 1 == i ? magicSize : 0;
+            m.data.position(magicSize - todo);
             for (int entry = 0; m.entryCount != entry; ++entry) {
-                boolean override = false;
-                for (int j = i + 1; !override && j != n; ++j) {
-                    override = versions.get(j).contains(m.summary);
+                boolean overridden = false;
+                for (int j = i + 1; !overridden && j != versionCount; ++j) {
+                    overridden = versions.get(j).contains(names);
                 }
-                while (0 != m.summary.get()) {}     // skip name and null
-                final int valueLength = readExtensionInt(m.summary);
-                final int commentLength = readExtensionInt(m.summary);
+                if (!overridden && !m.contains(names)) { throw new Error(); }
+                final int pos = m.index.position() / m.indexEntrySize;
+                
+                final int beginSummary = names.position();
+                while (0 != names.get()) {}     // skip name and null
+                final int valueLength = readExtensionInt(names);
+                final int commentLength = readExtensionInt(names);
                 if (0 != commentLength) {
-                    m.summary.position(m.summary.position() + commentLength);
+                    names.position(names.position() + commentLength);
                 }
-                if (override) {
+                final int endSummary = names.position();
+                
+                if (overridden) {
                     if (0 != todo) {
                         final ByteBuffer chunk = m.data.slice();
                         chunk.limit(todo);
                         if (todo != out.write(chunk)) {throw new IOException();}
-                        dataLength += todo;
                         m.data.position(m.data.position() + todo);
                         todo = 0;
                     }
                     m.data.position(m.data.position() + valueLength);
+                    if (beginSummary != beginSummaryChunk) {
+                        m.summary.position(beginSummaryChunk);
+                        final ByteBuffer chunk = m.summary.slice();
+                        chunk.limit(beginSummary - beginSummaryChunk);
+                        summaryChunks.add(chunk);
+                    }
+                    beginSummaryChunk = endSummary;
                 } else {
-                    count += 1;
-                    live.set(entry);
+                    dataOffsets[pos] = dataOffset;
+                    summaryOffsets[pos] = summaryOffset;
+                    dataOffset += valueLength;
+                    summaryOffset += endSummary - beginSummary;
+                    entryCount += 1;
                     todo += valueLength;
                 }
             }
-            if (0 != todo) {
-                if (todo != out.write(m.data)) { throw new IOException(); }
-                dataLength += todo;
+            if (todo != out.write(m.data)) { throw new IOException(); }
+            if (names.limit() != beginSummaryChunk) {
+                names.position(beginSummaryChunk);
+                summaryChunks.add(names);
             }
         }
-        
-        // write out the summary of the most recent version
-        final long summaryLength;
-        {
-            final N2V top = versions.get(n - 1);
-            top.summary.position(0);
-            final int todo = top.summary.limit();
-            if (todo != out.write(top.summary)) { throw new IOException(); }
-            summaryLength = todo;
+        final long summaryLength = summaryOffset;
+        final long dataLength = dataOffset;
+        for (final ByteBuffer chunk : summaryChunks) {
+            if (chunk.remaining() != out.write(chunk)){throw new IOException();}
         }
         
-        /*
-        // write out the summary for entries from the preceding versions
-        // and construct an N-way merge of the indices
-        final int summaryOffsetSize = sizeof(indexAddress - summaryAddress);
-        final int dataOffsetSize = sizeof(summaryAddress);
-        final long indexLength = count * (summaryOffsetSize + dataOffsetSize);
-        total += indexLength;
-        final int addressSize = sizeof(total + 3 * sizeof(total) + magicSize);
-        final int maxChunkSize = (1<<14) * (summaryOffsetSize + dataOffsetSize);
-        final ByteArrayBuilder index = new ByteArrayBuilder((int)Math.min(
-            indexLength + 3 * addressSize + magicSize, maxChunkSize));
-        for (final N2V m : versions) {
-            m.summary.position(0);
-            m.index.position(0);
-        }
-        long dataOffset = magicSize;
-        long summaryOffset = 0;
-        for (int i = n - 1; 0 != i--;) {
-            final N2V m = versions.get(i);
-            final BitSet live = lives[i];
-            m.summary.position(0);
-            boolean pending = false;    // pending summary bytes to be written?
-            for (int entry = 0; m.entryCount != entry; ++entry) {
-                if (live.get(entry)) {
-                    if (!pending) {
-                        pending = true;
-                        m.summary.mark();
+        // produce an N-way merge of the indices
+        final int dataOffsetSize = sizeof(dataLength);
+        final int summaryOffsetSize = sizeof(summaryLength);
+        final int indexOffsetSize = summaryOffsetSize + dataOffsetSize;
+        final long indexLength = entryCount * indexOffsetSize;
+        final long dsiLength = dataLength + summaryLength + indexLength;
+        final int addressSize = sizeof(dsiLength+3*sizeof(dsiLength)+magicSize);
+        final OutputStream sout = new BufferedOutputStream(
+            new ChannelOutputStream(out),
+            (int)Math.min(indexLength + 3 * addressSize + magicSize,
+                          (1<<14) * indexOffsetSize));
+        for (int j=versionCount; 0 != j--;) {versions.get(j).index.position(0);}
+        for (long i = entryCount; 0 != i--;) {
+            int min = versionCount;
+            ByteBuffer minKey = null;
+            for (int j = min; 0 != j--;) {
+                final N2V m = versions.get(j);
+                int d = 0;
+                while (m.index.hasRemaining() && 0 == d) {
+                    m.index.mark();
+                    m.summary.position(
+                        readFixedInt(m.index, m.summaryOffsetSize));
+                    m.summary.mark();
+                    readFixedInt(m.index, m.dataOffsetSize);
+                    if (null != minKey) {
+                        d = compare(m.summary, minKey);
+                        m.summary.reset();
+                        minKey.reset();
+                    } else {
+                        d = -1;
                     }
-                } else if (pending) {
-                    final int here = m.summary.position();
-                    m.summary.reset();
-                    final int todo = here - m.summary.position();
-                    final ByteBuffer chunk = m.summary.slice();
-                    chunk.limit(todo);
-                    if (todo != out.write(chunk)) { throw new IOException(); }
-                    total += todo;
-                    m.summary.position(here);
-                    pending = false;
                 }
-                
-                // skip over this summary entry
-                while (0 != m.summary.get()) {}     // skip name and null
-                readExtensionInt(m.summary);        // skip valueLength
-                final int commentLength = readExtensionInt(m.summary);
-                if (0 != commentLength) {
-                    m.summary.position(m.summary.position() + commentLength);
+                if (d < 0) {
+                    min = j;
+                    minKey = m.summary;
                 }
             }
-            if (pending) {
-                m.summary.reset();
-                final int todo = m.summary.remaining();
-                if (todo != out.write(m.summary)) { throw new IOException(); }
-                total += todo;
-            }
+            final N2V m = versions.get(min);
+            final int pos = m.index.position() / m.indexEntrySize;
+            writeFixedLong(sout, summaryOffsetSize, summaryTable[min][pos-1]);
+            writeFixedLong(sout, dataOffsetSize, dataTable[min][pos-1]);
+            m.index.mark();
+            for (int j=versionCount; 0 != j--;) {versions.get(j).index.reset();}
         }
-        final long indexAddress = total;
         
-        // append the totals to the index
-        N2V.writeFixedLong(index, addressSize, count);
-        N2V.writeFixedLong(index, addressSize, indexAddress);
-        N2V.writeFixedLong(index, addressSize, summaryAddress);
-        N2V.writeFixedLong(index, magicSize,   endMagic);
-        
-        index.writeTo(out);
-        */
+        // append the totals
+        writeFixedLong(sout, addressSize, entryCount);
+        writeFixedLong(sout, addressSize, dataLength + summaryLength);
+        writeFixedLong(sout, addressSize, dataLength);
+        writeFixedLong(sout, magicSize,   endMagic);
+        sout.flush();
     }
     
     static protected int
@@ -343,7 +346,7 @@ N2V implements Archive, Serializable {
         }
 
         public String
-        getPath() { return path; }
+        getName() { return path; }
 
         public String
         getETag() { return etag; }
@@ -387,34 +390,39 @@ N2V implements Archive, Serializable {
     // org.waterken.archive.Archive interface
     
     public Archive.Entry
-    find(final String path) {
-        return contains(charset.encode(path + '\0'))
-            ? new Entry(readFixedInt(index, dataOffsetSize), path, summary)
+    find(final String name) {
+        return contains(charset.encode(name + '\0'))
+            ? new Entry(readFixedInt(index, dataOffsetSize), name, summary)
         : null;
     }
     
     private boolean
-    contains(final ByteBuffer key) {
-        key.mark();
+    contains(final ByteBuffer name) {
+        name.mark();
         for (int low = 0, high = entryCount - 1; low <= high;) {
             final int mid = (low + high) >>> 1;
-            index.position(mid * (summaryOffsetSize + dataOffsetSize));
+            index.position(mid * indexEntrySize);
             summary.position(readFixedInt(index, summaryOffsetSize));
-            int a;
-            int b;
-            do {
-                a = 0xFF & summary.get();
-                b = 0xFF & key.get();
-            } while (a == b && 0 != a);
-            key.reset();
-            if (a < b) {
+            final int d = compare(summary, name);
+            name.reset();
+            if (d < 0) {
                 low = mid + 1;
-            } else if (a > b) {
+            } else if (d > 0) {
                 high = mid - 1;
             } else {
                 return true;
             }
         }
         return false;
+    }
+    
+    static private int
+    compare(final ByteBuffer a, final ByteBuffer b) {
+        while (true) {
+            final int ab = 0xFF & a.get();
+            final int bb = 0xFF & b.get();
+            final int r = ab - bb;
+            if (0 != r || 0 == ab) { return r; }
+        }
     }
 }
