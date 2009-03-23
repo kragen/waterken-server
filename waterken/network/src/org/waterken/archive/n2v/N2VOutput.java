@@ -11,11 +11,13 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import org.waterken.archive.ArchiveOutput;
+
 /**
  * An {@link N2V} archive creator.
  */
-public class
-N2VOutput {
+public final class
+N2VOutput implements ArchiveOutput {
 
     private final OutputStream out;
     private       long total = 0;
@@ -62,13 +64,8 @@ N2VOutput {
     
     private       OutputStream current = null;
     
-    /**
-     * Appends an entry to the archive.
-     * @param path  path of file to append
-     * @return output stream for file data
-     */
     public OutputStream
-    append(final String path) {
+    append(final String name) {
         if (null != current) { throw new RuntimeException(); }
         return current = new OutputStream() {
             
@@ -107,7 +104,7 @@ N2VOutput {
                             offsets= new Offset[2*offsetCount], 0, offsetCount);
                     }
                     offsets[offsetCount++] = new Offset(meta.size(), total);
-                    meta.write(N2V.charset.encode(path).array());
+                    meta.write(N2V.charset.encode(name).array());
                     meta.write(0);
                     N2V.writeExtensionLong(meta, length);   // valueLength
                     N2V.writeExtensionLong(meta, 0);        // commentLength
@@ -117,10 +114,6 @@ N2VOutput {
         };
     }
     
-    /**
-     * Finish the archive.
-     * @throws IOException  any I/O problem
-     */
     public void
     finish() throws IOException {
         if (null != current) { throw new RuntimeException(); }
