@@ -52,7 +52,7 @@ Settings {
         new Config(configFolder, code, "file:///",
                    AMP.connect(new Proxy()), null);
     static {
-        config.override("fileMetadata", new LastModified());
+        config.override("fileMetadata", new FilesystemClock());
         
         final StoreMaker layout;
         final Receiver<Event> stderr;

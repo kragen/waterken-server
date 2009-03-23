@@ -13,14 +13,13 @@ import org.waterken.archive.dir.FileMetadata;
  * Generates a tag based on the file's last modified time.
  */
 public final class
-LastModified extends Struct implements FileMetadata, Serializable {
+FilesystemClock extends Struct implements FileMetadata, Serializable {
     static private final long serialVersionUID = 1L;
 
     // org.waterken.archive.dir.FileMetadata interface
 
-    public String
-    tag(final File file) {
-        return file.isFile()
-            ? '\"' + Long.toHexString(file.lastModified()) + '\"' : null;
+    public long
+    getLastModified(final File file) {
+        return file.isFile() ? file.lastModified() : -1;
     }
 }
