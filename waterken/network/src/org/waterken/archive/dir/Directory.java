@@ -103,8 +103,8 @@ Directory extends Struct implements Archive, Serializable {
 
         public String
         getETag() {
-            final long version = meta.getLastModified(file);
-            return version > 0 ? '\"' + Long.toHexString(version) + '\"' : null;
+            final long stamp = meta.getLastModified(file);
+            return stamp >= 0 ? '\"' + Long.toHexString(stamp) + '\"' : null;
         }
 
         public long
