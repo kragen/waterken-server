@@ -139,6 +139,12 @@ N2V implements Archive, Serializable {
     merge(final WritableByteChannel out,
           final List<N2V> versions) throws IOException {
         final int versionCount = versions.size();
+        
+        // output the start of file magic bytes
+        out.write(ByteBuffer.wrap(new byte[] {
+            (byte)(beginMagic >>> 24), (byte)(beginMagic >>> 16),
+            (byte)(beginMagic >>>  8), (byte)(beginMagic >>>  0)
+        }));
                 
         // write out the most recent data values and reconstruct the indices
         final long[][] dataTable = new long[versionCount][];
@@ -155,8 +161,8 @@ N2V implements Archive, Serializable {
             m.summary.position(0);
             final ByteBuffer names = m.summary.duplicate();
             int beginSummaryChunk = 0;
-            int todo = versionCount - 1 == i ? magicSize : 0;
-            m.data.position(magicSize - todo);
+            int todo = 0;
+            m.data.position(magicSize);
             for (int entry = 0; m.entryCount != entry; ++entry) {
                 boolean overridden = false;
                 for (int j = i + 1; !overridden && j != versionCount; ++j) {
@@ -222,7 +228,9 @@ N2V implements Archive, Serializable {
             new ChannelOutputStream(out),
             (int)Math.min(indexLength + 3 * addressSize + magicSize,
                           (1<<14) * indexOffsetSize));
-        for (int j=versionCount; 0 != j--;) {versions.get(j).index.position(0);}
+        for (int j = versionCount; 0 != j--;) {
+            versions.get(j).index.position(0).mark();
+        }
         for (long i = entryCount; 0 != i--;) {
             int min = versionCount;
             ByteBuffer minKey = null;
@@ -232,8 +240,7 @@ N2V implements Archive, Serializable {
                 while (m.index.hasRemaining() && 0 == d) {
                     m.index.mark();
                     m.summary.position(
-                        readFixedInt(m.index, m.summaryOffsetSize));
-                    m.summary.mark();
+                        readFixedInt(m.index, m.summaryOffsetSize)).mark();
                     readFixedInt(m.index, m.dataOffsetSize);
                     if (null != minKey) {
                         d = compare(m.summary, minKey);
