@@ -83,16 +83,16 @@ HTTP extends Eventual implements Serializable {
         } catch (final Exception e) { throw new Error(e); }
         final Class<?> R = make.getReturnType();
         try {
-            log.sent(here + URLEncoding.encode(label) + "/#make");
             final Exports http = new Exports(this);
             final ByteArray body = new JSONSerializer().run(
                     http.export(), ConstArray.array(argv)); 
             final PowerlessArray<String> rd = creator.run(null, here, label,
                 new VatInitializer(make, here, body)).call();
+            log.sent(rd.get(0));
             final Importer connect = http.connect();
             return new Vat(
-                (R)connect.run(rd.get(0), here, R),
-                (Receiver<?>)connect.run(rd.get(1), here, Receiver.class)
+                (R)connect.run(rd.get(1), here, R),
+                (Receiver<?>)connect.run(rd.get(2), here, Receiver.class)
             );
         } catch (final BadSyntax e) {
             final Receiver<?> destruct = cast(Receiver.class, null);
