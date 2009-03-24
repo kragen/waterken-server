@@ -389,7 +389,9 @@ Eventual implements Receiver<Promise<?>>, Serializable {
            final Log log, final String message) throws Exception {
         final P a;
         try {
-            a = ref(promise.call()).call();
+            a = promise.call();
+            ref(a).call();      // ensure the called value is not one that is
+                                // expected to be handled as a rejection
         } catch (final Exception reason) {
             final Class<?> c = (observer instanceof Compose
                 ? ((Compose<?,?>)observer).block : observer).getClass();
