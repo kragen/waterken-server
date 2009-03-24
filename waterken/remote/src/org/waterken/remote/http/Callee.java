@@ -2,10 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import static java.lang.reflect.Modifier.isPublic;
-import static java.lang.reflect.Modifier.isStatic;
-import static org.joe_e.array.PowerlessArray.builder;
-
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -226,8 +222,8 @@ Callee extends Struct implements Serializable {
     bubble(final Method method) {
         final Class<?> declarer = method.getDeclaringClass();
         if (Object.class == declarer || Struct.class == declarer) {return null;}
-        if (isPublic(declarer.getModifiers())) { return method; }
-        if (isStatic(method.getModifiers())) { return null; }
+        if (Modifier.isPublic(declarer.getModifiers())) { return method; }
+        if (Modifier.isStatic(method.getModifiers())) { return null; }
         final String name = method.getName();
         final Class<?>[] param = method.getParameterTypes();
         for (final Class<?> i : declarer.getInterfaces()) {
@@ -260,7 +256,7 @@ Callee extends Struct implements Serializable {
     types(final Class<?> actual) {
         final Class<?> end =
             Struct.class.isAssignableFrom(actual) ? Struct.class : Object.class;
-        final PowerlessArray.Builder<String> r = builder(4);
+        final PowerlessArray.Builder<String> r = PowerlessArray.builder(4);
         for (Class<?> i=actual; end!=i; i=i.getSuperclass()) { ifaces(i, r); }
         return r.snapshot();
     }
