@@ -325,12 +325,12 @@ N2V implements Archive, Serializable {
     Entry implements Archive.Entry {
 
         private final int address;
-        private final String path;
+        private final String name;
         private final int length;
         
-        Entry(final int address, final String path, final ByteBuffer summary) {
+        Entry(final int address, final String name, final ByteBuffer summary) {
             this.address = address;
-            this.path = path;
+            this.name = name;
             length = readExtensionInt(summary);
             final int commentLength = readExtensionInt(summary);
             if (0 != commentLength) {
@@ -339,7 +339,7 @@ N2V implements Archive, Serializable {
         }
 
         public String
-        getName() { return path; }
+        getName() { return name; }
 
         public String
         getETag() { return etag; }
