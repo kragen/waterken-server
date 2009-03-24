@@ -61,14 +61,12 @@ N2V implements Archive, Serializable {
     private final ByteBuffer index;
     
     /*
-     * archive ::= beginMagic
-     *             data summary index
-     *             entryCount indexAddress summaryAddress
-     *             endMagic
+     * archive ::= data summary index
+     *             entryCount indexAddress summaryAddress endMagic
      * data ::= value*
      * value ::= byte*
      * summary ::= entry*
-     * entry ::= name NULL valueLength commentLength commentByte*
+     * entry ::= name 0 valueLength commentLength commentByte*
      * index ::= (summaryOffset dataOffset)*
      */
     
