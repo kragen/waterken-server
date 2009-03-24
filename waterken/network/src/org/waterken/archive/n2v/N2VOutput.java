@@ -39,14 +39,10 @@ N2VOutput implements ArchiveOutput {
     /**
      * Constructs an instance.
      * @param out   output stream
-     * @throws IOException  any I/O problem
      */
     public
-    N2VOutput(final OutputStream out) throws IOException {
+    N2VOutput(final OutputStream out) {
         this.out = out;
-        
-        N2V.writeFixedLong(out, N2V.magicSize, N2V.beginMagic);
-        total += N2V.magicSize;
     }
     
     /**

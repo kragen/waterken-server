@@ -33,11 +33,6 @@ N2V implements Archive, Serializable {
     static protected final Charset charset = Charset.forName("UTF-8");
     
     /**
-     * 4 bytes at the start of every N2V archive file: {@link value}
-     */
-    static public    final int beginMagic = 0x4E32560A;
-    
-    /**
      * 4 bytes at the end of every N2V archive file: {@link value}
      */
     static public    final int endMagic = 0x0A4E3256;
@@ -104,7 +99,6 @@ N2V implements Archive, Serializable {
         raw.position(0);
         data = raw.slice();
         data.limit(summaryAddress);
-        if (beginMagic!=readFixedInt(data,magicSize)){throw new EOFException();}
         
         raw.position(summaryAddress);
         summary = raw.slice();
@@ -139,19 +133,13 @@ N2V implements Archive, Serializable {
     merge(final WritableByteChannel out,
           final List<N2V> versions) throws IOException {
         final int versionCount = versions.size();
-        
-        // output the start of file magic bytes
-        out.write(ByteBuffer.wrap(new byte[] {
-            (byte)(beginMagic >>> 24), (byte)(beginMagic >>> 16),
-            (byte)(beginMagic >>>  8), (byte)(beginMagic >>>  0)
-        }));
                 
         // write out the most recent data values and reconstruct the indices
         final long[][] dataTable = new long[versionCount][];
         final long[][] summaryTable = new long[versionCount][];
         final ArrayList<ByteBuffer> summaryChunks =
             new ArrayList<ByteBuffer>(versionCount * 8);
-        long dataOffset = magicSize;
+        long dataOffset = 0;
         long summaryOffset = 0;
         long entryCount = 0;
         for (int i = versionCount; 0 != i--;) {
@@ -162,7 +150,7 @@ N2V implements Archive, Serializable {
             final ByteBuffer names = m.summary.duplicate();
             int beginSummaryChunk = 0;
             int todo = 0;
-            m.data.position(magicSize);
+            m.data.position(0);
             for (int entry = 0; m.entryCount != entry; ++entry) {
                 boolean overridden = false;
                 for (int j = i + 1; !overridden && j != versionCount; ++j) {
@@ -309,7 +297,7 @@ N2V implements Archive, Serializable {
         summary.position(0);
         return new Iterator<Archive.Entry>() {
             
-            private int address = magicSize;
+            private int address = 0;
 
             public boolean
             hasNext() { return summary.hasRemaining(); }
@@ -317,12 +305,12 @@ N2V implements Archive, Serializable {
             public Archive.Entry
             next() {
                 try {
-                    final ByteBuffer path = summary.slice();
+                    final ByteBuffer name = summary.slice();
                     final int begin = summary.position();
                     while (0 != summary.get()) {}
-                    path.limit(summary.position() - begin - 1);
+                    name.limit(summary.position() - begin - 1);
                     final Entry r = new Entry(address,
-                        charset.decode(path).toString(), summary);
+                        charset.decode(name).toString(), summary);
                     address += r.length;
                     return r;
                 } catch (final BufferUnderflowException e) {
