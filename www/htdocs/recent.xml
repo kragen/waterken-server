@@ -4,7 +4,7 @@
       xml:base="http://waterken.sourceforge.net/">
 
 <id>http://waterken.sourceforge.net/recent</id>
-<updated>2009-01-28T00:00:00Z</updated>
+<updated>2009-03-25T00:00:00Z</updated>
 <title>Waterken News</title>
 <subtitle>Capability-based security on the Web</subtitle>
 <link href="recent.html"/>
@@ -15,6 +15,34 @@
     <name>Tyler Close</name>
     <uri>http://waterken.sourceforge.net/recent.html</uri>
 </author>
+
+<entry>
+<id>http://waterken.sourceforge.net/recent#9</id>
+<updated>2009-03-25T00:00:00Z</updated>
+<title>Deferred vs promise</title>
+<link href="http://groups.google.com/group/serverjs/browse_thread/thread/e93f73ef97e88439"/>
+<content type="xhtml">
+<div xmlns="http://www.w3.org/1999/xhtml">
+<p>The <a href="http://groups.google.com/group/serverjs">serverjs</a> group is
+working on a set of APIs for server-side Javascript programming. I've joined in
+on a <a
+href="http://groups.google.com/group/serverjs/browse_thread/thread/e93f73ef97e88439">thread
+about an API for asynchronous operations</a>. So far, the discussion has
+centered around the differences between the <a
+href="http://en.wikipedia.org/wiki/Twisted_(software)#Deferreds">Deferred
+concept from Twisted</a> and the <a
+href="http://www.erights.org/elib/concurrency/refmech.html">promise concept</a>
+from <a href="http://erights.org/">E</a> and <a
+href="http://portal.acm.org/citation.cfm?id=54016">Barbara Liskov's work</a>.
+Though I believe the Deferred concept is a direct descendant of the E promise,
+the API is significantly different and doesn't support the most useful
+programming idioms for asynchronous messaging. A Deferred doesn't support any
+operations that can't just as easily be done with Promises. I'm hoping to
+convince the serverjs group to adopt Promises instead of Deferreds;
+specifically, the <a href="bang/">Javascript ref_send library</a>.</p>
+</div>
+</content>
+</entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#8</id>
