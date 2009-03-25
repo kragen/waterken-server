@@ -3,14 +3,13 @@
 package org.waterken.archive.n2v;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import org.joe_e.file.InvalidFilenameException;
 import org.waterken.archive.ArchiveOutput;
 
 /**
@@ -45,23 +44,13 @@ N2VOutput implements ArchiveOutput {
         this.out = out;
     }
     
-    /**
-     * Creates an archive in a new file.
-     * @param file  file to create
-     * @throws IOException  any I/O problem
-     */
-    static public N2VOutput
-    create(final File file) throws IOException {
-        if (!file.createNewFile()) { throw new IOException(); }
-        return new N2VOutput(new FileOutputStream(file));
-    }
-    
     // org.waterken.archive.n2v.N2VOutput interface
     
     private       OutputStream current = null;
     
     public OutputStream
     append(final String name) {
+        if (-1 != name.indexOf('\0')) { throw new InvalidFilenameException(); }
         if (null != current) { throw new RuntimeException(); }
         return current = new OutputStream() {
             
@@ -100,7 +89,7 @@ N2VOutput implements ArchiveOutput {
                             offsets= new Offset[2*offsetCount], 0, offsetCount);
                     }
                     offsets[offsetCount++] = new Offset(meta.size(), total);
-                    meta.write(N2V.charset.encode(name).array());
+                    meta.write(N2V.charset.encode(name));
                     meta.write(0);
                     N2V.writeExtensionLong(meta, length);   // valueLength
                     N2V.writeExtensionLong(meta, 0);        // commentLength
@@ -146,5 +135,7 @@ N2VOutput implements ArchiveOutput {
         N2V.writeFixedLong(meta, N2V.magicSize, N2V.endMagic);
 
         meta.writeTo(out);
+        out.flush();
+        out.close();
     }
 }

@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.waterken.archive.ArchiveOutput;
 import org.waterken.io.Stream;
 
 /**
@@ -44,17 +45,15 @@ Compact {
             if (!file.createNewFile()) { throw new IOException(); }
             out = new FileOutputStream(file);
         }
-        final N2VOutput n2v = new N2VOutput(out);
+        final ArchiveOutput n2v = new N2VOutput(out);
         for (int i = 1; i != args.length; ++i) {
             append(n2v, new File(args[i]));
         }
         n2v.finish();
-        out.flush();
-        out.close();
     }
     
     static private void
-    append(final N2VOutput n2v, final File file) throws IOException {
+    append(final ArchiveOutput n2v, final File file) throws IOException {
         if (file.isFile()) {
             final FileInputStream in = new FileInputStream(file);
             final OutputStream out = n2v.append(path(file));
