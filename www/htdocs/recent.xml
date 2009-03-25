@@ -30,7 +30,7 @@ href="http://groups.google.com/group/serverjs/browse_thread/thread/e93f73ef97e88
 about an API for asynchronous operations</a>. So far, the discussion has
 centered around the differences between the <a
 href="http://en.wikipedia.org/wiki/Twisted_(software)#Deferreds">Deferred
-concept from Twisted</a> and the <a
+concept</a> from Twisted and the <a
 href="http://www.erights.org/elib/concurrency/refmech.html">promise concept</a>
 from <a href="http://erights.org/">E</a> and <a
 href="http://portal.acm.org/citation.cfm?id=54016">Barbara Liskov's work</a>.
