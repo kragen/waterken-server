@@ -37,8 +37,8 @@ href="http://portal.acm.org/citation.cfm?id=54016">Barbara Liskov's work</a>.
 Though I believe the Deferred concept is a direct descendant of the E promise,
 the API is significantly different and doesn't support the most useful
 programming idioms for asynchronous messaging. A Deferred doesn't support any
-operations that can't just as easily be done with Promises. I'm hoping to
-convince the serverjs group to adopt Promises instead of Deferreds;
+operations that can't just as easily be done with promises. I'm hoping to
+convince the serverjs group to adopt promises instead of Deferreds;
 specifically, the <a href="bang/">Javascript ref_send library</a>.</p>
 </div>
 </content>
