@@ -100,18 +100,23 @@ Caller extends Struct implements Messenger, Serializable {
     invoke(final String href, final Object proxy,
            final Method method, final Object... arg) {
         final Class<?> type = proxy.getClass();
-        final Channel<Object> x = _.defer();
+        final Channel<Object> r = _.defer();
         final String base = URI.resolve(here, href);
         final String property = HTTP.property(method);
         if (null != property) {
-            get(x.resolver, base, property, type, method);
+            get(r.resolver, base, property, type, method);
         } else {
+            final Class<?> Fulfilled = Eventual.ref(0).getClass();
+            final ConstArray.Builder<Object> argv =
+                ConstArray.builder(null != arg ? arg.length : 0);
+            for (final Object x : null != arg ? arg : new Object[0]) {
+                argv.append(Fulfilled.isInstance(x) ? Eventual.near(x) : x);
+            }
+            post(r.resolver,base,method.getName(),type,method,argv.snapshot());
             // TODO: implement pipeline references?
-            post(x.resolver, base, method.getName(), type, method,
-                 ConstArray.array(null == arg ? new Object[0] : arg));
         }
         return _.cast(Typedef.raw(Typedef.bound(method.getGenericReturnType(),
-                                                type)), x.promise);
+                                                type)), r.promise);
     }
     
     private void
@@ -221,21 +226,14 @@ Caller extends Struct implements Messenger, Serializable {
         throw new Failure(m.head.status, m.head.phrase);
     }
     
-    static private final Class<?> Fulfilled = Eventual.ref(0).getClass();
-    
     static protected Message<Request>
     serialize(final String here, final Exporter export,
               final String target, ConstArray<?> argv) throws Exception {
         final String contentType;
         final ByteArray content;
-        Object arg = argv.length() == 1 ? argv.get(0) : null;
-        if (Fulfilled.isInstance(arg)) {
-            arg = ((Promise<?>)arg).call();
-            argv = ConstArray.array(arg);
-        }
-        if (arg instanceof ByteArray) {
+        if (argv.length() == 1 && argv.get(0) instanceof ByteArray) {
             contentType = FileType.unknown.name;
-            content = (ByteArray)arg;
+            content = (ByteArray)argv.get(0);
         } else {
             contentType = FileType.json.name;
             content = new JSONSerializer().run(HTTP.changeBase(here, export,
