@@ -61,8 +61,7 @@ N2V implements Archive, Serializable {
     private final ByteBuffer index;
     
     /*
-     * archive ::= data summary index
-     *             entryCount indexAddress summaryAddress endMagic
+     * archive ::= data summary index indexAddress summaryAddress endMagic
      * data ::= value*
      * value ::= byte*
      * summary ::= entry*
@@ -82,17 +81,18 @@ N2V implements Archive, Serializable {
         
         final int rawLength = raw.limit();
         final int rawOffsetSize = sizeof(rawLength);
-        final int totalsAddress = rawLength - magicSize - 3 * rawOffsetSize;
+        final int totalsAddress = rawLength - magicSize - 2 * rawOffsetSize;
         raw.position(totalsAddress);
-        entryCount = readFixedInt(raw, rawOffsetSize);
         final int indexAddress = readFixedInt(raw, rawOffsetSize);
         final int summaryAddress = readFixedInt(raw, rawOffsetSize);
         if (endMagic != readFixedInt(raw,magicSize)) {throw new EOFException();}
         
-        final int summaryLength = indexAddress - summaryAddress;
         dataOffsetSize = sizeof(summaryAddress);
+        final int summaryLength = indexAddress - summaryAddress;
         summaryOffsetSize = sizeof(summaryLength);
         indexEntrySize = summaryOffsetSize + dataOffsetSize;
+        final int indexLength = totalsAddress - indexAddress;
+        entryCount = indexLength / indexEntrySize;
 
         raw.position(0);
         data = raw.slice();
@@ -104,7 +104,7 @@ N2V implements Archive, Serializable {
         
         raw.position(indexAddress);
         index = raw.slice();
-        index.limit(totalsAddress - indexAddress);
+        index.limit(indexLength);
     }
     
     /**
@@ -209,10 +209,10 @@ N2V implements Archive, Serializable {
         final int indexOffsetSize = summaryOffsetSize + dataOffsetSize;
         final long indexLength = entryCount * indexOffsetSize;
         final long dsiLength = dataLength + summaryLength + indexLength;
-        final int addressSize = sizeof(dsiLength+3*sizeof(dsiLength)+magicSize);
+        final int addressSize = sizeof(dsiLength+2*sizeof(dsiLength)+magicSize);
         final OutputStream sout = new BufferedOutputStream(
             new ChannelOutputStream(out),
-            (int)Math.min(indexLength + 3 * addressSize + magicSize,
+            (int)Math.min(indexLength + 2 * addressSize + magicSize,
                           (1<<14) * indexOffsetSize));
         for (int j = versionCount; 0 != j--;) {
             versions.get(j).index.position(0).mark();
@@ -250,7 +250,6 @@ N2V implements Archive, Serializable {
         }
         
         // append the totals
-        writeFixedLong(sout, addressSize, entryCount);
         writeFixedLong(sout, addressSize, dataLength + summaryLength);
         writeFixedLong(sout, addressSize, dataLength);
         writeFixedLong(sout, magicSize,   endMagic);

@@ -128,8 +128,7 @@ N2VOutput implements ArchiveOutput {
         
         total += meta.size();
         final int addressSize =
-            N2V.sizeof(total + 3 * N2V.sizeof(total) + N2V.magicSize);
-        N2V.writeFixedLong(meta, addressSize, offsetCount);
+            N2V.sizeof(total + 2 * N2V.sizeof(total) + N2V.magicSize);
         N2V.writeFixedLong(meta, addressSize, indexAddress);
         N2V.writeFixedLong(meta, addressSize, summaryAddress);
         N2V.writeFixedLong(meta, N2V.magicSize, N2V.endMagic);
