@@ -99,29 +99,19 @@ Caller extends Struct implements Messenger, Serializable {
     public Object
     invoke(final String href, final Object proxy,
            final Method method, final Object... arg) {
-        final Object r_;
-        final Resolver<Object> resolver;
         final Class<?> type = proxy.getClass();
-        final Class<?> R =
-            Typedef.raw(Typedef.bound(method.getGenericReturnType(), type));
-        if (void.class == R || Void.class == R) {
-            r_ = null;
-            resolver = null;
-        } else {
-            final Channel<Object> x = _.defer();
-            r_ = _.cast(R, x.promise);
-            resolver = x.resolver;
-        }
+        final Channel<Object> x = _.defer();
         final String base = URI.resolve(here, href);
         final String property = HTTP.property(method);
         if (null != property) {
-            get(resolver, base, property, type, method);
+            get(x.resolver, base, property, type, method);
         } else {
             // TODO: implement pipeline references?
-            post(resolver, base, method.getName(), type, method,
+            post(x.resolver, base, method.getName(), type, method,
                  ConstArray.array(null == arg ? new Object[0] : arg));
         }
-        return r_;
+        return _.cast(Typedef.raw(Typedef.bound(method.getGenericReturnType(),
+                                                type)), x.promise);
     }
     
     private void
