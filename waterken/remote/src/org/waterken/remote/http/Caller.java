@@ -228,7 +228,7 @@ Caller extends Struct implements Messenger, Serializable {
     
     static protected Message<Request>
     serialize(final String here, final Exporter export,
-              final String target, ConstArray<?> argv) throws Exception {
+              final String target, final ConstArray<?> argv) throws Exception {
         final String contentType;
         final ByteArray content;
         if (argv.length() == 1 && argv.get(0) instanceof ByteArray) {
