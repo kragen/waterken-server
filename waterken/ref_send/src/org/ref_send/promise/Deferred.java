@@ -22,6 +22,7 @@ import org.ref_send.type.Typedef;
 
 /**
  * Implementation hook that users should ignore.
+ * TODO: rename this to AbstractPromise
  * @param <T> referent type
  */
 public abstract class

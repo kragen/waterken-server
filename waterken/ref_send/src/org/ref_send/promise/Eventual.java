@@ -425,7 +425,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         long condition;             // id for the corresponding promise
         long message;               // id for this when block
         Do<T,?> observer;           // client's when block code
-        Promise<When<T>> next;     // next when block registered on the promise
+        Promise<When<T>> next;      // next when block registered on the promise
     }
     
     /**
@@ -479,15 +479,17 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     Forward<T> extends Struct implements Promise<Void>, Serializable {
         static private final long serialVersionUID = 1L;
 
+        private final boolean ignored;          // resolution ignored so far?
         private final long condition;           // id of corresponding promise
-        private final Promise<T> value;        // resolved value of promise
-        private final Promise<When<T>> next;   // when block to run
+        private final Promise<T> value;         // resolved value of promise
+        private final Promise<When<T>> pending; // when block to run
         
-        Forward(final long condition, final Promise<T> value,
-                final Promise<When<T>> next) {
+        Forward(final boolean ignored, final long condition,
+                final Promise<T> value, final Promise<When<T>> pending) {
+            this.ignored = ignored;
             this.condition = condition;
             this.value = value;
-            this.next = next;
+            this.pending = pending;
         }
 
         /**
@@ -495,37 +497,51 @@ Eventual implements Receiver<Promise<?>>, Serializable {
          */
         public Void
         call() throws Exception {
-            final When<T> block;
-            try {
-                block = next.call();
-            } catch (final Exception e) {
-                /*
-                 * There was a problem loading the saved when block. Ignore it
-                 * and all subsequent when blocks registered on this promise.
-                 */
-                log.problem(e);
-                throw e;
-            }
-            if (condition != block.condition) { return null; }  // already done
-            block.condition = 0;    // ensure block is not run again
-            
-            if (null != block.next) {
-                enqueue.run(new Forward<T>(condition, value, block.next));
+            final long message;
+            final Do<T,?> observer;
+            final Promise<When<T>> next; {
+                final When<T> block;
                 try {
-                    final String message = here + "#w" + block.message;
+                    block = pending.call();
+                } catch (final Exception e) {
+                    /*
+                     * There was a problem loading the saved when block. Ignore
+                     * it and all subsequent when blocks on this promise.
+                     */
+                    log.problem(e);
+                    throw e;
+                }
+                if (condition != block.condition) { return null; } // been done
+                
+                // free the block, thus ensuring it is not run again
+                message     = block.message;
+                observer    = block.observer;
+                next        = block.next;
+                freeWhen(pending, block);
+            }
+            
+            if (null != next) {
+                enqueue.run(new Forward<T>(false, condition, value, next));
+                try {
                     if (Deferred.trusted(deferred, value)) {
-                        log.got(message, null, null);
-                        ((Deferred<T>)value).when(block.observer);
+                        log.got(here + "#w" + message, null, null);
+                        ((Deferred<T>)value).when(observer);
                     } else {
                         // AUDIT: call to untrusted application code
-                        sample(value, block.observer, log, message);
+                        sample(value, observer, log, here + "#w" + message);
                     }
                 } catch (final Exception e) {
                     log.problem(e);
                     throw e;
                 }
+            } else if (ignored) {
+                try { value.call(); } catch (final Exception e) {
+                    log.got(here + "#w" + message, null, null);
+                    log.sentIf(here + "#w" + message, here + "#p" + condition);
+                    log.problem(e);
+                    throw e;
+                }
             }
-            freeWhen(next, block);
             return null;
         }
     }
@@ -556,7 +572,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
                  * new when block running task.
                  */
                 back = allocWhen(condition);
-                enqueue.run(new Forward<T>(condition, get(), back));
+                enqueue.run(new Forward<T>(false, condition, get(), back));
                 observe(observer);
             }
         }
@@ -621,8 +637,13 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         private void
         chain(final Promise<T> promise) {
             log.resolved(here + "#p" + condition);
-            enqueue.run(new Forward<T>(condition, promise, front));
-            try { state.call().mark(promise); } catch (final Exception e) {}
+            boolean ignored;
+            try {
+                ignored = !state.call().mark(promise);
+            } catch (final Exception e) {
+                ignored = true;
+            }
+            enqueue.run(new Forward<T>(ignored, condition, promise, front));
         }
     }
     
