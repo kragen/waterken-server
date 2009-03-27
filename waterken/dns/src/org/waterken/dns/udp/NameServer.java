@@ -118,8 +118,8 @@ NameServer extends UDPDaemon {
             answers= dbs.connect(file(master, Header.toLowerCase(qname))).enter(
                 Transaction.query, new Transaction<PowerlessArray<ByteArray>>(){
                 public PowerlessArray<ByteArray>
-                run(final Root local) throws Exception {
-                    final Menu<ByteArray> top = local.fetch(null, Database.top);
+                run(final Root root) throws Exception {
+                    final Menu<ByteArray> top = root.fetch(null, Database.top);
                     return (PowerlessArray<ByteArray>)near(top.getSnapshot());
                 }
             }).call();
