@@ -20,11 +20,11 @@ public final class
 SessionMaker implements Serializable {
     static private final long serialVersionUID = 1L;
 
-    private final Root local;
+    private final Root root;
     
     protected
-    SessionMaker(final Root local) {
-        this.local = local;
+    SessionMaker(final Root root) {
+        this.root = root;
     }
     
     // org.waterken.remote.http.SessionMaker interface
@@ -33,18 +33,18 @@ SessionMaker implements Serializable {
     
     protected ServerSideSession
     open(final String key) {
-        ServerSideSession r = local.fetch(null, sessionKeyPrefix + key);
+        ServerSideSession r = root.fetch(null, sessionKeyPrefix + key);
         if (null == r) {
-            final Log log = local.fetch(null, Database.log);
+            final Log log = root.fetch(null, Database.log);
             r = new ServerSideSession(hash(key), log);
-            local.link(sessionKeyPrefix + key, r);
+            root.link(sessionKeyPrefix + key, r);
         }
         return r;
     }
     
     public SessionInfo
     create() {
-        final String key = local.export(new Token(), false);
+        final String key = root.export(new Token(), false);
         return new SessionInfo(key, hash(key));
     }
     

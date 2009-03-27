@@ -11,7 +11,7 @@ import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.promise.Channel;
-import org.ref_send.promise.Deferred;
+import org.ref_send.promise.Local;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Failure;
@@ -82,7 +82,7 @@ Caller extends Struct implements Messenger, Serializable {
             public void
             fulfill(final String request, final Message<Response> response) {
                 _.log.got(request, null, null);
-                _.when(receive(base, response, Deferred.parameter(observer)),
+                _.when(receive(base, response, Local.parameter(observer)),
                        observer);
                 // TODO: implement polling on a 404 response?
             }

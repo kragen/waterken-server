@@ -154,11 +154,11 @@ Pipeline implements Serializable {
         run(final Database<Server> vat) throws Exception {
             vat.enter(Transaction.query, new Transaction<Immutable>() {
                 public Immutable
-                run(final Root local) throws Exception {
+                run(final Root root) throws Exception {
                     final Receiver<Effect<Server>> effect =
-                        local.fetch(null, Database.effect);
+                        root.fetch(null, Database.effect);
                     final Outbound outbound =
-                        local.fetch(null, VatInitializer.outbound);
+                        root.fetch(null, VatInitializer.outbound);
                     final Pipeline m = outbound.find(peer);
                     final long window = m.activeWindow;
                     int index = m.activeIndex;

@@ -11,7 +11,7 @@ import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.promise.Deferred;
+import org.ref_send.promise.Local;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.type.Typedef;
@@ -23,7 +23,7 @@ import org.waterken.uri.URI;
  * A remote reference.
  */
 public final class
-Remote extends Deferred<Object> {
+Remote extends Local<Object> {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -37,9 +37,9 @@ Remote extends Deferred<Object> {
     private final String href;
 
     private
-    Remote(final Eventual _, final Token deferred,
+    Remote(final Eventual _, final Token local,
            final Messenger messenger, final String href) {
-        super(_, deferred);
+        super(_, local);
         if (null == messenger) { throw new NullPointerException(); }
         if (null == href) { throw new NullPointerException(); }
         this.messenger = messenger;
@@ -49,12 +49,12 @@ Remote extends Deferred<Object> {
     /**
      * Constructs a remote reference importer.
      * @param _         corresponding eventual operator
-     * @param deferred  {@link Deferred} permission
+     * @param local     {@link Local} permission
      * @param messenger network message sender
      * @param here      URL for local vat
      */
     static public Importer
-    connect(final Eventual _, final Token deferred,
+    connect(final Eventual _, final Token local,
             final Messenger messenger, final String here) {
         class ImporterX extends Struct implements Importer, Serializable {
             static private final long serialVersionUID = 1L;
@@ -63,7 +63,7 @@ Remote extends Deferred<Object> {
             run(final String href, final String base, final Type type) {
                 final String url = null!=base ? URI.resolve(base, href) : href;
                 return _.cast(Typedef.raw(type),
-                    new Remote(_, deferred, messenger, URI.relate(here,url)));
+                    new Remote(_, local, messenger, URI.relate(here,url)));
             }
         }
         return new ImporterX();
@@ -71,11 +71,11 @@ Remote extends Deferred<Object> {
     
     /**
      * Constructs a remote reference exporter.
-     * @param deferred  {@link Deferred} permission
-     * @param next      next exporter to try
+     * @param local {@link Local} permission
+     * @param next  next exporter to try
      */
     static public Exporter
-    export(final Token deferred, final Exporter next) {
+    export(final Token local, final Exporter next) {
         class ExporterX extends Struct implements Exporter, Serializable {
             static private final long serialVersionUID = 1L;
             
@@ -85,7 +85,7 @@ Remote extends Deferred<Object> {
                     ? Proxies.getHandler((Proxy)target) : target;
                 if (handler instanceof Remote) {
                     final Remote x = (Remote)handler;
-                    if (Deferred.trusted(deferred, x)) { return x.href; }
+                    if (Local.trusted(local, x)) { return x.href; }
                 }
                 return next.run(target);
             }

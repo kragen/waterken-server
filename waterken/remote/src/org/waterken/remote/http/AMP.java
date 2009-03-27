@@ -88,9 +88,9 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                                       "TRACE".equals(head.method),
                                       new Transaction<Message<Response>>() {
                             public Message<Response>
-                            run(final Root local) throws Exception {
+                            run(final Root root) throws Exception {
                                 final HTTP.Exports exports =
-                                    local.fetch(null, VatInitializer.exports);
+                                    root.fetch(null, VatInitializer.exports);
                                 return new Callee(exports).run(q, m);
                             }
                         }).call();

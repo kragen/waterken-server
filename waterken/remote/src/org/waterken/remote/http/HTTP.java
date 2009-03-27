@@ -16,7 +16,7 @@ import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.promise.Deferred;
+import org.ref_send.promise.Local;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Log;
@@ -48,8 +48,8 @@ public final class
 HTTP extends Eventual implements Serializable {
     static private final long serialVersionUID = 1L;    
     
-    private   final Root local;                         // vat root
-    private   final Promise<Outbound> outbound;       // active msg pipelines
+    private   final Root root;                          // vat root
+    private   final Promise<Outbound> outbound;         // active msg pipelines
     
     private   final Creator creator;                    // sub-vat factory
     private   final Receiver<Effect<Server>> effect;    // tx effect scheduler
@@ -57,13 +57,13 @@ HTTP extends Eventual implements Serializable {
     private
     HTTP(final Receiver<Promise<?>> enqueue,
          final String here, final Log log, final Receiver<?> destruct,
-         final Root local, final Promise<Outbound> outbound) {
+         final Root root, final Promise<Outbound> outbound) {
         super(new Token(), enqueue, here, log, destruct);
-        this.local = local;
+        this.root = root;
         this.outbound = outbound;
         
-        creator = local.fetch(null, Database.creator);
-        effect = local.fetch(null, Database.effect);
+        creator = root.fetch(null, Database.creator);
+        effect = root.fetch(null, Database.effect);
     }
     
     // org.ref_send.promise.Eventual interface
@@ -107,10 +107,10 @@ HTTP extends Eventual implements Serializable {
     // org.waterken.remote.http.Exports interface
     
     static protected HTTP.Exports
-    make(final Receiver<Promise<?>> enqueue, final Root local, final Log log,
+    make(final Receiver<Promise<?>> enqueue, final Root root, final Log log,
          final Receiver<?> destruct, final Promise<Outbound> outbound) {
-        final String here = local.fetch(null, Database.here);
-        return new Exports(new HTTP(enqueue,here,log, destruct,local,outbound));
+        final String here = root.fetch(null, Database.here);
+        return new Exports(new HTTP(enqueue,here,log, destruct,root,outbound));
     }
     
     static public final class
@@ -123,7 +123,7 @@ HTTP extends Eventual implements Serializable {
         private
         Exports(final HTTP _) {
             this._ = _;
-            tagger = _.local.fetch(null, Database.monitor);
+            tagger = _.root.fetch(null, Database.monitor);
         }
         
         // org.waterken.remote.Messenger interface
@@ -134,7 +134,7 @@ HTTP extends Eventual implements Serializable {
             if (isPromise(URI.fragment("", href))) {
                 peer(href).when(href, proxy, observer);
             } else {
-                final Class<?> P = Typedef.raw(Deferred.parameter(observer));
+                final Class<?> P = Typedef.raw(Local.parameter(observer));
                 _.when(P, HTTP.inline(_.cast(P, proxy)), observer);
             }
         }
@@ -146,7 +146,7 @@ HTTP extends Eventual implements Serializable {
                 // re-dispatch invocation on resolved value of web-key
                 final ConstArray<?> argv =
                     ConstArray.array(null == arg ? new Object[0] : arg);
-                final Do<Object,Object> invoke = Deferred.curry(method, argv);
+                final Do<Object,Object> invoke = Local.curry(method, argv);
                 return _.when(proxy, invoke);
             } else {
                 return peer(href).invoke(href, proxy, method, arg);
@@ -159,11 +159,11 @@ HTTP extends Eventual implements Serializable {
         peer(final String href) {
             final String peer = URI.resolve(URI.resolve(_.here, href), ".");
             final String peerKey = ".peer-" + URLEncoding.encode(peer);
-            Pipeline msgs = _.local.fetch(null, peerKey);
+            Pipeline msgs = _.root.fetch(null, peerKey);
             if (null == msgs) {
-                final SessionInfo s = new SessionMaker(_.local).create();
+                final SessionInfo s = new SessionMaker(_.root).create();
                 msgs = new Pipeline(peer, s.key, s.name, _.effect, _.outbound);
-                _.local.link(peerKey, msgs);
+                _.root.link(peerKey, msgs);
             }
             return new Caller(_,_.here,getCodebase(), connect(),export(),msgs);
         }
@@ -175,14 +175,14 @@ HTTP extends Eventual implements Serializable {
         getHere() { return _.here; }
         
         public ClassLoader
-        getCodebase() { return _.local.fetch(null, Database.code); }
+        getCodebase() { return _.root.fetch(null, Database.code); }
         
         /**
          * Constructs a reference importer.
          */
         public Importer
         connect() {
-            final Importer next=Remote.connect(_, _.deferred, this, _.here);
+            final Importer next=Remote.connect(_, _.local, this, _.here);
             class ImporterX extends Struct implements Importer, Serializable {
                 static private final long serialVersionUID = 1L;
 
@@ -210,11 +210,11 @@ HTTP extends Eventual implements Serializable {
 
                 public String
                 run(final Object object) {
-                    return href(_.local.export(object, false), isPBC(object) ||
+                    return href(_.root.export(object, false), isPBC(object) ||
                         !(Fulfilled.isInstance(Eventual.ref(object))));
                 }
             }
-            return Remote.export(_.deferred, new ExporterX());
+            return Remote.export(_.local, new ExporterX());
         }
 
         protected String
@@ -236,7 +236,7 @@ HTTP extends Eventual implements Serializable {
                     return op.call();
                 } catch (final Exception e) { return new Rejected<Object>(e); }
             }
-            final ServerSideSession session = new SessionMaker(_.local).open(x);
+            final ServerSideSession session = new SessionMaker(_.root).open(x);
             return session.once(window(query), message(query), method, op);
         }
         
@@ -248,7 +248,7 @@ HTTP extends Eventual implements Serializable {
         protected Object
         reference(final String query) {
             final String s = subject(query);
-            return null==s || s.startsWith(".") ? null : _.local.fetch(null, s);
+            return null==s || s.startsWith(".") ? null : _.root.fetch(null, s);
         }
     }
     

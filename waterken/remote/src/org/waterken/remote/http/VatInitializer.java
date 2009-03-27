@@ -45,22 +45,22 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     }
     
     public PowerlessArray<String>
-    run(final Root local) throws Exception {
-        final Log log = local.fetch(null, Database.log);
-        final Receiver<Effect<Server>> effect=local.fetch(null,Database.effect);
+    run(final Root root) throws Exception {
+        final Log log = root.fetch(null, Database.log);
+        final Receiver<Effect<Server>> effect=root.fetch(null,Database.effect);
         
         final List<Promise<?>> tasks = List.list();
-        final Receiver<?> destruct = local.fetch(null, Database.destruct);
+        final Receiver<?> destruct = root.fetch(null, Database.destruct);
         final Outbound outbound = new Outbound();
-        final HTTP.Exports exports = HTTP.make(enqueue(effect,tasks), local,
+        final HTTP.Exports exports = HTTP.make(enqueue(effect,tasks), root,
                 log, destruct, Eventual.ref(outbound));
         final String mid = exports.getHere() + "#make";
         log.got(mid, null, make);
-        local.link(VatInitializer.tasks, tasks);
-        local.link(VatInitializer.outbound, outbound);
-        local.link(VatInitializer.exports, exports);
-        local.link(VatInitializer.sessions, new SessionMaker(local));
-        local.link(Database.wake, wake(tasks, outbound, effect));
+        root.link(VatInitializer.tasks, tasks);
+        root.link(VatInitializer.outbound, outbound);
+        root.link(VatInitializer.exports, exports);
+        root.link(VatInitializer.sessions, new SessionMaker(root));
+        root.link(Database.wake, wake(tasks, outbound, effect));
         final ConstArray<Type> signature =
             ConstArray.array(make.getGenericParameterTypes());
         final Object[] argv = new Object[signature.length()];
@@ -76,7 +76,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             argv[--j] = optional.get(--i);
         }
         final Object top = Reflection.invoke(make, null, argv);
-        local.link(Database.top, top);
+        root.link(Database.top, top);
         final Exporter export =
             HTTP.changeBase(exports.getHere(), exports.export(), base);
         return PowerlessArray.array(mid, export.run(top), export.run(destruct));
