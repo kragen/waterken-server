@@ -42,7 +42,8 @@ Bounce {
         final Receiver<?> normal = _;
         final Rejected<Receiver<?>> rejected =
             new Rejected<Receiver<?>>(new Exception());
-        final Channel<Boolean> d = _.defer(); 
+        final Channel<Boolean> d = _.defer();
+        final Promise<Boolean> p = ref(false);
         class WallX extends Struct implements Wall, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -72,7 +73,8 @@ Bounce {
                         with(null).
                         with(rejected._(Receiver.class)),
                     new ConstArray<Promise<?>>().
-                        with(d.promise),
+                        with(d.promise).
+                        with(p),
                     ConstArray.array(
                         new ImmutableArray<PowerlessArray<Boolean>>().
                             with(PowerlessArray.array(true)),
