@@ -134,9 +134,9 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * {@link Deferred} permission
+     * {@link Local} permission
      */
-    protected final Token deferred;
+    protected final Token local;
 
     /**
      * raw {@link #run event loop}
@@ -163,16 +163,16 @@ Eventual implements Receiver<Promise<?>>, Serializable {
 
     /**
      * Constructs an instance.
-     * @param deferred  {@link Deferred} permission
+     * @param local     {@link Local} permission
      * @param enqueue   raw {@link #run event loop}
      * @param here      URI for the event loop
      * @param log       {@link #log}
      * @param destruct  {@link #destruct}
      */
     public
-    Eventual(final Token deferred, final Receiver<Promise<?>> enqueue,
+    Eventual(final Token local, final Receiver<Promise<?>> enqueue,
              final String here, final Log log, final Receiver<?> destruct) {
-        this.deferred = deferred;
+        this.local = local;
         this.enqueue = enqueue;
         this.here = here;
         this.log = log;
@@ -293,7 +293,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         try {
             final R r;
             final Do<P,?> forwarder;
-            final Class<?> R = Typedef.raw(Deferred.output(P, observer));
+            final Class<?> R = Typedef.raw(Local.output(P, observer));
             if (void.class == R || Void.class == R) {
                 r = null;
                 forwarder = observer;
@@ -311,23 +311,23 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     static protected <T> Promise<T>
     inline(final T referent) { return new Inline<T>(referent); }
 
-    private final <T> Deferred<T>
+    private final <T> Local<T>
     trust(final Promise<T> untrusted) {
         return null == untrusted
             ? new Enqueue<T>(this, new Rejected<T>(new NullPointerException()))
-        : Deferred.trusted(deferred, untrusted)
-            ? (Deferred<T>)untrusted
+        : Local.trusted(local, untrusted)
+            ? (Local<T>)untrusted
         : new Enqueue<T>(this, untrusted);
     }
 
     static private final class
-    Enqueue<T> extends Deferred<T> {
+    Enqueue<T> extends Local<T> {
         static private final long serialVersionUID = 1L;
 
         final Promise<T> untrusted;
 
         Enqueue(final Eventual _, final Promise<T> untrusted) {
-            super(_, _.deferred);
+            super(_, _.local);
             this.untrusted = untrusted;
         }
 
@@ -429,7 +429,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     }
     
     /**
-     * number of deferred when blocks created
+     * number of when blocks created
      * <p>
      * This variable is only incremented and should never be allowed to wrap.
      * </p>
@@ -523,9 +523,9 @@ Eventual implements Receiver<Promise<?>>, Serializable {
             if (null != next) {
                 enqueue.run(new Forward<T>(false, condition, value, next));
                 try {
-                    if (Deferred.trusted(deferred, value)) {
+                    if (Local.trusted(local, value)) {
                         log.got(here + "#w" + message, null, null);
-                        ((Deferred<T>)value).when(observer);
+                        ((Local<T>)value).when(observer);
                     } else {
                         // AUDIT: call to untrusted application code
                         sample(value, observer, log, here + "#w" + message);
@@ -579,13 +579,13 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     }
     
     static private final class
-    Tail<T> extends Deferred<T> {
+    Tail<T> extends Local<T> {
         static private final long serialVersionUID = 1L;
 
         private final State<T> state;   // mutable store for promise's value
 
         Tail(final Eventual _, final State<T> state) {
-            super(_, _.deferred);
+            super(_, _.local);
             this.state = state;
         }
 
@@ -648,7 +648,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     }
     
     /**
-     * number of deferred promises {@linkplain #defer created}
+     * number of promises {@linkplain #defer created}
      * <p>
      * This variable is only incremented and should never be allowed to wrap.
      * </p>
@@ -656,11 +656,11 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     private long deferrals;
 
     /**
-     * Creates a promise in the deferred state.
+     * Creates a promise in the unresolved state.
      * <p>
      * The return from this method is a ( {@linkplain Promise promise},
      * {@linkplain Resolver resolver} ) pair. The promise is initially in the
-     * deferred state and can only be resolved by the resolver once. If the
+     * unresolved state and can only be resolved by the resolver once. If the
      * promise is {@linkplain Resolver#run fulfilled}, the promise will forever
      * refer to the provided referent. If the promise, is
      * {@linkplain Resolver#reject rejected}, the promise will forever be in
@@ -835,7 +835,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
             try {
                 final Object handler = Proxies.getHandler((Proxy)reference);
                 if ((null != handler && Rejected.class == handler.getClass()) ||
-                    Deferred.trusted(deferred, handler)) { return reference; }
+                    Local.trusted(local, handler)) { return reference; }
             } catch (final Exception e) {}
         }
         try {

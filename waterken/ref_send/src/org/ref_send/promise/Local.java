@@ -22,11 +22,14 @@ import org.ref_send.type.Typedef;
 
 /**
  * Implementation hook that users should ignore.
- * TODO: rename this to AbstractPromise
+ * <p>
+ * An abstract base class for a promise implementation that is scoped to a
+ * particular event queue.
+ * </p>
  * @param <T> referent type
  */
 public abstract class
-Deferred<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
+Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
@@ -36,28 +39,30 @@ Deferred<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
 
     /**
      * Constructs an instance.
-     * @param _         corresponding eventual operator
-     * @param deferred  {@link Deferred} permission
+     * @param _     corresponding eventual operator
+     * @param local corresponding {@link Eventual#local}
      */
     protected
-    Deferred(final Eventual _, final Token deferred) {
-        // *MUST ONLY* allow construction by a caller who directly possesses the
-        // corresponding deferred permission. The Eventual implementation relies
-        // upon this check being done in this constructor.
-        if (_.deferred != deferred) { throw new ClassCastException(); }
+    Local(final Eventual _, final Token local) {
+        /*
+         * *MUST ONLY* allow construction by a caller who directly possesses the
+         * corresponding permission. The Eventual implementation relies upon
+         * this check being done in this constructor.
+         */
+        if (_.local != local) { throw new ClassCastException(); }
         this._ = _;
     }
     
     /**
      * Is an untrusted promise actually a trusted implementation?
-     * @param deferred  {@link Deferred} permission
+     * @param local {@link Local} permission
      * @param untrusted currently untrusted promise
      * @return <code>true</code> if trusted, else <code>false</code>
      */
     static protected final boolean
-    trusted(final Token deferred, final Object untrusted) {
-        return untrusted instanceof Deferred &&
-               deferred == ((Deferred<?>)untrusted)._.deferred;
+    trusted(final Token local, final Object untrusted) {
+        return untrusted instanceof Local &&
+               local == ((Local<?>)untrusted)._.local;
     }
 
     // java.lang.Object interface

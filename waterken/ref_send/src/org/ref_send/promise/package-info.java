@@ -110,7 +110,7 @@
  * inputs which are not yet known. The
  * {@link org.ref_send.promise.Eventual} class supports creating this
  * kind of
- * {@linkplain org.ref_send.promise.Eventual#defer deferred promise},
+ * {@linkplain org.ref_send.promise.Eventual#defer unresolved promise},
  * as well as doing
  * {@linkplain org.ref_send.promise.Eventual#when conditional}
  * operations on promises.</p>
