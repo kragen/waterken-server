@@ -1,9 +1,9 @@
 #!/bin/sh
 if [ "$OS" = 'Windows_NT' ]
 then
-    CLASSPATH='..\joe-e\bin;..\ref_send\bin;..\log\bin'
+    CLASSPATH='..\joe-e\bin;..\ref_send\bin;..\log\bin;..\network\bin'
 else
-    CLASSPATH='../joe-e/bin:../ref_send/bin:../log/bin'
+    CLASSPATH='../joe-e/bin:../ref_send/bin:../log/bin:../network/bin'
 fi
 
 echo 'Building persistence project...'

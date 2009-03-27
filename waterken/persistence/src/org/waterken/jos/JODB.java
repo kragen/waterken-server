@@ -138,16 +138,20 @@ JODB<S> extends Database<S> {
     private String project;
     private ClassLoader code = JODB.class.getClassLoader();
     
-    public synchronized String
+    public String
     getProject() throws Exception {
-        wake();
-        return project;
+        synchronized (store) {
+            wake();
+            return project;
+        }
     }
 
-    public synchronized <R extends Immutable> Promise<R>
+    public <R extends Immutable> Promise<R>
     enter(final boolean isQuery, final Transaction<R> body) throws Exception {
-        wake();
-        return process(isQuery, body);
+        synchronized (store) {
+            wake();
+            return process(isQuery, body);
+        }
     }
     
     /**
@@ -160,8 +164,8 @@ JODB<S> extends Database<S> {
         if (!awake.is()) {
             process(Transaction.query, new Transaction<Immutable>() {
                 public Immutable
-                run(final Root local) throws Exception {
-                    final Receiver<?> wake = local.fetch(null, Database.wake);
+                run(final Root root) throws Exception {
+                    final Receiver<?> wake = root.fetch(null, Database.wake);
                     if (null != wake) { wake.run(null); }
                     return new Immutable() {};
                 }
@@ -187,6 +191,7 @@ JODB<S> extends Database<S> {
         Bucket(final CacheReference<String,Object> value,
                final boolean created, final ByteArray version,
                final boolean managed, final PowerlessArray<String> splices) {
+            if (null == value) { throw new AssertionError(); }
             if (!created && null == version) { throw new AssertionError(); }
             if (!created && null == splices) { throw new AssertionError(); }
             

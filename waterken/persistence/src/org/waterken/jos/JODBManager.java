@@ -11,7 +11,6 @@ import org.waterken.db.DatabaseManager;
 import org.waterken.db.Service;
 import org.waterken.store.StoreMaker;
 import org.waterken.thread.Concurrent;
-import org.waterken.thread.Sleep;
 
 /**
  * A cache of live vats.
@@ -21,7 +20,6 @@ JODBManager<S> implements DatabaseManager<S> {
     
     private final ThreadGroup group = new ThreadGroup("db");
     private final Cache<File,JODB<S>> live = Cache.make();
-    private final Sleep sleep = new Sleep();
 
     private final StoreMaker layout;
     private final S session;
@@ -50,7 +48,7 @@ JODBManager<S> implements DatabaseManager<S> {
             final Receiver<Service> service =
                 Concurrent.make(group, dir.getPath());            
             r = new JODB<S>(session, service, stderr,
-                            layout.run(sleep, dir.getParentFile(), dir));
+                            layout.run(dir.getParentFile(), dir));
             live.put(dir, r);
             return r;
         }

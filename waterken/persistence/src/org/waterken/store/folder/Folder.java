@@ -7,6 +7,7 @@ import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 
@@ -14,7 +15,6 @@ import org.joe_e.Struct;
 import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.joe_e.var.Milestone;
-import org.ref_send.deserializer;
 import org.ref_send.promise.Receiver;
 import org.waterken.store.Store;
 import org.waterken.store.StoreMaker;
@@ -26,17 +26,21 @@ import org.waterken.store.Update;
 public final class
 Folder extends Struct implements StoreMaker, Serializable {
     static private final long serialVersionUID = 1L;
+
+    private final Receiver<Long> sleep;
     
     /**
      * Constructs an instance.
      */
-    public @deserializer
-    Folder() {}
+    public
+    Folder(final Receiver<Long> sleep) {
+        this.sleep = sleep;
+    }
     
     // org.waterken.store.StoreMaker interface
     
     public Store
-    run(final Receiver<Long> sleep, final File parent, final File dir) {
+    run(final File parent, final File dir) {
         final File pending = Filesystem.file(dir, ".pending");
         final File committed = Filesystem.file(dir, ".committed");
         return new Store() {
@@ -53,9 +57,15 @@ Folder extends Struct implements StoreMaker, Serializable {
                 }
             }
             
-            public Update
+            public synchronized Update
             update() throws IOException {
-                if (active) { throw new AssertionError(); }
+                while (active) {
+                    try {
+                        wait();
+                    } catch (final InterruptedException e) {
+                        throw new InterruptedIOException();
+                    }
+                }
                 
                 if (!dir.isDirectory()) { throw new FileNotFoundException(); }
                 if (pending.isDirectory()) {
@@ -70,15 +80,26 @@ Folder extends Struct implements StoreMaker, Serializable {
                 final Milestone<Boolean> done = Milestone.plan();
                 final Milestone<Boolean> nested = Milestone.plan();
                 final Milestone<Boolean> written = Milestone.plan();
+                final Object lock = this;
                 return new Update() {
+                    
+                    public void
+                    close() throws IOException {
+                        done.mark(true);
+                        synchronized (lock) {
+                            active = false;
+                            lock.notify();
+                        }
+                        if (!dir.isDirectory()) {
+                            throw new FileNotFoundException();
+                        }
+                    }
                     
                     public boolean
                     includes(final String filename) {
                         if (done.is()) { throw new AssertionError(); }
                         try {
-                            return Filesystem.file(dir, filename).isFile() ||
-                                (written.is() &&
-                                 Filesystem.file(pending, filename).isFile());
+                            return Filesystem.file(dir, filename).isFile();
                         } catch (final InvalidFilenameException e) {
                             return false;
                         }
@@ -88,23 +109,9 @@ Folder extends Struct implements StoreMaker, Serializable {
                     read(final String filename) throws IOException {
                         if (done.is()) { throw new AssertionError(); }
                         try {
-                            if (written.is()) {
-                                final File file =
-                                    Filesystem.file(pending, filename);
-                                if(file.isFile()){return Filesystem.read(file);}
-                            }
-                            final File file = Filesystem.file(dir, filename);
-                            return Filesystem.read(file);
+                            return Filesystem.read(
+                                    Filesystem.file(dir, filename));
                         } catch (final InvalidFilenameException e) {
-                            throw new FileNotFoundException();
-                        }
-                    }
-                    
-                    public void
-                    close() throws IOException {
-                        done.mark(true);
-                        active = false;
-                        if (!dir.isDirectory()) {
                             throw new FileNotFoundException();
                         }
                     }
@@ -158,7 +165,7 @@ Folder extends Struct implements StoreMaker, Serializable {
                         final File child = Filesystem.file(pending, filename);
                         mkdir(child);
                         writeNew(Filesystem.file(pending, was)).close();
-                        return run(sleep, pending, child);
+                        return run(pending, child);
                     }
                     
                     public void

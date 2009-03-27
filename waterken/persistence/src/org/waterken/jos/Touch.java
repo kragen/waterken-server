@@ -13,7 +13,7 @@ import org.waterken.db.Transaction;
 import org.waterken.store.folder.Folder;
 
 /**
- * Touches all the mutable objects in a vat.
+ * TODO: Touches all the mutable objects in a vat.
  */
 final class
 Touch {
@@ -37,7 +37,7 @@ Touch {
         }
 
         touch(new File(args[0]),
-              new JODBManager<Void>(new Folder(), null, null),
+              new JODBManager<Void>(null, null, null),
               log);
     }
     
@@ -57,13 +57,13 @@ Touch {
         final JODB<Void> db = vats.connect(dir);
         db.process(Transaction.update, new Transaction<Immutable>() {
             public Immutable
-            run(final Root local) throws Exception {
+            run(final Root root) throws Exception {
                 dir.list(new FilenameFilter() {
                     public boolean
                     accept(final File dir, final String name) {
                         if (!name.endsWith(JODB.ext)) { return false; }
                         try {
-                            local.fetch(null, name.substring(
+                            root.fetch(null, name.substring(
                                0, name.length() - JODB.ext.length()));
                         } catch (final Exception e) {} // ignore problem object
                         return false;

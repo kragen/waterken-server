@@ -16,6 +16,15 @@ public interface
 Update {
     
     /**
+     * Terminates this transaction.
+     * <p>
+     * Further invocations MUST NOT be made on this object.
+     * </p>
+     * @throws IOException              any I/O problem
+     */
+    void close() throws IOException;
+    
+    /**
      * Does an entry with the given name already exist?
      * @param filename  name of entry to check for
      * @return <code>true</code> if and only if the named entry exists;
@@ -32,15 +41,6 @@ Update {
      * @throws IOException              any I/O problem
      */
     InputStream read(String filename) throws FileNotFoundException, IOException;
-    
-    /**
-     * Terminates this transaction.
-     * <p>
-     * Further invocations MUST NOT be made on this object.
-     * </p>
-     * @throws IOException              any I/O problem
-     */
-    void close() throws IOException;
 
     /**
      * Creates an update file.

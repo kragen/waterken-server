@@ -4,7 +4,7 @@ jar cmf REPORT.MF ..\report.jar X.class
 jar cmf TOUCH.MF ..\touch.jar X.class
 mkdir bin
 javac -d bin ^
-  -classpath "..\joe-e\bin;..\ref_send\bin;..\log\bin" ^
+  -classpath "..\joe-e\bin;..\ref_send\bin;..\log\bin;..\network\bin" ^
   src\org\waterken\base32\*.java ^
   src\org\waterken\cache\*.java ^
   src\org\waterken\db\*.java ^

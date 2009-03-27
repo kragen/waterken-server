@@ -2,6 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 
 /**
- * A file system based <code>byte</code> storage implementation.
+ * A file folder based {@link org.waterken.store.Store} implementation.
  */
 @org.joe_e.IsJoeE package org.waterken.store.folder;

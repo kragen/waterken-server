@@ -23,9 +23,9 @@ Transaction<R extends Immutable> extends Immutable {
 
     /**
      * Executes the transaction.
-     * @param local {@link Database} root
+     * @param root {@link Database} root
      * @return any return
      * @throws Exception    any problem
      */
-    R run(Root local) throws Exception;
+    R run(Root root) throws Exception;
 }

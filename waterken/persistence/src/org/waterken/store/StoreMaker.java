@@ -3,8 +3,7 @@
 package org.waterken.store;
 
 import java.io.File;
-
-import org.ref_send.promise.Receiver;
+import java.io.IOException;
 
 /**
  * A {@link Store} maker.
@@ -19,9 +18,8 @@ StoreMaker {
 
     /**
      * Constructs a {@link Store}.
-     * @param sleep     authority to sleep the current thread
      * @param parent    parent folder, used to {@linkplain Store#clean delete}
      * @param dir       folder of existing state
      */
-    Store run(Receiver<Long> sleep, File parent, File dir);
+    Store run(File parent, File dir) throws IOException;
 }
