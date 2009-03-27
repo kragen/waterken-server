@@ -26,6 +26,7 @@ public final class UTF8 {
      */
     static public byte[] encode(final String text) {
         return charset.encode(text).array();
+        // TODO: this is broken
     }
     
     /**
