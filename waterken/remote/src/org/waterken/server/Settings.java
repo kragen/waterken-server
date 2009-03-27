@@ -15,6 +15,7 @@ import org.waterken.jos.JODBManager;
 import org.waterken.project.Project;
 import org.waterken.remote.http.AMP;
 import org.waterken.remote.mux.Mux;
+import org.waterken.store.folder.Folder;
 import org.waterken.store.n2v.RollingN2V;
 import org.waterken.syntax.config.Config;
 import org.waterken.thread.Sleep;
@@ -59,7 +60,7 @@ Settings {
         try { stderr = config.read("stderr");
         } catch (final Exception e) { throw new Error(e); }
         config.override("dbs", new JODBManager<Server>(
-            new RollingN2V(new Sleep()), new Proxy(), stderr));
+            new Folder(new Sleep()), new Proxy(), stderr));
     }
     
     /**
