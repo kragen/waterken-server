@@ -5,6 +5,9 @@ package org.waterken.store;
 import java.io.File;
 import java.io.IOException;
 
+import org.ref_send.promise.Promise;
+import org.ref_send.promise.Receiver;
+
 /**
  * A {@link Store} maker.
  */
@@ -18,8 +21,10 @@ StoreMaker {
 
     /**
      * Constructs a {@link Store}.
-     * @param parent    parent folder, used to {@linkplain Store#clean delete}
-     * @param dir       folder of existing state
+     * @param background    thread for background processing
+     * @param parent        parent folder, for {@linkplain Store#clean cleaning}
+     * @param dir           folder of existing state
      */
-    Store run(File parent, File dir) throws IOException;
+    Store run(Receiver<Promise<?>> background,
+              File parent, File dir) throws IOException;
 }

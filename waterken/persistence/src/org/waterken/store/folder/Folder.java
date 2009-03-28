@@ -15,6 +15,7 @@ import org.joe_e.Struct;
 import org.joe_e.file.Filesystem;
 import org.joe_e.file.InvalidFilenameException;
 import org.joe_e.var.Milestone;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.waterken.store.Store;
 import org.waterken.store.StoreMaker;
@@ -40,7 +41,8 @@ Folder extends Struct implements StoreMaker, Serializable {
     // org.waterken.store.StoreMaker interface
     
     public Store
-    run(final File parent, final File dir) {
+    run(final Receiver<Promise<?>> background,
+        final File parent, final File dir) {
         final File pending = Filesystem.file(dir, ".pending");
         final File committed = Filesystem.file(dir, ".committed");
         return new Store() {
@@ -165,7 +167,7 @@ Folder extends Struct implements StoreMaker, Serializable {
                         final File child = Filesystem.file(pending, filename);
                         mkdir(child);
                         writeNew(Filesystem.file(pending, was)).close();
-                        return run(pending, child);
+                        return run(background, pending, child);
                     }
                     
                     public void

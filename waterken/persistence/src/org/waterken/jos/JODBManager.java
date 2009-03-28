@@ -5,6 +5,7 @@ package org.waterken.jos;
 import java.io.File;
 
 import org.ref_send.log.Event;
+import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.waterken.cache.Cache;
 import org.waterken.db.DatabaseManager;
@@ -19,6 +20,7 @@ public final class
 JODBManager<S> implements DatabaseManager<S> {
     
     private final ThreadGroup group = new ThreadGroup("db");
+    private final Receiver<Promise<?>> background= Concurrent.make(group,"sys");
     private final Cache<File,JODB<S>> live = Cache.make();
 
     private final StoreMaker layout;
@@ -48,7 +50,7 @@ JODBManager<S> implements DatabaseManager<S> {
             final Receiver<Service> service =
                 Concurrent.make(group, dir.getPath());            
             r = new JODB<S>(session, service, stderr,
-                            layout.run(dir.getParentFile(), dir));
+                            layout.run(background, dir.getParentFile(), dir));
             live.put(dir, r);
             return r;
         }
