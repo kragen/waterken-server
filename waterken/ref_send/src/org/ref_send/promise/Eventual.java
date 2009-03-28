@@ -637,13 +637,8 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         private void
         chain(final Promise<T> promise) {
             log.resolved(here + "#p" + condition);
-            boolean ignored;
-            try {
-                ignored = !state.call().mark(promise);
-            } catch (final Exception e) {
-                ignored = true;
-            }
-            enqueue.run(new Forward<T>(ignored, condition, promise, front));
+            enqueue.run(new Forward<T>(true, condition, promise, front));
+            try { state.call().mark(promise); } catch (final Exception e) {}
         }
     }
     
