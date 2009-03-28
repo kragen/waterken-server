@@ -38,16 +38,21 @@ N2V implements Archive, Serializable {
     static public    final int endMagic = 0x0A4E3256;
     
     static protected final int magicSize = Integer.SIZE / Byte.SIZE;
-
+    
     /**
-     * corresponding ETag for all entries
+     * corresponding file
      */
-    public final String etag;
+    public final File file;
     
     /**
      * raw archive data
      */
     public final ByteBuffer raw;
+
+    /**
+     * corresponding ETag for all entries
+     */
+    private final String etag;
     
     /**
      * number of entries
@@ -70,14 +75,20 @@ N2V implements Archive, Serializable {
      */
     
     /**
-     * Constructs an instance.
-     * @param etag  {@link #etag}
-     * @param raw   {@link #raw}
+     * Opens an existing archive.
+     * @param file  underlying file
+     * @throws IOException  any I/O problem
      */
     public
-    N2V(final String etag, final ByteBuffer raw) throws EOFException {
-        this.etag = etag;
-        this.raw = raw;
+    N2V(final File file) throws IOException {
+        this.file = file;
+
+        final FileChannel ch = new FileInputStream(file).getChannel();
+        final long archiveLength = ch.size();
+        if (archiveLength > Integer.MAX_VALUE) { throw new IOException(); }
+        raw =  ch.map(FileChannel.MapMode.READ_ONLY, 0, (int)archiveLength);
+        
+        etag = '\"' + Long.toHexString(file.lastModified()) + '\"';
         
         final int rawLength = raw.limit();
         final int rawOffsetSize = sizeof(rawLength);
@@ -105,20 +116,6 @@ N2V implements Archive, Serializable {
         raw.position(indexAddress);
         index = raw.slice();
         index.limit(indexLength);
-    }
-    
-    /**
-     * Opens an existing archive.
-     * @param file  underlying file
-     * @throws IOException  any I/O problem
-     */
-    static public N2V
-    open(final File file) throws IOException {
-        final FileChannel ch = new FileInputStream(file).getChannel();
-        final long archiveLength = ch.size();
-        if (archiveLength > Integer.MAX_VALUE) { throw new IOException(); }
-        return new N2V('\"' + Long.toHexString(file.lastModified()) + '\"',
-            ch.map(FileChannel.MapMode.READ_ONLY, 0, (int)archiveLength));
     }
     
     /**
@@ -154,7 +151,7 @@ N2V implements Archive, Serializable {
                 for (int j = i + 1; !overridden && j != versionCount; ++j) {
                     overridden = versions.get(j).contains(names);
                 }
-                if (!overridden && !m.contains(names)) { throw new Error(); }
+                if (!overridden) { if (!m.contains(names)) {throw new Error();}}
                 final int pos = m.index.position() / m.indexEntrySize;
                 
                 final int beginSummary = names.position();
@@ -217,30 +214,31 @@ N2V implements Archive, Serializable {
         for (int j = versionCount; 0 != j--;) {
             versions.get(j).index.position(0).mark();
         }
-        for (long i = entryCount; 0 != i--;) {
+        while (true) {
             int min = versionCount;
             ByteBuffer minKey = null;
             for (int j = min; 0 != j--;) {
                 final N2V m = versions.get(j);
-                int d = 0;
-                while (m.index.hasRemaining() && 0 == d) {
-                    m.index.mark();
+                while (m.index.hasRemaining()) {
                     m.summary.position(
                         readFixedInt(m.index, m.summaryOffsetSize)).mark();
                     readFixedInt(m.index, m.dataOffsetSize);
                     if (null != minKey) {
-                        d = compare(m.summary, minKey);
+                        final int d = compare(m.summary, minKey);
                         m.summary.reset();
                         minKey.reset();
-                    } else {
-                        d = -1;
+                        if (d > 0) { break; }
+                        if (0 == d) {
+                            m.index.mark();
+                            continue;
+                        }
                     }
-                }
-                if (d < 0) {
                     min = j;
                     minKey = m.summary;
+                    break;
                 }
             }
+            if (null == minKey) { break; }
             final N2V m = versions.get(min);
             final int pos = m.index.position() / m.indexEntrySize;
             writeFixedLong(sout, summaryOffsetSize, summaryTable[min][pos-1]);

@@ -5,6 +5,7 @@ package org.waterken.http;
 import java.io.InputStream;
 
 import org.joe_e.array.PowerlessArray;
+import org.joe_e.reflect.Reflection;
 import org.waterken.io.limited.TooBig;
 import org.waterken.uri.Header;
 
@@ -31,7 +32,8 @@ Client {
         if (reason instanceof TooBig) {
             receive(Response.tooBig(), null);
         } else {
-            receive(new Response("HTTP/1.1", "500", "Internal Server Error",
+            receive(new Response("HTTP/1.1", "500",
+                                 Reflection.getName(reason.getClass()),
                                  PowerlessArray.array(
                                      new Header("Content-Length", "0")
                                  )), null);

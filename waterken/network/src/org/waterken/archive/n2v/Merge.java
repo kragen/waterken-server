@@ -38,7 +38,7 @@ Merge {
         final FileChannel out = new FileOutputStream(file).getChannel();
         final ArrayList<N2V> versions = new ArrayList<N2V>(args.length - 1);
         for (int i = 1; i != args.length; ++i) {
-            versions.add(N2V.open(new File(args[i])));
+            versions.add(new N2V(new File(args[i])));
         }
         N2V.merge(out, versions);
         out.force(true);

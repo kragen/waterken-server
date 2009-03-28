@@ -35,7 +35,7 @@ Extract {
             System.exit(-1);
             return;
         }
-        final Archive archive = N2V.open(new File(args[0]));
+        final Archive archive = new N2V(new File(args[0]));
         if (1 == args.length) {
             extractAll(archive);
         } else {
