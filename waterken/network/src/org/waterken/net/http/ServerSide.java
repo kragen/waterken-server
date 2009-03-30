@@ -8,7 +8,6 @@ import java.net.Socket;
 
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Receiver;
 import org.waterken.http.Request;
 import org.waterken.http.TokenList;
 import org.waterken.io.limited.Limited;
@@ -21,7 +20,6 @@ final class
 ServerSide implements Promise<Void> {
 
     private final HTTPD config;
-    private final Receiver<?> yield;
     private final String location;
     private final Socket socket;
 
@@ -37,12 +35,9 @@ ServerSide implements Promise<Void> {
      * @param location  expected value of the Host header
      * @param socket    connection socket, trusted to behave like a socket, but
      *                  not trusted to be connected to a trusted HTTP client
-     * @param yield     yield to other threads
      */
-    ServerSide(final HTTPD config, final String location, 
-               final Socket socket, final Receiver<?> yield){
+    ServerSide(final HTTPD config, final String location, final Socket socket) {
         this.config = config;
-        this.yield = yield;
         this.location = location;
         this.socket = socket;
     }
@@ -148,10 +143,6 @@ ServerSide implements Promise<Void> {
                 while (body.read() != -1) { body.skip(Long.MAX_VALUE); }
                 body.close();
             }
-
-            // now is a good time for a context switch since we're not holding
-            // any locks, or much memory
-            yield.run(null);
         }
         return null;
     }

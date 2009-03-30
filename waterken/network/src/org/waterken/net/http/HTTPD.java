@@ -12,7 +12,6 @@ import org.joe_e.var.Milestone;
 import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Receiver;
 import org.waterken.http.Server;
 import org.waterken.http.TokenList;
 import org.waterken.io.bounded.Bounded;
@@ -58,11 +57,11 @@ HTTPD extends TCPDaemon {
     // org.waterken.net.TCPDaemon interface
 
     public Promise<?>
-    accept(final String hostname, final Socket socket, final Receiver<?> yield){
+    accept(final String hostname, final Socket socket) {
         final String location = SSL
             ? (port == 443 ? hostname : hostname + ":" + port)
         : (port == 80 ? hostname : hostname + ":" + port);
-        return new ServerSide(this, location, socket, yield);
+        return new ServerSide(this, location, socket);
     }
 
     /**
