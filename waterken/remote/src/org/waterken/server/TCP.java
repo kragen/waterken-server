@@ -15,7 +15,6 @@ import org.joe_e.array.ByteArray;
 import org.ref_send.promise.Receiver;
 import org.waterken.dns.Resource;
 import org.waterken.net.TCPDaemon;
-import org.waterken.thread.Yield;
 
 /**
  * A TCP daemon.
@@ -54,7 +53,7 @@ TCP implements Runnable {
                     run() {
                         try {
                             System.out.println(this + ": open...");
-                            daemon.accept(hostname, socket, new Yield()).call();
+                            daemon.accept(hostname, socket).call();
                         } catch (final SocketTimeoutException e) {
                             // normal end to a TCP connection
                         } catch (final Throwable e) {
