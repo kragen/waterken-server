@@ -535,7 +535,8 @@ Eventual implements Receiver<Promise<?>>, Serializable {
                     throw e;
                 }
             } else if (ignored) {
-                try { value.call(); } catch (final Exception e) {
+                if (value instanceof Rejected) {
+                    final Exception e = ((Rejected<?>)value).reason;
                     log.got(here + "#w" + message, null, null);
                     log.sentIf(here + "#w" + message, here + "#p" + condition);
                     log.problem(e);
