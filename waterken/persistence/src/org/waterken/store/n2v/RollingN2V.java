@@ -208,23 +208,6 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                                     mergeScheduled = true;
                                 }
                             }
-                            
-                            // delete any merged files
-                            while (true) {
-                                final FileGC dead = (FileGC)unloaded.poll();
-                                if (null == dead) { break; }
-                                background.run(new Promise<Object>() {
-                                    public Object
-                                    call() {
-                                        if (!dead.file.delete()) {
-                                            System.gc();
-                                            System.runFinalization();
-                                            background.run(this);
-                                        }
-                                        return null;
-                                    }
-                                });
-                            }
                         }
                     }
                 };
@@ -240,6 +223,8 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                 
                 public Object
                 call() throws IOException {
+                    Thread.yield();
+                    
                     boolean gc = false;
                     synchronized (lock) {
                         while (active) {
@@ -277,6 +262,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                                     gc = true;
                                 }
                             }
+                            System.out.println("merged: " + sub.size());
                             sub.clear();
                             prior.add(new N2V(Filesystem.file(dir, name)));
                         }
@@ -285,6 +271,22 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     if (gc) {
                         System.gc();
                         System.runFinalization();
+                    }
+                    while (true) {
+                        final FileGC dead = (FileGC)unloaded.poll();
+                        if (null == dead) { break; }
+                        background.run(new Promise<Object>() {
+                            public Object
+                            call() {
+                                if (!dead.file.delete()) {
+                                    System.gc();
+                                    System.runFinalization();
+                                    background.run(this);
+                                    Thread.yield();
+                                }
+                                return null;
+                            }
+                        });
                     }
                     return null;
                 }
