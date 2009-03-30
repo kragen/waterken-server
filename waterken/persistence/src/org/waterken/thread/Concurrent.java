@@ -12,9 +12,7 @@ import org.ref_send.promise.Receiver;
  */
 public final class
 Concurrent {
-
-    private
-    Concurrent() {}
+    private Concurrent() {}
 
     /**
      * Constructs an instance.
@@ -27,7 +25,7 @@ Concurrent {
         if (null == name) { throw new NullPointerException(); }
 
         final LinkedList<T> tasks = new LinkedList<T>();        
-        class LoopX implements Receiver<T> {
+        return new Receiver<T>() {
             private boolean running = false;
 
             public synchronized void
@@ -36,17 +34,28 @@ Concurrent {
                 
                 tasks.add(task);
                 if (!running) {
-                    new Thread(group, name) {
+                    final Object lock = this;
+                    final Thread thread = new Thread(group, name) {
                         public void
                         run() {
                             System.out.println(this + ": processing...");
                             try {
                                 while (true) {
                                     final T todo;
-                                    synchronized (LoopX.this) {
-                                        if (tasks.isEmpty()) {
-                                            running = false;
-                                            break;
+                                    synchronized (lock) {
+                                        if (isDaemon()) {
+                                            while (tasks.isEmpty()) {
+                                                System.out.println(
+                                                    this + ": idling...");
+                                                lock.wait();
+                                                System.out.println(
+                                                    this + ": processing...");
+                                            }
+                                        } else {
+                                            if (tasks.isEmpty()) {
+                                                running = false;
+                                                break;
+                                            }
                                         }
                                         todo = tasks.removeFirst();
                                     }
@@ -56,7 +65,7 @@ Concurrent {
                                         System.err.println(this + ":");
                                         e.printStackTrace(System.err);
                                     }
-                                    Thread.yield();
+                                    // TODO: Thread.yield();
                                 }
                             } catch (final Throwable e) {
                                 System.err.println(this + ":");
@@ -64,11 +73,14 @@ Concurrent {
                             }
                             System.out.println(this + ": idling...");
                         }
-                    }.start();
+                    };
+                    thread.setDaemon(group.isDaemon());
+                    thread.start();
                     running = true;
+                } else {
+                    notifyAll();
                 }
             }
-        }
-        return new LoopX();
+        };
     }
 }

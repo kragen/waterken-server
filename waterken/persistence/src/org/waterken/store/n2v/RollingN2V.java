@@ -34,7 +34,7 @@ import org.waterken.store.StoreMaker;
 import org.waterken.store.Update;
 
 /**
- * A file system based <code>byte</code> storage implementation.
+ * An {@link N2V} based {@link Store} implementation.
  */
 public final class
 RollingN2V extends Struct implements StoreMaker, Serializable {
@@ -218,6 +218,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                                     call() {
                                         if (!dead.file.delete()) {
                                             System.gc();
+                                            System.runFinalization();
                                             background.run(this);
                                         }
                                         return null;
@@ -239,7 +240,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                 
                 public Object
                 call() throws IOException {
-                    final boolean compact;
+                    boolean gc = false;
                     synchronized (lock) {
                         while (active) {
                             try {
@@ -260,8 +261,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                             if (l / 10 > sum) { break; }
                             sum += l;
                         }
-                        compact = n - i > 1;
-                        if (compact) {
+                        if (n - i > 1) {
                             mkdir(pending);
                             final String name = ++lastId + ".n2v";
                             final FileChannel out = new FileOutputStream(
@@ -272,15 +272,19 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                             out.close();
                             markCommitted();
                             for (final N2V x : sub) {
-                                new FileGC(x.raw, unloaded, x.file);
+                                if (!x.file.delete()) {
+                                    new FileGC(x.raw, unloaded, x.file);
+                                    gc = true;
+                                }
                             }
                             sub.clear();
                             prior.add(new N2V(Filesystem.file(dir, name)));
                         }
                         versions = prior;
                     }
-                    if (compact) {
+                    if (gc) {
                         System.gc();
+                        System.runFinalization();
                     }
                     return null;
                 }
