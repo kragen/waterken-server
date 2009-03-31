@@ -281,11 +281,29 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      *         <code>observer</code>'s return type is <code>Void</code>
      * @throws Error    invalid <code>observer</code> argument  
      */
-    public final @SuppressWarnings("unchecked") <P,R> R
-    when(final Object promise, final Do<P,R> observer) {
-        final Class<?> P = null != promise ? promise.getClass() : Object.class;
-        final Promise<P> p = (Promise<P>)ref(promise);
-        return when(P, p, observer);
+    public final <P,R> R
+    when(final Promise<P> promise, final Do<P,R> observer) {
+        return when(Object.class, promise, observer);
+    }
+    
+    /**
+     * Registers an observer on an {@linkplain #cast eventual reference}.
+     * <p>
+     * The implementation behavior is the same as that documented for the
+     * promise based {@link #when(Promise, Do) when} statement.
+     * </p>
+     * @param <P> referent type
+     * @param <R> <code>observer</code>'s return type
+     * @param reference observed reference
+     * @param observer  observer, MUST NOT be <code>null</code>
+     * @return promise, or {@linkplain #cast eventual reference}, for the
+     *         <code>observer</code>'s return, or <code>null</code> if the
+     *         <code>observer</code>'s return type is <code>Void</code>
+     */
+    public final <P,R> R
+    when(final P reference, final Do<P,R> observer) {
+        return when(null != reference ? reference.getClass() : Object.class,
+                    ref(reference), observer);
     }
     
     protected final <P,R> R
@@ -1044,8 +1062,42 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * @param observer  ignored
      * @throws Error    always thrown
      */
-    public final <T,R extends Serializable> void
-    when(final Object promise, final Do<T,R> observer) throws Exception {
+    public final <P,R extends Serializable> void
+    when(final Promise<P> promise, final Do<P,R> observer) throws Exception {
+        throw new AssertionError();
+    }
+    
+    /**
+     * Causes a compile error for code that attempts to return a concrete type
+     * from a when block.
+     * <p>
+     * If you encounter a compile error because your code is linking to this
+     * method, change your when block return type to a promise. For example,
+     * </p>
+     * <pre>
+     * final Account a = &hellip;
+     * final Observer o_ = &hellip;
+     * final Integer initial = _.when(o_, new Do&lt;Observer,Integer&gt;() {
+     *     public Integer
+     *     fulfill(final Observer o) { return a.getBalance(); }
+     * });
+     * </pre>
+     * <p>becomes:</p>
+     * <pre>
+     * final Account a = &hellip;
+     * final Observer o_ = &hellip;
+     * final Promise&lt;Integer&gt; initial =
+     *  _.when(o_, new Do&lt;Observer,Promise&lt;Integer&gt;&gt;() {
+     *     public Promise&lt;Integer&gt;
+     *     fulfill(final Observer o) { return ref(a.getBalance()); }
+     * });
+     * </pre>
+     * @param reference ignored
+     * @param observer  ignored
+     * @throws Error    always thrown
+     */
+    public final <P,R extends Serializable> void
+    when(final P reference, final Do<P,R> observer) throws Exception {
         throw new AssertionError();
     }
 }
