@@ -73,8 +73,7 @@ Bounce {
                         with(null).
                         with(rejected._(Receiver.class)),
                     new ConstArray<Promise<?>>().
-                        with(d.promise).
-                        with(p),
+                        with(d.promise).with(p),
                     ConstArray.array(
                         new ImmutableArray<PowerlessArray<Boolean>>().
                             with(PowerlessArray.array(true)),
