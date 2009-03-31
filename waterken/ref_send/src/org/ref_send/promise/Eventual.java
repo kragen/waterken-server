@@ -1078,20 +1078,18 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * </p>
      * <pre>
      * final Account a = &hellip;
-     * final Observer o_ = &hellip;
-     * final Integer initial = _.when(o_, new Do&lt;Observer,Integer&gt;() {
+     * final Integer initial = _.when(a, new Do&lt;Account,Integer&gt;() {
      *     public Integer
-     *     fulfill(final Observer o) { return a.getBalance(); }
+     *     fulfill(final Account a) { return a.getBalance(); }
      * });
      * </pre>
      * <p>becomes:</p>
      * <pre>
      * final Account a = &hellip;
-     * final Observer o_ = &hellip;
      * final Promise&lt;Integer&gt; initial =
-     *  _.when(o_, new Do&lt;Observer,Promise&lt;Integer&gt;&gt;() {
+     *  _.when(a, new Do&lt;Account,Promise&lt;Integer&gt;&gt;() {
      *     public Promise&lt;Integer&gt;
-     *     fulfill(final Observer o) { return ref(a.getBalance()); }
+     *     fulfill(final Account a) { return ref(a.getBalance()); }
      * });
      * </pre>
      * @param reference ignored
