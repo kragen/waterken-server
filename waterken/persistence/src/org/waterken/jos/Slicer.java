@@ -109,7 +109,7 @@ Slicer extends ObjectOutputStream {
      */
     static protected boolean
     inline(final Class<?> type) {
-        return type == Void.class || type == Class.class || 
+        return type == Void.class || type == Class.class || type == Fulfilled ||
                type == StackTraceElement.class ||
                JoeE.isSubtypeOf(type, Selfless.class);
     }
