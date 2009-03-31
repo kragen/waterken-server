@@ -81,16 +81,20 @@ Caller extends Struct implements Messenger, Serializable {
 
             public void
             fulfill(final String request, final Message<Response> response) {
-                _.log.got(request, null, null);
-                _.when(receive(base, response, Local.parameter(observer)),
-                       observer);
+                resolve(request,
+                        receive(base, response, Local.parameter(observer)));
                 // TODO: implement polling on a 404 response?
             }
             
             public void
             reject(final String request, final Exception reason) {
+                resolve(request, new Rejected<Object>(reason));
+            }
+            
+            private <T> void
+            resolve(final String request, final Promise<T> p) {
                 _.log.got(request, null, null);
-                _.when(new Rejected<Object>(reason), observer);
+                _.when(p, observer);
             }
         }
         _.log.sent(msgs.enqueue(new When()));
