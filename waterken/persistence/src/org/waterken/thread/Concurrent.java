@@ -35,7 +35,7 @@ Concurrent {
                 tasks.add(task);
                 if (!running) {
                     final Object lock = this;
-                    final Thread thread = new Thread(group, name) {
+                    new Thread(group, name) {
                         public void
                         run() {
                             System.out.println(this + ": processing...");
@@ -43,19 +43,9 @@ Concurrent {
                                 while (true) {
                                     final T todo;
                                     synchronized (lock) {
-                                        if (isDaemon()) {
-                                            while (tasks.isEmpty()) {
-                                                System.out.println(
-                                                    this + ": idling...");
-                                                lock.wait();
-                                                System.out.println(
-                                                    this + ": processing...");
-                                            }
-                                        } else {
-                                            if (tasks.isEmpty()) {
-                                                running = false;
-                                                break;
-                                            }
+                                        if (tasks.isEmpty()) {
+                                            running = false;
+                                            break;
                                         }
                                         todo = tasks.removeFirst();
                                     }
@@ -72,12 +62,8 @@ Concurrent {
                             }
                             System.out.println(this + ": idling...");
                         }
-                    };
-                    thread.setDaemon(group.isDaemon());
-                    thread.start();
+                    }.start();
                     running = true;
-                } else {
-                    notifyAll();
                 }
             }
         };

@@ -21,11 +21,9 @@ JODBManager<S> implements DatabaseManager<S> {
     
     static private final ThreadGroup db = new ThreadGroup("db");
     static private final ThreadGroup sys = new ThreadGroup("sys");
-    static {
-        sys.setMaxPriority(Thread.MIN_PRIORITY);
-        sys.setDaemon(true);
-    }
-    private final Receiver<Promise<?>> compact = Concurrent.make(sys,"compact");
+    static { sys.setMaxPriority(Thread.NORM_PRIORITY - 1); }
+    
+    private final Receiver<Promise<?>> merge = Concurrent.make(sys, "merge");
     private final Cache<File,JODB<S>> live = Cache.make();
 
     private final StoreMaker layout;
@@ -54,7 +52,7 @@ JODBManager<S> implements DatabaseManager<S> {
             if (null != r) { return r; }
             final Receiver<Service> service = Concurrent.make(db,dir.getPath());            
             r = new JODB<S>(session, service, stderr,
-                            layout.run(compact, dir.getParentFile(), dir));
+                            layout.run(merge, dir.getParentFile(), dir));
             live.put(dir, r);
             return r;
         }

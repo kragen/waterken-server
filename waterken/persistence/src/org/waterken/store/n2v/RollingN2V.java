@@ -11,8 +11,6 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.lang.ref.ReferenceQueue;
-import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,12 +55,11 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
         final File parent, final File dir) {
         final File pending = Filesystem.file(dir, ".pending");
         final File committed = Filesystem.file(dir, ".committed");
-        final ReferenceQueue<ByteBuffer> unloaded =
-            new ReferenceQueue<ByteBuffer>();
         return new Store() {
             private boolean active = false; // Is there an update in progress?
             private int lastId = 0;         // id of newest archive file
             private ArrayList<N2V> versions = null;
+            private ArrayList<File> files = null;
             private boolean mergeScheduled = false;
             
             public void
@@ -111,14 +108,16 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     // first do all the I/O
                     final N2V[] n2v = new N2V[versionCount];
                     for (int i = 0; i != versionCount; ++i) {
-                        n2v[i] = new N2V(fs[i]);
+                        n2v[i] = N2V.open(fs[i]);
                     }
                     
                     // now update the store's data structure
                     lastId = 0 != versionCount ? id(fs[versionCount - 1]) : 0;
                     versions = new ArrayList<N2V>(versionCount);
+                    files = new ArrayList<File>(versionCount);
                     for (int i = 0; i != versionCount; ++i) {
                         versions.add(n2v[i]);
+                        files.add(fs[i]);
                     }
                 }
                 active = true;
@@ -141,7 +140,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     }
                     
                     public boolean
-                    includes(final String name) {
+                    includes(final String name) throws IOException {
                         if (done.is()) { throw new AssertionError(); }
                         for (int i = versions.size(); 0 != i--;) {
                             if (null!=versions.get(i).find(name)) {return true;}
@@ -166,7 +165,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                         if (!updates.is() && !nested.is()) { mkdir(pending); }
                         if (!updates.is()) {
                             updates.mark(new N2VOutput(writeNew(
-                                Filesystem.file(pending, ++lastId + ".n2v"))));
+                                Filesystem.file(pending, name(++lastId)))));
                         }
                         return updates.get().append(filename);
                     }
@@ -199,8 +198,9 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                             versions = null;
                             markCommitted();
                             if (updates.is() && !prior.isEmpty()) {
-                                prior.add(new N2V(
-                                    Filesystem.file(dir, lastId + ".n2v")));
+                                final File f= Filesystem.file(dir,name(lastId));
+                                prior.add(N2V.open(f));
+                                files.add(f);
                                 versions = prior;
                                 
                                 if (!mergeScheduled) {
@@ -223,9 +223,6 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                 
                 public Object
                 call() throws IOException {
-                    Thread.yield();
-                    
-                    boolean gc = false;
                     synchronized (lock) {
                         while (active) {
                             try {
@@ -240,15 +237,15 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                         versions = null;
                         final int n = prior.size();
                         int i = n - 1;
-                        int sum = prior.get(i).raw.limit();
+                        long sum = files.get(i).length();
                         for (; 0 != i; --i) {
-                            final int l = prior.get(i - 1).raw.limit();
+                            final long l = files.get(i - 1).length();
                             if (l / 10 > sum) { break; }
                             sum += l;
                         }
                         if (n - i > 1) {
                             mkdir(pending);
-                            final String name = ++lastId + ".n2v";
+                            final String name = name(++lastId);
                             final FileChannel out = new FileOutputStream(
                                 Filesystem.file(pending, name)).getChannel();
                             final List<N2V> sub = prior.subList(i, n);
@@ -256,37 +253,16 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                             out.force(true);
                             out.close();
                             markCommitted();
-                            for (final N2V x : sub) {
-                                if (!x.file.delete()) {
-                                    new FileGC(x.raw, unloaded, x.file);
-                                    gc = true;
-                                }
-                            }
-                            System.out.println("merged: " + sub.size());
+                            for (final N2V version : sub) { version.close(); }
+                            final List<File> subFiles = files.subList(i, n);
+                            for (final File file : subFiles) { file.delete(); }
                             sub.clear();
-                            prior.add(new N2V(Filesystem.file(dir, name)));
+                            subFiles.clear();
+                            final File f = Filesystem.file(dir, name);
+                            prior.add(N2V.open(f));
+                            files.add(f);
                         }
                         versions = prior;
-                    }
-                    if (gc) {
-                        System.gc();
-                        System.runFinalization();
-                    }
-                    while (true) {
-                        final FileGC dead = (FileGC)unloaded.poll();
-                        if (null == dead) { break; }
-                        background.run(new Promise<Object>() {
-                            public Object
-                            call() {
-                                if (!dead.file.delete()) {
-                                    System.gc();
-                                    System.runFinalization();
-                                    background.run(this);
-                                    Thread.yield();
-                                }
-                                return null;
-                            }
-                        });
                     }
                     return null;
                 }
@@ -308,10 +284,44 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
         };
     }
     
+    static private String
+    name(final int n) {
+        final StringBuilder r=new StringBuilder(Integer.SIZE/4+".n2v".length());
+        for (int i = Integer.SIZE; 0 != i;) {
+            i -= 4;
+            r.append(toHex((n >>> i) & 0x0F));
+        }
+        r.append(".n2v");
+        return r.toString();
+    }
+    
+    static private char
+    toHex(final int b) { return (char)(b < 10 ? '0' + b : 'A' + (b - 10)); }
+    
     static private int
     id(final File file) {
-        final String n = file.getName();
-        return Integer.parseInt(n.substring(0, n.length() - ".n2v".length()));
+        final String name = file.getName();
+        if (!name.endsWith(".n2v")) { throw new RuntimeException(); }
+        if (name.length() != Integer.SIZE / 4 + ".n2v".length()) {
+            throw new RuntimeException();
+        }
+        int r = 0;
+        for (int i = 0; i != Integer.SIZE / 4; ++i) {
+            r <<= 4;
+            r |= fromHex(name.charAt(i));
+        }
+        return r;
+    }
+    
+    static private int
+    fromHex(final char c) {
+        return c <= '9' && c >= '0'
+            ? c - '0'
+        : c <= 'F' && c >= 'A'
+            ? c - 'A' + 10
+        : c <= 'f' && c >= 'a'
+            ? c - 'a' + 10
+        : 1 / 0;
     }
     
     static private boolean
