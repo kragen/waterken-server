@@ -141,8 +141,7 @@ HTTPD extends TCPDaemon {
             final String contentLength =
                 TokenList.find(null, "Content-Length", headers);
             if (null != contentLength) {
-                final int length = Integer.parseInt(contentLength);
-                r = Bounded.input(length, connection);
+                r = Bounded.input(Integer.parseInt(contentLength), connection);
             } else if (0 != encoding.length()) {
                 // identity encoding
                 r = connection;

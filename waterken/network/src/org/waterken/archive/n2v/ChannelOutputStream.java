@@ -10,7 +10,7 @@ import java.nio.channels.WritableByteChannel;
 /**
  * Adapts the {@link WritableByteChannel} API to the {@link OutputStream} API.
  */
-final class
+/* package */ final class
 ChannelOutputStream extends OutputStream {
 
     private final WritableByteChannel out;

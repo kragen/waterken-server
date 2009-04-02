@@ -26,10 +26,9 @@ Bounded {
     static public InputStream
     input(final long length, final InputStream in) {
         if (0 > length) { throw new RuntimeException(); }
-        in.mark(0);
         return new InputStream() {
             private long remaining = length;    // number of bytes remaining
-            private long marked = length;       // marked position
+            private long marked = -1;           // marked position
 
             public int
             read() throws IOException {
@@ -72,6 +71,7 @@ Bounded {
 
             public void
             reset() throws IOException {
+                if (-1 == marked) { throw new IOException(); }
                 in.reset();
                 remaining = marked;
             }

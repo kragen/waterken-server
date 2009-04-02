@@ -5,7 +5,6 @@ package org.waterken.archive.n2v;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -26,12 +25,12 @@ N2VOutput implements ArchiveOutput {
     
     static private final class
     Offset {
-        protected final int summary;
         protected final long data;
+        protected final int summary;
         
-        Offset(final int summary, final long data) {
-            this.summary = summary;
+        Offset(final long data, final int summary) {
             this.data = data;
+            this.summary = summary;
         }
     }
     
@@ -81,15 +80,15 @@ N2VOutput implements ArchiveOutput {
             flush() {}
 
             public void
-            close() throws UnsupportedEncodingException {
+            close() throws IOException {
                 if (this == current) {
                     current = null;
                     if (offsets.length == offsetCount) {
                         System.arraycopy(offsets, 0,
                             offsets= new Offset[2*offsetCount], 0, offsetCount);
                     }
-                    offsets[offsetCount++] = new Offset(meta.size(), total);
-                    meta.write(N2V.charset.encode(name));
+                    offsets[offsetCount++] = new Offset(total, meta.size());
+                    meta.write(name.getBytes("UTF-8"));
                     meta.write(0);
                     N2V.writeExtensionLong(meta, length);   // valueLength
                     N2V.writeExtensionLong(meta, 0);        // commentLength
@@ -122,8 +121,8 @@ N2VOutput implements ArchiveOutput {
             }
         });
         for (int i = 0; i != offsetCount; ++i) {
-            N2V.writeFixedLong(meta, summaryOffsetSize, offsets[i].summary);
             N2V.writeFixedLong(meta, dataOffsetSize, offsets[i].data);
+            N2V.writeFixedLong(meta, summaryOffsetSize, offsets[i].summary);
         }
         
         total += meta.size();

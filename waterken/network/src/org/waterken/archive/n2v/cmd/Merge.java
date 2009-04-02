@@ -1,12 +1,14 @@
 // Copyright 2009 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.archive.n2v;
+package org.waterken.archive.n2v.cmd;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+
+import org.waterken.archive.n2v.N2V;
 
 /**
  * Command to merge named archive files.
@@ -38,10 +40,11 @@ Merge {
         final FileChannel out = new FileOutputStream(file).getChannel();
         final ArrayList<N2V> versions = new ArrayList<N2V>(args.length - 1);
         for (int i = 1; i != args.length; ++i) {
-            versions.add(new N2V(new File(args[i])));
+            versions.add(N2V.open(new File(args[i])));
         }
         N2V.merge(out, versions);
         out.force(true);
         out.close();
+        for (final N2V archive : versions) { archive.close(); }
     }
 }

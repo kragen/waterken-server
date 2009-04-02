@@ -2,6 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 
 /**
- * An <code>.n2v</code> (name to value) archive file format. 
+ * Command line tools for {@link org.waterken.archive.n2v .n2v} archives.
  */
-@org.joe_e.IsJoeE package org.waterken.archive.n2v;
+package org.waterken.archive.n2v.cmd;

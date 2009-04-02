@@ -1,6 +1,6 @@
 // Copyright 2009 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.archive.n2v;
+package org.waterken.archive.n2v.cmd;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.waterken.archive.Archive;
+import org.waterken.archive.n2v.N2V;
 import org.waterken.io.Stream;
 
 /**
@@ -35,7 +36,7 @@ Extract {
             System.exit(-1);
             return;
         }
-        final Archive archive = new N2V(new File(args[0]));
+        final Archive archive = N2V.open(new File(args[0]));
         if (1 == args.length) {
             extractAll(archive);
         } else {
@@ -43,6 +44,7 @@ Extract {
             System.arraycopy(args, 1, selected, 0, selected.length);
             extractSelected(archive, selected);
         }
+        archive.close();
     }
     
     /**

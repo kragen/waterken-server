@@ -118,6 +118,9 @@ Directory extends Struct implements Archive, Serializable {
     }
     
     // org.waterken.archive.Archive interface
+    
+    public void
+    close() {}
 
     public Archive.Entry
     find(final String path) throws IOException {

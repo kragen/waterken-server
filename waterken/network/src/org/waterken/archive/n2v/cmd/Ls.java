@@ -1,11 +1,12 @@
 // Copyright 2009 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.archive.n2v;
+package org.waterken.archive.n2v.cmd;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.waterken.archive.Archive;
+import org.waterken.archive.n2v.N2V;
 
 /**
  * Command to list entries in an archive.
@@ -31,7 +32,7 @@ Ls {
             System.exit(-1);
             return;
         }
-        final Archive archive = new N2V(new File(args[0]));
+        final Archive archive = N2V.open(new File(args[0]));
         if (1 == args.length) {
             listAll(archive);
         } else {
@@ -39,6 +40,7 @@ Ls {
             System.arraycopy(args, 1, selected, 0, selected.length);
             listSelected(archive, selected);
         }
+        archive.close();
     }
     
     /**

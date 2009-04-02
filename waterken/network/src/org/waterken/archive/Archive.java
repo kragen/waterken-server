@@ -12,6 +12,12 @@ public interface
 Archive extends Iterable<Archive.Entry> {
     
     /**
+     * Closes the archive.
+     * @throws IOException              any I/O problem
+     */
+    void close() throws IOException;
+    
+    /**
      * An {@link Archive} entry.
      */
     static public interface

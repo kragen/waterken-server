@@ -1,6 +1,6 @@
 // Copyright 2009 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.archive.n2v;
+package org.waterken.archive.n2v.cmd;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import org.waterken.archive.ArchiveOutput;
+import org.waterken.archive.n2v.N2VOutput;
 import org.waterken.io.Stream;
 
 /**
