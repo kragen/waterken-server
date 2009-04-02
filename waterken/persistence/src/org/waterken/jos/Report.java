@@ -2,28 +2,53 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.jos;
 
+import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.ObjectStreamConstants;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import org.joe_e.file.Filesystem;
-import org.waterken.db.Database;
-import org.waterken.project.Project;
+import org.waterken.archive.Archive;
+import org.waterken.archive.n2v.N2V;
 
 /**
- * Produce a report on file usage by a persistence folder.
+ * Produce a report on the contents of an archive.
  */
 final class
 Report {
+    private Report() {}
+
+    /**
+     * The command line arguments are:
+     * <ol>
+     *  <li>path to .n2v format file</li>
+     * </ol>
+     * @param args  argument string
+     */
+    static public void
+    main(final String[] args) throws Exception {
+        final PrintStream out = System.out;
+        if (0 == args.length) {
+            out.println("Reports on the content of an archive version.");
+            out.println("use: java -jar report.jar <file-path>");
+            System.exit(-1);
+            return;
+        }
+
+        final File file = new File(args[0]);
+        if (!file.getName().endsWith(".n2v")) { throw new Exception(); }
+        final Archive archive = N2V.open(file);
+        report(out, archive);
+        out.flush();
+        out.close();
+        archive.close();
+    }
 
     static private final int minFilenameWidth = 26 + JODB.ext.length();
 
-    private static final class
+    static private final class
     Total {
         final String typename;
         int files;
@@ -33,52 +58,20 @@ Report {
             this.typename = typename;
         }
     }
-
-    /**
-     * The command line arguments are:
-     * <ol>
-     *  <li>path to the persistence folder</li>
-     * </ol>
-     * @param args  argument string
-     */
-    static public void
-    main(final String[] args) throws Exception {
-        final PrintStream out = System.out;
-        if (0 == args.length) {
-            out.println("Reports on file usage by a persistence folder.");
-            out.println("use: java -jar report.jar <folder-path>");
-            System.exit(-1);
-            return;
-        }
-
-        final File topic = new File(args[0]);
-        final File dir = topic.isDirectory() ? topic : topic.getParentFile();
-        final String project =
-            readSetting(Filesystem.file(dir, Database.project + JODB.ext));
-        final ClassLoader code = Project.connect(project);
-        
-        if (topic.isFile()) {
-            if (topic.getName().endsWith(JODB.ext)) { log(out, code, topic); }
-            return;
-        }
-        
+    
+    static private void
+    report(final PrintStream out, final Archive archive) throws Exception {
         final HashMap<String,Total> total = new HashMap<String,Total>();
         out.println("--- Files ( filename, length, typename) ---");
-        topic.listFiles(new FileFilter() {
-            public boolean
-            accept(final File file) {
-                if (!file.getName().endsWith(JODB.ext)) { return false; }
-                final String typename = log(out, code, file);
+        for (final Archive.Entry entry : archive) {
+            final String typename = log(out, entry);
 
-                // Keep track of totals.
-                Total t = total.get(typename);
-                if (null == t) { total.put(typename, t = new Total(typename)); }
-                t.files += 1;
-                t.bytes += file.length();
-
-                return false;
-            }
-        });
+            // Keep track of totals.
+            Total t = total.get(typename);
+            if (null == t) { total.put(typename, t = new Total(typename)); }
+            t.files += 1;
+            t.bytes += entry.getLength();
+        }
         out.println();
         out.println("--- Totals ( files, bytes, typename) ---");
         final Total[] sum = total.values().toArray(new Total[total.size()]);
@@ -113,43 +106,50 @@ Report {
         out.println("types:\t" + sum.length);
     }
     
-    static private @SuppressWarnings("unchecked") <R> R
-    readSetting(final File file) throws Exception {
-        final ObjectInputStream in=new ObjectInputStream(Filesystem.read(file));
-        final Object r = in.readObject();
-        in.close();
-        return (R)((SymbolicLink)r).target;
-    }
-    
     static private String
-    log(final PrintStream out, final ClassLoader code, final File file) {
-        out.print(file.getName());
-        for (int n = minFilenameWidth - file.getName().length(); 0 < n--;) {
+    log(final PrintStream out, final Archive.Entry entry) {
+        out.print(entry.getName());
+        for (int n = minFilenameWidth - entry.getName().length(); 0 < n--;) {
             out.print(' ');
         }
         out.print('\t');
-        out.print(file.length());
+        out.print(entry.getLength());
         out.print('\t');
 
         // Determine the type of object stored in the file.
         String typename;
         try {
-            final SubstitutionStream in = new SubstitutionStream(true,
-                    code, Filesystem.read(file)) {
-                protected Object
-                resolveObject(final Object x) throws IOException {
-                    return x instanceof Splice ? null : x;
-                }
-            };
-            final Object x = in.readObject();
-            in.close();
-            if (x instanceof SymbolicLink) {
-                final Object sx = ((SymbolicLink)x).target;
-                final Class<?> sxt = null != sx ? sx.getClass() : Splice.class;
-                typename = "-> " + sxt.getName();
-            } else {
-                typename = (null != x ? x.getClass() : Splice.class).getName();
+            final DataInputStream data = new DataInputStream(entry.open());
+            final int[] magic= new int[] { 0xAC, 0xED, 0x00, 0x05 };
+            for (int i = 0; i != magic.length; ++i) {
+                if (data.read() != magic[i]) { throw new Exception(); }
             }
+            switch (data.read()) {
+            case ObjectStreamConstants.TC_OBJECT: {
+                switch (data.read()) {
+                case ObjectStreamConstants.TC_CLASSDESC: {
+                    typename= data.readUTF();
+                }
+                break;
+                case ObjectStreamConstants.TC_PROXYCLASSDESC: {
+                    typename = "proxy"; // TODO: extract implemented type
+                }
+                break;
+                default: throw new Exception();
+                }
+            }
+            break;
+            case ObjectStreamConstants.TC_ARRAY: { typename = "array"; }
+            break;
+            case ObjectStreamConstants.TC_STRING: { typename = "string"; }
+            break;
+            case ObjectStreamConstants.TC_LONGSTRING: {typename= "long string";}
+            break;
+            case ObjectStreamConstants.TC_NULL: { typename = "null"; }
+            break;
+            default: throw new Exception();
+            }
+            data.close();
         } catch (final Exception e) {
             typename = "! " + e.getClass().getName();
         }
