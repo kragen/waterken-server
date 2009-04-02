@@ -12,4 +12,5 @@ javac -d bin ^
   src\org\waterken\project\*.java ^
   src\org\waterken\store\*.java ^
   src\org\waterken\store\folder\*.java ^
+  src\org\waterken\store\n2v\*.java ^
   src\org\waterken\thread\*.java
