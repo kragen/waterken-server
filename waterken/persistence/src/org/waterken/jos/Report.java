@@ -18,7 +18,7 @@ import org.waterken.archive.Archive;
 import org.waterken.archive.n2v.N2V;
 
 /**
- * Produce a report on the contents of an archive.
+ * Reports on the content of an archive.
  */
 /* package */ final class
 Report {
@@ -35,7 +35,7 @@ Report {
     main(final String[] args) throws Exception {
         final PrintStream stdout = System.out;
         if (0 == args.length) {
-            stdout.println("Reports on the content of an archive version.");
+            stdout.println("Reports on the content of an archive.");
             stdout.println("use: java -jar report.jar <file-path>");
             System.exit(-1);
             return;
