@@ -271,7 +271,7 @@ JODB<S> extends Database<S> {
                 }
             }
 
-            // Wipe old entries.
+            // wipe old entries
             while (true) {
                 final Reference<?> r = wiped.poll();
                 if (null == r) { break; }
