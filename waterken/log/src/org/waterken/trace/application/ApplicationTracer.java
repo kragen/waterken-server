@@ -40,7 +40,7 @@ ApplicationTracer {
                 return trace(new StackTraceElement(
                     lambda.getDeclaringClass().getName(), lambda.getName(),
                     null, -1));
-                // TODO: want the first line number of the method declaration
+                // TODO: want the line number of the method declaration
             }
 
             public Trace
