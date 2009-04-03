@@ -47,12 +47,12 @@ Report {
         archive.close();
     }
 
-    static private final int minFilenameWidth = 26 + JODB.ext.length();
+    static private final int minNameWidth = 26 + JODB.ext.length();
 
     static private final class
     Total {
         final String typename;
-        int files;
+        int entries;
         long bytes;
 
         Total(final String typename) {
@@ -63,10 +63,10 @@ Report {
     static private void
     report(final PrintStream stdout, final Archive archive) throws Exception {
         final HashMap<String,Total> total = new HashMap<String,Total>();
-        stdout.println("--- Files ( filename, length, typename) ---");
+        stdout.println("--- Entries ( name, length, typename) ---");
         for (final Archive.Entry entry : archive) {
             stdout.print(entry.getName());
-            for (int n = minFilenameWidth - entry.getName().length(); 0 < n--;) {
+            for (int n = minNameWidth - entry.getName().length(); 0 < n--;) {
                 stdout.print(' ');
             }
             stdout.print('\t');
@@ -78,39 +78,39 @@ Report {
             // Keep track of totals.
             Total t = total.get(typename);
             if (null == t) { total.put(typename, t = new Total(typename)); }
-            t.files += 1;
+            t.entries += 1;
             t.bytes += entry.getLength();
         }
         stdout.println();
-        stdout.println("--- Totals ( files, bytes, typename) ---");
+        stdout.println("--- Totals ( entries, bytes, typename) ---");
         final Total[] sum = total.values().toArray(new Total[total.size()]);
         Arrays.sort(sum, new Comparator<Total>() {
             public int
             compare(final Total a, final Total b) {
-                return a.files == b.files
+                return a.entries == b.entries
                     ? (a.bytes == b.bytes
                         ? a.typename.compareTo(b.typename)
                         : (a.bytes > b.bytes ? -1 : 1))
-                    : (a.files > b.files ? -1 : 1);
+                    : (a.entries > b.entries ? -1 : 1);
             }
         });
-        int files = 0;
+        int entries = 0;
         long bytes = 0L;
         for (final Total t : sum) {
-            stdout.print(t.files);
+            stdout.print(t.entries);
             stdout.print('\t');
             stdout.print(t.bytes);
             stdout.print('\t');
             stdout.print(t.typename);
             stdout.println();
 
-            files += t.files;
+            entries += t.entries;
             bytes += t.bytes;
         }
 
         stdout.println();
         stdout.println("--- Total ---");
-        stdout.println("files:\t" + files);
+        stdout.println("entries:\t" + entries);
         stdout.println("bytes:\t" + bytes);
         stdout.println("types:\t" + sum.length);
     }
