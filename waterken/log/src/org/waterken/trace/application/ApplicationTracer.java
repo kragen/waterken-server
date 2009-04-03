@@ -60,9 +60,9 @@ ApplicationTracer {
                         final Class<?> c = code.loadClass(frame.getClassName());
                         if (!Proxy.isProxyClass(c)) {
                             final ClassLoader lib = c.getClassLoader();
-                            final ClassLoader system =
+                            final ClassLoader sys =
                                 ApplicationTracer.class.getClassLoader();
-                            for(ClassLoader i=code; i!=system; i=i.getParent()){
+                            for (ClassLoader i=code; i!=sys; i=i.getParent()) {
                                 if (lib == i) {
                                     included = true;
                                     break;
