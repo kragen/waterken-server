@@ -59,21 +59,18 @@ ApplicationTracer {
                     try {
                         final Class<?> c = code.loadClass(frame.getClassName());
                         if (!Proxy.isProxyClass(c)) {
-                            final ClassLoader application = c.getClassLoader();
+                            final ClassLoader lib = c.getClassLoader();
                             final ClassLoader system =
                                 ApplicationTracer.class.getClassLoader();
                             for(ClassLoader i=code; i!=system; i=i.getParent()){
-                                if (application == i) {
+                                if (lib == i) {
                                     included = true;
                                     break;
                                 }
                             }
                         }
                     } catch (final ClassNotFoundException e) {}
-                    if (!included) {
-                        if (0 == sites.length()) { continue; }
-                        break;
-                    }
+                    if (!included) { continue; }
                     
                     // Describe the application stack frame.
                     final String name; {
