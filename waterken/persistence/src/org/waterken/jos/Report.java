@@ -32,7 +32,7 @@ Report {
      * @param args  argument string
      */
     static public void
-    main(final String[] args) throws Exception {
+    main(final String[] args) throws IOException {
         final PrintStream stdout = System.out;
         if (0 == args.length) {
             stdout.println("Reports on the content of an archive.");
@@ -63,7 +63,7 @@ Report {
     }
     
     static private void
-    report(final PrintStream stdout, final Archive archive) throws Exception {
+    report(final PrintStream stdout, final Archive archive) throws IOException {
         final HashMap<String,Total> total = new HashMap<String,Total>();
         stdout.println("--- Entries ( name, length, typename) ---");
         for (final Archive.Entry entry : archive) {
