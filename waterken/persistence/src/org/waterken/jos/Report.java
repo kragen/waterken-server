@@ -4,8 +4,10 @@ package org.waterken.jos;
 
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.io.ObjectStreamConstants;
 import java.io.PrintStream;
+import java.io.StreamCorruptedException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,7 +18,7 @@ import org.waterken.archive.n2v.N2V;
 /**
  * Produce a report on the contents of an archive.
  */
-final class
+/* package */ final class
 Report {
     private Report() {}
 
@@ -29,20 +31,19 @@ Report {
      */
     static public void
     main(final String[] args) throws Exception {
-        final PrintStream out = System.out;
+        final PrintStream stdout = System.out;
         if (0 == args.length) {
-            out.println("Reports on the content of an archive version.");
-            out.println("use: java -jar report.jar <file-path>");
+            stdout.println("Reports on the content of an archive version.");
+            stdout.println("use: java -jar report.jar <file-path>");
             System.exit(-1);
             return;
         }
-
         final File file = new File(args[0]);
-        if (!file.getName().endsWith(".n2v")) { throw new Exception(); }
+        
         final Archive archive = N2V.open(file);
-        report(out, archive);
-        out.flush();
-        out.close();
+        report(stdout, archive);
+        stdout.flush();
+        stdout.close();
         archive.close();
     }
 
@@ -60,11 +61,19 @@ Report {
     }
     
     static private void
-    report(final PrintStream out, final Archive archive) throws Exception {
+    report(final PrintStream stdout, final Archive archive) throws Exception {
         final HashMap<String,Total> total = new HashMap<String,Total>();
-        out.println("--- Files ( filename, length, typename) ---");
+        stdout.println("--- Files ( filename, length, typename) ---");
         for (final Archive.Entry entry : archive) {
-            final String typename = log(out, entry);
+            stdout.print(entry.getName());
+            for (int n = minFilenameWidth - entry.getName().length(); 0 < n--;) {
+                stdout.print(' ');
+            }
+            stdout.print('\t');
+            stdout.print(entry.getLength());
+            stdout.print('\t');
+            final String typename = identify(entry.open());
+            stdout.println(typename);
 
             // Keep track of totals.
             Total t = total.get(typename);
@@ -72,8 +81,8 @@ Report {
             t.files += 1;
             t.bytes += entry.getLength();
         }
-        out.println();
-        out.println("--- Totals ( files, bytes, typename) ---");
+        stdout.println();
+        stdout.println("--- Totals ( files, bytes, typename) ---");
         final Total[] sum = total.values().toArray(new Total[total.size()]);
         Arrays.sort(sum, new Comparator<Total>() {
             public int
@@ -88,72 +97,65 @@ Report {
         int files = 0;
         long bytes = 0L;
         for (final Total t : sum) {
-            out.print(t.files);
-            out.print('\t');
-            out.print(t.bytes);
-            out.print('\t');
-            out.print(t.typename);
-            out.println();
+            stdout.print(t.files);
+            stdout.print('\t');
+            stdout.print(t.bytes);
+            stdout.print('\t');
+            stdout.print(t.typename);
+            stdout.println();
 
             files += t.files;
             bytes += t.bytes;
         }
 
-        out.println();
-        out.println("--- Total ---");
-        out.println("files:\t" + files);
-        out.println("bytes:\t" + bytes);
-        out.println("types:\t" + sum.length);
+        stdout.println();
+        stdout.println("--- Total ---");
+        stdout.println("files:\t" + files);
+        stdout.println("bytes:\t" + bytes);
+        stdout.println("types:\t" + sum.length);
     }
     
+    /**
+     * Determine the type of object stored in a stream.
+     */
     static private String
-    log(final PrintStream out, final Archive.Entry entry) {
-        out.print(entry.getName());
-        for (int n = minFilenameWidth - entry.getName().length(); 0 < n--;) {
-            out.print(' ');
-        }
-        out.print('\t');
-        out.print(entry.getLength());
-        out.print('\t');
-
-        // Determine the type of object stored in the file.
-        String typename;
+    identify(final InputStream s) {
+        final DataInputStream data = new DataInputStream(s);
+        String r;
         try {
-            final DataInputStream data = new DataInputStream(entry.open());
-            final int[] magic= new int[] { 0xAC, 0xED, 0x00, 0x05 };
+            final int[] magic = new int[] { 0xAC, 0xED, 0x00, 0x05 };
             for (int i = 0; i != magic.length; ++i) {
-                if (data.read() != magic[i]) { throw new Exception(); }
+                if (data.read() != magic[i]) {
+                    throw new StreamCorruptedException();
+                }
             }
             switch (data.read()) {
             case ObjectStreamConstants.TC_OBJECT: {
                 switch (data.read()) {
-                case ObjectStreamConstants.TC_CLASSDESC: {
-                    typename= data.readUTF();
-                }
+                case ObjectStreamConstants.TC_CLASSDESC: { r = data.readUTF(); }
                 break;
                 case ObjectStreamConstants.TC_PROXYCLASSDESC: {
-                    typename = "proxy"; // TODO: extract implemented type
+                    r = "proxy"; // TODO: extract implemented type
                 }
                 break;
-                default: throw new Exception();
+                default: throw new StreamCorruptedException();
                 }
             }
             break;
-            case ObjectStreamConstants.TC_ARRAY: { typename = "array"; }
+            case ObjectStreamConstants.TC_ARRAY: { r = "array"; }
             break;
-            case ObjectStreamConstants.TC_STRING: { typename = "string"; }
+            case ObjectStreamConstants.TC_STRING: { r = "string"; }
             break;
-            case ObjectStreamConstants.TC_LONGSTRING: {typename= "long string";}
+            case ObjectStreamConstants.TC_LONGSTRING: { r = "long string"; }
             break;
-            case ObjectStreamConstants.TC_NULL: { typename = "null"; }
+            case ObjectStreamConstants.TC_NULL: { r = "null"; }
             break;
             default: throw new Exception();
             }
-            data.close();
         } catch (final Exception e) {
-            typename = "! " + e.getClass().getName();
+            r = "! " + e.getClass().getName();
         }
-        out.println(typename);
-        return typename;
+        try { data.close(); } catch (final Exception e) {}
+        return r;
     }
 }
