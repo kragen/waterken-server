@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 
+import org.joe_e.reflect.Reflection;
 import org.waterken.archive.Archive;
 import org.waterken.archive.n2v.N2V;
 
@@ -75,7 +76,7 @@ Report {
             final String typename = identify(entry.open());
             stdout.println(typename);
 
-            // Keep track of totals.
+            // keep track of totals
             Total t = total.get(typename);
             if (null == t) { total.put(typename, t = new Total(typename)); }
             t.entries += 1;
@@ -151,7 +152,7 @@ Report {
             default: throw new Exception();
             }
         } catch (final Exception e) {
-            r = "! " + e.getClass().getName();
+            r = "! " + Reflection.getName(e.getClass());
         }
         try { data.close(); } catch (final Exception e) {}
         return r;
