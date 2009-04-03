@@ -3,14 +3,17 @@
 package org.waterken.jos;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
+import java.io.ObjectStreamConstants;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.io.StreamCorruptedException;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.security.SecureRandom;
@@ -76,7 +79,7 @@ JODB<S> extends Database<S> {
      * @param name chosen name
      * @return canonical name
      */
-    static private String
+    static protected String
     canonicalize(final String name) { return name.toLowerCase(Locale.ENGLISH); }
 
     /**
@@ -280,26 +283,9 @@ JODB<S> extends Database<S> {
                 PowerlessArray<String> cycle =
                     PowerlessArray.array(new String[] {});
                 for (final String at : stack.subList(startCycle,stack.size())) {
-                    Class<?> type;
-                    InputStream in = null;
                     try {
-                        in = tx.update.read(at + ext);
-                        final SubstitutionStream oin =
-                                new SubstitutionStream(true, code, in) {
-                            protected Object
-                            resolveObject(final Object x) throws IOException {
-                                return x instanceof Splice ? null : x;
-                            }
-                        };
-                        in = oin;
-                        final Object x = oin.readObject();
-                        type = null != x ? x.getClass() : Object.class;
-                    } catch (final Exception e) {
-                        type = Object.class;    // skip over broken bucket
-                    } finally {
-                        if(null!=in){try {in.close();} catch (IOException e) {}}
-                    }
-                    cycle = cycle.with(Reflection.getName(type));
+                        cycle = cycle.with(identify(tx.update.read(at + ext)));
+                    } catch (final IOException e) { throw new Error(e); }
                 }
                 throw new CyclicGraph(cycle.with(cycle.get(0)));
             }
@@ -730,4 +716,43 @@ JODB<S> extends Database<S> {
 
     private void
     freeMac(final Mac h) { macs.add(h); }
+    
+    /**
+     * Determine the type of object stored in a stream.
+     */
+    static protected String
+    identify(final InputStream s) throws IOException {
+        final DataInputStream data = new DataInputStream(s);
+        final String r;
+        if (ObjectStreamConstants.STREAM_MAGIC != data.readShort()) {
+            r = "! " + StreamCorruptedException.class.getName();
+        } else {
+            data.readShort();   // skip version number, assume compatible
+            switch (data.read()) {
+            case ObjectStreamConstants.TC_OBJECT: {
+                switch (data.read()) {
+                case ObjectStreamConstants.TC_CLASSDESC: { r = data.readUTF(); }
+                break;
+                case ObjectStreamConstants.TC_PROXYCLASSDESC: {
+                    r = data.readInt() > 0 ? data.readUTF() : "proxy";
+                }
+                break;
+                default: r = "! " + StreamCorruptedException.class.getName();
+                }
+            }
+            break;
+            case ObjectStreamConstants.TC_ARRAY: { r = "array"; }
+            break;
+            case ObjectStreamConstants.TC_STRING: { r = "string"; }
+            break;
+            case ObjectStreamConstants.TC_LONGSTRING: { r = "long string"; }
+            break;
+            case ObjectStreamConstants.TC_NULL: { r = "null"; }
+            break;
+            default: r = "! " + StreamCorruptedException.class.getName();
+            }
+        }
+        try { data.close(); } catch (final Exception e) {}
+        return r;
+    }
 }

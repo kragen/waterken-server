@@ -2,18 +2,13 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.jos;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectStreamConstants;
 import java.io.PrintStream;
-import java.io.StreamCorruptedException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import org.joe_e.reflect.Reflection;
 import org.waterken.archive.Archive;
 import org.waterken.archive.n2v.N2V;
 
@@ -74,7 +69,7 @@ Report {
             stdout.print('\t');
             stdout.print(entry.getLength());
             stdout.print('\t');
-            final String typename = identify(entry.open());
+            final String typename = JODB.identify(entry.open());
             stdout.println(typename);
 
             // keep track of totals
@@ -115,47 +110,5 @@ Report {
         stdout.println("entries:\t" + entries);
         stdout.println("bytes:\t" + bytes);
         stdout.println("types:\t" + sum.length);
-    }
-    
-    /**
-     * Determine the type of object stored in a stream.
-     */
-    static private String
-    identify(final InputStream s) {
-        final DataInputStream data = new DataInputStream(s);
-        String r;
-        try {
-            if (ObjectStreamConstants.STREAM_MAGIC != data.readShort()) {
-                throw new StreamCorruptedException();
-            }
-            data.readShort();   // skip version number, assume compatible
-            switch (data.read()) {
-            case ObjectStreamConstants.TC_OBJECT: {
-                switch (data.read()) {
-                case ObjectStreamConstants.TC_CLASSDESC: { r = data.readUTF(); }
-                break;
-                case ObjectStreamConstants.TC_PROXYCLASSDESC: {
-                    r = data.readInt() > 0 ? data.readUTF() : "proxy";
-                }
-                break;
-                default: throw new StreamCorruptedException();
-                }
-            }
-            break;
-            case ObjectStreamConstants.TC_ARRAY: { r = "array"; }
-            break;
-            case ObjectStreamConstants.TC_STRING: { r = "string"; }
-            break;
-            case ObjectStreamConstants.TC_LONGSTRING: { r = "long string"; }
-            break;
-            case ObjectStreamConstants.TC_NULL: { r = "null"; }
-            break;
-            default: throw new StreamCorruptedException();
-            }
-        } catch (final IOException e) {
-            r = "! " + Reflection.getName(e.getClass());
-        }
-        try { data.close(); } catch (final Exception e) {}
-        return r;
     }
 }
