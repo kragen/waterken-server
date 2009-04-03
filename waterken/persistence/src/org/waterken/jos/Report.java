@@ -4,6 +4,7 @@ package org.waterken.jos;
 
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectStreamConstants;
 import java.io.PrintStream;
@@ -149,9 +150,9 @@ Report {
             break;
             case ObjectStreamConstants.TC_NULL: { r = "null"; }
             break;
-            default: throw new Exception();
+            default: throw new StreamCorruptedException();
             }
-        } catch (final Exception e) {
+        } catch (final IOException e) {
             r = "! " + Reflection.getName(e.getClass());
         }
         try { data.close(); } catch (final Exception e) {}
