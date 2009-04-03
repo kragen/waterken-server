@@ -123,19 +123,17 @@ Report {
         final DataInputStream data = new DataInputStream(s);
         String r;
         try {
-            final int[] magic = new int[] { 0xAC, 0xED, 0x00, 0x05 };
-            for (int i = 0; i != magic.length; ++i) {
-                if (data.read() != magic[i]) {
-                    throw new StreamCorruptedException();
-                }
+            if (ObjectStreamConstants.STREAM_MAGIC != data.readShort()) {
+                throw new StreamCorruptedException();
             }
+            data.readShort();   // skip version number, assume compatible
             switch (data.read()) {
             case ObjectStreamConstants.TC_OBJECT: {
                 switch (data.read()) {
                 case ObjectStreamConstants.TC_CLASSDESC: { r = data.readUTF(); }
                 break;
                 case ObjectStreamConstants.TC_PROXYCLASSDESC: {
-                    r = "proxy"; // TODO: extract implemented type
+                    r = data.readInt() > 0 ? data.readUTF() : "proxy";
                 }
                 break;
                 default: throw new StreamCorruptedException();
