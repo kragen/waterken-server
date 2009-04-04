@@ -96,16 +96,6 @@ Folder extends Struct implements StoreMaker, Serializable {
                             throw new FileNotFoundException();
                         }
                     }
-                    
-                    public boolean
-                    includes(final String filename) {
-                        if (done.is()) { throw new AssertionError(); }
-                        try {
-                            return Filesystem.file(dir, filename).isFile();
-                        } catch (final InvalidFilenameException e) {
-                            return false;
-                        }
-                    }
 
                     public InputStream
                     read(final String filename) throws IOException {

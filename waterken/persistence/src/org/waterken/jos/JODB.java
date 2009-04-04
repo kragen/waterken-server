@@ -239,13 +239,6 @@ JODB<S> extends Database<S> {
     }
     
     private final Root root = new Root() {
-        
-        private boolean
-        exists(final String f) {
-            try {
-                return f2b.containsKey(f) || tx.update.includes(f + ext);
-            } catch (final Exception e) { throw new Error(e); }
-        }
 
         private final ArrayList<String> stack = new ArrayList<String>(16);
 
@@ -394,9 +387,7 @@ JODB<S> extends Database<S> {
               throw new ProhibitedModification(Reflection.getName(Root.class));
             }
 
-            final String filename = canonicalize(name);
-            if (exists(filename)) { throw new InvalidFilenameException(); }
-            create(filename, new SymbolicLink(value), null);
+            create(canonicalize(name), new SymbolicLink(value), null);
         }
 
         public @SuppressWarnings("unchecked") <T> T
@@ -429,18 +420,8 @@ JODB<S> extends Database<S> {
                 final ByteArray version = ByteArray.array(rawVersion);
                 final byte[] id = new byte[keyBytes];
                 System.arraycopy(rawVersion, 0, id, 0, id.length);
-                while (true) {
-                    f = filename(id);
-                    try {
-                        if (!exists(f)) {
-                            create(f, o, version);
-                            break;
-                        }
-                        load(f);
-                        if (version.equals(f2b.get(f).version)) { break; }
-                    } catch (final Exception e) { /*skip broken bucket*/ }
-                    for (int i = 0; i != id.length && 0 == ++id[i]; ++i) {}
-                }
+                f = filename(id);
+                if (!f2b.containsKey(f)) { create(f, o, version); }
                 return f;
             }
             
@@ -454,11 +435,9 @@ JODB<S> extends Database<S> {
             f = tx.o2wf.get(o);
             if (null == f) {
                 // create a new identity
-                do {
-                    final byte[] id = new byte[keyBytes];
-                    prng.nextBytes(id);
-                    f = filename(id);
-                } while (exists(f));
+                final byte[] id = new byte[keyBytes];
+                prng.nextBytes(id);
+                f = filename(id);
             }
             
             // assign the identity
@@ -659,6 +638,17 @@ JODB<S> extends Database<S> {
                     f2b.put(f, new Bucket(b.value, false, version,
                                           out.isManaged(), out.getSplices()));
                 }
+            }
+            
+            // to avoid disk searches, put dead weak keys in the cache
+            while (!tx.o2wf.isEmpty()) {
+                final Iterator<String> i = tx.o2wf.values().iterator();
+                final String f = i.next();
+                i.remove();
+                
+                f2b.put(f, new Bucket(new CacheReference<String,Object>(f,
+                    new SymbolicLink(null), wiped), false, ByteArray.array(),
+                    true, PowerlessArray.array(new String[0])));
             }
             m.update.commit();
         } catch (final Error e) {

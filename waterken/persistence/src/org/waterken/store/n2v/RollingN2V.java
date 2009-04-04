@@ -138,15 +138,6 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                             throw new FileNotFoundException();
                         }
                     }
-                    
-                    public boolean
-                    includes(final String name) throws IOException {
-                        if (done.is()) { throw new AssertionError(); }
-                        for (int i = versions.size(); 0 != i--;) {
-                            if (null!=versions.get(i).find(name)) {return true;}
-                        }
-                        return false;
-                    }
 
                     public InputStream
                     read(final String name) throws IOException {

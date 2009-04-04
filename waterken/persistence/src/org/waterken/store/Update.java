@@ -25,15 +25,6 @@ Update {
     void close() throws IOException;
     
     /**
-     * Does an entry with the given name already exist?
-     * @param filename  name of entry to check for
-     * @return <code>true</code> if and only if the named entry exists;
-     *         <code>false</code> otherwise
-     * @throws IOException              any I/O problem
-     */
-    boolean includes(String filename) throws IOException;
-    
-    /**
      * Opens an existing file for reading.
      * @param filename  name of file to open
      * @return corresponding input stream

@@ -31,7 +31,7 @@ Root {
      * </p>
      * @param name  name to bind
      * @param value value to store
-     * @throws InvalidFilenameException <code>name</code> is already bound
+     * @throws InvalidFilenameException <code>name</code> not allowed
      * @throws ProhibitedModification   in a {@link Transaction#query}
      */
     void link(String name, Object value) throws InvalidFilenameException,
