@@ -11,61 +11,93 @@ import org.ref_send.promise.Receiver;
  * A concurrent loop.
  */
 public final class
-Concurrent {
-    private Concurrent() {}
+Concurrent<T extends Promise<?>> {
+    
+    /**
+     * enqueue tasks to be executed as-soon-as-possible
+     */
+    public final Receiver<T> foreground;
+    
+    /**
+     * enqueue tasks to be executed when otherwise idle
+     */
+    public final Receiver<Promise<?>> background;
+    
+    private
+    Concurrent(final Receiver<T> foreground,
+               final Receiver<Promise<?>> background) {
+        this.foreground = foreground;
+        this.background = background;
+    }
 
     /**
      * Constructs an instance.
      * @param group thread group
      * @param name  thread name
      */
-    static public <T extends Promise<?>> Receiver<T>
+    static public <T extends Promise<?>> Concurrent<T>
     make(final ThreadGroup group, final String name) {
         if (null == group) { throw new NullPointerException(); }
         if (null == name) { throw new NullPointerException(); }
 
-        final LinkedList<T> tasks = new LinkedList<T>();        
-        return new Receiver<T>() {
-            private boolean running = false;
-
-            public synchronized void
-            run(final T task) {
-                if (null == task) { throw new NullPointerException(); }
-                
-                tasks.add(task);
-                if (!running) {
-                    final Object lock = this;
-                    new Thread(group, name) {
-                        public void
-                        run() {
-                            System.out.println(this + ": processing...");
-                            try {
-                                while (true) {
-                                    final T todo;
-                                    synchronized (lock) {
-                                        if (tasks.isEmpty()) {
-                                            running = false;
-                                            break;
-                                        }
-                                        todo = tasks.removeFirst();
-                                    }
-                                    try {
-                                        todo.call();
-                                    } catch (final Exception e) {
-                                        System.err.println(this + ":");
-                                        e.printStackTrace(System.err);
-                                    }
+        final Object lock = new Object();
+        final LinkedList<T> foreground = new LinkedList<T>();        
+        final LinkedList<Promise<?>> background = new LinkedList<Promise<?>>();
+        final boolean[] running = new boolean[] { false };
+        final Runnable runner = new Runnable() {
+            public void
+            run() {
+                System.out.println(Thread.currentThread() + ": processing...");
+                try {
+                    while (true) {
+                        final Promise<?> todo;
+                        synchronized (lock) {
+                            if (foreground.isEmpty()) {
+                                if (background.isEmpty()) {
+                                    running[0] = false;
+                                    break;
+                                } else {
+                                    todo = background.removeFirst();
                                 }
-                            } catch (final Throwable e) {
-                                System.err.println(this + ":");
-                                e.printStackTrace(System.err);
+                            } else {
+                                todo = foreground.removeFirst();
                             }
-                            System.out.println(this + ": idling...");
                         }
-                    }.start();
-                    running = true;
+                        try {
+                            todo.call();
+                        } catch (final Exception e) {
+                            System.err.println(Thread.currentThread() + ":");
+                            e.printStackTrace(System.err);
+                        }
+                    }
+                } catch (final Throwable e) {
+                    System.err.println(Thread.currentThread() + ":");
+                    e.printStackTrace(System.err);
                 }
+                System.out.println(Thread.currentThread() + ": idling...");
             }
         };
+        class Enqueue<X> implements Receiver<X> {
+            private final LinkedList<X> tasks;
+            
+            Enqueue(final LinkedList<X> tasks) {
+                this.tasks = tasks;
+            }
+            
+            public void
+            run(final X task) {
+                if (null == task) { throw new NullPointerException(); }
+                
+                synchronized (lock) {
+                    tasks.add(task);
+                    if (!running[0]) {
+                        running[0] = true;
+                        new Thread(group, runner, name).start();
+                    }
+                }
+            }
+        }
+        return new Concurrent<T>(new Enqueue<T>(foreground),
+                                 new Enqueue<Promise<?>>(background));
     }
 }
