@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.ref_send.promise.Receiver;
 import org.waterken.cache.Cache;
 import org.waterken.http.Client;
 import org.waterken.http.Request;
@@ -33,11 +32,12 @@ Proxy extends Struct implements Server, Serializable {
     connect(final String peer, final Locator transport) {
         Server r = connections.fetch(null, peer);
         if (null == r) {
-            final Receiver<ClientSide.Outbound> sender =
+            final Concurrent<ClientSide.Outbound> sender =
                 Concurrent.make(threads, "->" + peer);
-            final Receiver<ClientSide.Inbound> receiver =
+            final Concurrent<ClientSide.Inbound> receiver =
                 Concurrent.make(threads, "<-" + peer);
-            r = ClientSide.make(peer, transport, new Sleep(), sender, receiver);
+            r = ClientSide.make(peer, transport, new Sleep(),
+                    sender.foreground, receiver.foreground);
             connections.put(peer, r);
         }
         return r;
