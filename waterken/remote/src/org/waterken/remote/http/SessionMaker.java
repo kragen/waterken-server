@@ -37,7 +37,7 @@ SessionMaker implements Serializable {
         if (null == r) {
             final Log log = root.fetch(null, Database.log);
             r = new ServerSideSession(hash(key), log);
-            root.link(sessionKeyPrefix + key, r);
+            root.assign(sessionKeyPrefix + key, r);
         }
         return r;
     }

@@ -163,7 +163,7 @@ HTTP extends Eventual implements Serializable {
             if (null == msgs) {
                 final SessionInfo s = new SessionMaker(_.root).create();
                 msgs = new Pipeline(peer, s.key, s.name, _.effect, _.outbound);
-                _.root.link(peerKey, msgs);
+                _.root.assign(peerKey, msgs);
             }
             return new Caller(_,_.here,getCodebase(), connect(),export(),msgs);
         }

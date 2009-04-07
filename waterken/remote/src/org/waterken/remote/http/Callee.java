@@ -242,11 +242,9 @@ Callee extends Struct implements Serializable {
         return null;
     }
     
-    static private Scope<?>
+    static private Scope
     describe(final Class<?> type) {
-        final Object ts = types(type);
-        return new Scope<Object>(new Layout(PowerlessArray.array("$")),
-                                 ConstArray.array(ts));
+        return new Layout(PowerlessArray.array("$")).make(types(type));
     }
     
     /**
