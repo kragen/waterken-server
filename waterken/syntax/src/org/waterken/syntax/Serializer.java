@@ -3,6 +3,7 @@
 package org.waterken.syntax;
 
 import org.joe_e.Powerless;
+import org.joe_e.inert;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 
@@ -18,5 +19,5 @@ Serializer extends Powerless {
      * @param values    each argument to serialize
      * @return serialized content
      */
-    ByteArray run(Exporter export, ConstArray<?> values) throws Exception;
+    ByteArray run(Exporter export, @inert ConstArray<?> values)throws Exception;
 }

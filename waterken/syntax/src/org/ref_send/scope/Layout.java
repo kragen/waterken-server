@@ -70,8 +70,10 @@ Layout implements Powerless, Selfless, Record, Serializable {
      * Constructs a scope.
      * @param values    {@link Scope#values}
      */
-    public <T> Scope<T>
-    make(final T... values){return new Scope<T>(this,ConstArray.array(values));}
+    public Scope
+    make(final Object... values) {
+        return new Scope(this, ConstArray.array(values));
+    }
     
     /**
      * Finds the index of the named member.

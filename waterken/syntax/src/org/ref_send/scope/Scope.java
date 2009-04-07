@@ -5,13 +5,14 @@ package org.ref_send.scope;
 import java.io.Serializable;
 
 import org.joe_e.Selfless;
+import org.joe_e.inert;
 import org.joe_e.array.ConstArray;
 
 /**
  * A [ name =&gt; value ] record.
  */
 public final class
-Scope<T> implements Selfless, Serializable {
+Scope implements Selfless, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
@@ -22,7 +23,7 @@ Scope<T> implements Selfless, Serializable {
     /**
      * each corresponding value
      */
-    public final ConstArray<? extends T> values;
+    public final ConstArray<?> values;
     
     /**
      * Constructs an instance.
@@ -30,7 +31,7 @@ Scope<T> implements Selfless, Serializable {
      * @param values    {@link #values}
      */
     public
-    Scope(final Layout meta, final ConstArray<? extends T> values) {
+    Scope(final Layout meta, final ConstArray<?> values) {
         if (meta.names.length()!=values.length()){throw new RuntimeException();}
         
         this.meta = meta;
@@ -47,8 +48,8 @@ Scope<T> implements Selfless, Serializable {
     public boolean
     equals(final Object o) {
         return null != o && Scope.class == o.getClass() &&
-               values.equals(((Scope<?>)o).values) &&
-               meta.equals(((Scope<?>)o).meta);
+               values.equals(((Scope)o).values) &&
+               meta.equals(((Scope)o).meta);
     }
     
     /**
@@ -65,7 +66,7 @@ Scope<T> implements Selfless, Serializable {
      * @param name  member name
      * @return member value, or <code>null</code> if unspecified
      */
-    public @SuppressWarnings("unchecked") <R extends T> R
+    public @SuppressWarnings("unchecked") @inert <R> R
     get(final String name) {
         final int i = meta.find(name);
         return -1 != i ? (R)values.get(i) : null;

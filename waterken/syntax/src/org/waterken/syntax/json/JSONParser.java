@@ -257,7 +257,7 @@ JSONParser {
                     lexer.next();
                 }
             }
-            final Scope<?> x = new Scope<Object>(new Layout(names.snapshot()),
+            final Scope x = new Scope(new Layout(names.snapshot()),
                                                  values.snapshot());  
             lexer.next();    // skip past the closing curly
             return null != promised ? ref(x) : x;

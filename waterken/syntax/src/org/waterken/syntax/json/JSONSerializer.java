@@ -11,6 +11,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
 import org.joe_e.Struct;
+import org.joe_e.inert;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
@@ -40,7 +41,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     // org.waterken.syntax.Serializer interface
 
     public ByteArray
-    run(final Exporter export, final ConstArray<?> values) throws Exception {
+    run(final Exporter export,
+        final @inert ConstArray<?> values) throws Exception {
         /*
          * SECURITY CLAIM: Only the immutable root of the application object
          * tree provided by the values argument is serialized. The Exporter is
@@ -72,12 +74,12 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
      * @param text      UTF-8 text output, will be flushed and closed
      */
     static public void
-    write(final Exporter export, final Iterable<?> values,
+    write(final Exporter export, final @inert ConstArray<?> values,
                                  final Writer text) throws Exception {
         final JSONWriter top = JSONWriter.make(text);
         final JSONWriter.ArrayWriter aout = top.startArray();
-        for (final Object value : values) {
-            serialize(export, Object.class, value, aout.startElement());
+        for (int i = 0; i != values.length(); ++i) {
+            serialize(export, Object.class, values.get(i), aout.startElement());
         }
         aout.finish();
         if (!top.isWritten()) { throw new RuntimeException(); }
@@ -88,7 +90,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private final TypeVariable<?> T = Typedef.var(Iterable.class, "T");
     
     static private void
-    serialize(final Exporter export, final Type implicit, final Object value,
+    serialize(final Exporter export,
+              final Type implicit, final @inert Object value,
               final JSONWriter.ValueWriter out) throws Exception {
         final Class<?> actual = null != value ? value.getClass() : Void.class;
         if (String.class == actual) {
@@ -123,23 +126,6 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.writeString(((Character)value).toString());
         } else if (Void.class == actual) {
             out.writeNull();
-        } else if (Scope.class == actual) {
-            final Scope<?> scope = (Scope<?>)value;
-            /*
-             * SECURITY DEPENDENCY: Application code cannot extend ConstArray,
-             * so iteration of the scope arrays will not transfer control to
-             * application code.
-             */
-            final JSONWriter.ObjectWriter oout = out.startObject();
-            final int length = scope.values.length();
-            for (int i = 0; i != length; ++i) {
-                final Object member = scope.values.get(i);
-                if (null != member) {
-                    serialize(export, Object.class, member,
-                              oout.startMember(scope.meta.names.get(i)));
-                }
-            }
-            oout.finish();
         } else if (value instanceof ConstArray) {
             /*
              * SECURITY DEPENDENCY: Application code cannot extend ConstArray,
@@ -148,10 +134,27 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
              */
             final Type elementType = Typedef.bound(T, implicit);
             final JSONWriter.ArrayWriter aout = out.startArray();
-            for (final Object element : (ConstArray<?>)value) {
+            for (final @inert Object element : (ConstArray<?>)value) {
                 serialize(export, elementType, element, aout.startElement());
             }
             aout.finish();
+        } else if (Scope.class == actual) {
+            final @inert Scope scope = (Scope)value;
+            /*
+             * SECURITY DEPENDENCY: Application code cannot extend ConstArray,
+             * so iteration of the scope arrays will not transfer control to
+             * application code.
+             */
+            final JSONWriter.ObjectWriter oout = out.startObject();
+            final int length = scope.values.length();
+            for (int i = 0; i != length; ++i) {
+                final @inert Object member = scope.values.get(i);
+                if (null != member) {
+                    serialize(export, Object.class, member,
+                              oout.startMember(scope.meta.names.get(i)));
+                }
+            }
+            oout.finish();
         } else if (value instanceof Record || value instanceof Throwable) {
             final JSONWriter.ObjectWriter oout = out.startObject();
             final Class<?> top = Typedef.raw(implicit);
@@ -165,7 +168,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                     if (!Modifier.isFinal(f.getModifiers())) {
                         throw new IllegalAccessException("MUST be final: " + f);
                     }
-                    final Object member = Reflection.get(f, value);
+                    final @inert Object member = Reflection.get(f, value);
                     if (null != member) {
                         serialize(export,
                                   Typedef.bound(f.getGenericType(), implicit),
