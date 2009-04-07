@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.db;
 
+import org.joe_e.inert;
 import org.joe_e.file.InvalidFilenameException;
 
 /**
@@ -34,8 +35,8 @@ Root {
      * @throws InvalidFilenameException <code>name</code> not allowed
      * @throws ProhibitedModification   in a {@link Transaction#query}
      */
-    void link(String name, Object value) throws InvalidFilenameException,
-                                                ProhibitedModification;
+    void assign(String name, Object value) throws InvalidFilenameException,
+                                                  ProhibitedModification;
     
     /**
      * Assigns a name to a given value.
@@ -45,7 +46,5 @@ Root {
      * @return assigned name
      * @throws ProhibitedCreation       in a {@link Transaction#query}
      */
-    String export(Object value, boolean isWeak) throws ProhibitedCreation;
-    // TODO: change interface to be @inert value, and no isWeak argument.
-    // follow with a link call
+    String export(@inert Object value, boolean isWeak)throws ProhibitedCreation;
 }

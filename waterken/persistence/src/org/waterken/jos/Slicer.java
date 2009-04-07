@@ -26,15 +26,17 @@ import org.waterken.db.Root;
 /* package */ final class
 Slicer extends ObjectOutputStream {
     
+    private final boolean weakTop;
     private final Object top;
     private final Root root;
     
     private final Milestone<Boolean> unmanaged = Milestone.plan();
     private final HashSet<String> splices = new HashSet<String>(8);
     
-    Slicer(final Object top, final Root root,
+    Slicer(final boolean weakTop, final Object top, final Root root,
            final OutputStream out) throws IOException {
         super(out);
+        this.weakTop = weakTop;
         this.top = top;
         this.root = root;
         enableReplaceObject(true);
@@ -76,8 +78,9 @@ Slicer extends ObjectOutputStream {
             try {
                 final Object p = state.get(x);
                 if (!(p instanceof Faulting)) {
-                    state.set(x, new Faulting(root,
-                        root.export(Eventual.near(p), isWeak.getBoolean(x))));
+                    final String name = root.export(Eventual.near(p),
+                            weakTop || isWeak.getBoolean(x));
+                    state.set(x, new Faulting(root, name));
                 }
             } catch (final Exception e) { throw new AssertionError(e); }
         } else if (!inline(type)) {
@@ -86,7 +89,7 @@ Slicer extends ObjectOutputStream {
                 // This must be the contained stack trace array. Just let it
                 // go by, since it acts like it's selfless.
             } else {
-                final String name = root.export(x, false);
+                final String name = root.export(x, weakTop);
                 splices.add(name);
                 x = new Splice(name);
             }
