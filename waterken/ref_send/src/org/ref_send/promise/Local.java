@@ -60,7 +60,7 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      * @return <code>true</code> if trusted, else <code>false</code>
      */
     static protected final boolean
-    trusted(final Token local, final Object untrusted) {
+    trusted(final Token local, final @inert Object untrusted) {
         return untrusted instanceof Local &&
                local == ((Local<?>)untrusted)._.local;
     }
