@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * ref_send.js version: 2009-02-09
+ * ref_send.js version: 2009-04-08
  */
 "use strict";
 ADSAFE.lib('Q', function () {
@@ -33,10 +33,11 @@ ADSAFE.lib('Q', function () {
         }
         return function (op, arg1, arg2, arg3) {
             if (undefined === op) { return value; }
-            if ('WHEN' === op) { return arg1(value); }
 
             var r;
-            if ('GET' === op) {
+            if ('WHEN' === op) {
+                r = value;
+            } else if ('GET' === op) {
                 r = ADSAFE.get(value, arg2);
             } else if ('POST' === op) {
                 r = ADSAFE.invoke(value, arg2, arg3);
