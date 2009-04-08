@@ -157,7 +157,7 @@ ADSAFE.go('SHELL_', function (dom, lib) {
     var output = dom.q('#SHELL_OUTPUT');
     var page = lib.web.getPage();
     var factory = lib.Q.when(lib.Q.get(page), function (value) {
-        return value.$.filter(function (typename) {
+        return value.$ && value.$.filter(function (typename) {
             return 'org.waterken.bang.DrumFactory' === typename;
         }).length ? page : null;
     });

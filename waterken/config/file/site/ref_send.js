@@ -37,19 +37,43 @@ ADSAFE.lib('Q', function () {
 
             var r;
             if ('GET' === op) {
-                if (undefined === arg2) {
-                    r = value;
-                } else {
-                    r = ADSAFE.get(value, arg2);
-                }
+                r = ADSAFE.get(value, arg2);
             } else if ('POST' === op) {
                 r = ADSAFE.invoke(value, arg2, arg3);
             } else {
-                throw new Error();
+                r = reject(new Error(), [ 'NaO' ]);
             }
             return arg1(r);
         };
     }
+
+    /*
+     * The above functions, reject() and ref(), each construct a kind of
+     * promise. Other libraries can provide other kinds of promises by
+     * implementing the same API. A promise is a function with signature:
+     * function (op, arg1, arg2, arg3). The first argument determines the
+     * interpretation of the remaining arguments. The following cases must be
+     * handled:
+     *
+     * 'op' is undefined:
+     *  Return the most resolved current value of the promise.
+     *
+     * 'op' is 'WHEN':
+     *  'arg1': callback to invoke with the fulfilled value of the promise
+     *  'arg2': callback to invoke with the rejection reason for the promise
+     *
+     * 'op' is 'GET':
+     *  'arg1': callback to invoke with the value of the named property
+     *  'arg2': name of the property to read
+     *
+     * 'op' is 'POST':
+     *  'arg1': callback to invoke with the return value from the invocation
+     *  'arg2': name of the method to invoke
+     *  'arg3': array of invocation arguments
+     *
+     * 'op' is unrecognized:
+     *  'arg1': callback to invoke with a rejected promise
+     */
 
     var enqueue = function () {
         var active = false;
