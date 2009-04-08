@@ -39,7 +39,9 @@ the API is significantly different and doesn't support the most useful
 programming idioms for asynchronous messaging. A Deferred doesn't support any
 operations that can't just as easily be done with promises. I'm hoping to
 convince the serverjs group to adopt promises instead of Deferreds;
-specifically, the <a href="bang/">Javascript ref_send library</a>.</p>
+specifically, the <a
+href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/ref_send.js?view=markup">Javascript
+ref_send library</a>.</p>
 </div>
 </content>
 </entry>
