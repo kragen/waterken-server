@@ -9,6 +9,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
+import org.joe_e.inert;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
@@ -209,7 +210,7 @@ HTTP extends Eventual implements Serializable {
                 static private final long serialVersionUID = 1L;
 
                 public String
-                run(final Object object) {
+                run(final @inert Object object) {
                     return href(_.root.export(object, false), isPBC(object) ||
                         !(Fulfilled.isInstance(Eventual.ref(object))));
                 }
@@ -263,23 +264,6 @@ HTTP extends Eventual implements Serializable {
      */
     
     /**
-     * Constructs a live web-key for a GET request.
-     * @param href      web-key
-     * @param predicate predicate string, or <code>null</code> if none
-     */
-    static protected String
-    get(final String href, final String predicate) {
-        String query = URI.fragment("", href);
-        if ("".equals(query)) {
-            query = "s=";
-        }
-        if (null != predicate) {
-            query += "&q=" + URLEncoding.encode(predicate);
-        }
-        return URI.resolve(href, "./?" + query);
-    }
-    
-    /**
      * Constructs a live web-key for a POST request.
      * @param href          web-key
      * @param predicate     predicate string, or <code>null</code> if none
@@ -290,19 +274,33 @@ HTTP extends Eventual implements Serializable {
     static protected String
     post(final String href, final String predicate,
          final String sessionKey, final long window, final int message) {
-        String query = URI.fragment("", href);
-        if ("".equals(query)) {
-            query = "s=";
-        }
+        String r = URI.resolve(href, "");
+        char sep = r.indexOf('?') == -1 ? '?' : '&';
         if (null != predicate) {
-            query += "&q=" + URLEncoding.encode(predicate);
+            r += sep + "q=" + URLEncoding.encode(predicate);
+            sep = '&';
         }
         if (null != sessionKey) {
-            query += "&x=" + URLEncoding.encode(sessionKey) +
-                     "&w=" + window +
-                     "&m=" + message;
+            r += sep + "x=" + URLEncoding.encode(sessionKey) +
+                      "&w=" + window +
+                      "&m=" + message;
+            sep = '&';
         }
-        return URI.resolve(href, "./?" + query);
+        final String query = URI.fragment("", href);
+        if (!"".equals(query)) {
+            r += sep + query;
+        }
+        return r;
+    }
+    
+    /**
+     * Constructs a live web-key for a GET request.
+     * @param href      web-key
+     * @param predicate predicate string, or <code>null</code> if none
+     */
+    static protected String
+    get(final String href, final String predicate) {
+        return post(href, predicate, null, 0, 0);
     }
     
     /**
@@ -449,7 +447,7 @@ HTTP extends Eventual implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public String
-            run(final Object target) {
+            run(final @inert Object target) {
                 final String absolute = URI.resolve(here, export.run(target));
                 return null != there ? URI.relate(there, absolute) : absolute;
             }

@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.inert;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Local;
@@ -80,11 +81,11 @@ Remote extends Local<Object> {
             static private final long serialVersionUID = 1L;
             
             public String
-            run(final Object target) {
-                final Object handler = target instanceof Proxy
+            run(final @inert Object target) {
+                final @inert Object handler = target instanceof Proxy
                     ? Proxies.getHandler((Proxy)target) : target;
                 if (handler instanceof Remote) {
-                    final Remote x = (Remote)handler;
+                    final @inert Remote x = (Remote)handler;
                     if (Local.trusted(local, x)) { return x.href; }
                 }
                 return next.run(target);
