@@ -193,9 +193,12 @@ ADSAFE.lib('web', function (lib) {
                 sep = '&';
             }
             if (m.session) {
-                url += sep + 'x=' + encodeURIComponent(m.session.x);
-                sep = '&';
+                if (m.session.x) {
+                    url += sep + 'x=' + encodeURIComponent(m.session.x);
+                    sep = '&';
+                }
                 url += sep + 'w=' + m.session.w;
+                sep = '&';
             }
             if (urlref[2]) {
                 url += urlref[2].replace('#', sep);
@@ -230,7 +233,9 @@ ADSAFE.lib('web', function (lib) {
                 var origin = resolveURI(URLref, '/');
                 session = ADSAFE.get(sessions, origin);
                 if (!session) {
-                    session = {};
+                    session = {
+                        w: 1
+                    };
                     ADSAFE.set(sessions, origin, session);
                     pending.push({
                         URLref: resolveURI(URLref, '#s=sessions'),
@@ -239,7 +244,6 @@ ADSAFE.lib('web', function (lib) {
                         argv: [],
                         resolve: function (value) {
                             session.x = value.key;
-                            session.w = 1;
                         }
                     });
                 }
