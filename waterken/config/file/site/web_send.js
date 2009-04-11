@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-02-09
+ * web_send.js version: 2009-04-10
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a safe interface to the network, that can be loaded as
