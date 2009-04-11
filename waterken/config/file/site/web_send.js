@@ -99,10 +99,10 @@ ADSAFE.lib('web', function (lib) {
         var host = parts[1];
         var path = parts[2];
         while (true) {
-            if ('../' === href.substring(0, '../'.length)) {
+            if (/^\.\.\//.test(href)) {
                 path = path.substring(0, path.lastIndexOf('/',path.length-2)+1);
                 href = href.substring('../'.length);
-            } else if ('./' === href.substring(0, './'.length)) {
+            } else if (/^\.\//.test(href)) {
                 href = href.substring('./'.length);
             } else {
                 break;
@@ -185,20 +185,22 @@ ADSAFE.lib('web', function (lib) {
 
         var output = function () {
             var m = pending[0];
-            var fq = /#(.*)$/.exec(m.URLref);
-            var query = fq ? fq[1] : '';
-            if ('' === query) {
-                query = 's=';
-            }
-            if (m.q) {
-                query += '&q=' + encodeURIComponent(m.q);
+            var urlref = /([^#]*)(.*)/.exec(m.URLref);
+            var url = urlref[1];
+            var sep = /\?/.test(url) ? '&' : '?';
+            if (undefined !== m.q) {
+                url += sep + 'q=' + encodeURIComponent(m.q);
+                sep = '&';
             }
             if (m.session) {
-                query += '&x=' + encodeURIComponent(m.session.x);
-                query += '&w=' + m.session.w;
+                url += sep + 'x=' + encodeURIComponent(m.session.x);
+                sep = '&';
+                url += sep + 'w=' + m.session.w;
             }
-            var target = resolveURI(m.URLref, './?' + query);
-            http.open(m.op, target, true);
+            if (urlref[2]) {
+                url += urlref[2].replace('#', sep);
+            }
+            http.open(m.op, url, true);
             http.onreadystatechange = function () {
                 if (4 !== http.readyState) { return; }
                 if (m !== pending.shift()) { throw new Error(); }
@@ -231,7 +233,7 @@ ADSAFE.lib('web', function (lib) {
                     session = {};
                     ADSAFE.set(sessions, origin, session);
                     pending.push({
-                        URLref: resolveURI(URLref, './#s=sessions'),
+                        URLref: resolveURI(URLref, '#s=sessions'),
                         op: 'POST',
                         q: 'create',
                         argv: [],
