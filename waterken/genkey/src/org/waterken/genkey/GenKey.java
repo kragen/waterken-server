@@ -19,6 +19,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 
 import org.joe_e.Immutable;
+import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
 import org.joe_e.charset.ASCII;
 import org.joe_e.file.Filesystem;
@@ -242,9 +243,9 @@ GenKey {
                     local.fetch(null, VatInitializer.exports);
                 claim(exports._, exports.export(), hostname, (Registrar)exports.
                         connect().run(redirectoryURL, null, Registrar.class));
-                return new Immutable() {};
+                return new Token();
             }
-        });
+        }).call();
     }
     
     static private void
