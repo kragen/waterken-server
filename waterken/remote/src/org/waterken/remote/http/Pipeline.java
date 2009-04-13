@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import org.joe_e.Immutable;
+import org.joe_e.Token;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
@@ -212,9 +213,9 @@ Pipeline implements Serializable {
                             });
                         }
                     }
-                    return new Immutable() {};
+                    return new Token();
                 }
-            });
+            }).call();
         }
     }; }
     
@@ -234,9 +235,9 @@ Pipeline implements Serializable {
                                 local.fetch(null, VatInitializer.outbound);
                             outbound.find(peer).dequeue(mid).
                                 reject(request, reason);
-                            return new Immutable() {};
+                            return new Token();
                         }
-                    });
+                    }).call();
                     return null;
                 }
             });
@@ -273,9 +274,9 @@ Pipeline implements Serializable {
                                 local.fetch(null, VatInitializer.outbound);
                             outbound.find(peer).dequeue(mid).
                                 fulfill(request, response);
-                            return new Immutable() {};
+                            return new Token();
                         }
-                    });
+                    }).call();
                     return null;
                 }
             });

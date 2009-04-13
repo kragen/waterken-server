@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Immutable;
 import org.joe_e.Struct;
+import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
@@ -147,7 +148,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
                             effect.run(runTask());
                         }
                         task.call();
-                        return new Immutable() {};
+                        return new Token();
                     }
                 }).call();
             }

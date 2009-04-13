@@ -9,6 +9,7 @@ import java.net.DatagramSocket;
 import java.net.ServerSocket;
 
 import org.joe_e.Immutable;
+import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
 import org.ref_send.promise.Receiver;
 import org.waterken.db.DatabaseManager;
@@ -118,7 +119,7 @@ Serve {
             vats.connect(dir).enter(Transaction.query,
                                     new Transaction<Immutable>() {
                 public Immutable
-                run(final Root local) { return new Immutable() {}; }
+                run(final Root local) { return new Token(); }
             }).call();
         } catch (final Exception e) { e.printStackTrace(); }
     }}
