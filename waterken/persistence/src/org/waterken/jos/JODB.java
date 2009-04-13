@@ -32,6 +32,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.joe_e.Immutable;
 import org.joe_e.JoeE;
 import org.joe_e.Struct;
+import org.joe_e.Token;
 import org.joe_e.inert;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.PowerlessArray;
@@ -155,7 +156,7 @@ JODB<S> extends Database<S> {
         run(final Root root) throws Exception {
             final Receiver<?> wake = root.fetch(null, Database.wake);
             if (null != wake) { wake.run(null); }
-            return PowerlessArray.array(new String[] {});
+            return new Token();
         }
     }
 
