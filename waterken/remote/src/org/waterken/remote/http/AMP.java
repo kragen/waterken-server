@@ -12,6 +12,7 @@ import java.lang.reflect.Type;
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.array.ConstArray;
+import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.ref_send.deserializer;
 import org.ref_send.promise.Receiver;
@@ -57,8 +58,16 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
             // check for web browser bootstrap request
             final String q = URI.query(null, head.uri);
             if (null == q) {
+                final String project = vat.enter(Transaction.query,
+                        new Transaction<PowerlessArray<String>>() {
+                    public PowerlessArray<String>
+                    run(final Root root) throws Exception {
+                        final String r = root.fetch(null, Database.project);
+                        return PowerlessArray.array(r);
+                    }
+                }).call().get(0);
                 bootstrap.serve(new Request(head.version, head.method,
-                        "/site/" + URLEncoding.encode(vat.getProject()) + "/" +
+                        "/site/" + URLEncoding.encode(project) + "/" +
                         URLEncoding.encode(Path.name(URI.path(head.uri)))+"?o=",
                         head.headers), body, client);
                 return;
