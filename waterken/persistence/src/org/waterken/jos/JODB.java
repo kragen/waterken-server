@@ -88,15 +88,15 @@ JODB<S> extends Database<S> {
      */
     static protected final String ext = ".jos";
 
-    static private final int keyChars = 70 / 5;     // 70 bits > 10^21 keys
-    static private final int keyBytes = keyChars * 5 / 8 + 1;
+    static private   final int keyChars = 70 / 5;     // 70 bits > 10^21 keys
+    static protected final int keyBytes = keyChars * 5 / 8 + 1;
 
     /**
      * Turns an object identifier into a filename.
      * @param id    object identifier
      * @return corresponding filename
      */
-    static private String
+    static protected String
     filename(final byte[] id) {return Base32.encode(id).substring(0, keyChars);}
 
     private final Receiver<Event> stderr;   // log event output
@@ -139,42 +139,66 @@ JODB<S> extends Database<S> {
 
     // org.waterken.db.Database interface
     
-    private String project;
-    private ClassLoader code = JODB.class.getClassLoader();
+    /**
+     * Has the {@link #wake wake} task been run?
+     */
+    private final Milestone<Boolean> awake = Milestone.plan();
+    private       ClassLoader code = JODB.class.getClassLoader();
+    private       SecureRandom prng;
+    private       HashMap<String,Bucket> f2b;       // object cache
+    private       ReferenceQueue<Object> wiped;     // dead cache entries
+    private       Processor tx;     // currently active transaction processor
     
-    public String
-    getProject() throws Exception {
-        synchronized (store) {
-            wake();
-            return project;
+    static private final class
+    Wake implements Transaction<Immutable> {
+        public Immutable
+        run(final Root root) throws Exception {
+            final Receiver<?> wake = root.fetch(null, Database.wake);
+            if (null != wake) { wake.run(null); }
+            return PowerlessArray.array(new String[] {});
         }
     }
 
     public <R extends Immutable> Promise<R>
     enter(final boolean isQuery, final Transaction<R> body) throws Exception {
         synchronized (store) {
-            wake();
-            return process(isQuery, body);
-        }
-    }
-    
-    /**
-     * Has the {@link #wake wake} task been run?
-     */
-    private final Milestone<Boolean> awake = Milestone.plan();
-    
-    private void
-    wake() throws Exception {
-        if (!awake.is()) {
-            process(Transaction.query, new Transaction<Immutable>() {
-                public Immutable
-                run(final Root root) throws Exception {
-                    final Receiver<?> wake = root.fetch(null, Database.wake);
-                    if (null != wake) { wake.run(null); }
-                    return new Immutable() {};
+            if (!awake.is() && !(body instanceof Wake)) {
+                enter(Transaction.query, new Wake()).call();
+                awake.mark(true);
+            }
+            final Promise<R> r;
+            final Processor m = tx = new Processor(isQuery, store.update());
+            try {
+                r = process(m, body);
+                m.update.commit();
+            } catch (final Error e) {
+                f2b = null;
+                wiped = null;
+                
+                // allow the caller to recover from an aborted transaction
+                if (e instanceof OutOfMemoryError) { System.gc(); }
+                final Throwable cause = e.getCause();
+                if (cause instanceof Exception) { throw (Exception)cause; }
+                throw new Exception(e);
+            } finally {
+                tx = null;
+                m.update.close();
+            }
+            
+            // output the log events for the committed transaction
+            if (null != stderr) {
+                while (!m.events.isEmpty()) {
+                    stderr.run(m.events.removeFirst());
                 }
-            }).call();
-            awake.mark(true);
+            }
+            
+            // schedule any services
+            if (null != service) {
+                while (!m.services.isEmpty()) {
+                    service.run(m.services.removeFirst());
+                }
+            }
+            return r;
         }
     }
     
@@ -206,11 +230,6 @@ JODB<S> extends Database<S> {
             this.splices = splices;
         }
     }
-
-    private       SecureRandom prng;
-    private final ReferenceQueue<Object> wiped = new ReferenceQueue<Object>();
-    private final HashMap<String,Bucket> f2b = new HashMap<String,Bucket>(64);
-    private       Processor tx;     // currently active transaction processor
     
     static private final class
     Processor {
@@ -269,7 +288,8 @@ JODB<S> extends Database<S> {
             while (true) {
                 final Reference<?> r = wiped.poll();
                 if (null == r) { break; }
-                f2b.remove(((CacheReference<?,?>)r).key);
+                final Bucket b = f2b.remove(((CacheReference<?,?>)r).key);
+                if (b.value != r) { throw new AssertionError(); }
             }
             
             final int startCycle = stack.lastIndexOf(f);
@@ -520,12 +540,20 @@ JODB<S> extends Database<S> {
                         public void
                         run(final Event value) {}
                 } : stderr, subStore);
-                sub.project = null != project ? project : JODB.this.project;
-                sub.code = Project.connect(sub.project);
-                return sub.process(Transaction.update, new Transaction<X>() {
+                final String subProject;
+                if (null != project) {
+                    subProject = project;
+                    sub.code = Project.connect(subProject);
+                } else {
+                    subProject = root.fetch(null, Database.project);
+                    sub.code = code;
+                }
+                sub.prng = prng;
+                sub.awake.mark(true);
+                return sub.enter(Transaction.update, new Transaction<X>() {
                     public X
                     run(final Root local) throws Exception {
-                        local.assign(Database.project, sub.project);
+                        local.assign(Database.project, subProject);
                         local.assign(Database.here, here);
                         local.assign(secret, secretBits);
                         final TurnCounter turn = TurnCounter.make(here);
@@ -551,122 +579,101 @@ JODB<S> extends Database<S> {
     };
     final Log nop = new Log();
 
-    protected <R extends Immutable> Promise<R>
-    process(final boolean isQuery, final Transaction<R> body) throws Exception {
-        Promise<R> r;
-        final Processor m = tx = new Processor(isQuery, store.update());
-        try {
-            // finish Vat initialization, which was delayed to avoid doing
-            // anything intensive while holding the global "live" lock
-            final boolean restockCache = f2b.isEmpty();
-            if (null == prng) { prng = new SecureRandom(); }
-            if (null == project) {
-                try {
-                    project = root.fetch(null, Database.project);
-                } catch (final Exception e) { throw new Error(e); }
-                code = Project.connect(project);
-            }
-            
-            // setup the pseudo-persistent objects
-            m.o2f.put(code,         canonicalize(Database.code));
-            m.o2f.put(creator,      canonicalize(Database.creator));
-            m.o2f.put(effect,       canonicalize(Database.effect));
-            m.o2f.put(null,         canonicalize(Database.nothing));
-            m.o2f.put(monitor,      canonicalize(Database.monitor));
-            m.o2f.put(txerr,        canonicalize(".txerr"));
-            m.o2f.put(root,         canonicalize(".root"));
-            if (null == stderr) {
-                // short-circuit the log implementation
-                m.o2f.put(nop,      canonicalize(Database.log));
-            }
-            if (restockCache) {
-                for (final Map.Entry<Object,String> x : m.o2f.entrySet()) {
-                    final String f = x.getValue();
-                    f2b.put(f, new Bucket(
-                        new CacheReference<String,Object>(f, x.getKey(), wiped),
-                        true, null, false, null));
-                }
-            }
+    private <R extends Immutable> Promise<R>
+    process(final Processor m, final Transaction<R> body) throws Exception {
+        final boolean restockCache = null == f2b;
+        if (restockCache) {
+            wiped = new ReferenceQueue<Object>();
+            f2b = new HashMap<String,Bucket>(64);
+        }
 
-            // execute the transaction body
+        /*
+         * finish Vat initialization, which was delayed to avoid doing anything
+         * intensive while holding the global "live" lock
+         */ 
+        if (null == prng) {
+            final String project;
             try {
-                if (!isQuery) {
-                    final Receiver<?> flip = root.fetch(null, JODB.flip);
-                    if (null != flip) { flip.run(null); }
-                }
-                r = Eventual.ref(body.run(root));
-            } catch (final Exception e) {
-                r = new Rejected<R>(e);
-            }
-
-            // persist the modifications
-            while (!m.xxx.isEmpty()) {
-                final Iterator<String> i = m.xxx.iterator();
-                final String f = i.next();
-                final Bucket b = f2b.get(f);
-                i.remove();
-
-                final Mac mac = allocMac(root);
-                final ByteArrayOutputStream bytes = isQuery && !b.created
-                    ? null : new ByteArrayOutputStream(256);
-                final Object o = b.value.get();
-                final Slicer out =
-                    new Slicer(false, o, root, new MacOutputStream(mac, bytes));
-                out.writeObject(o);
-                out.flush();
-                out.close();
-                final ByteArray version = ByteArray.array(mac.doFinal());
-                freeMac(mac);
-                if (b.created || !version.equals(b.version)) {
-                    if (null == bytes) {
-                        throw new ProhibitedModification(Reflection.getName(
-                            null != o ? o.getClass() : Void.class));
-                    }
-                    final OutputStream fout = m.update.write(f + ext);
-                    bytes.writeTo(fout);
-                    fout.flush();
-                    fout.close();
-                    f2b.put(f, new Bucket(b.value, false, version,
-                                          out.isManaged(), out.getSplices()));
-                }
-            }
-            
-            // to avoid disk searches, put dead weak keys in the cache
-            while (!tx.o2wf.isEmpty()) {
-                final Iterator<String> i = tx.o2wf.values().iterator();
-                final String f = i.next();
-                i.remove();
-                
-                f2b.put(f, new Bucket(new CacheReference<String,Object>(f,
-                    new SymbolicLink(null), wiped), false, ByteArray.array(),
-                    true, PowerlessArray.array(new String[0])));
-            }
-            m.update.commit();
-        } catch (final Error e) {
-            f2b.clear();
-            
-            // allow the caller to recover from an aborted transaction
-            if (e instanceof OutOfMemoryError) { System.gc(); }
-            final Throwable cause = e.getCause();
-            if (cause instanceof Exception) { throw (Exception)cause; }
-            throw new Exception(e);
-        } finally {
-            tx = null;
-            m.update.close();
+                project = root.fetch(null, Database.project);
+            } catch (final Exception e) { throw new Error(e); }
+            code = Project.connect(project);
+            prng = new SecureRandom(); 
         }
         
-        // output the log events for the committed transaction
-        if (null != stderr) {
-            while (!m.events.isEmpty()) {
-                stderr.run(m.events.removeFirst());
+        // setup the pseudo-persistent objects
+        m.o2f.put(code,         canonicalize(Database.code));
+        m.o2f.put(creator,      canonicalize(Database.creator));
+        m.o2f.put(effect,       canonicalize(Database.effect));
+        m.o2f.put(null,         canonicalize(Database.nothing));
+        m.o2f.put(monitor,      canonicalize(Database.monitor));
+        m.o2f.put(txerr,        canonicalize(".txerr"));
+        m.o2f.put(root,         canonicalize(".root"));
+        if (null == stderr) {
+            // short-circuit the log implementation
+            m.o2f.put(nop,      canonicalize(Database.log));
+        }
+        if (restockCache) {
+            for (final Map.Entry<Object,String> x : m.o2f.entrySet()) {
+                final String f = x.getValue();
+                f2b.put(f, new Bucket(
+                    new CacheReference<String,Object>(f, x.getKey(), wiped),
+                    true, null, false, null));
+            }
+        }
+
+        // execute the transaction body
+        Promise<R> r;
+        try {
+            if (!m.isQuery) {
+                final Receiver<?> flip = root.fetch(null, JODB.flip);
+                if (null != flip) { flip.run(null); }
+            }
+            r = Eventual.ref(body.run(root));
+        } catch (final Exception e) {
+            r = new Rejected<R>(e);
+        }
+
+        // persist the modifications
+        while (!m.xxx.isEmpty()) {
+            final Iterator<String> i = m.xxx.iterator();
+            final String f = i.next();
+            final Bucket b = f2b.get(f);
+            i.remove();
+
+            final Mac mac = allocMac(root);
+            final ByteArrayOutputStream bytes = m.isQuery && !b.created
+                ? null : new ByteArrayOutputStream(256);
+            final Object o = b.value.get();
+            final Slicer out =
+                new Slicer(false, o, root, new MacOutputStream(mac, bytes));
+            out.writeObject(o);
+            out.flush();
+            out.close();
+            final ByteArray version = ByteArray.array(mac.doFinal());
+            freeMac(mac);
+            if (b.created || !version.equals(b.version)) {
+                if (null == bytes) {
+                    throw new ProhibitedModification(Reflection.getName(
+                        null != o ? o.getClass() : Void.class));
+                }
+                final OutputStream fout = m.update.write(f + ext);
+                bytes.writeTo(fout);
+                fout.flush();
+                fout.close();
+                f2b.put(f, new Bucket(b.value, false, version,
+                                      out.isManaged(), out.getSplices()));
             }
         }
         
-        // schedule any services
-        if (null != service) {
-            while (!m.services.isEmpty()) {
-                service.run(m.services.removeFirst());
-            }
+        // to avoid disk searches, put dead weak keys in the cache
+        while (!m.o2wf.isEmpty()) {
+            final Iterator<String> i = m.o2wf.values().iterator();
+            final String f = i.next();
+            i.remove();
+            
+            f2b.put(f, new Bucket(new CacheReference<String,Object>(f,
+                new SymbolicLink(null), wiped), false, ByteArray.array(),
+                true, PowerlessArray.array(new String[0])));
         }
         
         return r;

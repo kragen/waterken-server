@@ -93,12 +93,6 @@ Database<S> {
         this.session = session;
         this.service = service;
     }
-    
-    /**
-     * Gets the project name for this database.
-     */
-    public abstract String
-    getProject() throws Exception;
 
     /**
      * Processes a transaction within this database.
