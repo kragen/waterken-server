@@ -350,7 +350,7 @@ JODB<S> extends Database<S> {
                     false, version, !unmanaged.is(), 
                     PowerlessArray.array(splices.toArray(new String[0]))));
                 tx.o2f.put(o, f);
-                if (!JoeE.isFrozen(o)) { tx.xxx.add(f); }
+                tx.xxx.add(f);
                 return o;
             } catch (final InvalidClassException e) {
                 throw new RuntimeException(e);
@@ -371,7 +371,7 @@ JODB<S> extends Database<S> {
         private void
         markDirty(final String f, final Object o, final Bucket b) {
             if (null == tx.o2f.put(o, f)) {
-                if (!JoeE.isFrozen(o)) { tx.xxx.add(f); }
+                tx.xxx.add(f);
                 for (final String splice : b.splices) {
                     final Bucket spliced = f2b.get(splice);
                     markDirty(splice, spliced.value.get(), spliced);
@@ -639,12 +639,13 @@ JODB<S> extends Database<S> {
             final Iterator<String> i = m.xxx.iterator();
             final String f = i.next();
             final Bucket b = f2b.get(f);
+            final Object o = b.value.get();
             i.remove();
 
             final Mac mac = allocMac(root);
-            final ByteArrayOutputStream bytes = m.isQuery && !b.created
-                ? null : new ByteArrayOutputStream(256);
-            final Object o = b.value.get();
+            final ByteArrayOutputStream bytes =
+                !b.created && (m.isQuery || JoeE.isFrozen(o))
+                    ? null : new ByteArrayOutputStream(256);
             final Slicer out =
                 new Slicer(false, o, root, new MacOutputStream(mac, bytes));
             out.writeObject(o);
@@ -671,9 +672,18 @@ JODB<S> extends Database<S> {
             final Iterator<String> i = m.o2wf.values().iterator();
             final String f = i.next();
             i.remove();
+            final Object o = new SymbolicLink(null);
             
+            final Mac mac = allocMac(root);
+            final Slicer out =
+                new Slicer(false, o, root, new MacOutputStream(mac, null));
+            out.writeObject(o);
+            out.flush();
+            out.close();
+            final ByteArray version = ByteArray.array(mac.doFinal());
+            freeMac(mac);
             f2b.put(f, new Bucket(new CacheReference<String,Object>(f,
-                new SymbolicLink(null), wiped), false, ByteArray.array(),
+                o, wiped), false, version,
                 true, PowerlessArray.array(new String[0])));
         }
         
