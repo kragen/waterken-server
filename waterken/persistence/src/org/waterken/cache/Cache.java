@@ -5,7 +5,6 @@ package org.waterken.cache;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.HashMap;
 
@@ -77,11 +76,18 @@ Cache<K,V> implements Serializable {
     public void
     put(final K key, final V value) {
 
-        // Wipe old entries.
+        // remove dead cache entries
         while (true) {
-            final Reference<?> old = wiped.poll();
-            if (null == old) { break; }
-            entries.remove(((CacheReference<?,?>)old).key);
+            final CacheReference<?,?> r = (CacheReference<?,?>)wiped.poll();
+            if (null == r) { break; }
+            final CacheReference<K,V> x = entries.remove(r.key);
+            if (x != r) {
+                /*
+                 * The entry was overwritten before the soft reference to the
+                 * previous value was dequeued. Just put it back in the cache.
+                 */
+                entries.put(x.key, x);
+            }
         }
 
         entries.put(key, new CacheReference<K,V>(key, nonNull(value), wiped));
