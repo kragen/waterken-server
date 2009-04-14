@@ -22,5 +22,11 @@ ArchiveOutput {
      * Finish the archive.
      * @throws IOException  any I/O problem
      */
-    void finish() throws IOException ;
+    void finish() throws IOException;
+    
+    /**
+     * Closes the output stream.
+     * @throws IOException  any I/O problem
+     */
+    void close() throws IOException;
 }

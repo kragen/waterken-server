@@ -134,6 +134,8 @@ N2VOutput implements ArchiveOutput {
 
         meta.writeTo(out);
         out.flush();
-        out.close();
     }
+    
+    public void
+    close() throws IOException { out.close(); }
 }

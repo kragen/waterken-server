@@ -51,6 +51,7 @@ Compact {
             append(n2v, new File(args[i]));
         }
         n2v.finish();
+        n2v.close();
     }
     
     static private void
