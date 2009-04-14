@@ -20,6 +20,7 @@ SynchedFileOutputStream extends FileOutputStream {
     // java.io.OutputStream interface
     
     private boolean closed = false;
+    
     public void
     close() throws IOException {
         if (!closed) {

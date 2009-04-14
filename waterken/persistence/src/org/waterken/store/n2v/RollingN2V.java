@@ -121,6 +121,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     }
                 }
                 active = true;
+                final Milestone<Boolean> closed = Milestone.plan();
                 final Milestone<Boolean> done = Milestone.plan();
                 final Milestone<Boolean> nested = Milestone.plan();
                 final Milestone<ArchiveOutput> updates = Milestone.plan();
@@ -129,6 +130,8 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     
                     public void
                     close() throws IOException {
+                        if (closed.is()) { return; }
+                        closed.mark(true);
                         done.mark(true);
                         synchronized (lock) {
                             active = false;
