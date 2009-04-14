@@ -14,7 +14,6 @@ import java.io.ObjectStreamConstants;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.StreamCorruptedException;
-import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -302,9 +301,9 @@ JODB<S> extends Database<S> {
 
             // remove dead cache entries
             while (true) {
-                final Reference<?> r = wiped.poll();
+                final CacheReference<?,?> r = (CacheReference<?,?>)wiped.poll();
                 if (null == r) { break; }
-                final Bucket b = f2b.remove(((CacheReference<?,?>)r).key);
+                final Bucket b = f2b.remove(r.key);
                 if (b.value != r) {
                     /*
                      * The entry was reloaded before the soft reference to the
