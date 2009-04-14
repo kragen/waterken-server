@@ -167,11 +167,22 @@ JODB<S> extends Database<S> {
                 enter(Transaction.query, new Wake()).call();
                 awake.mark(true);
             }
-            final Promise<R> r;
+            Promise<R> r;
             final Processor m = tx = new Processor(isQuery, store.update());
             boolean done = false;
             try {
-                r = process(m, body);
+                initialize(m);
+                try {
+                    // execute the transaction body
+                    if (!m.isQuery) {
+                        final Receiver<?> flip = root.fetch(null, JODB.flip);
+                        if (null != flip) { flip.run(null); }
+                    }
+                    r = Eventual.ref(body.run(root));
+                } catch (final Exception e) {
+                    r = new Rejected<R>(e);
+                }
+                persist(m);
                 m.update.commit();
                 done = true;
             } catch (final Error e) {
@@ -256,8 +267,9 @@ JODB<S> extends Database<S> {
     
     private void
     create(final String f, final Object o, final ByteArray version) {
-        f2b.put(f, new Bucket(new CacheReference<String,Object>(f, o, wiped),
-                              true, version, false, null));
+        if (null != f2b.put(f,
+            new Bucket(new CacheReference<String,Object>(f, o, wiped),
+                       true,version,false,null))) {throw new AssertionError();}
         tx.o2f.put(o, f);
         tx.xxx.add(f);
     }
@@ -310,11 +322,8 @@ JODB<S> extends Database<S> {
             InputStream in;
             try {
                 in = tx.update.read(f + ext);
-            } catch (final FileNotFoundException e) {
-                throw e;
-            } catch (final IOException e) {
-                throw new Error(e);
-            }
+            } catch (final FileNotFoundException e) { throw e;
+            } catch (final IOException e) { throw new Error(e); }
             stack.add(f);
             try {
                 final Object o;
@@ -520,8 +529,7 @@ JODB<S> extends Database<S> {
                 name = canonicalize(name);
                 try {
                     subStore = tx.update.nest(name);
-                } catch (final InvalidFilenameException e) {
-                    throw e;
+                } catch (final InvalidFilenameException e) { throw e;
                 } catch (final Exception e) { throw new Error(e); }
             } else {
                 while (true) {
@@ -584,8 +592,8 @@ JODB<S> extends Database<S> {
     };
     final Log nop = new Log();
 
-    private <R extends Immutable> Promise<R>
-    process(final Processor m, final Transaction<R> body) throws Exception {
+    private void
+    initialize(final Processor m) throws Exception {
         final boolean restockCache = null == f2b;
         if (restockCache) {
             wiped = new ReferenceQueue<Object>();
@@ -625,20 +633,10 @@ JODB<S> extends Database<S> {
                     true, null, false, null));
             }
         }
-
-        // execute the transaction body
-        Promise<R> r;
-        try {
-            if (!m.isQuery) {
-                final Receiver<?> flip = root.fetch(null, JODB.flip);
-                if (null != flip) { flip.run(null); }
-            }
-            r = Eventual.ref(body.run(root));
-        } catch (final Exception e) {
-            r = new Rejected<R>(e);
-        }
-
-        // persist the modifications
+    }
+    
+    private void
+    persist(final Processor m) throws Exception {
         while (!m.xxx.isEmpty()) {
             final Iterator<String> i = m.xxx.iterator();
             final String f = i.next();
@@ -666,8 +664,10 @@ JODB<S> extends Database<S> {
                 bytes.writeTo(fout);
                 fout.flush();
                 fout.close();
-                f2b.put(f, new Bucket(b.value, false, version,
-                                      out.isManaged(), out.getSplices()));
+                if (b != f2b.put(f, new Bucket(b.value, false, version,
+                                          out.isManaged(), out.getSplices()))) {
+                    throw new AssertionError();
+                }
             }
         }
         
@@ -686,12 +686,12 @@ JODB<S> extends Database<S> {
             out.close();
             final ByteArray version = ByteArray.array(mac.doFinal());
             freeMac(mac);
-            f2b.put(f, new Bucket(new CacheReference<String,Object>(f,
-                o, wiped), false, version,
-                true, PowerlessArray.array(new String[0])));
+            if (null != f2b.put(f, new Bucket(
+                new CacheReference<String,Object>(f,o,wiped),false,version,true,
+                    PowerlessArray.array(new String[0])))) {
+                throw new AssertionError();
+            }
         }
-        
-        return r;
     }
     
     static private final String flip = ".flip";     // name of loop turn flipper

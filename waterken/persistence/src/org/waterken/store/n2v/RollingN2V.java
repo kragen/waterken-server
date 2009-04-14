@@ -134,6 +134,9 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                             active = false;
                             lock.notify();
                         }
+                        if (updates.is()) {
+                            try {updates.get().close();} catch (IOException e){}
+                        }
                         if (!dir.isDirectory()) {
                             throw new FileNotFoundException();
                         }
@@ -153,8 +156,8 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     write(final String filename) throws IOException {
                         if (done.is()) { throw new AssertionError(); }
                         if(!ok(filename)){throw new InvalidFilenameException();}
-                        if (!updates.is() && !nested.is()) { mkdir(pending); }
                         if (!updates.is()) {
+                            if (!nested.is()) { mkdir(pending); }
                             updates.mark(new N2VOutput(writeNew(
                                 Filesystem.file(pending, name(++lastId)))));
                         }
@@ -184,7 +187,10 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                         if (done.is()) { throw new AssertionError(); }
                         done.mark(true);
                         if (nested.is() || updates.is()) {
-                            if (updates.is()) { updates.get().finish(); }
+                            if (updates.is()) {
+                                updates.get().finish();
+                                updates.get().close();
+                            }
                             final ArrayList<N2V> prior = versions;
                             versions = null;
                             markCommitted();
