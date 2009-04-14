@@ -298,7 +298,6 @@ JODB<S> extends Database<S> {
                     if (!b.created) { markDirty(f, o, b); }
                     return o;
                 }
-                if (null != b) { b.value.enqueue(); }
             }
 
             // wipe old entries
