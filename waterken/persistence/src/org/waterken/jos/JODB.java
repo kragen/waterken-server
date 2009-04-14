@@ -300,7 +300,7 @@ JODB<S> extends Database<S> {
                 }
             }
 
-            // wipe old entries
+            // remove dead cache entries
             while (true) {
                 final Reference<?> r = wiped.poll();
                 if (null == r) { break; }
@@ -646,9 +646,9 @@ JODB<S> extends Database<S> {
         if (restockCache) {
             for (final Map.Entry<Object,String> x : m.o2f.entrySet()) {
                 final String f = x.getValue();
-                f2b.put(f, new Bucket(
+                if (null != f2b.put(f, new Bucket(
                     new CacheReference<String,Object>(f, x.getKey(), wiped),
-                    true, null, false, null));
+                    true, null, false, null))) { throw new AssertionError(); }
             }
         }
     }
