@@ -25,20 +25,16 @@ ADSAFE.lib('web', function (lib) {
                 unsealedURLref = URLref;
                 return self;
             }
-            if ('WHEN' === op) {
-                if (/#o=/.test(URLref)) {
-                    send(URLref, 'GET', function (value) {
-                        if (typeof value === 'function') {
-                            value(op, arg1, arg2, arg3);
-                        } else {
-                            arg1(value);
-                        }
-                    }, '.');
-                } else {
-                    arg1(self);
-                }
+            if (/#o=/.test(URLref)) {
+                send(URLref, 'GET', function (x) {
+                    ('function'===typeof x?x:lib.Q.ref(x))(op,arg1,arg2,arg3);
+                }, '.');
             } else {
-                send(URLref, op, arg1, arg2, arg3);
+                if ('WHEN' === op) {
+                    arg1(self);
+                } else {
+                    send(URLref, op, arg1, arg2, arg3);
+                }
             }
         };
         return self;
