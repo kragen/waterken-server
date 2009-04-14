@@ -45,7 +45,7 @@ public final class
 ClientSide implements Server {
     
     /**
-     * The minimum milliseconds to wait before retrying a connection.
+     * The minimum milliseconds to wait before retrying a connection: {@value}
      * <p>
      * This value reflects the amount of time for a network hiccup to sort
      * itself out. 
@@ -54,7 +54,7 @@ ClientSide implements Server {
     static private final long minSleep = 60 * 1000;
     
     /**
-     * The maximum milliseconds to wait before retrying a connection.
+     * The maximum milliseconds to wait before retrying a connection: {@value}
      * <p>
      * This value reflects the amount of time expected for an administrator to
      * intervene.
@@ -153,7 +153,7 @@ ClientSide implements Server {
                     in = null;
                     out = null;
 
-                    // Wait and try again.
+                    // wait and try again
                     if (b < maxSleep) {
                         final long c = a + b;
                         a = b;
