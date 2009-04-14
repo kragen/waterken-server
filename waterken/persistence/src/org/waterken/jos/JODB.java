@@ -377,6 +377,7 @@ JODB<S> extends Database<S> {
                 tx.xxx.add(f);
                 for (final String splice : b.splices) {
                     final Bucket spliced = f2b.get(splice);
+                    if (null == spliced) { throw new AssertionError(); }
                     markDirty(splice, spliced.value.get(), spliced);
                 }
             }
