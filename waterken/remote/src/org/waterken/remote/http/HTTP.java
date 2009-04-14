@@ -211,8 +211,9 @@ HTTP extends Eventual implements Serializable {
 
                 public String
                 run(final @inert Object object) {
-                    return href(_.root.export(object, false), isPBC(object) ||
-                        !(Fulfilled.isInstance(Eventual.ref(object))));
+                    final Promise<?> p = Eventual.ref(object);
+                    return href(_.root.export(object, false),
+                                !Fulfilled.isInstance(p) || isPBC(near(p)));
                 }
             }
             return Remote.export(_.local, new ExporterX());
