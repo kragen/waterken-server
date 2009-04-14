@@ -645,9 +645,9 @@ JODB<S> extends Database<S> {
         if (restockCache) {
             for (final Map.Entry<Object,String> x : m.o2f.entrySet()) {
                 final String f = x.getValue();
-                if (null != f2b.put(f, new Bucket(
+                f2b.put(f, new Bucket(
                     new CacheReference<String,Object>(f, x.getKey(), wiped),
-                    true, null, false, null))) { throw new AssertionError(); }
+                    true, null, false, null));
             }
         }
     }
