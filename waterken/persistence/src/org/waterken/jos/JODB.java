@@ -266,10 +266,10 @@ JODB<S> extends Database<S> {
     }
     
     private void
-    create(final String f, final Object o, final ByteArray version) {
+    create(final String f, final Object o) {
         if (null != f2b.put(f,
             new Bucket(new CacheReference<String,Object>(f, o, wiped),
-                       true,version,false,null))) {throw new AssertionError();}
+                       true, null, false, null))) {throw new AssertionError();}
         tx.o2f.put(o, f);
         tx.xxx.add(f);
     }
@@ -298,6 +298,7 @@ JODB<S> extends Database<S> {
                     if (!b.created) { markDirty(f, o, b); }
                     return o;
                 }
+                if (null != b) { b.value.enqueue(); }
             }
 
             // wipe old entries
@@ -305,7 +306,14 @@ JODB<S> extends Database<S> {
                 final Reference<?> r = wiped.poll();
                 if (null == r) { break; }
                 final Bucket b = f2b.remove(((CacheReference<?,?>)r).key);
-                if (b.value != r) { throw new AssertionError(); }
+                if (b.value != r) {
+                    /*
+                     * The entry was reloaded before the soft reference to the
+                     * previously loaded value was dequeued. Just put the entry
+                     * back in the cache. 
+                     */
+                    f2b.put(b.value.key, b);
+                }
             }
             
             final int startCycle = stack.lastIndexOf(f);
@@ -413,7 +421,7 @@ JODB<S> extends Database<S> {
             if (tx.isQuery) {
               throw new ProhibitedModification(Reflection.getName(Root.class));
             }
-            create(canonicalize(name), new SymbolicLink(value), null);
+            create(canonicalize(name), new SymbolicLink(value));
         }
 
         public @SuppressWarnings("unchecked") <T> T
@@ -440,37 +448,48 @@ JODB<S> extends Database<S> {
                 if (null != wf) {
                     if (!isWeak) {
                         tx.o2wf.remove(o);
-                        create(wf, o, null);
+                        create(wf, o);
                     }
                     return wf;
                 }
             }
 
             // create a new identity
-            final byte[] id;
+            final String r;
             if (null == o || Slicer.inline(o.getClass())) {
                 try {
                     final Mac mac = allocMac(this);
-                    final Slicer out = new Slicer(true, o, this,
+                    final Slicer out = new Slicer(isWeak, o, this,
                             new MacOutputStream(mac, null));
                     out.writeObject(o);
                     out.flush();
                     out.close();
-                    id = mac.doFinal();
+                    final byte[] k = mac.doFinal();
                     freeMac(mac);
+                    r = filename(k);
+                    final Bucket b = f2b.get(r);
+                    if (null != b) {
+                        if(!b.created && !ByteArray.array(k).equals(b.version)){
+                            throw new AssertionError();
+                        }
+                        return r;   // recalculated key for a stored object
+                    }
                 } catch (final Exception e) { throw new Error(e); }
             } else if (tx.isQuery) {
-                // to support caching of query responses, forbid
-                // export of selfish state in a query transaction
+                /*
+                 * to support caching of query responses, forbid export of
+                 * selfish state in a query transaction
+                 */
                 throw new ProhibitedCreation(Reflection.getName(o.getClass()));
             } else {
-                prng.nextBytes(id = new byte[keyBytes]);
+                final byte[] k = new byte[keyBytes];
+                prng.nextBytes(k);
+                r = filename(k);
             }
-            final String r = filename(id);
             if (isWeak) {
                 tx.o2wf.put(o, r);
             } else {
-                create(r, o, null);
+                create(r, o);
             }
             return r;
         }
@@ -579,7 +598,7 @@ JODB<S> extends Database<S> {
                         local.assign(Database.destruct,
                                      makeDestructor(effect));
                         sub.create(canonicalize(Database.log), EventSender.make(
-                                        sub.txerr, turn.mark, tracer), null);
+                                        sub.txerr, turn.mark, tracer));
                         return setup.run(local);
                     }
                 });
@@ -680,7 +699,7 @@ JODB<S> extends Database<S> {
             
             final Mac mac = allocMac(root);
             final Slicer out =
-                new Slicer(false, o, root, new MacOutputStream(mac, null));
+                new Slicer(true, o, root, new MacOutputStream(mac, null));
             out.writeObject(o);
             out.flush();
             out.close();
