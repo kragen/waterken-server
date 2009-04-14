@@ -169,19 +169,22 @@ JODB<S> extends Database<S> {
             }
             final Promise<R> r;
             final Processor m = tx = new Processor(isQuery, store.update());
+            boolean done = false;
             try {
                 r = process(m, body);
                 m.update.commit();
+                done = true;
             } catch (final Error e) {
-                f2b = null;
-                wiped = null;
-                
                 // allow the caller to recover from an aborted transaction
                 if (e instanceof OutOfMemoryError) { System.gc(); }
                 final Throwable cause = e.getCause();
                 if (cause instanceof Exception) { throw (Exception)cause; }
                 throw new Exception(e);
             } finally {
+                if (!done) {
+                    f2b = null;
+                    wiped = null;
+                }
                 tx = null;
                 m.update.close();
             }
