@@ -105,23 +105,21 @@ ClientSide implements Server {
     }
     
     /*
-     * This implementation uses a pair of communicating event loops: the
-     * sender event loop and the receiver event loop. Outgoing HTTP requests
-     * are put on the wire in the sender event loop. Incomming HTTP
-     * responses are taken off the wire in the receiver event loop.
-     * Connection initiation is done from the sender event loop. The queue
-     * of pending request/response exchanges is owned by the sender event
-     * loop. For each pending exchange, a send task is posted to the sender
-     * event loop. Whether the send task successfully sends its request or
-     * not, it will put a corresponding receive task on the receiver event
-     * loop. When the receive task is run, it will pull the HTTP response
-     * off the wire, and deliver it to the provided response resolver. A
-     * task to pop the exchange from the pending exchange queue is then
-     * queued on the sender event loop. Any I/O error with the connection is
-     * handled by a receive task. The receive task will close down the
-     * socket, mark the current connection as dead, and queue a connection
-     * initiation task on the sender event loop, whereupon we start the
-     * process from scratch.
+     * This implementation uses a pair of communicating event loops: the sender
+     * event loop and the receiver event loop. Outgoing HTTP requests are put on
+     * the wire in the sender event loop. Incoming HTTP responses are taken off
+     * the wire in the receiver event loop. Connection initiation is done from
+     * the sender event loop. The queue of pending request/response exchanges is
+     * owned by the sender event loop. For each pending exchange, a send task is
+     * posted to the sender event loop. Whether the send task successfully sends
+     * its request or not, it will put a corresponding receive task on the
+     * receiver event loop. When the receive task is run, it will pull the HTTP
+     * response off the wire, and deliver it to the provided response resolver.
+     * A task to pop the exchange from the pending exchange queue is then queued
+     * on the sender event loop. Any I/O error with the connection is handled by
+     * a receive task. The receive task will close down the socket, mark the
+     * current connection as dead, and queue a connection initiation task on the
+     * sender event loop, whereupon we start the process from scratch.
      */
     
     class Connection implements Outbound {
@@ -169,7 +167,7 @@ ClientSide implements Server {
             return null;
         }
         
-        void
+        protected void
         retry() {
             in = null;
             out = null;
@@ -212,15 +210,17 @@ ClientSide implements Server {
         
         public Void
         call() throws Exception {
-            // Only proceed if the connection is still active. Once a
-            // response has failed, no more can be received. The first
-            // failure is responsible for scheduling the connection retry.
+            /*
+             * Only proceed if the connection is still active. Once a response
+             * has failed, no more can be received. The first failure is
+             * responsible for scheduling the connection retry.
+             */ 
             if (null == on.in) { return null; }
             try {
                 if (null == x.head) {
                     x.receive(Response.badRequest(), null);
                 } else {
-                    if (receive(x.head.method, on.in, x)) {on.retry();}
+                    if (receive(x.head.method, on.in, x)) { on.retry(); }
                 }
             } catch (final Exception e) {
                 if (e instanceof Nap) {
@@ -248,10 +248,10 @@ ClientSide implements Server {
         }
         
         public Void
-        call() {
+        call() throws Exception {
+            receiver.run(new Receive(on, x));
             if (null == x.head) {
                 // nothing to send since request failed to render
-                receiver.run(new Receive(on, x));
             } else {
                 try {
                     send(x.head, x.body, on.out);
@@ -259,8 +259,8 @@ ClientSide implements Server {
                     final OutputStream tmp = on.out;
                     on.out = null;
                     try { tmp.close(); } catch (final Exception e2) {}
+                    if (SocketException.class != e.getClass()) { throw e; }
                 }
-                receiver.run(new Receive(on, x));
             }
             return null;
         }
@@ -281,13 +281,11 @@ ClientSide implements Server {
                     return null;
                 }
             });
-            for (final Exchange x : pending) {
-                sender.run(new Send(current, x));
-            }
+            for (final Exchange x : pending) {sender.run(new Send(current, x));}
             return null;
         }
         
-        void
+        protected void
         enqueue(final Request head,final InputStream body, final Client client){
             if (null != body) {
                 // ensure request body can be replayed
@@ -466,7 +464,7 @@ ClientSide implements Server {
 
         // check for informational response
         // RFC 2616, section 10.1:
-        // Unexpected 1xx status responses MAY be ignored by a user agent.
+        // "Unexpected 1xx status responses MAY be ignored by a user agent."
         if (status.startsWith("1")) { return receive(method, cin, client); }
 
         // build the response
@@ -482,16 +480,20 @@ ClientSide implements Server {
         } else if ("CONNECT".equals(method)) {
             entity = null;
         } else {
-            // with the exception of the cases handled above, all responses have
-            // a message body, which is either explicitly delimited, or
-            // terminated by connection close
+            /*
+             * with the exception of the cases handled above, all responses have
+             * a message body, which is either explicitly delimited, or
+             * terminated by connection close
+             */
             final InputStream explicit = HTTPD.input(headers, cin);
             entity = null != explicit ? explicit : cin;
         }
         client.receive(new Response(version, status, phrase, headers), entity);
         
-        // ensure this response has been fully read out of the
-        // response stream before reading in the next response
+        /*
+         * ensure this response has been fully read out of the response stream
+         * before reading in the next response
+         */
         if (!closing.is() && null != entity) {
             while (entity.read() != -1) { entity.skip(Long.MAX_VALUE); }
             entity.close();
