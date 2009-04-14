@@ -354,7 +354,7 @@ ClientSide implements Server {
         final OutputStream out = new BufferedOutputStream(connection,
                 chunkSize - "0\r\n\r\n".length());
 
-        // Output the Request-Line.
+        // output the Request-Line
         TokenList.vet(TokenList.token, TokenList.nothing, head.method);
         TokenList.vet(TokenList.text, TokenList.whitespace, head.uri);
         
@@ -364,7 +364,7 @@ ClientSide implements Server {
         hout.write(head.uri);
         hout.write(" HTTP/1.1\r\n");
 
-        // Output the header.
+        // output the header
         final Milestone<Boolean> selfDelimiting = Milestone.plan();
         if (null == body) { selfDelimiting.mark(true); }
         final Milestone<Boolean> contentLengthSpecified = Milestone.plan();
