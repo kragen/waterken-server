@@ -20,12 +20,14 @@ package org.ref_send.promise;
  *                     promise end of the reference
  * </pre>
  * <p>
- * There are three states for a promise: fulfilled, rejected and unresolved. A
- * fulfilled promise is successfully bound to a referent, which can be either
- * local or remote. A rejected promise failed to acquire a referent, and carries
- * an {@link Exception} specifying the reason for the failure. An unresolved
- * promise is in neither the success nor failure state. A promise is resolved if
- * it is in either the success or failure state.
+ * There are three states for a promise: <em>fulfilled</em>,
+ * <em>rejected</em> and <em>unresolved</em>. A <em>fulfilled</em>
+ * promise is successfully bound to a referent, which can be either local or
+ * remote. A <em>rejected</em> promise failed to acquire a referent, and
+ * carries an {@link Exception} specifying the reason for the failure. An
+ * <em>unresolved</em> promise is in neither the success nor failure state. A
+ * promise is <em>resolved</em> if it is in either the success or failure
+ * state.
  * </p>
  * @param <T> referent type
  */
