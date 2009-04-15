@@ -341,7 +341,7 @@ JODB<S> extends Database<S> {
                     final ObjectInputStream oin = new ObjectInputStream(in);
                     in = oin;
                     o = oin.readObject();
-                    setMaster((ByteArray)o);
+                    setMaster((ByteArray)((SymbolicLink)o).target);
                     
                     final Mac mac = allocMac(this);
                     final Slicer out = new Slicer(false, o, this,
