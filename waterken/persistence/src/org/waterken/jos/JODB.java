@@ -341,7 +341,14 @@ JODB<S> extends Database<S> {
                     final ObjectInputStream oin = new ObjectInputStream(in);
                     in = oin;
                     o = oin.readObject();
-                    version = ByteArray.array();
+                    
+                    final Mac mac = allocMac(this);
+                    final Slicer out = new Slicer(false, o, this,
+                            new MacOutputStream(mac, null));
+                    out.writeObject(o);
+                    out.flush();
+                    out.close();
+                    version = ByteArray.array(mac.doFinal());
                 } else {
                     final Mac mac = allocMac(this);
                     in = new MacInputStream(mac, in);
