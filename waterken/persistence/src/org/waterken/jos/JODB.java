@@ -369,6 +369,7 @@ JODB<S> extends Database<S> {
                     };
                     in = oin;
                     o = oin.readObject();
+                    while (-1 != in.read()) { in.skip(Long.MAX_VALUE); }
                     version = ByteArray.array(mac.doFinal());
                     freeMac(mac);
                 }

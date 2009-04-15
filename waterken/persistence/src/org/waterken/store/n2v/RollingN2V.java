@@ -370,7 +370,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
      */
     static private void
     renameAll(final File from, final File to) throws IOException {
-        final File[] failed = from.listFiles(new FileFilter() {
+        final File[] e = from.listFiles(new FileFilter() {
             public boolean
             accept(final File child) {
                 final File dst = Filesystem.file(to, child.getName());
@@ -378,7 +378,8 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                 return !child.renameTo(dst);
             }
         });
-        if (null == failed || 0 != failed.length) { throw new IOException(); }
+        if (null == e) { throw new IOException(); }
+        if (0 != e.length) { throw new IOException(e[0].toString()); }
         if (!from.delete()) { throw new IOException(); }
     }
 
@@ -390,7 +391,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
     static private void
     deleteRecursively(final File file) throws IOException {
         if (file.isDirectory()) {
-            if (0 != file.listFiles(new FileFilter() {
+            final File[] e = file.listFiles(new FileFilter() {
                 public boolean
                 accept(final File child) {
                     try {
@@ -398,7 +399,9 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     } catch (final IOException e) { return true; }
                     return false;
                 }
-            }).length) { throw new IOException(); }
+            });
+            if (null == e) { throw new IOException(); }
+            if (0 != e.length) { throw new IOException(e[0].toString()); }
         }
         if (!file.delete()) { throw new IOException(); }
     }
