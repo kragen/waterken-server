@@ -341,7 +341,16 @@ JODB<S> extends Database<S> {
                     final ObjectInputStream oin = new ObjectInputStream(in);
                     in = oin;
                     o = oin.readObject();
-                    version = ByteArray.array();
+                    setMaster((ByteArray)o);
+                    
+                    final Mac mac = allocMac(this);
+                    final Slicer out = new Slicer(false, o, this,
+                            new MacOutputStream(mac, null));
+                    out.writeObject(o);
+                    out.flush();
+                    out.close();
+                    version = ByteArray.array(mac.doFinal());
+                    freeMac(mac);
                 } else {
                     final Mac mac = allocMac(this);
                     in = new MacInputStream(mac, in);
@@ -675,7 +684,7 @@ JODB<S> extends Database<S> {
             final ByteArray version = ByteArray.array(mac.doFinal());
             freeMac(mac);
             if (b.created || !version.equals(b.version)) {
-                if (null == bytes && !canonicalize(JODB.secret).equals(f)) {
+                if (null == bytes) {
                     throw new ProhibitedModification(Reflection.getName(
                         null != o ? o.getClass() : Void.class));
                 }
@@ -723,12 +732,17 @@ JODB<S> extends Database<S> {
     private final ArrayList<Mac> macs = new ArrayList<Mac>();
     private SecretKeySpec master;                   // MAC key generation secret
 
+    private void
+    setMaster(final ByteArray bits) {
+        master = new SecretKeySpec(bits.toByteArray(), "HmacSHA256");
+    }
+    
     private Mac
     allocMac(final Root local) throws Exception {
         if (!macs.isEmpty()) { return macs.remove(macs.size() - 1); }
         if (null == master) {
             final ByteArray bits = local.fetch(null, secret);
-            master = new SecretKeySpec(bits.toByteArray(), "HmacSHA256");
+            setMaster(bits);
         }
         final Mac r = Mac.getInstance("HmacSHA256");
         r.init(master);
