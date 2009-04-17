@@ -87,7 +87,7 @@ SSL {
                 
                 final String location = Authority.location(authority);
                 
-                log.println(Thread.currentThread() +
+                log.println(Thread.currentThread().getName() +
                             ": connecting to <" + location + ">...");
                 
                 final String hostname = Location.hostname(location);

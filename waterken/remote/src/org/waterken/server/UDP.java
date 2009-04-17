@@ -27,8 +27,8 @@ UDP extends Struct implements Runnable {
     
     public void
     run() {
-        final Thread thread = Thread.currentThread();
-        System.out.println(thread + ": " + "running at <" +
+        final String service = Thread.currentThread().getName();
+        System.out.println(service + ": " + "running at <" +
                            port.getLocalSocketAddress() + ">...");
         while (true) {
             try {
@@ -47,7 +47,7 @@ UDP extends Struct implements Runnable {
                     }
                 });
             } catch (final Throwable e) {
-                System.err.println(thread + ":");
+                System.err.println(service + ":");
                 e.printStackTrace(System.err);
             }
         }

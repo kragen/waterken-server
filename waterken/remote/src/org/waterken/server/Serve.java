@@ -97,11 +97,13 @@ Serve {
         }
 
         // ping all the persistent vats to restart any pending tasks
-        System.out.println(Thread.currentThread() + ": restarting all vats...");
+        System.out.println(Thread.currentThread().getName() +
+                           ": restarting all vats...");
         final DatabaseManager<Server> vats = Settings.config.read("dbs");
         final File root = Settings.config.read("vatRootFolder");
         ping(vats, root);
-        System.out.println(Thread.currentThread() + ": all vats restarted");
+        System.out.println(Thread.currentThread().getName() +
+                           ": all vats restarted");
     }
     
     static private void

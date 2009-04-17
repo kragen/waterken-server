@@ -13,7 +13,7 @@ import org.waterken.http.Server;
 import org.waterken.http.TokenList;
 import org.waterken.net.Locator;
 import org.waterken.net.http.ClientSide;
-import org.waterken.thread.Concurrent;
+import org.waterken.thread.Loop;
 import org.waterken.thread.Sleep;
 import org.waterken.uri.Header;
 import org.waterken.uri.Location;
@@ -25,19 +25,16 @@ import org.waterken.uri.Location;
 Proxy extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
 
-    static private final ThreadGroup threads = new ThreadGroup("HTTP");
     static private final Cache<String,Server> connections = Cache.make();
     
     static private synchronized Server
     connect(final String peer, final Locator transport) {
         Server r = connections.fetch(null, peer);
         if (null == r) {
-            final Concurrent<ClientSide.Outbound> sender =
-                Concurrent.make(threads, "->" + peer);
-            final Concurrent<ClientSide.Inbound> receiver =
-                Concurrent.make(threads, "<-" + peer);
+            final Loop<ClientSide.Outbound> sender = Loop.make("->" + peer);
+            final Loop<ClientSide.Inbound> receiver = Loop.make("<-" + peer);
             r = ClientSide.make(peer, transport, new Sleep(),
-                    sender.foreground, receiver.foreground);
+                                sender.foreground, receiver.foreground);
             connections.put(peer, r);
         }
         return r;

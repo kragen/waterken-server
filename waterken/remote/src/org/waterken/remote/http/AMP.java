@@ -4,7 +4,6 @@ package org.waterken.remote.http;
 
 import static org.ref_send.promise.Failure.maxEntitySize;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -29,6 +28,7 @@ import org.waterken.io.Stream;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.limited.TooBig;
 import org.waterken.remote.mux.Remoting;
+import org.waterken.store.DoesNotExist;
 import org.waterken.syntax.Importer;
 import org.waterken.uri.Path;
 import org.waterken.uri.URI;
@@ -103,9 +103,9 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                                 return new Callee(exports).run(q, m);
                             }
                         }).call();
-                    } catch (final FileNotFoundException e) {
+                    } catch (final DoesNotExist e) {
                         client.receive(Response.gone(), null);
-                        throw e;
+                        return null;
                     } catch (final Exception e) {
                         client.fail(e);
                         throw e;

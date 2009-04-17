@@ -9,17 +9,17 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
-import org.joe_e.inert;
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.inert;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.promise.Local;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
+import org.ref_send.promise.Local;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
@@ -231,7 +231,7 @@ HTTP extends Eventual implements Serializable {
          */
         protected Object
         execute(final String query,
-                final Method method, final Promise<Object> op){
+                final Method method, final Promise<Object> op) {
             final String x = session(query);
             if (null == x) {
                 try {

@@ -3,7 +3,6 @@
 package org.waterken.remote.mux;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.Serializable;
 
@@ -17,6 +16,7 @@ import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
+import org.waterken.store.DoesNotExist;
 import org.waterken.uri.Path;
 import org.waterken.uri.URI;
 
@@ -69,7 +69,7 @@ Mux<S> extends Struct implements Server, Serializable {
             } catch (final InvalidFilenameException e) {
                 client.receive(Response.gone(), null);
                 return;
-            } catch (final FileNotFoundException e) {
+            } catch (final DoesNotExist e) {
                 client.receive(Response.gone(), null);
                 return;
             }

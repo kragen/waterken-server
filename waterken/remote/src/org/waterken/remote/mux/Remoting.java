@@ -17,6 +17,5 @@ Remoting<S> {
      * @param vat       vat
      * @return network interface
      */
-    Server
-    remote(Server bootstrap, Database<S> vat);
+    Server remote(Server bootstrap, Database<S> vat);
 }
