@@ -2,12 +2,11 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.db;
 
-import java.io.FileNotFoundException;
-
 import org.joe_e.Immutable;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
+import org.waterken.store.DoesNotExist;
 
 /**
  * A persistent object graph.
@@ -139,10 +138,10 @@ Database<S> {
      *                  {@link Transaction#query}
      * @param body transaction body
      * @return promise for <code>body</code>'s return
-     * @throws FileNotFoundException database no longer exists
+     * @throws DoesNotExist database no longer exists
      * @throws Exception problem completing the transaction, which may or may
      *                   not be committed
      */
     public abstract <R extends Immutable> Promise<R>
-    enter(boolean isQuery, Transaction<R> body) throws Exception;
+    enter(boolean isQuery, Transaction<R> body) throws DoesNotExist, Exception;
 }

@@ -23,7 +23,7 @@ Faulting implements Promise<Object>, Selfless, Serializable  {
         if (null == name) { throw new NullPointerException(); }
         
         this.root = root;
-        this.name = name;
+        this.name = "" + name;   // ensure we're not using the cache key string
     }
 
     // java.lang.Object interface

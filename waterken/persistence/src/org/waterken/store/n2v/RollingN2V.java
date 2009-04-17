@@ -27,6 +27,7 @@ import org.waterken.archive.Archive;
 import org.waterken.archive.ArchiveOutput;
 import org.waterken.archive.n2v.N2V;
 import org.waterken.archive.n2v.N2VOutput;
+import org.waterken.store.DoesNotExist;
 import org.waterken.store.Store;
 import org.waterken.store.StoreMaker;
 import org.waterken.store.Update;
@@ -56,11 +57,12 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
         final File pending = Filesystem.file(dir, ".pending");
         final File committed = Filesystem.file(dir, ".committed");
         return new Store() {
-            private boolean active = false; // Is there an update in progress?
-            private int lastId = 0;         // id of newest archive file
-            private ArrayList<N2V> versions = null;
-            private ArrayList<File> files = null;
-            private boolean mergeScheduled = false;
+            private int lastId = 0;                 // id of newest archive file
+            private ArrayList<File> files = null;   // un-merged commit files
+            private ArrayList<N2V> versions = null; // un-merged commit archives
+
+            private Update active = null;           // Is an update in progress?
+            private boolean mergeScheduled = false; // Is a merged scheduled?
             
             public void
             clean() throws IOException {
@@ -74,8 +76,8 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
             }
             
             public synchronized Update
-            update() throws IOException {
-                while (active) {
+            update() throws DoesNotExist, IOException {
+                while (null != active) {
                     try {
                         wait();
                     } catch (final InterruptedException e) {
@@ -83,73 +85,84 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     }
                 }
                 
-                if (!dir.isDirectory()) { throw new FileNotFoundException(); }
-                if (pending.isDirectory()) {
-                    if (committed.isDirectory()) {
-                        deleteRecursively(committed);
-                    }
-                    deleteRecursively(pending);
-                } else if (committed.isDirectory()) {
-                    renameAll(committed, dir);
-                }
                 if (null == versions) {
-                    final File[] fs = dir.listFiles();
-                    int versionCount = 0;
-                    for (int i = 0; i != fs.length; ++i) {
-                        if (fs[i].isFile() && fs[i].getName().endsWith(".n2v")){
-                            fs[versionCount++] = fs[i];
+                    try {
+                        // recover from a previous incarnation
+                        if (pending.isDirectory()) {
+                            if (committed.isDirectory()) {
+                                deleteRecursively(committed);
+                            }
+                            deleteRecursively(pending);
+                        } else if (committed.isDirectory()) {
+                            renameAll(committed, dir);
                         }
-                    }
-                    Arrays.sort(fs, 0, versionCount, new Comparator<File>() {
-                        public int
-                        compare(final File a, final File b){return id(a)-id(b);}
-                    });
-                    
-                    // first do all the I/O
-                    final N2V[] n2v = new N2V[versionCount];
-                    for (int i = 0; i != versionCount; ++i) {
-                        n2v[i] = N2V.open(fs[i]);
-                    }
-                    
-                    // now update the store's data structure
-                    lastId = 0 != versionCount ? id(fs[versionCount - 1]) : 0;
-                    versions = new ArrayList<N2V>(versionCount);
-                    files = new ArrayList<File>(versionCount);
-                    for (int i = 0; i != versionCount; ++i) {
-                        versions.add(n2v[i]);
-                        files.add(fs[i]);
+    
+                        // load the recovered persistent state
+                        final File[] fs = dir.listFiles();
+                        if (null == fs) { throw new IOException(); }
+                        int n = 0;
+                        for (int i = 0; i != fs.length; ++i) {
+                            if (fs[i].getName().endsWith(".n2v") &&
+                                    fs[i].isFile()) {
+                                fs[n++] = fs[i];
+                            }
+                        }
+                        Arrays.sort(fs, 0, n, new Comparator<File>() {
+                            public int
+                            compare(final File a, final File b) {
+                                return id(a) - id(b);
+                            }
+                        });
+                        files = new ArrayList<File>(n);
+                        final ArrayList<N2V> prior = new ArrayList<N2V>(n);
+                        for (int i = 0; i != n; ++i) {
+                            files.add(fs[i]);
+                            prior.add(N2V.open(fs[i]));
+                        }
+                        lastId = 0 != n ? id(fs[n - 1]) : 0;
+                        
+                        // mark the store as fully loaded
+                        versions = prior;
+                    } catch (final IOException e) {
+                        if (!dir.isDirectory()) { throw new DoesNotExist(); }
+                        throw e;
                     }
                 }
-                active = true;
-                final Milestone<Boolean> closed = Milestone.plan();
-                final Milestone<Boolean> done = Milestone.plan();
-                final Milestone<Boolean> nested = Milestone.plan();
+                
+                // take ownership of the loaded archives
+                final ArrayList<N2V> prior = versions;
+                versions = null;
+                
+                // construct an update transaction
+                final Milestone<Boolean> committing = Milestone.plan();
+                final Milestone<Boolean> mutated = Milestone.plan();
                 final Milestone<ArchiveOutput> updates = Milestone.plan();
                 final Object lock = this;
-                return new Update() {
+                return active = new Update() {
                     
                     public void
-                    close() throws IOException {
-                        if (closed.is()) { return; }
-                        closed.mark(true);
-                        done.mark(true);
+                    close() {
                         synchronized (lock) {
-                            active = false;
+                            if (this != active) { return; }
+                            
+                            active = null;
                             lock.notify();
-                        }
-                        if (updates.is()) {
-                            try {updates.get().close();} catch (IOException e){}
-                        }
-                        if (!dir.isDirectory()) {
-                            throw new FileNotFoundException();
+                            committing.mark(true);
+                            if (updates.is()) {
+                                try {
+                                    updates.get().close();
+                                } catch (final IOException e) {}
+                            }
                         }
                     }
 
                     public InputStream
                     read(final String name) throws IOException {
-                        if (done.is()) { throw new AssertionError(); }
-                        for (int i = versions.size(); 0 != i--;) {
-                            final Archive.Entry r = versions.get(i).find(name);
+                        if (this != active) { throw new AssertionError(); }
+                        if (committing.is()) { throw new AssertionError(); }
+                        
+                        for (int i = prior.size(); 0 != i--;) {
+                            final Archive.Entry r = prior.get(i).find(name);
                             if (null != r) { return r.open(); }
                         }
                         throw new FileNotFoundException();
@@ -157,10 +170,15 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     
                     public OutputStream
                     write(final String filename) throws IOException {
-                        if (done.is()) { throw new AssertionError(); }
+                        if (this != active) { throw new AssertionError(); }
+                        if (committing.is()) { throw new AssertionError(); }
                         if(!ok(filename)){throw new InvalidFilenameException();}
+                        
                         if (!updates.is()) {
-                            if (!nested.is()) { mkdir(pending); }
+                            if (!mutated.is()) {
+                                mkdir(pending);
+                                mutated.mark(true);
+                            }
                             updates.mark(new N2VOutput(writeNew(
                                 Filesystem.file(pending, name(++lastId)))));
                         }
@@ -169,102 +187,117 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     
                     public Store
                     nest(final String filename) throws IOException {
-                        if (done.is()) { throw new AssertionError(); }
+                        if (this != active) { throw new AssertionError(); }
+                        if (committing.is()) { throw new AssertionError(); }
+                        
                         final String was = "." + filename + ".was";
                         if (filename.startsWith(".") || !ok(filename) ||
                             Filesystem.file(dir, was).isFile() ||
-                            (nested.is() &&
-                             Filesystem.file(pending, was).isFile())) {
+                            (mutated.is() &&
+                                    Filesystem.file(pending, was).isFile())) {
                             throw new InvalidFilenameException();
                         }
-                        if (!updates.is() && !nested.is()) { mkdir(pending); }
-                        nested.mark(true);
+                        if (!mutated.is()) {
+                            mkdir(pending);
+                            mutated.mark(true);
+                        }
                         final File child = Filesystem.file(pending, filename);
                         mkdir(child);
                         writeNew(Filesystem.file(pending, was)).close();
-                        return run(background, pending, child);
+                        return run(null, pending, child);
                     }
                     
                     public void
                     commit() throws IOException {
-                        if (done.is()) { throw new AssertionError(); }
-                        done.mark(true);
-                        if (nested.is() || updates.is()) {
+                        if (this != active) { throw new AssertionError(); }
+                        if (committing.is()) { throw new AssertionError(); }
+                        
+                        committing.mark(true);
+                        if (mutated.is()) {
                             if (updates.is()) {
                                 updates.get().finish();
                                 updates.get().close();
                             }
-                            final ArrayList<N2V> prior = versions;
-                            versions = null;
                             markCommitted();
-                            if (updates.is() && !prior.isEmpty()) {
-                                final File f= Filesystem.file(dir,name(lastId));
-                                prior.add(N2V.open(f));
-                                files.add(f);
+                            if (!prior.isEmpty()) {
+                                if (updates.is()) {
+                                    final File f =
+                                        Filesystem.file(dir, name(lastId));
+                                    prior.add(N2V.open(f));
+                                    files.add(f);
+                                }
+                                
+                                // give up ownership of the archives
                                 versions = prior;
                                 
-                                if (!mergeScheduled) {
-                                    background.run(new Merge(lock));
+                                if (!mergeScheduled && null != background) {
+                                    background.run(new Promise<Void>() {
+                                        public Void
+                                        call() throws IOException {
+                                            merge();
+                                            return null;
+                                        }
+                                    });
                                     mergeScheduled = true;
                                 }
                             }
+                        } else {
+                            // give up ownership of the archives
+                            versions = prior;
                         }
                     }
                 };
             }
             
-            final class Merge implements Promise<Object> {
-                
-                private final Object lock;
-                
-                Merge(final Object lock) {
-                    this.lock = lock;
-                }
-                
-                public Object
-                call() throws IOException {
-                    synchronized (lock) {
-                        while (active) {
-                            try {
-                                wait();
-                            } catch (final InterruptedException e) {
-                                throw new InterruptedIOException();
-                            }
-                        }
-
-                        mergeScheduled = false;
-                        final ArrayList<N2V> prior = versions;
-                        versions = null;
-                        final int n = prior.size();
-                        int i = n - 1;
-                        long sum = files.get(i).length();
-                        for (; 0 != i; --i) {
-                            final long l = files.get(i - 1).length();
-                            if (l / 10 > sum) { break; }
-                            sum += l;
-                        }
-                        if (n - i > 1) {
-                            mkdir(pending);
-                            final String name = name(++lastId);
-                            final FileChannel out = new FileOutputStream(
-                                Filesystem.file(pending, name)).getChannel();
-                            final List<N2V> sub = prior.subList(i, n);
-                            N2V.merge(out, sub);
-                            out.force(true);
-                            out.close();
-                            markCommitted();
-                            for (final N2V version : sub) { version.close(); }
-                            final List<File> subFiles = files.subList(i, n);
-                            for (final File file : subFiles) { file.delete(); }
-                            sub.clear();
-                            subFiles.clear();
-                            final File f = Filesystem.file(dir, name);
-                            prior.add(N2V.open(f));
-                            files.add(f);
-                        }
-                        versions = prior;
+            protected synchronized void
+            merge() throws IOException {
+                while (null != active) {
+                    try {
+                        wait();
+                    } catch (final InterruptedException e) {
+                        throw new InterruptedIOException();
                     }
-                    return null;
+                }
+
+                mergeScheduled = false;
+                if (null == versions) { return; }
+                
+                final int n = files.size();
+                int i = n - 1;
+                long sum = files.get(i).length();
+                for (; 0 != i; --i) {
+                    final long l = files.get(i - 1).length();
+                    if (l / 10 > sum) { break; }
+                    sum += l;
+                }
+                if (n - i > 1) {
+                    // take ownership of the loaded archives
+                    final ArrayList<N2V> prior = versions;
+                    versions = null;
+
+                    mkdir(pending);
+                    final String name = name(++lastId);
+                    final FileOutputStream sout =
+                        new FileOutputStream(Filesystem.file(pending, name));
+                    final FileChannel out = sout.getChannel();
+                    final List<N2V> sub = prior.subList(i, n);
+                    N2V.merge(out, sub);
+                    out.force(true);
+                    out.close();
+                    sout.close();
+                    markCommitted();
+                    
+                    for (final N2V version : sub) { version.close(); }
+                    final List<File> subFiles = files.subList(i, n);
+                    for (final File file : subFiles) { file.delete(); }
+                    sub.clear();
+                    subFiles.clear();
+                    final File f = Filesystem.file(dir, name);
+                    prior.add(N2V.open(f));
+                    files.add(f);
+                    
+                    // give up ownership of the archives
+                    versions = prior;
                 }
             }
             

@@ -3,6 +3,7 @@
 package org.waterken.jos;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.ref_send.log.Event;
 import org.ref_send.promise.Receiver;
@@ -10,15 +11,13 @@ import org.waterken.cache.Cache;
 import org.waterken.db.DatabaseManager;
 import org.waterken.db.Service;
 import org.waterken.store.StoreMaker;
-import org.waterken.thread.Concurrent;
+import org.waterken.thread.Loop;
 
 /**
  * A cache of live vats.
  */
 public final class
 JODBManager<S> implements DatabaseManager<S> {
-    
-    static private final ThreadGroup db = new ThreadGroup("db");
     
     private final Cache<File,JODB<S>> live = Cache.make();
 
@@ -41,12 +40,12 @@ JODBManager<S> implements DatabaseManager<S> {
     }
 
     public JODB<S>
-    connect(final File id) throws Exception {
+    connect(final File id) throws IOException {
         final File dir = id.getCanonicalFile();
         synchronized (live) {
             JODB<S> r = live.fetch(null, dir);
             if (null != r) { return r; }
-            final Concurrent<Service> service=Concurrent.make(db,dir.getPath());            
+            final Loop<Service> service = Loop.make("[" + dir.getPath() + "]");            
             r = new JODB<S>(session, service.foreground, stderr, layout.run(
                     service.background, dir.getParentFile(), dir));
             live.put(dir, r);

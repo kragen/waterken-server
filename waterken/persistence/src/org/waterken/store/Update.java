@@ -20,9 +20,8 @@ Update {
      * <p>
      * Further invocations MUST NOT be made on this object.
      * </p>
-     * @throws IOException              any I/O problem
      */
-    void close() throws IOException;
+    void close();
     
     /**
      * Opens an existing file for reading.

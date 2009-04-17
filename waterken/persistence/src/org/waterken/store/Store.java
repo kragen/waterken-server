@@ -23,5 +23,5 @@ Store {
      * </p>
      * @throws IOException  any I/O problem
      */
-    Update update() throws IOException;
+    Update update() throws DoesNotExist, IOException;
 }

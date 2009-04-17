@@ -86,14 +86,11 @@ Folder extends Struct implements StoreMaker, Serializable {
                 return new Update() {
                     
                     public void
-                    close() throws IOException {
+                    close() {
                         done.mark(true);
                         synchronized (lock) {
                             active = false;
                             lock.notify();
-                        }
-                        if (!dir.isDirectory()) {
-                            throw new FileNotFoundException();
                         }
                     }
 
@@ -175,6 +172,10 @@ Folder extends Struct implements StoreMaker, Serializable {
                                 }
                             }
                             renameAll(committed, dir);
+                        } else {
+                            if (!dir.isDirectory()) {
+                                throw new FileNotFoundException();
+                            }
                         }
                     }
                 };

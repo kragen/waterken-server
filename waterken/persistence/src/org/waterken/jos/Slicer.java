@@ -78,8 +78,8 @@ Slicer extends ObjectOutputStream {
             try {
                 final Object p = state.get(x);
                 if (!(p instanceof Faulting)) {
-                    final String name = root.export(Eventual.near(p),
-                            weakTop || isWeak.getBoolean(x));
+                    final String name = root.export(
+                        Eventual.near(p), weakTop || isWeak.getBoolean(x));
                     state.set(x, new Faulting(root, name));
                 }
             } catch (final Exception e) { throw new AssertionError(e); }

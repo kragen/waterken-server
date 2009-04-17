@@ -3,7 +3,6 @@
 package org.waterken.store;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
@@ -25,6 +24,5 @@ StoreMaker {
      * @param parent        parent folder, for {@linkplain Store#clean cleaning}
      * @param dir           folder of existing state
      */
-    Store run(Receiver<Promise<?>> background,
-              File parent, File dir) throws IOException;
+    Store run(Receiver<Promise<?>> background, File parent, File dir);
 }
