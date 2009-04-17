@@ -233,7 +233,7 @@ ClientSide implements Server {
                     });
                 }
                 on.retry();
-                if (SocketException.class != e.getClass()) { throw e; }
+                if (!(e instanceof IOException)) { throw e; }
             }
             return null;
         }
