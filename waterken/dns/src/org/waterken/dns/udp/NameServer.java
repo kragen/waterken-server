@@ -6,7 +6,6 @@ import static org.joe_e.file.Filesystem.file;
 import static org.ref_send.promise.Eventual.near;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.net.SocketAddress;
 
 import org.joe_e.array.ByteArray;
@@ -21,6 +20,7 @@ import org.waterken.db.Root;
 import org.waterken.db.Transaction;
 import org.waterken.dns.Resource;
 import org.waterken.menu.Menu;
+import org.waterken.store.DoesNotExist;
 import org.waterken.udp.UDPDaemon;
 import org.waterken.uri.Header;
 
@@ -124,7 +124,7 @@ NameServer extends UDPDaemon {
                 }
             }).call();
         } catch (final Exception e) {
-            header[3] |= (e instanceof FileNotFoundException ? 3 : 2);
+            header[3] |= (e instanceof DoesNotExist ? 3 : 2);
             return ByteArray.array(header);
         }
 
