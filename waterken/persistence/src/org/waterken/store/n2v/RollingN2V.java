@@ -62,7 +62,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
             private ArrayList<N2V> versions = null; // un-merged commit archives
 
             private Update active = null;           // Is an update in progress?
-            private boolean mergeScheduled = false; // Is a merged scheduled?
+            private boolean mergeScheduled = false; // Is a merge scheduled?
             
             public void
             clean() throws IOException {
