@@ -371,12 +371,13 @@ JODB<S> extends Database<S> {
                     version = ByteArray.array(mac.doFinal());
                     freeMac(mac);
                 }
+                // may overwrite a dead cache entry
                 f2b.put(f, new Bucket(
                     new CacheReference<String,Object>(f, o, wiped),
                     false, version, !unmanaged.is(), 
                     PowerlessArray.array(splices.toArray(new String[0]))));
-                tx.o2f.put(o, f);
-                tx.xxx.add(f);
+                if (null != tx.o2f.put(o, f)) { throw new AssertionError(); }
+                if (!tx.xxx.add(f)) { throw new AssertionError(); }
                 return o;
             } catch (final InvalidClassException e) {
                 throw new RuntimeException(e);
@@ -397,7 +398,7 @@ JODB<S> extends Database<S> {
         private void
         markDirty(final Object o, final Bucket b) {
             if (null == tx.o2f.put(o, b.value.key)) {
-                tx.xxx.add(b.value.key);
+                if (!tx.xxx.add(b.value.key)) { throw new AssertionError(); }
                 for (final String splice : b.splices) {
                     final Bucket spliced = f2b.get(splice);
                     if (null == spliced) { throw new AssertionError(); }
