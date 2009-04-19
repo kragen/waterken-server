@@ -247,18 +247,18 @@ JODB<S> extends Database<S> {
     Processor {
         final boolean isQuery;
         final Update update;
-        final IdentityHashMap<Object,String> o2f;  // [ object => filename ]
-        final IdentityHashMap<Object,String> o2wf; // [ object => weak filename]
-        final HashSet<String> xxx;                 // [ dirty filename ]
+        final IdentityHashMap<Object,String> o2f =  // [ object => filename ]
+            new IdentityHashMap<Object,String>(32);
+        final IdentityHashMap<Object,String> o2wf = // [object => weak filename]
+            new IdentityHashMap<Object,String>(32);
+        final HashSet<String> xxx =                 // [ dirty filename ]
+            new HashSet<String>(16);
         final LinkedList<Service> services = new LinkedList<Service>();
         final LinkedList<Event> events = new LinkedList<Event>();
         
         Processor(final boolean isQuery, final Update update) {
             this.isQuery = isQuery;
             this.update = update;
-            o2f = new IdentityHashMap<Object,String>(32);
-            o2wf = new IdentityHashMap<Object,String>(32);
-            xxx = new HashSet<String>(16);
         }
     }
     
