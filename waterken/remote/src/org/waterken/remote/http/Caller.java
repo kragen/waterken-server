@@ -69,7 +69,7 @@ Caller extends Struct implements Messenger, Serializable {
 
             public Message<Request>
             render(final String x, final long w, final int m) throws Exception {
-                final String target = HTTP.get(base, ".");
+                final String target = HTTP.get(base, null);
                 final String authority = URI.authority(target);
                 final String location = Authority.location(authority);
                 return new Message<Request>(new Request(

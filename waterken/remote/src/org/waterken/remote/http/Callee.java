@@ -49,7 +49,7 @@ Callee extends Struct implements Serializable {
         
         // further dispatch the request based on the accessed member
         final String p = HTTP.predicate(query);
-        if (null == p || ".".equals(p)) {       // introspection or when block
+        if (null == p) {                        // introspection or when block
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
                     Response.options("TRACE","OPTIONS","GET","HEAD"), null);
@@ -68,7 +68,7 @@ Callee extends Struct implements Serializable {
             } catch (final Exception e) {
                 value = new Rejected<Object>(e);
             }
-            if (null == p && !HTTP.isPBC(value)) {
+            if (!HTTP.isPromise(query) && !HTTP.isPBC(value)) {
                 value = describe(value.getClass());
             }
             final Response failed = m.head.allow("\"\"");
@@ -134,7 +134,7 @@ Callee extends Struct implements Serializable {
             return r;
         }
         
-        if ("OPTIONS".equals(m.head.method)) {    // method invocation
+        if ("OPTIONS".equals(m.head.method)) {  // method invocation
             return new Message<Response>(
                 Response.options("TRACE", "OPTIONS", "POST"), null);
         }
