@@ -8,7 +8,7 @@ import java.io.Serializable;
  * A fulfilled promise.
  */
 /* package */ final class
-Detachable<T> implements Promise<T>, Serializable {
+Fulfilled<T> implements Promise<T>, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -26,8 +26,8 @@ Detachable<T> implements Promise<T>, Serializable {
      * @param isWeak    {@link #isWeak}
      * @param referent  referent
      */
-    protected
-    Detachable(final boolean isWeak, final T referent) {
+    /* package */
+    Fulfilled(final boolean isWeak, final T referent) {
         this.isWeak = isWeak;
         this.state = new Inline<T>(referent);
     }
@@ -45,14 +45,12 @@ Detachable<T> implements Promise<T>, Serializable {
     public boolean
     equals(final Object x) {
         try {
-            return x instanceof Detachable &&
-                isWeak == ((Detachable<?>)x).isWeak &&
-                (state.getClass() == ((Detachable<?>)x).state.getClass()
-                    ? state.equals(((Detachable<?>)x).state)
-                 : same(call(), ((Detachable<?>)x).call()));
-        } catch (final Exception e) {
-            return false;
-        }
+            return x instanceof Fulfilled &&
+                isWeak == ((Fulfilled<?>)x).isWeak &&
+                (state.getClass() == ((Fulfilled<?>)x).state.getClass()
+                    ? state.equals(((Fulfilled<?>)x).state)
+                 : same(call(), ((Fulfilled<?>)x).call()));
+        } catch (final Exception e) { return false; }
     }
 
     static private boolean

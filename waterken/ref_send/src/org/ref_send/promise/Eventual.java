@@ -320,7 +320,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
                 r = cast(R, x.promise);
                 forwarder = new Compose<P,R>(observer, x.resolver);
             }
-            trust(p instanceof Detachable ? ((Detachable<P>)p).getState() : p).
+            trust(p instanceof Fulfilled ? ((Fulfilled<P>)p).getState() : p).
                 when(forwarder);
             return r;
         } catch (final Exception e) { throw new Error(e); }
@@ -648,8 +648,8 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         
         public void
         resolve(final Promise<T> p) {
-            chain(p instanceof Detachable
-                ? ((Detachable<T>)p).getState()
+            chain(p instanceof Fulfilled
+                ? ((Fulfilled<T>)p).getState()
             : null != p
                 ? p
             : new Rejected<T>(new NullPointerException()));
@@ -699,7 +699,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         final Promise<When<T>> front = allocWhen(condition);
         final State<T> state = new State<T>(condition, front);
         return new Channel<T>(new Tail<T>(this, state),
-            new Head<T>(condition, new Detachable<State<T>>(true,state),front));
+            new Head<T>(condition, new Fulfilled<State<T>>(true,state),front));
         /**
          * The resolver only holds a weak reference to the promise's mutable
          * state, allowing it to be garbage collected even if the resolver is
@@ -933,7 +933,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
                 if (f.isNaN())      { throw new ArithmeticException(); }
                 if (f.isInfinite()) { throw new ArithmeticException(); }
             }
-            return new Detachable<T>(false, referent);
+            return new Fulfilled<T>(false, referent);
         } catch (final Exception e) {
             return new Rejected<T>(e);
         }
