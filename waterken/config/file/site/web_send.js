@@ -129,7 +129,7 @@ ADSAFE.lib('web', function (lib) {
             if (/^application\/do-not-execute$/i.test(contentType)) {
                 return http.responseText;
             }
-            return JSON.parse(http.responseText, function (key, value) {
+            var r = JSON.parse(http.responseText, function (key, value) {
                 if (null === value) { return value; }
                 if ('object' !== typeof value) { return value; }
                 if (value.hasOwnProperty('@')) {
@@ -144,7 +144,12 @@ ADSAFE.lib('web', function (lib) {
                     }
                 }
                 return value;
-            })[0];
+            });
+            if ('[object Array]' === Object.prototype.toString.apply(r) &&
+                1 === r.length) {
+                r = r[0];
+            }
+            return r;
         case 204:
         case 205:
             return null;
