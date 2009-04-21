@@ -28,7 +28,7 @@ ADSAFE.lib('web', function (lib) {
             if (/#o=/.test(URLref)) {
                 send(URLref, 'GET', function (x) {
                     ('function'===typeof x?x:lib.Q.ref(x))(op,arg1,arg2,arg3);
-                }, '.');
+                });
             } else {
                 if ('WHEN' === op) {
                     arg1(self);
@@ -188,13 +188,10 @@ ADSAFE.lib('web', function (lib) {
                 url += sep + 'q=' + encodeURIComponent(m.q);
                 sep = '&';
             }
-            if (m.session) {
-                if (m.session.x) {
-                    url += sep + 'x=' + encodeURIComponent(m.session.x);
-                    sep = '&';
-                }
-                url += sep + 'w=' + m.session.w;
+            if (m.session && m.session.x) {
+                url += sep + 'x=' + encodeURIComponent(m.session.x);
                 sep = '&';
+                url += sep + 'w=' + m.session.w;
             }
             if (urlref[2]) {
                 url += urlref[2].replace('#', sep);
