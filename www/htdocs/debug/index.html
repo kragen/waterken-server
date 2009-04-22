@@ -37,7 +37,7 @@ can come from a web-key created by a discarded test application. Configure your
 server with this key by putting it in the <code>config/logKey.json</code> file.
 For example, the contents of this file should look like:</p>
 <pre>
-[ "mySecretKey" ]
+{ "=" : "mySecretKey" }
 </pre>
 <h4><a name="sendLog" href="#sendLog">Configure event transmission</a></h4>
 <p>For each server transmitting log events, add a file named
@@ -45,7 +45,7 @@ For example, the contents of this file should look like:</p>
 <code><a href="../deploy/#config">config/</a></code> folder. This file
 specifies the web-key used in sending log events. For example,</p>
 <pre>
-[ { "@" : "http://localhost:8080/log/#s=mySecretKey" } ]
+{ "@" : "http://localhost:8080/log/#s=mySecretKey" }
 </pre>
 <p>The above example sends log events to the previously configured log store on
 the local machine. The received events are stored in the file

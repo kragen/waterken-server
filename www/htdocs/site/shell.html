@@ -12,7 +12,6 @@
 <style type="text/css">
 .input, .prompt { color: blue }
 .output { color: green }
-.listing { border: 2px solid black }
 </style>
 </head>
 <body>
@@ -27,7 +26,7 @@
 For example, select the "Console" tab in Firebug and then enter the following
 commands at the "<kbd><span class="prompt">&gt;&gt;&gt;</span></kbd>" prompt at
 the bottom of the window:</p>
-<pre class="listing">
+<pre>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">var username = Q.defer()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="comment">// setup GUI for collecting username</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">var onChange = function () { username.resolve(this.value); }</span>
@@ -49,7 +48,7 @@ registered on the promise. So any console messages output by the callbacks that
 update the DOM will show up after the message that echoes the username.</p>
 <p>In addition to notifying callbacks, a promise can also queue invocations for
 later delivery. For example:</p>
-<pre class="listing">
+<pre>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">var logger = Q.defer()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">Q.post(logger.promise, 'log', [ 'Starting process...' ])</span>
 <span class="output">function()</span>
