@@ -5,7 +5,6 @@ package org.waterken.syntax;
 import org.joe_e.Powerless;
 import org.joe_e.inert;
 import org.joe_e.array.ByteArray;
-import org.joe_e.array.ConstArray;
 
 /**
  * An object serializer.
@@ -16,8 +15,8 @@ Serializer extends Powerless {
     /**
      * Serializes an argument list.
      * @param export    reference exporter
-     * @param values    each argument to serialize
+     * @param value     value to serialize
      * @return serialized content
      */
-    ByteArray run(Exporter export, @inert ConstArray<?> values)throws Exception;
+    ByteArray run(Exporter export, @inert Object value) throws Exception;
 }

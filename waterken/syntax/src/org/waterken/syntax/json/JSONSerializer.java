@@ -41,8 +41,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     // org.waterken.syntax.Serializer interface
 
     public ByteArray
-    run(final Exporter export,
-        final @inert ConstArray<?> values) throws Exception {
+    run(final Exporter export, final @inert Object value) throws Exception {
         /*
          * SECURITY CLAIM: Only the immutable root of the application object
          * tree provided by the values argument is serialized. The Exporter is
@@ -63,7 +62,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
          */
         final ByteArray.BuilderOutputStream buffer =
             ByteArray.builder(512).asOutputStream();
-        write(export, values, new BufferedWriter(UTF8.output(buffer)));
+        write(export, value, new BufferedWriter(UTF8.output(buffer)));
         return buffer.snapshot();
     }
     
@@ -74,14 +73,10 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
      * @param text      UTF-8 text output, will be flushed and closed
      */
     static public void
-    write(final Exporter export, final @inert ConstArray<?> values,
+    write(final Exporter export, final @inert Object value,
                                  final Writer text) throws Exception {
         final JSONWriter top = JSONWriter.make(text);
-        final JSONWriter.ArrayWriter aout = top.startArray();
-        for (int i = 0; i != values.length(); ++i) {
-            serialize(export, Object.class, values.get(i), aout.startElement());
-        }
-        aout.finish();
+        serialize(export, Object.class, value, top);
         if (!top.isWritten()) { throw new RuntimeException(); }
         text.flush();
         text.close();
@@ -90,9 +85,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private final TypeVariable<?> T = Typedef.var(Iterable.class, "T");
     
     static private void
-    serialize(final Exporter export,
-              final Type implicit, final @inert Object value,
-              final JSONWriter.ValueWriter out) throws Exception {
+    serialize(final Exporter export, final Type implicit,
+              final @inert Object value, final JSONWriter out) throws Exception{
         final Class<?> actual = null != value ? value.getClass() : Void.class;
         if (String.class == actual) {
             out.writeString((String)value);

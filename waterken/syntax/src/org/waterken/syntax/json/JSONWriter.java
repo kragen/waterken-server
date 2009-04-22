@@ -154,7 +154,7 @@ JSONWriter {
             written.mark();     // mark the containing value successful
         }
 
-        public ValueWriter
+        public JSONWriter
         startMember(final String name) throws IOException {
             if (!member.isWritten()) { throw new NullPointerException(); }
 
@@ -222,7 +222,7 @@ JSONWriter {
             written.mark();     // mark the containing value successful
         }
 
-        public ValueWriter
+        public JSONWriter
         startElement() throws IOException {
             if (!element.isWritten()) { throw new NullPointerException(); }
 
@@ -243,11 +243,93 @@ JSONWriter {
         if (top) { out.write(newLine); }
         written.mark();
     }
+
+    public void
+    writeNull() throws IOException {
+        final Writer out = output.claim();
+        out.write("{ \"=\" : null }");
+        if (top) { out.write(newLine); }
+        written.mark();
+    }
+
+    public void
+    writeBoolean(final boolean value) throws IOException {
+        final Writer out = output.claim();
+        out.write("{ \"=\" : ");
+        out.write(value ? "true" : "false");
+        out.write(" }");
+        if (top) { out.write(newLine); }
+        written.mark();
+    }
+
+    public void
+    writeInt(final int value) throws IOException {
+        final Writer out = output.claim();
+        out.write("{ \"=\" : ");
+        out.write(Integer.toString(value));
+        out.write(" }");
+        if (top) { out.write(newLine); }
+        written.mark();
+    }
+    
+    /**
+     * maximum magnitude of a Javascript number: {@value}
+     */
+    static public final long maxMagnitude = (1L << 53) - 1; // = 2^53 - 1
+
+    public void
+    writeLong(final long value) throws ArithmeticException, IOException {
+        if (value > maxMagnitude) { throw new ArithmeticException(); }
+        if (value < -maxMagnitude) { throw new ArithmeticException(); }
+
+        final Writer out = output.claim();
+        out.write("{ \"=\" : ");
+        out.write(Long.toString(value));
+        out.write(" }");
+        if (top) { out.write(newLine); }
+        written.mark();
+    }
+
+    public void
+    writeFloat(final float value) throws ArithmeticException, IOException {
+        if (Float.isNaN(value)) { throw new ArithmeticException(); }
+        if (Float.isInfinite(value)) { throw new ArithmeticException(); }
+        
+        final Writer out = output.claim();
+        out.write("{ \"=\" : ");
+        out.write(Float.toString(value));
+        out.write(" }");
+        if (top) { out.write(newLine); }
+        written.mark();
+    }
+
+    public void
+    writeDouble(final double value) throws ArithmeticException, IOException{
+        if (Double.isNaN(value)) { throw new ArithmeticException(); }
+        if (Double.isInfinite(value)) { throw new ArithmeticException(); }
+        
+        final Writer out = output.claim();
+        out.write("{ \"=\" : ");
+        out.write(Double.toString(value));
+        out.write(" }");
+        if (top) { out.write(newLine); }
+        written.mark();
+    }
+
+    public void
+    writeString(final String value) throws IOException {
+        final Writer out = output.claim();
+        out.write("{ \"=\" : ");
+        writeStringTo(value, out);
+        out.write(" }");
+        if (top) { out.write(newLine); }
+        written.mark();
+    }
     
     /**
      * A JSON <em>value</em> writer.
      */
-    static public final class
+    static private final class
     ValueWriter extends JSONWriter {
         
         protected
@@ -255,30 +337,25 @@ JSONWriter {
             super(false, indent, out);
         }
 
-        public void
+        public @Override void
         writeNull() throws IOException {
             super.output.claim().write("null");
             super.written.mark();
         }
 
-        public void
+        public @Override void
         writeBoolean(final boolean value) throws IOException {
             super.output.claim().write(value ? "true" : "false");
             super.written.mark();
         }
 
-        public void
+        public @Override void
         writeInt(final int value) throws IOException {
             super.output.claim().write(Integer.toString(value));
             super.written.mark();
         }
-        
-        /**
-         * maximum magnitude of a Javascript number: {@value}
-         */
-        static public final long maxMagnitude = (1L << 53) - 1; // = 2^53 - 1
 
-        public void
+        public @Override void
         writeLong(final long value) throws ArithmeticException, IOException {
             if (value > maxMagnitude) { throw new ArithmeticException(); }
             if (value < -maxMagnitude) { throw new ArithmeticException(); }
@@ -287,7 +364,7 @@ JSONWriter {
             super.written.mark();
         }
 
-        public void
+        public @Override void
         writeFloat(final float value) throws ArithmeticException, IOException {
             if (Float.isNaN(value)) { throw new ArithmeticException(); }
             if (Float.isInfinite(value)) { throw new ArithmeticException(); }
@@ -296,7 +373,7 @@ JSONWriter {
             super.written.mark();
         }
 
-        public void
+        public @Override void
         writeDouble(final double value) throws ArithmeticException, IOException{
             if (Double.isNaN(value)) { throw new ArithmeticException(); }
             if (Double.isInfinite(value)) { throw new ArithmeticException(); }
@@ -305,7 +382,7 @@ JSONWriter {
             super.written.mark();
         }
 
-        public void
+        public @Override void
         writeString(final String value) throws IOException {
             writeStringTo(value, super.output.claim());
             super.written.mark();

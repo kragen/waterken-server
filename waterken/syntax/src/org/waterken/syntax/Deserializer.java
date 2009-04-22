@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.lang.reflect.Type;
 
 import org.joe_e.Powerless;
-import org.joe_e.array.ConstArray;
 
 /**
  * An object deserializer.
@@ -15,15 +14,15 @@ public interface
 Deserializer extends Powerless {
 
     /**
-     * Deserializes an argument list.
-     * @param base          base URL
-     * @param connect       reference importer
-     * @param parameters    each expected type
-     * @param code          class loader
-     * @param content       serialized content input, will be closed
+     * Deserializes an object.
+     * @param base      base URL
+     * @param connect   reference importer
+     * @param type      expected type
+     * @param code      class loader
+     * @param content   serialized content input, will be closed
      * @return each deserialized argument
      * @throws Exception    any exception
      */
-    ConstArray<?> run(String base,Importer connect, ConstArray<Type> parameters,
-                      ClassLoader code, InputStream content) throws Exception;
+    Object run(String base, Importer connect, Type type,
+               ClassLoader code, InputStream content) throws Exception;
 }

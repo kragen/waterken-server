@@ -4,6 +4,7 @@ package org.waterken.syntax.json;
 
 import static org.ref_send.promise.Eventual.ref;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
@@ -63,7 +64,7 @@ JSONParser {
     }
     
     /**
-     * Deserializes an array of Java objects.
+     * Deserializes an array of objects.
      * @param parameters    each expected type
      * @return parsed argument list
      * @throws IOException  any I/O error
@@ -72,7 +73,8 @@ JSONParser {
     public ConstArray<?>
     readTuple(final ConstArray<Type> parameters) throws IOException, BadSyntax {
         try {
-            if (!"[".equals(lexer.next())) { throw new Exception(); }
+            if (null == lexer.next()) { throw new EOFException(); }
+            if (!"[".equals(lexer.getHead())) { throw new Exception(); }
             final ConstArray.Builder<Object> r =
                 ConstArray.builder(parameters.length());
             if (!"]".equals(lexer.next())) {
@@ -87,6 +89,30 @@ JSONParser {
             if (null != lexer.next()) { throw new Exception(); }
             lexer.close();
             return r.snapshot();
+        } catch (final IOException e) {
+            try { lexer.close(); } catch (final Exception e2) {}
+            throw e;
+        } catch (final Exception e) {
+            try { lexer.close(); } catch (final Exception e2) {}
+            throw new BadSyntax(base, lexer.getSpan(), e);           
+        }
+    }
+    
+    /**
+     * Deserializes an object.
+     * @param type  expected type
+     * @return parsed object
+     * @throws IOException  any I/O error
+     * @throws BadSyntax    invalid JSON text
+     */
+    public Object
+    readValue(final Type type) throws IOException, BadSyntax {
+        try {
+            if (null == lexer.next()) { throw new EOFException(); }
+            final Object r = parseValue(type);
+            if (null != lexer.next()) { throw new Exception(); }
+            lexer.close();
+            return r;
         } catch (final IOException e) {
             try { lexer.close(); } catch (final Exception e2) {}
             throw e;
@@ -214,7 +240,23 @@ JSONParser {
             final String href = string(lexer.next());
             if (!"}".equals(lexer.next())) { throw new Exception(); }
             final Object value = connect.run(href, base, required);
-            lexer.next();    // skip past the closing curly
+            lexer.next();   // skip past the closing curly
+            return value;
+        }
+        if ("\"=\"".equals(lexer.getHead())) {
+            // replace with the specified value
+            if (!":".equals(lexer.next())) { throw new Exception(); }
+            lexer.next();   // skip past the colon
+            final Object value = parseValue(required);
+            while (true) {  // discard any other members
+                if ("}".equals(lexer.getHead())) { break; }
+                if (!",".equals(lexer.getHead())) { throw new Exception(); }
+                string(lexer.next());
+                if (!":".equals(lexer.next())) { throw new Exception(); }
+                lexer.next();
+                parseValue(Object.class);
+            }
+            lexer.next();   // skip past the closing curly
             return value;
         }
         final Type promised = Typedef.value(R, required);

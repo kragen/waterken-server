@@ -30,16 +30,16 @@ import org.waterken.syntax.json.JSONSerializer;
  * <pre>
  * config/
  *     - username.json
- *         [ "tyler.close" ]
+ *         { "=" : "tyler.close" }
  *     - port.json
- *         [ 8088 ]
+ *         { "=" : 8088 }
  *     - home.json
- *         [ {
+ *         {
  *             "$" : [ "org.example.hypertext.Anchor" ],
  *             "icon" : "home.png",
  *             "href" : "http://waterken.sourceforge.net/",
  *             "tooltip" : "Home page"
- *           } ]
+ *         }
  * </pre>
  * <p>
  * These settings can be read with code:
@@ -210,7 +210,7 @@ Config {
                 if (!file.isFile()) { continue; }
                 final String subBaseURI = path + filename;
                 r = syntax.deserialize.run(subBaseURI, sub(folder, subBaseURI),
-                    ConstArray.array(type), code, Filesystem.read(file)).get(0);
+                                           type, code, Filesystem.read(file));
                 break;
             }
             cacheKeys = cacheKeys.with(key);
@@ -240,8 +240,7 @@ Config {
     public void
     init(final String name, final Object value,
                             final Exporter export) throws Exception {
-        final ByteArray content =
-            output.serialize.run(export, ConstArray.array(value));
+        final ByteArray content = output.serialize.run(export, value);
         final OutputStream out =
             Filesystem.writeNew(Filesystem.file(root, name + output.ext));
         out.write(content.toByteArray());

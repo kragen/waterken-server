@@ -9,7 +9,6 @@ import java.io.Serializable;
 import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
-import org.joe_e.array.ConstArray;
 import org.joe_e.charset.UTF8;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
@@ -32,11 +31,11 @@ JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
     
     // org.waterken.syntax.Deserializer interface
 
-    public ConstArray<?>
+    public Object
     run(final String base, final Importer connect,
-            final ConstArray<Type> parameters, final ClassLoader code,
+            final Type type, final ClassLoader code,
             final InputStream content) throws IOException, BadSyntax {
         return new JSONParser(base, connect, code,
-            new BufferedReader(UTF8.input(content))).readTuple(parameters);
+            new BufferedReader(UTF8.input(content))).readValue(type);
     }
 }
