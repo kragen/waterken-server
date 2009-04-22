@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
+import java.io.BufferedReader;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -12,6 +13,7 @@ import org.joe_e.array.ArrayBuilder;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
+import org.joe_e.charset.UTF8;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
@@ -24,7 +26,7 @@ import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.FileType;
 import org.waterken.syntax.BadSyntax;
-import org.waterken.syntax.json.JSONDeserializer;
+import org.waterken.syntax.json.JSONParser;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.uri.Header;
 
@@ -183,8 +185,7 @@ Callee extends Struct implements Serializable {
             content = (ByteArray)value;
         } else {
             contentType = FileType.json.name;
-            content = new JSONSerializer().run(exports.export(),
-                                               ConstArray.array(value));
+            content = new JSONSerializer().run(exports.export(), value);
         }
         if ("POST".equals(method)) {
             return new Message<Response>(new Response(
@@ -211,8 +212,10 @@ Callee extends Struct implements Serializable {
         if (Header.equivalent(FileType.unknown.name, m.head.getContentType())) {
             return ConstArray.array(m.body);
         }
-        return new JSONDeserializer().run(exports.getHere(), exports.connect(),
-                parameters, exports.getCodebase(), m.body.asInputStream());
+        return new JSONParser(
+            exports.getHere(), exports.connect(), exports.getCodebase(),
+            new BufferedReader(UTF8.input(m.body.asInputStream()))).
+                readTuple(parameters);
     }
 
     /**
