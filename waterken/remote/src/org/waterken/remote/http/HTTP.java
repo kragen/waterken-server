@@ -260,7 +260,7 @@ HTTP extends Eventual implements Serializable {
      * w:   message window number
      * m:   intra-window message number
      * s:   message target key
-     * q:   message operation identifier, typically the method name
+     * q:   message query, typically the method name
      * o:   present if web-key is a promise
      */
     
