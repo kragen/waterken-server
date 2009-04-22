@@ -132,6 +132,7 @@ ADSAFE.lib('web', function (lib) {
             var r = JSON.parse(http.responseText, function (key, value) {
                 if (null === value) { return value; }
                 if ('object' !== typeof value) { return value; }
+                if (value.hasOwnProperty('=')) { return value['=']; }
                 if (value.hasOwnProperty('@')) {
                     return proxy(resolveURI(base, value['@']));
                 }
@@ -145,9 +146,8 @@ ADSAFE.lib('web', function (lib) {
                 }
                 return value;
             });
-            if ('[object Array]' === Object.prototype.toString.apply(r) &&
-                1 === r.length) {
-                r = r[0];
+            if (null !== r && 'object' === typeof r && r.hasOwnProperty('=')) {
+                r = r['='];
             }
             return r;
         case 204:

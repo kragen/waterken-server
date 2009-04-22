@@ -1,7 +1,7 @@
-[ {
+{
   "$" : [ "org.waterken.net.http.HTTPD" ],
   "port" : 8080,
   "backlog" : 100,
   "soTimeout" : 60000,
   "server" : { "@" : "server" }
-} ]
+}

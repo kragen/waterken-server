@@ -1,4 +1,4 @@
-[ {
+{
   "$" : [ "org.waterken.remote.mux.Mux" ],
   "prefix" : { "@" : "vatURIPathPrefix" },
   "root" : { "@" : "vatRootFolder" },
@@ -26,4 +26,4 @@
       }
     }
   }
-} ]
+}

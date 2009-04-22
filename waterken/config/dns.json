@@ -1,6 +1,6 @@
-[ {
+{
   "$" : [ "org.waterken.dns.udp.NameServer" ],
   "port" : 53,
   "master" : { "@" : "vat/dns/" },
   "dbs" : { "@" : "dbs" }
-} ]
+}
