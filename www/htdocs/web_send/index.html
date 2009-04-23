@@ -1,0 +1,232 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>web_send: browser shell for JSON resources</title>
+<link rel="StyleSheet" type="text/css" href="../site/style.css">
+<link rel="icon" type="image/gif" href="../site/icon.gif">
+<link rel="alternate" type="application/atom+xml" title="Atom (news summaries)" href="../recent.xml">
+<style type="text/css">
+.input, .prompt { color: blue }
+.output { color: green }
+</style>
+</head>
+<body>
+<div class="navigation heading">
+<a href="../"><img alt="home" src="../site/icon.gif" width="16" height="16"></a>
+&rarr; <a class="heading" href="./">web_send</a>
+</div>
+<div class="main">
+<a href="https://waterken.svn.sourceforge.net/svnroot/waterken/server/trunk/waterken/config/file/site/">SVN URL</a>,
+<a href="bang/">Bang Tutorial</a>,
+<a title="Firefox addon page" href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a>
+<h1><a name="title" href="#title">Browser shell for JSON resources</a></h1>
+<p>Not so long ago, in less constrained times, the self-sufficient programmer
+would design a simple text string protocol for interacting with a server-side
+program. A basic telnet program was then all that was needed to test the
+server-side code during development: write some code, launch the server, poke
+and prod it from the telnet session to make sure it does what you want. Today,
+such ingenuity at the protocol layer is lost to us, forbidden by our firewalls.
+Woe unto the server-side developer.</p>
+<p>If we are willing to embrace our HTTP overlord, we can regain that lost
+productivity, plus some extra.  Since the browser provides us with a full
+programming language (Javascript) and a console (Firebug), we can turn it into
+a command-line interpreter for the server-side code. With such a tool we could
+hold onto and reuse server responses using actual variables, instead of copying
+and pasting text!  All we need is a library with an easy syntax for generating
+HTTP requests. The web_send library is that library: providing a remote promise
+API for HTTP URLs. A promise is a special kind of reference that lets you
+easily work with objects that you only have asynchronous access to, like remote
+objects.
+</p>
+<h2><a name="quickStart" href="#quickStart">Some quick introductory examples</a></h2>
+<p>For example, say you've got a brand new server-side object sitting at a URL
+like: <code>&lt;https://example.com/myApp/obj123&gt;</code>. All you want to do
+is invoke one of its methods, to see what happens. Using the web_send library
+from the Firebug console, you could write:</p>
+<pre>
+maker = lib.web.getLocation();
+drum = lib.Q.post(maker, 'makeDrum', []);
+</pre>
+<p>That code generates the following HTTP request:</p>
+<pre>
+POST /myApp/obj123?q=makeDrum HTTP/1.1
+Host: example.com
+Content-Type: text/plain; charset=UTF-8
+Content-Length: 2
+
+[]
+</pre>
+<p>The arguments to <code>Q.post()</code> are:</p>
+<ol>
+<li>promise for the target object</li>
+<li>optional argument to add to the query string</li>
+<li>optional JSON array for the request body</li>
+</ol>
+<p>The <code>makeDrum()</code> method didn't take any arguments. Here's one
+that does:</p>
+<pre>
+lib.Q.post(drum, 'bang', [ 1 ]);
+</pre>
+<p>Causing the HTTP request:</p>
+<pre>
+POST /myApp/obj456?q=bang HTTP/1.1
+Host: example.com
+Content-Type: text/plain; charset=UTF-8
+Content-Length: 5
+
+[ 1 ]
+</pre>
+<p>The target URL in the above request was taken from the HTTP response to the
+previous request. For this to work, the web_send library introduces some
+conventions for HTTP requests and responses. These conventions are the least
+restrictive they can be, while still supporting the client-side promise API.
+The rest of this document explains these conventions.</p>
+<h2><a name="JSON" href="#JSON">JSON conventions</a></h2>
+<p>The web_send library can generate an HTTP request entity using JSON and
+extract information from the JSON in an HTTP response. Doing so requires a
+few conventions.</p>
+<h3><a name="JSONlink" href="#JSONlink">JSON link</a></h3>
+<p>In the introductory example, one of the requests was sent on a promise
+derived from a previous HTTP response. For this to work, the web_send library
+needs to know where to find the corresponding URL inside the HTTP response. To
+enable this, represent a URL as a JSON object having a single member named
+<code>"@"</code>, whose value is the URL string. For example, the JSON response entity in the introductory example was:</p>
+<pre>
+{ "@" : "obj456" }
+</pre>
+<p>The provided URL will be interpreted relative to the URL in the target
+promise. In this case, the base URL was
+<code>&lt;https://example.com/myApp/obj123&gt;</code>, making the resolved URL
+<code>&lt;https://example.com/myApp/obj456&gt;</code>.</p>
+<h3><a name="JSONerror" href="#JSONerror">JSON error</a></h3>
+<p>Sometimes, an invoked method will throw an exception. A thrown exception
+should be encoded in JSON as:</p>
+<pre>
+{
+  "$" : [ "org.ref_send.promise.Rejected" ],
+  "reason" : {
+    "$" : [ "NaN" ]
+  }
+}
+</pre>
+<p>The value of the <code>"reason"</code> member can be any JSON value. Use it
+to communicate the server method's error information. In the shown example, a
+floating-point NaN exception is returned.</p>
+<p>Following this convention for exceptional returns enables the following
+client-side error handling code:</p>
+<pre>
+hits = lib.Q.get(drum, 'hits');
+lib.Q.when(hits, function (value) {
+    // invocation successfully returned the given value
+}, function (reason) {
+    // invocation failed with the given reason
+});
+</pre>
+<h3><a name="JSONvalue" href="#JSONvalue">JSON value</a></h3>
+<p>Some methods only need to return a simple value, like a string or a number;
+whereas <a href="http://www.ietf.org/rfc/rfc4627.txt">JSON</a> requires that a
+JSON text be a JSON object or JSON array. To return a simple value, return a
+JSON object with a member named <code>"="</code>, whose value is the simple
+value. For example, to return the number <code>42</code>:</p>
+<pre>
+{ "=" : 42 }
+</pre>
+<h2><a name="URLref" href="#URLref">URL conventions</a></h2>
+<p>When sending an HTTP request, it is often useful to include some arguments
+in the Request-URI. The web_send library supports the following
+conventions:</p>
+<h3><a name="q" href="#q">'q' query string argument</a></h3>
+<p>Both <code>Q.post()</code> and <code>Q.get()</code> take an optional string
+argument. If a value is provided, it will be appended to the Request-URI's
+query component as the value of the 'q' parameter (using the
+<code><a href="http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.1">application/x-www-form-urlencoded</a></code>
+syntax). For example, the folllowing transformations are made for the call:</p>
+<pre>
+lib.Q.get(drum, 'hits');
+</pre>
+<table>
+<tr><th>target URLref</th><th>Request-URI</th></tr>
+<tr><td>/myApp/obj456</td><td>/myApp/obj456?q=hits</td></tr>
+<tr><td>/myApp/?id=obj456</td><td>/myApp/?id=obj456&amp;q=hits</td></tr>
+<tr><td>/myApp/?q=42</td><td>/myApp/?q=42&amp;q=hits</td></tr>
+</table>
+<h3><a name="fragment" href="#fragment">fragment arguments</a></h3>
+<p>Sometimes, it is useful to include information in a URL that won't show up
+in the HTTP protocol's Referer header, but can be made available to the server
+that issued the URL. To support this, the web_send library can move information
+in the URL fragment to the query component of the Request-URI. For example, for
+the call:</p>
+<pre>
+lib.Q.get(drum, 'hits');
+</pre>
+<table>
+<tr><th>target URLref</th><th>Request-URI</th></tr>
+<tr><td>/myApp#s=obj456</td><td>/myApp?q=hits&amp;s=obj456</td></tr>
+<tr><td>/myApp?id=42#s=obj456</td><td>/myApp?id=42&amp;q=hits&amp;s=obj456</td></tr>
+<tr><td>/myApp?s=42#s=obj456</td><td>/myApp?s=42&amp;q=hits&amp;s=obj456</td></tr>
+<tr><td>/myApp?s=42#s=obj456&amp;t=6&amp;=label</td><td>/myApp?s=42&amp;q=hits&amp;s=obj456&amp;t=6</td></tr>
+</table>
+<p>In the last example, the character sequence '<code>&amp;=</code>' is
+recognized as terminating the part of the fragment that should be copied to the
+Request-URI.</p>
+<h3><a name="session" href="#session">session identifier</a></h3>
+<p>Before sending any POST request, the web_send library will first send a
+request asking the server if a session should be created. This request is sent
+to the URL <code>&lt;?q=create&amp;s=sessions&gt;</code>, resolved relative to
+the promise URL that is about to be used.  If your server wishes to associate
+requests with a session, respond with JSON like:</p>
+<pre>
+{
+  "key" : "sessionid"
+}
+</pre>
+<p>The web_send library will then include this key as the '<code>x</code>'
+parameter in all POST requests, as well as a number '<code>w</code>', which is
+incremented on each POST request. For example, for the code:</p>
+<pre>
+lib.Q.post(drum, 'bang', [ 3 ]);
+</pre>
+<p>The Request-URI will be
+<code>&lt;/myApp/obj456?q=bang&amp;x=sessionid&amp;w=1&gt;</code>.</p>
+<h3><a name="remotePromise" href="#remotePromise">server-side promise</a></h3>
+<p>If your server-side code also uses promises, a URLref that refers to a
+promise must be distinguished from one that refers to a direct object
+reference.  Mark a URLref as referring to a promise by starting the fragment
+with the text '<code>o=</code>'.  This marking is used by
+<code>Q.when()</code>, which registers callbacks to be notified when a promise
+is resolved. If the promise marking is present, <code>Q.when()</code> will
+fetch the resolved value from the server; otherwise, it will treat the
+client-side promise as the fulfilled value. For example:</p>
+<pre>
+var remoteProxy = &hellip; // @ https://example.com/myApp/#s=obj123
+lib.Q.when(remoteProxy, function(value) {
+    // value will be remoteProxy
+});
+var remotePromise = &hellip; // @ https://example.com/myApp/#o=&amp;s=obj123
+lib.Q.when(remotePromise, function(value) {
+    // value will be JSON value returned by GET request to:
+    // &lt;https://example.com/myApp/?o=&amp;s=obj123&gt;
+}, function(reason) {
+    // or the reason the GET request failed
+});
+</pre>
+<h2><a name="files" href="#files">Server-side files</a></h2>
+<p>The code for the web_send library must be delivered to the browser by your
+server. Checkout the necessary files using the subversion command:</p>
+<p><kbd>svn co <a href="https://waterken.svn.sourceforge.net/svnroot/waterken/server/trunk/waterken/config/file/site/">https://waterken.svn.sourceforge.net/svnroot/waterken/server/trunk/waterken/config/file/site/</a></kbd></p>
+<p>To bootstrap the web_send library your server must return HTML code, like
+that in the <code>example/index.html</code> file. This code links in the
+necessary Javascript code. For example, if your application objects are at URLs
+like: <code>&lt;https://example.com/myApp/#s=obj123&gt;</code>, you should
+serve this HTML from a request to
+<code>&lt;https://example.com/myApp/&gt;</code>.</p>
+<h3><a name="firebug" href="#firebug">Using the Firebug console</a></h3>
+<p>Try out the web_send library using the <a href="../bang/">Bang
+Tutorial</a>.</p>
+</div>
+<p class="footer comment">
+</p>
+</body>
+</html>
