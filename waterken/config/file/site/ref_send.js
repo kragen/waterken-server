@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * ref_send.js version: 2009-04-10
+ * ref_send.js version: 2009-04-22
  */
 "use strict";
 ADSAFE.lib('Q', function () {
@@ -19,7 +19,7 @@ ADSAFE.lib('Q', function () {
                 };
             }
             if ('WHEN' === op) { return arg2 ? arg2(reason) : reject(reason); }
-            return arg1(reject(reason));
+            return arg1 ? arg1(reject(reason)) : reject(reason);
         };
     }
 
@@ -37,13 +37,13 @@ ADSAFE.lib('Q', function () {
             if ('WHEN' === op) {
                 r = value;
             } else if ('GET' === op) {
-                r = ADSAFE.get(value, arg2);
+                r = undefined === arg2 ? value : ADSAFE.get(value, arg2);
             } else if ('POST' === op) {
                 r = ADSAFE.invoke(value, arg2, arg3);
             } else {
                 r = reject(new TypeError(), [ 'NaO' ]);
             }
-            return arg1(r);
+            return arg1 ? arg1(r) : r;
         };
     }
 

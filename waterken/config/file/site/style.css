@@ -13,11 +13,22 @@ sup { font-size: small }
 .comment { color: gray; font-style: italic }
 .figure { padding-left: 5em; width: 400px }
 caption, .caption { font-size: large; font-weight: bold }
+pre {
+    border: 2px dotted gray;
+    padding: 0.5em;
+    width: 44em;
+}
 form { padding: 0px; margin: 0px }
+table {
+    margin-left: auto;
+    margin-right: auto;
+}
 th {
-    text-align: right;
-    vertical-align: baseline;
     background-color: #99CCCC;
+    padding: 0.5em;
+}
+td {
+    padding-right: 1em;
 }
 body {
     max-width: 600px;

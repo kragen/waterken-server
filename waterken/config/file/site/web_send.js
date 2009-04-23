@@ -2,11 +2,18 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-04-10
+ * web_send.js version: 2009-04-23
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
- * designed to provide a safe interface to the network, that can be loaded as
- * an ADsafe library.
+ * designed to provide a controlled interface to the network, that can be
+ * loaded as an ADsafe library. Clients of this library have permission to send
+ * requests to the window target, and any target returned in a request
+ * response.  Clients *cannot* construct a remote promise from whole cloth by
+ * providing a URL. In this way, a server can control the client's network
+ * access by controlling what remote targets are made available to the client.
+ *
+ * In addition to messaging, the client is also permitted to navigate the
+ * window and read/write the window title.
  */
 "use strict";
 ADSAFE.lib('web', function (lib) {
@@ -19,6 +26,10 @@ ADSAFE.lib('web', function (lib) {
      */
     var unsealedURLref = null;
 
+    /**
+     * Constructs a remote promise.
+     * @param URLref    URL reference to wrap
+     */
     function proxy(URLref) {
         var self = function (op, arg1, arg2, arg3) {
             if (undefined === op) {
@@ -261,32 +272,93 @@ ADSAFE.lib('web', function (lib) {
         };
     }) ();
 
+    /**
+     * Extracts the URLref contained within a remote promise.
+     * @param p remote promise to crack
+     * @return the URLref, or <code>null</code> if not a remote promise
+     */
+    function crack(p) {
+        unsealedURLref = null;
+        if ('function' === typeof p) { p(); }
+        var r = unsealedURLref;
+        unsealedURLref = null;
+        return r;
+    }
+
     return {
 
         /**
-         * Gets a promise for the current target of this web page.
+         * Gets a promise for the window's current location.
          */
-        getPage: function () {
-            return proxy(window.document.location.toString());
+        getLocation: function () { return proxy(window.location.href); },
+
+        /**
+         * Navigate the window.
+         * @param target    remote promise for new location
+         */
+        navigate: function (target) {
+            var href = crack(target);
+            if (null === href) { return false; }
+            window.location.assign(href);
+            return true;
         },
 
         /**
-         * Constructs a remote promise.
-         * @param URLref    URL reference to wrap
+         * Sets the 'href' attribute.
+         * @param elements  bunch of elements to modify
+         * @param target    remote promise
          */
-        proxy: proxy,
+        href: function (elements, target) {
+            if (null === target) {
+                elements.___nodes___.filter(function (element) {
+                    element.removeAttribute('href');
+                    element.onclick = undefined;
+                });
+            } else {
+                var href = crack(target);
+                if (null === href) { return false; }
+                elements.___nodes___.filter(function (element) {
+                    element.setAttribute('href', href);
+
+                    // do page navigation, even if fragment is only difference
+                    element.onclick = function () {
+                        // TODO: do original fragment navigation
+                        window.location.assign(href);
+                    };
+                });
+            }
+            return true;
+        },
 
         /**
-         * Extracts the URLref contained within a remote promise.
-         * @param p remote promise to crack
-         * @return the URLref, or <code>null</code> if not a remote promise
+         * Sets the 'src' attribute.
+         * @param elements  bunch of elements to modify
+         * @param target    remote promise
          */
-        crack: function (p) {
-            unsealedURLref = null;
-            if ('function' === typeof p) { p(); }
-            var r = unsealedURLref;
-            unsealedURLref = null;
-            return r;
-        }
+        src: function (img, target) {
+            if (null === target) {
+                elements.___nodes___.filter(function (element) {
+                    element.removeAttribute('src');
+                });
+            } else {
+                var src = crack(target);
+                if (null === src) { return false; }
+                elements.___nodes___.filter(function (element) {
+                    element.setAttribute('src', src);
+                });
+            }
+            return true;
+        },
+
+        /**
+         * Gets the document title.
+         */
+        getTitle: function () { return window.document.title; },
+
+        /**
+         * Sets the document title.
+         * @param text  new title text
+         */
+        setTitle: function (text) { window.document.title = text; }
     };
 });

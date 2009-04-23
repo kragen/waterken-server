@@ -1,5 +1,5 @@
 // adsafe.js
-// 2009-02-13
+// 2009-04-22
 
 //    Public Domain.
 
@@ -22,45 +22,45 @@
 
 /*jslint browser: true, evil: true, nomen: false */
 
-/*members "", "#", "&", "*", ".", "\/", ":blur", ":checked",
+/*members "", "#", "&", ">", "*", "+", ".", "/", ":blur", ":checked",
     ":disabled", ":enabled", ":even", ":focus", ":hidden", ":odd", ":tag",
     ":text", ":unchecked", ":visible", ">", Debug, "[", "[!=", "[$=", "[*=",
     "[=", "[^=", "[|=", "[~=", _, "___ on ___", "___adsafe root___",
-    ___nodes___, ___star___, "_adsafe mark_", _body, _intercept, a, abbr,
-    acronym, addEventListener, address, altKey, append, appendChild, apply,
-    area, arguments, autocomplete, b, bdo, big, blockquote, blur, body, br,
-    bubble, button, call, callee, caller, cancelBubble, canvas, caption,
-    center, change, charAt, charCode, check, checked, childNodes, cite,
-    className, clientX, clientY, clone, cloneNode, code, col, colgroup,
-    combine, concat, console, constructor, count, create,
-    createDocumentFragment, createElement, createRange, createTextNode,
-    createTextRange, cssFloat, ctrlKey, currentStyle, dd, defaultView, del, dfn,
-    dir, disabled, div, dl, dt, em, empty, enable, ephemeral, eval, exec,
-    expand, explode, fieldset, filter, fire, firstChild, focus, font, form,
-    fragment, fromCharCode, get, getCheck, getClass, getComputedStyle,
-    getElementById, getElementsByTagName, getMark, getName, getOffsetHeight,
-    getOffsetWidth, getParent, getSelection, getStyle, getTagName, getValue,
-    go, h1, h2, h3, h4, h5, h6, hasOwnProperty, hr, i, id, img, inRange,
-    indexOf, input, ins, insertBefore, invoke, isArray, kbd, key, keyCode,
-    klass, label, later, legend, length, li, lib, log, map, mark, menu,
-    message, name, nextSibling, nodeName, nodeValue, object, off,
-    offsetHeight, offsetWidth, ol, on, onclick, ondblclick, onfocusin,
-    onfocusout, onkeypress, onmousedown, onmousemove, onmouseout,
-    onmouseover, onmouseup, op, opera, optgroup, option, p, parent,
-    parentNode, postError, pre, prepend, preventDefault, protect, prototype,
-    push, q, remove, removeChild, removeElement, replace, replaceNode,
-    returnValue, row, samp, select, selection, selectionEnd, selectionStart,
-    set, shiftKey, slice, small, span, srcElement, stopPropagation, strong,
-    style, styleFloat, sub, sup, table, tag, tagName, target, tbody, td, test,
-    text, textarea, tfoot, th, that, thead, toLowerCase, toString, toUpperCase,
-    tr, tt, type, u, ul, unwatch, value, valueOf, var, visibility, watch,
-    window, writeln, x, y
+    ___nodes___, ___star___, "_adsafe mark_", _intercept, a, abbr, acronym,
+    addEventListener, address, altKey, append, appendChild, apply, area,
+    arguments, autocomplete, b, bdo, big, blockquote, blur, br, bubble,
+    button, call, callee, caller, cancelBubble, canvas, caption, center,
+    change, charAt, charCode, check, checked, childNodes, cite, className,
+    clientX, clientY, clone, cloneNode, code, col, colgroup, combine,
+    concat, console, constructor, count, create, createDocumentFragment,
+    createElement, createRange, createTextNode, createTextRange, cssFloat,
+    ctrlKey, currentStyle, dd, defaultView, del, dfn, dir, disabled, div,
+    dl, dt, em, empty, enable, ephemeral, eval, exec, expand, explode,
+    fieldset, filter, fire, firstChild, focus, font, form, fragment,
+    fromCharCode, get, getCheck, getClass, getComputedStyle, getElementById,
+    getElementsByTagName, getMark, getName, getOffsetHeight, getOffsetWidth,
+    getParent, getSelection, getStyle, getTagName, getValue, go, h1, h2, h3,
+    h4, h5, h6, hasOwnProperty, hr, i, id, img, inRange, indexOf, input,
+    ins, insertBefore, invoke, isArray, kbd, key, keyCode, klass, label,
+    later, legend, length, li, lib, log, map, mark, menu, message, name,
+    nextSibling, nodeName, nodeValue, object, off, offsetHeight,
+    offsetWidth, ol, on, onclick, ondblclick, onfocusin, onfocusout,
+    onkeypress, onmousedown, onmousemove, onmouseout, onmouseover,
+    onmouseup, op, opera, optgroup, option, p, parent, parentNode,
+    postError, pre, prepend, preventDefault, protect, prototype, push, q,
+    remove, removeChild, removeElement, replace, replaceNode, returnValue,
+    row, samp, select, selection, selectionEnd, selectionStart, set,
+    shiftKey, slice, small, span, srcElement, stopPropagation, strong,
+    style, styleFloat, sub, sup, table, tag, tagName, target, tbody, td,
+    test, text, textarea, tfoot, th, that, thead, toLowerCase, toString,
+    toUpperCase, tr, tt, type, u, ul, unwatch, value, valueOf, var,
+    visibility, watch, window, writeln, x, y
 */
 
 
 "use strict";
 
-ADSAFE = function () {
+ADSAFE = (function () {
 
     var adsafe_id,      // The id of the current widget
         adsafe_lib,     // The script libraries loaded by the current widget
@@ -404,6 +404,16 @@ ADSAFE = function () {
                 }
             }
         },
+        '+': function (node) {
+            node = node.nextSibling;
+            name = name.toUpperCase();
+            while (node) {
+                if (node.tagName === name) {
+                    result.push(node);
+                }
+                node = node.nextSibling;
+            }
+        },
         '>': function (node) {
             node = node.firstChild;
             name = name.toUpperCase();
@@ -726,17 +736,17 @@ ADSAFE = function () {
                     for (;;) {
                         the_target = the_target.parentNode;
                         if (!the_target) {
-                            return;
+                            break;
                         }
                         if (the_target['___ on ___'] &&
                                 the_target['___ on ___'][the_event.type]) {
                             that = new Bunch([the_target]);
                             the_event.that = that;
                             that.fire(the_event);
-                            return;
+                            break;
                         }
                         if (the_target['___adsafe root___']) {
-                            return;
+                            break;
                         }
                     }
                 }
@@ -746,6 +756,7 @@ ADSAFE = function () {
                     }
                     ephemeral = null;
                 }
+                that = the_target = the_event = the_actual_event = null;
                 return;
             };
 
@@ -1378,11 +1389,7 @@ ADSAFE = function () {
                     return error();
                 }
                 var b = this.___nodes___, i, node;
-                if (value instanceof Array) {
-                    if (value.length !== b.length) {
-                        return error('ADsafe: Array length: ' +
-                                b.length + '-' + value.length);
-                    }
+                if (value instanceof Array && b.length === value.length) {
                     for (i = 0; i < b.length; i += 1) {
                         node = b[i];
                         if (node.tagName) {
@@ -1537,7 +1544,7 @@ ADSAFE = function () {
                              root.onclick     = root.ondblclick  =
                              root.onkeypress  = dom_event;
         }
-        return dom;
+        return [dom, Bunch];
     }
 
 
@@ -1599,12 +1606,14 @@ ADSAFE = function () {
                     break;
                 }
             }
-            dom = make_root(root, id);
+            root = make_root(root, id);
+            dom = root[0];
+
 
 // If the page has an ADSAFE._intercept method, call it.
 
             if (typeof ADSAFE._intercept === 'function') {
-                ADSAFE._intercept(id, dom, adsafe_lib);
+                ADSAFE._intercept(id, dom, adsafe_lib, root[1]);
             }
 
 //  Call the supplied function.
@@ -1694,4 +1703,4 @@ ADSAFE = function () {
         }
 
     };
-}();
+}());
