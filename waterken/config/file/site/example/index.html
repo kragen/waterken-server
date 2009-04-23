@@ -133,14 +133,14 @@ ADSAFE.go('WIDGET_', function (dom, lib) {
             }
         } else {
             r = dom.tag('div');
-            for (name in value) {
+            for (name in value) { if (value.hasOwnProperty(name)) {
                 if ('$' === name) {
                     $ = $.concat(value.$);
-                } else if (value.hasOwnProperty(name)) {
+                } else {
                     r.append(render(ADSAFE.get(value, name), [ name ]));
                     r.append(dom.text(' '));
                 }
-            }
+            } }
         }
         if (0 !== $.length) {
             r.klass($.join(' '));

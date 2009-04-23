@@ -204,7 +204,7 @@ ADSAFE.lib('web', function (lib) {
                 url += sep + 'q=' + encodeURIComponent(m.q);
                 sep = '&';
             }
-            if (m.session && m.session.x) {
+            if (m.session && undefined !== m.session.x) {
                 url += sep + 'x=' + encodeURIComponent(m.session.x);
                 sep = '&';
                 url += sep + 'w=' + m.session.w;
