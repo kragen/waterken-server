@@ -31,7 +31,7 @@ such ingenuity at the protocol layer is lost to us, forbidden by our firewalls.
 Woe unto the server-side developer.</p>
 <p>If we are willing to embrace our HTTP overlord, we can regain that lost
 productivity, plus some extra.  Since the browser provides us with a full
-programming language (Javascript) and a console (Firebug), we can turn it into
+programming language (JavaScript) and a console (Firebug), we can turn it into
 a command-line interpreter for the server-side code. With such a tool we could
 hold onto and reuse server responses using actual variables, instead of copying
 and pasting text!  All we need is a library with an easy syntax for generating
@@ -119,9 +119,9 @@ client-side error handling code:</p>
 <pre>
 hits = lib.Q.get(drum, 'hits');
 lib.Q.when(hits, function (value) {
-    // invocation successfully returned the given value
+    // GET request successfully returned the given value
 }, function (reason) {
-    // invocation failed with the given reason
+    // GET request failed for the given reason
 });
 </pre>
 <h3><a name="JSONvalue" href="#JSONvalue">JSON value</a></h3>
@@ -142,7 +142,7 @@ conventions:</p>
 argument. If a value is provided, it will be appended to the Request-URI's
 query component as the value of the 'q' parameter (using the
 <code><a href="http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.1">application/x-www-form-urlencoded</a></code>
-syntax). For example, the folllowing transformations are made for the call:</p>
+syntax). For example, the following transformations are made for the call:</p>
 <pre>
 lib.Q.get(drum, 'hits');
 </pre>
@@ -219,7 +219,7 @@ server. Checkout the necessary files using the subversion command:</p>
 <p>To bootstrap the web_send library your server must return HTML code, like
 that in the
 <code><a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/example/index.html?view=markup">example/index.html</a></code>
-file. This code links in the necessary Javascript code. For example, if your
+file. This code links in the necessary JavaScript code. For example, if your
 application objects are at URLs like:
 <code>&lt;https://example.com/myApp/#s=obj123&gt;</code>, you should serve this
 HTML from a request to <code>&lt;https://example.com/myApp/&gt;</code>.</p>
