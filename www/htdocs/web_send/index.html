@@ -19,8 +19,7 @@
 </div>
 <div class="main">
 <a href="https://waterken.svn.sourceforge.net/svnroot/waterken/server/trunk/waterken/config/file/site/">SVN URL</a>,
-<a href="../bang/">Bang Tutorial</a>,
-<a title="Firefox addon page" href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a>
+<a href="../bang/">Bang Tutorial</a>
 <h1><a name="title" href="#title">Browser shell for JSON resources</a></h1>
 <p>Not so long ago, in less constrained times, the self-sufficient programmer
 would design a simple text string protocol for interacting with a server-side
@@ -31,14 +30,15 @@ such ingenuity at the protocol layer is lost to us, forbidden by our firewalls.
 Woe unto the server-side developer.</p>
 <p>If we are willing to embrace our HTTP overlord, we can regain that lost
 productivity, plus some extra.  Since the browser provides us with a full
-programming language (JavaScript) and a console (Firebug), we can turn it into
-a command-line interpreter for the server-side code. With such a tool we could
-hold onto and reuse server responses using actual variables, instead of copying
-and pasting text!  All we need is a library with an easy syntax for generating
-HTTP requests. The web_send library is that library: providing a remote promise
-API for HTTP URLs. A promise is a special kind of reference that lets you
-easily work with objects that you only have asynchronous access to, like remote
-objects.
+programming language (JavaScript) and a console
+(<a title="Firefox addon page" href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a>),
+we can turn it into a command-line interpreter for the server-side code. With
+such a tool we could hold onto and reuse server responses using actual
+variables, instead of copying and pasting text!  All we need is a library with
+an easy syntax for generating HTTP requests. The web_send library is that
+library: providing a remote promise API for HTTP URLs. A promise is a special
+kind of reference that lets you easily work with objects that you only have
+asynchronous access to, like remote objects.
 </p>
 <h2><a name="quickStart" href="#quickStart">Some quick introductory examples</a></h2>
 <p>For example, say you've got a brand new server-side object sitting at a URL
