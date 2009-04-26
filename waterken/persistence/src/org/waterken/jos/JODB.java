@@ -44,7 +44,6 @@ import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Rejected;
 import org.waterken.base32.Base32;
 import org.waterken.cache.CacheReference;
 import org.waterken.db.Creator;
@@ -177,7 +176,7 @@ JODB<S> extends Database<S> {
                     }
                     r = Eventual.ref(body.run(root));
                 } catch (final Exception e) {
-                    r = new Rejected<R>(e);
+                    r = Eventual.reject(e);
                 }
                 persist(m);
                 m.update.commit();

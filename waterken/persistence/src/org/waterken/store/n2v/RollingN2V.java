@@ -411,7 +411,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                 return !child.renameTo(dst);
             }
         });
-        if (null == e) { throw new IOException(); }
+        if (null == e) { throw new IOException(from.toString()); }
         if (0 != e.length) { throw new IOException(e[0].toString()); }
         if (!from.delete()) { throw new IOException(); }
     }
@@ -433,7 +433,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     return false;
                 }
             });
-            if (null == e) { throw new IOException(); }
+            if (null == e) { throw new IOException(file.toString()); }
             if (0 != e.length) { throw new IOException(e[0].toString()); }
         }
         if (!file.delete()) { throw new IOException(); }

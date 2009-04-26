@@ -47,16 +47,25 @@ SubstitutionStream extends ObjectInputStream {
             ? void.class
         : Class.forName(name, false, code);
     }
+
+    /**
+     * The boot class loader.
+     */
+    static private final ClassLoader boot = Runnable.class.getClassLoader();
     
     protected Class<?>
     resolveProxyClass(final String[] typenames) throws IOException,
                                                        ClassNotFoundException {
+        ClassLoader proxyLoader = boot;
         final Class<?>[] interfaces = new Class[typenames.length];
-        for (int i = typenames.length; 0 != i--;) {
+        for (int i = 0; i != typenames.length; ++i) {
             interfaces[i] = Class.forName(typenames[i], false, code);
+            if (proxyLoader == boot) {
+                proxyLoader = interfaces[i].getClassLoader();
+            }
         }
         try {
-            return Proxy.getProxyClass(code, interfaces);
+            return Proxy.getProxyClass(proxyLoader, interfaces);
         } catch (final IllegalArgumentException e) {
             throw new ClassNotFoundException(null, e);
         }
