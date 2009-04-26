@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Rejected;
+import org.waterken.syntax.json.JSON;
 
 /**
  * The server-side state associated with a messaging session.
@@ -32,6 +32,15 @@ ServerSideSession implements Serializable {
         returns = ConstArray.array();
     }
     
+    static protected Object
+    execute(final Promise<?> op) {
+        try {
+            return op.call();
+        } catch (final Exception e) {
+            return JSON.Rejected.make(e);
+        }
+    }
+    
     protected Object
     once(final long window, final int message,
          final Method method, final Promise<?> op) {
@@ -42,12 +51,7 @@ ServerSideSession implements Serializable {
             returns = ConstArray.array();
         }
         log.got(name + "-" + window + "-" + message, null, method);
-        Object r;
-        try {
-            r = op.call();
-        } catch (final Exception e) {
-            r = new Rejected<Object>(e);
-        }
+        final Object r = execute(op);
         returns = returns.with(r);
         final Class<?> R = method.getReturnType();
         if (null != r || (void.class != R && Void.class != R)) {

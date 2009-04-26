@@ -11,12 +11,11 @@ import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.promise.Channel;
-import org.ref_send.promise.Local;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Failure;
+import org.ref_send.promise.Local;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Resolver;
 import org.ref_send.type.Typedef;
 import org.waterken.http.Message;
@@ -88,7 +87,7 @@ Caller extends Struct implements Messenger, Serializable {
             
             public void
             reject(final String request, final Exception reason) {
-                resolve(request, new Rejected<Object>(reason));
+                resolve(request, Eventual.reject(reason));
             }
             
             private <T> void
@@ -119,8 +118,8 @@ Caller extends Struct implements Messenger, Serializable {
             post(r.resolver,base,method.getName(),type,method,argv.snapshot());
             // TODO: implement pipeline references?
         }
-        return _.cast(Typedef.raw(Typedef.bound(method.getGenericReturnType(),
-                                                type)), r.promise);
+        return Eventual.cast(Typedef.raw(Typedef.bound(
+                method.getGenericReturnType(), type)), r.promise);
     }
     
     private void
@@ -201,9 +200,9 @@ Caller extends Struct implements Messenger, Serializable {
              * strip out the parsing information to avoid leaking
              * information to the application layer
              */ 
-            return new Rejected<Object>((Exception)e.getCause());
+            return Eventual.reject((Exception)e.getCause());
         } catch (final Exception e) {
-            return new Rejected<Object>(e);
+            return Eventual.reject(e);
         }
     }
     

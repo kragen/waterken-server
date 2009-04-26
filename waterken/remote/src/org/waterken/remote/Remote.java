@@ -63,7 +63,7 @@ Remote extends Local<Object> {
             public Object
             run(final String href, final String base, final Type type) {
                 final String url = null!=base ? URI.resolve(base, href) : href;
-                return _.cast(Typedef.raw(type),
+                return Eventual.cast(Typedef.raw(type),
                     new Remote(_, local, messenger, URI.relate(here,url)));
             }
         }
@@ -127,18 +127,18 @@ Remote extends Local<Object> {
 
     public @Override Object
     invoke(final Object proxy, final Method method,
-           final Object[] arg) throws Exception {
+           final Object[] args) throws Exception {
         if (Object.class == method.getDeclaringClass()) {
             if ("equals".equals(method.getName())) {
-                return arg[0] instanceof Proxy &&
-                    proxy.getClass() == arg[0].getClass() &&
-                    equals(Proxies.getHandler((Proxy)arg[0]));
+                return args[0] instanceof Proxy &&
+                    proxy.getClass() == args[0].getClass() &&
+                    equals(Proxies.getHandler((Proxy)args[0]));
             } else {
-                return Reflection.invoke(method, this, arg);
+                return Reflection.invoke(method, this, args);
             }
         }
         try {
-            return messenger.invoke(href, proxy, method, arg);
+            return messenger.invoke(href, proxy, method, args);
         } catch (final Exception e) { throw new Error(e); }
     }
     

@@ -17,7 +17,6 @@ import org.joe_e.charset.UTF8;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Rejected;
 import org.ref_send.scope.Layout;
 import org.ref_send.scope.Scope;
 import org.waterken.http.Message;
@@ -26,6 +25,7 @@ import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.FileType;
 import org.waterken.syntax.BadSyntax;
+import org.waterken.syntax.json.JSON;
 import org.waterken.syntax.json.JSONParser;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.uri.Header;
@@ -63,12 +63,15 @@ Callee extends Struct implements Serializable {
             Object value;
             try {
                 // AUDIT: call to untrusted application code
-                value = Eventual.ref(exports.reference(query)).call();
+                value = exports.reference(query);
+                if (null != value) {
+                    value = Eventual.ref(value).call();
+                }
             } catch (final NullPointerException e) {
                 return serialize(m.head.method, "404", "not yet",
-                                 Server.ephemeral, new Rejected<Object>(e));
+                                 Server.ephemeral, JSON.Rejected.make(e));
             } catch (final Exception e) {
-                value = new Rejected<Object>(e);
+                value = JSON.Rejected.make(e);
             }
             if (!HTTP.isPromise(query) && !HTTP.isPBC(value)) {
                 value = describe(value.getClass());
@@ -88,7 +91,7 @@ Callee extends Struct implements Serializable {
             target = subject.call();
         } catch (final Exception e) {
             return serialize(m.head.method, "404", "never", Server.forever,
-                             new Rejected<Object>(e));
+                             JSON.Rejected.make(e));
         }       
         if (HTTP.isPBC(target)) {
             // prevent access to local implementation details
@@ -121,7 +124,7 @@ Callee extends Struct implements Serializable {
                 final Object r = Reflection.invoke(bubble(lambda), target);
                 value = Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
             } catch (final Exception e) {
-                value = new Rejected<Object>(e);
+                value = JSON.Rejected.make(e);
             }
             final boolean constant = "getClass".equals(lambda.getName());
             final int maxAge = constant ? Server.forever : Server.ephemeral; 

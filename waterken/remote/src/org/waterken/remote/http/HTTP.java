@@ -23,7 +23,6 @@ import org.ref_send.promise.Local;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Rejected;
 import org.ref_send.promise.Vat;
 import org.ref_send.type.Typedef;
 import org.waterken.db.Creator;
@@ -95,13 +94,12 @@ HTTP extends Eventual implements Serializable {
                 (R)connect.run(rd.get(1), here, R),
                 (Receiver<?>)connect.run(rd.get(2), here, Receiver.class)
             );
-        } catch (final BadSyntax e) {
-            final Receiver<?> destruct = cast(Receiver.class, null);
-            return new Vat(new Rejected<R>((Exception)e.getCause())._(R),
-                           destruct);
         } catch (final Exception e) {
-            final Receiver<?> destruct = cast(Receiver.class, null);
-            return new Vat(new Rejected<R>(e)._(R), destruct);
+            try {
+                final Receiver<?> destruct = cast(Receiver.class, null);
+                return new Vat(cast(R, reject(e instanceof BadSyntax
+                        ? (Exception)e.getCause() : e)), destruct);
+            } catch (final Exception ee) { throw new Error(ee); }
         }
     }
     
@@ -136,7 +134,7 @@ HTTP extends Eventual implements Serializable {
                 peer(href).when(href, proxy, observer);
             } else {
                 final Class<?> P = Typedef.raw(Local.parameter(observer));
-                _.when(P, HTTP.inline(_.cast(P, proxy)), observer);
+                _.when(P, HTTP.inline(Eventual.cast(P, proxy)), observer);
             }
         }
         
@@ -233,11 +231,7 @@ HTTP extends Eventual implements Serializable {
         execute(final String query,
                 final Method method, final Promise<Object> op) {
             final String x = session(query);
-            if (null == x) {
-                try {
-                    return op.call();
-                } catch (final Exception e) { return new Rejected<Object>(e); }
-            }
+            if (null == x) { return ServerSideSession.execute(op); }
             final ServerSideSession session = new SessionMaker(_.root).open(x);
             return session.once(window(query), message(query), method, op);
         }
