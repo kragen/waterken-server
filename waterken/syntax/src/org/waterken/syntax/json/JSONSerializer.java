@@ -19,7 +19,6 @@ import org.joe_e.charset.UTF8;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
-import org.ref_send.promise.Rejected;
 import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.Exporter;
@@ -98,19 +97,19 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             try {
                 out.writeLong((Long)value);
             } catch (final ArithmeticException e) {
-                serialize(export, implicit, new Rejected<Long>(e), out);
+                serialize(export, implicit, JSON.Rejected.make(e), out);
             }
         } else if (Double.class == actual) {
             try {
                 out.writeDouble((Double)value);
             } catch (final ArithmeticException e) {
-                serialize(export, implicit, new Rejected<Double>(e), out);
+                serialize(export, implicit, JSON.Rejected.make(e), out);
             }
         } else if (Float.class == actual) {
             try {
                 out.writeFloat((Float)value);
             } catch (final ArithmeticException e) {
-                serialize(export, implicit, new Rejected<Float>(e), out);
+                serialize(export, implicit, JSON.Rejected.make(e), out);
             }
         } else if (Byte.class == actual) {
             out.writeInt((Byte)value);
@@ -196,7 +195,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         final PowerlessArray.Builder<String> r = PowerlessArray.builder(4);
         for (Class<?> i = bottom; top != i && limit != i; i=i.getSuperclass()) {
             if (Modifier.isPublic(i.getModifiers())) {
-                try { r.append(Java.name(i)); } catch (final Exception e) {}
+                try { r.append(JSON.name(i)); } catch (final Exception e) {}
             }
         }
         return r.snapshot();

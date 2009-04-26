@@ -6,13 +6,19 @@ import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
+import org.ref_send.scope.Layout;
 
 /**
  * Java &lt;=&gt; JSON naming conventions.
  */
-final class
-Java {
-    private Java() {}
+public final class
+JSON {
+    private JSON() {}
+
+    /**
+     * encoding of a rejected promise
+     */
+    static public final Layout Rejected = new Layout(PowerlessArray.array("!"));
     
     static private final class
     Alias extends Struct implements Powerless {
@@ -33,6 +39,7 @@ Java {
         new Alias(String.class, "string"),
         new Alias(Number.class, "number"),
         new Alias(RuntimeException.class, "Error"),
+        new Alias(Exception.class, "Error"),
         new Alias(java.lang.reflect.Method.class, "function"),
         new Alias(Class.class, "class"),
         new Alias(ClassCastException.class, "NoMatch"),

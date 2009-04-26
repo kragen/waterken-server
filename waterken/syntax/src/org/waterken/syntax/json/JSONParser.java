@@ -28,8 +28,8 @@ import org.joe_e.array.ShortArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Rejected;
 import org.ref_send.scope.Layout;
 import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
@@ -234,13 +234,14 @@ JSONParser {
     private Object
     parseObject(final Type required) throws Exception {
         if (!"{".equals(lexer.getHead())) { throw new Exception(); }
-        if ("\"@\"".equals(lexer.next())) {
+        lexer.next();       // skip past the opening curly
+        if ("\"@\"".equals(lexer.getHead())) {
             // connect to linked reference
             if (!":".equals(lexer.next())) { throw new Exception(); }
             final String href = string(lexer.next());
-            if (!"}".equals(lexer.next())) { throw new Exception(); }
             final Object value = connect.run(href, base, required);
-            lexer.next();   // skip past the closing curly
+            lexer.next();   // skip past the href
+            skipMembers();
             return value;
         }
         if ("\"=\"".equals(lexer.getHead())) {
@@ -248,16 +249,21 @@ JSONParser {
             if (!":".equals(lexer.next())) { throw new Exception(); }
             lexer.next();   // skip past the colon
             final Object value = parseValue(required);
-            while (true) {  // discard any other members
-                if ("}".equals(lexer.getHead())) { break; }
-                if (!",".equals(lexer.getHead())) { throw new Exception(); }
-                string(lexer.next());
-                if (!":".equals(lexer.next())) { throw new Exception(); }
-                lexer.next();
-                parseValue(Object.class);
-            }
-            lexer.next();   // skip past the closing curly
+            skipMembers();
             return value;
+        }
+        if ("\"!\"".equals(lexer.getHead())) {
+            // construct a rejected promise
+            if (!":".equals(lexer.next())) { throw new Exception(); }
+            lexer.next();   // skip past the colon
+            final Object value = parseValue(Exception.class);
+            final Exception e = value instanceof Exception
+                ? (Exception)value
+            : value instanceof String
+                ? new Exception((String)value)
+            : new Exception();
+            skipMembers();
+            return Eventual.cast(Typedef.raw(required), Eventual.reject(e));
         }
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
@@ -270,7 +276,7 @@ JSONParser {
             declaration = (PowerlessArray<?>)parseArray(PowerlessArray.class);
             for (final Object name : declaration) {
                 try {
-                    actual = Java.load(code, (String)name);
+                    actual = JSON.load(code, (String)name);
                     break;
                 } catch (final ClassNotFoundException e) {}
             }
@@ -386,14 +392,22 @@ JSONParser {
                 donev[i] = true;
             }
         }
-        Object value = Reflection.construct(make, argv);
-        if (Rejected.class == value.getClass()) {
-            value = ((Rejected<?>)value)._(Typedef.raw(required));
-        } else if (null != promised) {
-            value = ref(value);
+        final Object value = Reflection.construct(make, argv);
+        final Object r = null != promised ? ref(value) : value;
+        lexer.next();       // skip past the closing curly
+        return r;
+    }
+    
+    private void
+    skipMembers() throws Exception {
+        while (!"}".equals(lexer.getHead())) {
+            if (!",".equals(lexer.getHead())) { throw new Exception(); }
+            string(lexer.next());
+            if (!":".equals(lexer.next())) { throw new Exception(); }
+            lexer.next();
+            parseValue(Object.class);
         }
-        lexer.next();    // skip past the closing curly
-        return value;
+        lexer.next();       // skip past the closing curly
     }
     
     static private String
