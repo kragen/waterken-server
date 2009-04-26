@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.serial;
 
+import static org.ref_send.promise.Eventual.cast;
+
 import java.io.Serializable;
 import java.util.Iterator;
 
@@ -34,7 +36,7 @@ Serial {
         class SeriesX implements Series<T>, Serializable {
             static private final long serialVersionUID = 1L;
 
-            private Element<T> front_ = _.cast(Element.class, initial.promise);
+            private Element<T> front_ = cast(Element.class, initial.promise);
             private Resolver<Element<T>> back = initial.resolver;
 
             public Iterator<Promise<T>>
@@ -76,7 +78,7 @@ Serial {
                  * which is now the new last element.
                  */
                 final Channel<Element<T>> x = _.defer();
-                back.run(link(value, _.cast(Element.class, x.promise)));
+                back.run(link(value, cast(Element.class, x.promise)));
                 back = x.resolver;
             }
 

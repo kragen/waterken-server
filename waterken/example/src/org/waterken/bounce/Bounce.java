@@ -24,7 +24,6 @@ import org.ref_send.promise.Channel;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Rejected;
 
 /**
  * A {@link Wall} implementation.
@@ -40,8 +39,7 @@ Bounce {
     static public Wall
     make(final Eventual _) {
         final Receiver<?> normal = _;
-        final Rejected<Receiver<?>> rejected =
-            new Rejected<Receiver<?>>(new Exception());
+        final Receiver<?> rejected = Eventual.cast(Receiver.class, null);
         final Channel<Boolean> d = _.defer();
         final Promise<Boolean> p = ref(false);
         class WallX extends Struct implements Wall, Serializable {
@@ -71,7 +69,7 @@ Bounce {
                     new ConstArray<Receiver<?>>().
                         with(normal).
                         with(null).
-                        with(rejected._(Receiver.class)),
+                        with(rejected),
                     new ConstArray<Promise<?>>().
                         with(d.promise).
                         with(p),

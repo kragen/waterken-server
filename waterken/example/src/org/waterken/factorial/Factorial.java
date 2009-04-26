@@ -2,11 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.factorial;
 
-import static org.ref_send.promise.Eventual.ref;
-
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
-import org.ref_send.promise.Rejected;
 
 /**
  * A tail recursive factorial implementation.
@@ -23,7 +20,7 @@ Factorial {
      */
     static public Promise<Integer>
     make(final Eventual _, final int n) {
-        if (n < 0) { return new Rejected<Integer>(new Exception()); }
+        if (n < 0) { return Eventual.reject(new Exception()); }
         /*
          * We'll simulate tail recursive calls by doing eventual invocations of
          * our loop function. Since the call is eventual, the current stack
@@ -38,7 +35,7 @@ Factorial {
         final Recursion loop_ = _._(new Recursion() {
             public Promise<Integer>
             run(final Recursion loop_, final int n, final int acc) {
-                if (n == 0) { return ref(acc); }
+                if (n == 0) { return Eventual.ref(acc); }
                 return loop_.run(loop_, n - 1, n * acc);
             }
         });
@@ -49,7 +46,5 @@ Factorial {
      * The inner loop of a tail recursive factorial implementation.
      */
     static public interface
-    Recursion {
-        Promise<Integer> run(Recursion loop_, int n, int acc);
-    }
+    Recursion { Promise<Integer> run(Recursion loop_, int n, int acc); }
 }

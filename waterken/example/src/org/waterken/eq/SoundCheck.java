@@ -64,7 +64,6 @@ SoundCheck {
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
         check(_._(x).equals(x_));
-        check(_.cast(Receiver.class, p).equals(x_));
         check(ref(x_).equals(p));
         check(x == near(x_));
         r.append(_.when(x_, new EQ()));
@@ -102,10 +101,10 @@ SoundCheck {
         r.append(_.when(x, new NE()));
         r.append(_.when(new Sneaky<T>(x), new NE()));
         
-        final T x_ = _.cast(Receiver.class, p);
+        final T x_ = Eventual.cast(Receiver.class, p);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
-        check(_.cast(Receiver.class, p).equals(x_));
+        check(Eventual.cast(Receiver.class, p).equals(x_));
         check(ref(x_).equals(p));
         r.append(_.when(x_, new NE()));
         
