@@ -252,7 +252,7 @@ ClientSide implements Server {
             receiver.run(new Receive(on, x));
             if (null == x.head) {
                 // nothing to send since request failed to render
-            } else {
+            } else if (null != on.out) {
                 try {
                     send(x.head, x.body, on.out);
                 } catch (final Exception e) {
