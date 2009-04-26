@@ -79,23 +79,23 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      * Forwards a Java language invocation.
      * @param proxy     eventual reference
      * @param method    method to invoke
-     * @param arg       each invocation argument
+     * @param args      each invocation argument
      * @return eventual reference for the invocation return
      */
     public Object
     invoke(final Object proxy, final Method method,
-           final Object[] arg) throws Exception {
+           final Object[] args) throws Exception {
         if (Object.class == method.getDeclaringClass()) {
             if ("equals".equals(method.getName())) {
-                return arg[0] instanceof Proxy &&
-                    proxy.getClass() == arg[0].getClass() &&
-                    equals(Proxies.getHandler((Proxy)arg[0]));
+                return args[0] instanceof Proxy &&
+                    proxy.getClass() == args[0].getClass() &&
+                    equals(Proxies.getHandler((Proxy)args[0]));
             } else {
-                return Reflection.invoke(method, this, arg);
+                return Reflection.invoke(method, this, args);
             }
         }
         return _.when(proxy.getClass(), this,
-            new Invoke<T>(method, null == arg ? null : ConstArray.array(arg)));
+            new Invoke<T>(method, null==args ? null : ConstArray.array(args)));
     }
 
     // org.ref_send.promise.Promise interface

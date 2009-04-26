@@ -5,6 +5,7 @@ package org.ref_send.promise;
 import static org.joe_e.reflect.Proxies.proxy;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
@@ -13,6 +14,7 @@ import org.joe_e.Equatable;
 import org.joe_e.Selfless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
+import org.joe_e.inert;
 import org.joe_e.array.ConstArray;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
@@ -185,8 +187,8 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      */
     public
     Eventual(final Receiver<Promise<?>> enqueue) {
-        this(new Token(), enqueue, "", new Log(), new Rejected<Receiver<?>>(
-                new NullPointerException())._(Receiver.class));
+        this(new Token(), enqueue, "", new Log(), cast(Receiver.class,
+                new Rejected<Receiver<?>>(new NullPointerException())));
     }
 
     // org.ref_send.promise.Receiver interface
@@ -259,9 +261,8 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      *     });
      * </pre>
      * <p>
-     * A <code>null</code> <code>promise</code> argument is treated like an
-     * instance of {@link Rejected} with a {@link Rejected#reason reason} of
-     * {@link NullPointerException}.
+     * A <code>null</code> <code>promise</code> argument is treated like a
+     * rejected promise with a reason of {@link NullPointerException}.
      * </p>
      * <p>Multiple observers registered on the same promise will be notified in
      * the same order as they were registered.</p>
@@ -713,74 +714,12 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     }
 
     /**
-     * Creates an eventual reference.
+     * Ensures a reference is an eventual reference.
      * <p>
      * An eventual reference queues invocations, instead of processing them
      * immediately. Each queued invocation will be processed, in order, in a
      * future event loop turn.
      * </p>
-     * <p>
-     * For example,
-     * </p>
-     * <pre>
-     *  // Register an observer now, even though we don't know what we plan
-     *  // to do with the notifications.
-     *  final Channel&lt;Receiver&lt;Integer&gt;&gt; x = _.defer();
-     *  account.observe(_.cast(Receiver.class, x.promise));
-     *  &hellip;
-     *  // A log output has been determined, so fulfill the observer promise.
-     *  final Receiver&lt;Integer&gt; log = &hellip;
-     *  x.resolver.run(log);    // Logs all past, and future, notifications.
-     * </pre>
-     * <p>
-     * If this method returns successfully, the returned eventual reference
-     * will not throw an {@link Exception} on invocation of any of the methods
-     * defined by its type, provided the invoked method's return type is either
-     * <code>void</code>, an {@linkplain Proxies#isImplementable allowed} proxy
-     * type or assignable from {@link Promise}. Invocations on the eventual
-     * reference will not give the <code>promise</code>, nor any of the
-     * invocation arguments, an opportunity to execute in the current event loop
-     * turn.
-     * </p>
-     * <p>
-     * Invocations of methods defined by {@link Object} are <strong>not</strong>
-     * queued, and so can cause plan interference, or throw an exception.
-     * </p>
-     * <p>
-     * This method will not throw an {@link Exception}. The <code>promise</code>
-     * argument will not be given the opportunity to execute in the current
-     * event loop turn.
-     * </p>
-     * @param <T> referent type to implement
-     * @param type      referent type to implement
-     * @param promise   promise for the referent
-     * @return corresponding eventual reference, or <code>null</code> if
-     *         <code>type</code> is not eventualizable
-     */
-    public final @SuppressWarnings("unchecked") <T> T
-    cast(final Class<?> type, final Promise<T> promise) {
-        try {
-            return (T)(Void.class == type || void.class == type
-                ? null
-            : Float.class == type || float.class == type
-                ? Float.NaN
-            : Double.class == type || double.class == type
-                ? Double.NaN
-            : null == promise
-                ? new Rejected<T>(new NullPointerException())._(type)
-            : Rejected.class == promise.getClass()
-                ? ((Rejected<T>)promise)._(type)
-            : type.isAssignableFrom(Promise.class)
-                ? promise
-            : proxy(trust(promise), type, Selfless.class));
-        } catch (final Exception e) {
-            try { log.problem(e); } catch (final Exception ee) {}
-            return null;
-        }
-    }
-
-    /**
-     * Ensures a reference is an {@linkplain #cast eventual reference}.
      * <p>
      * Use this method to vet received arguments. For example:
      * </p>
@@ -824,40 +763,123 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * }
      * </pre>
      * <p>
-     * By convention, the return from this method, as well as from
-     * {@link #cast cast}, is held in a variable whose name is suffixed with
-     * an '<code>_</code>' character. The main part of the variable name
-     * should use Java's camelCaseConvention. A list of eventual references is
-     * suffixed with "<code>_s</code>". This naming convention creates the
-     * appearance of a new operator in the Java language, the eventual
-     * operator: "<code><b>_.</b></code>".
+     * By convention, the return from this method is held in a variable whose
+     * name is suffixed with an '<code>_</code>' character. The main part of the
+     * variable name should use Java's camelCaseConvention. A list of eventual
+     * references is suffixed with "<code>_s</code>". This naming convention
+     * creates the appearance of a new operator in the Java language, the
+     * eventual operator: "<code><b>_.</b></code>".
      * </p>
      * <p>
-     * This method will not throw an {@link Exception}. The
-     * <code>reference</code> argument will not be given the opportunity to
-     * execute in the current event loop turn.
+     * If this method returns successfully, the returned eventual reference
+     * will not throw an {@link Exception} on invocation of any of the methods
+     * defined by its type, provided the invoked method's return type is either
+     * <code>void</code>, an {@linkplain Proxies#isImplementable allowed} proxy
+     * type or assignable from {@link Promise}. Invocations on the eventual
+     * reference will not give the <code>referent</code>, nor any of the
+     * invocation arguments, an opportunity to execute in the current event loop
+     * turn.
+     * </p>
+     * <p>
+     * Invocations of methods defined by {@link Object} are <strong>not</strong>
+     * queued, and so can cause plan interference, or throw an exception.
+     * </p>
+     * <p>
+     * This method will not throw an {@link Exception}.
      * </p>
      * @param <T> referent type, MUST be an
      *            {@linkplain Proxies#isImplementable allowed} proxy type
-     * @param reference immediate or eventual reference,
+     * @param referent  immediate or eventual reference,
      *                  MUST be non-<code>null</code>
      * @return corresponding eventual reference
-     * @throws Error    <code>null</code> <code>reference</code> or
-     *                  <code>T</code> not an allowed proxy type
+     * @throws Error    <code>null</code> <code>referent</code> or
+     *                  <code>T</code> not an
+     *                  {@linkplain Proxies#isImplementable allowed} proxy type
      */
     public final <T> T
-    _(final T reference) {
-        if (reference instanceof Proxy) {
+    _(final @inert T referent) {
+        if (referent instanceof Proxy) {
             try {
-                final Object handler = Proxies.getHandler((Proxy)reference);
+                final Object handler = Proxies.getHandler((Proxy)referent);
                 if ((null != handler && Rejected.class == handler.getClass()) ||
-                    Local.trusted(local, handler)) { return reference; }
+                    Local.trusted(local, handler)) { return referent; }
             } catch (final Exception e) {}
         }
         try {
-            return new Enqueue<T>(this, ref(reference)).
-                mimic(reference.getClass());
+          return new Enqueue<T>(this, ref(referent)).mimic(referent.getClass());
         } catch (final Exception e) { throw new Error(e); }
+    }
+
+    /**
+     * Casts a promise to a specified type.
+     * <p>
+     * For example,
+     * </p>
+     * <pre>
+     *  final Channel&lt;Receiver&lt;Integer&gt;&gt; x = _.defer();
+     *  final Receiver&lt;Integer&gt; r_ = cast(Receiver.class, x.promise); 
+     * </pre>
+     * @param <T> referent type to implement
+     * @param type      referent type to implement
+     * @param promise   promise for the referent
+     * @return reference of corresponding type
+     * @throws ClassCastException   no cast to <code>type</code>
+     */
+    static public @SuppressWarnings("unchecked") <T> T
+    cast(final Class<?> type,
+         final @inert Promise<T> promise) throws ClassCastException {
+        return (T)(Void.class == type || void.class == type
+            ? null
+        : Float.class == type || float.class == type
+            ? Float.NaN
+        : Double.class == type || double.class == type
+            ? Double.NaN
+        : null == promise
+            ? cast(type, new Rejected<T>(new NullPointerException()))
+        : type.isAssignableFrom(Promise.class)
+            ? promise
+        : proxy((InvocationHandler)promise, type, Selfless.class));
+    }
+    
+    /**
+     * Gets a corresponding {@linkplain Promise promise}.
+     * <p>
+     * This method is the inverse of {@link #cast cast}; it gets the
+     * corresponding {@linkplain Promise promise} for a given reference.
+     * </p>
+     * <p>
+     * This method will not throw an {@link Exception}.
+     * </p>
+     * @param <T> referent type
+     * @param referent immediate or eventual reference
+     */
+    static public @SuppressWarnings("unchecked") <T> Promise<T>
+    ref(final @inert T referent) {
+        if (referent instanceof Promise) { return (Promise<T>)referent; }
+        if (referent instanceof Proxy) {
+            try {
+                final Object handler = Proxies.getHandler((Proxy)referent);
+                if (handler instanceof Promise) {
+                    return handler instanceof Enqueue
+                        ? ((Enqueue<T>)handler).untrusted : (Promise<T>)handler;
+                }
+            } catch (final Exception e) {}
+        }
+        try {
+            if (null == referent)   { throw new NullPointerException(); }
+            if (referent instanceof Double) {
+                final Double d = (Double)referent;
+                if (d.isNaN())      { throw new ArithmeticException(); }
+                if (d.isInfinite()) { throw new ArithmeticException(); }
+            } else if (referent instanceof Float) {
+                final Float f = (Float)referent;
+                if (f.isNaN())      { throw new ArithmeticException(); }
+                if (f.isInfinite()) { throw new ArithmeticException(); }
+            }
+            return new Fulfilled<T>(false, referent);
+        } catch (final Exception e) {
+            return reject(e);
+        }
     }
     
     /**
@@ -896,48 +918,12 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     }
     
     /**
-     * Gets a corresponding {@linkplain Promise promise}.
-     * <p>
-     * This method is the inverse of {@link #cast cast}; it gets the
-     * corresponding {@linkplain Promise promise} for a given reference.
-     * </p>
-     * <p>
-     * This method will not throw an {@link Exception}. The 
-     * <code>referent</code> argument will not be given the opportunity to
-     * execute.
-     * </p>
+     * Constructs a rejected {@linkplain Promise promise}.
      * @param <T> referent type
-     * @param referent immediate or eventual reference
-     * @return corresponding {@linkplain Promise promise}
+     * @param reason    rejection reason
      */
-    static public @SuppressWarnings("unchecked") <T> Promise<T>
-    ref(final T referent) {
-        if (referent instanceof Promise) { return (Promise<T>)referent; }
-        if (referent instanceof Proxy) {
-            try {
-                final Object handler = Proxies.getHandler((Proxy)referent);
-                if (handler instanceof Promise) {
-                    return handler instanceof Enqueue
-                        ? ((Enqueue<T>)handler).untrusted : (Promise<T>)handler;
-                }
-            } catch (final Exception e) {}
-        }
-        try {
-            if (null == referent)   { throw new NullPointerException(); }
-            if (referent instanceof Double) {
-                final Double d = (Double)referent;
-                if (d.isNaN())      { throw new ArithmeticException(); }
-                if (d.isInfinite()) { throw new ArithmeticException(); }
-            } else if (referent instanceof Float) {
-                final Float f = (Float)referent;
-                if (f.isNaN())      { throw new ArithmeticException(); }
-                if (f.isInfinite()) { throw new ArithmeticException(); }
-            }
-            return new Fulfilled<T>(false, referent);
-        } catch (final Exception e) {
-            return new Rejected<T>(e);
-        }
-    }
+    static public <T> Promise<T>
+    reject(final Exception reason) { return new Rejected<T>(reason); }
     
     /**
      * Creates a sub-vat.
@@ -1011,14 +997,14 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * <p>becomes:</p>
      * <kbd>_._((Receiver&lt;?&gt;)this).run(null);</kbd>
      * @param x ignored
-     * @throws Error    always thrown
+     * @throws AssertionError   always thrown
      */
     public final <T extends Serializable> void
-    _(final T x) throws Exception { throw new AssertionError(); }
+    _(final T x) { throw new AssertionError(); }
 
     /**
-     * Causes a compile error for code that attempts to create an
-     * {@linkplain #cast eventual reference} of a concrete type.
+     * Causes a compile error for code that attempts to cast a promise to a
+     * concrete type.
      * <p>
      * If you encounter a compile error because your code is linking to this
      * method, replace the specified concrete type with an
@@ -1030,12 +1016,11 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * @param <R> referent type to implement
      * @param type      ignored
      * @param promise   ignored
-     * @throws Error    always thrown
+     * @throws AssertionError   always thrown
      */
-    public final <R extends Serializable> void
-    cast(final Class<R> type, final Promise<?> promise) throws Exception {
-        throw new AssertionError();
-    }
+    static public <R extends Serializable> void
+    cast(final Class<R> type,
+         final Promise<?> promise) { throw new AssertionError();}
 
     /**
      * Causes a compile error for code that attempts to return a concrete type
@@ -1062,12 +1047,11 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * </pre>
      * @param promise   ignored
      * @param observer  ignored
-     * @throws Error    always thrown
+     * @throws AssertionError   always thrown
      */
     public final <P,R extends Serializable> void
-    when(final Promise<P> promise, final Do<P,R> observer) throws Exception {
-        throw new AssertionError();
-    }
+    when(final Promise<P> promise,
+         final Do<P,R> observer) throws Exception {throw new AssertionError();}
     
     /**
      * Causes a compile error for code that attempts to return a concrete type
@@ -1094,10 +1078,9 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * </pre>
      * @param reference ignored
      * @param observer  ignored
-     * @throws Error    always thrown
+     * @throws AssertionError   always thrown
      */
     public final <P,R extends Serializable> void
-    when(final P reference, final Do<P,R> observer) throws Exception {
-        throw new AssertionError();
-    }
+    when(final P reference,
+         final Do<P,R> observer) throws Exception {throw new AssertionError();}
 }

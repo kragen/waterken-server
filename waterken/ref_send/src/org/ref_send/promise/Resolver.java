@@ -28,7 +28,7 @@ Resolver<T> extends Receiver<T> {
      * This method is syntactic sugar for:
      * </p>
      * <pre>
-     * {@link #resolve resolve}(new {@link Rejected}&lt;T&gt;(reason));
+     * {@link #resolve resolve}({@link Eventual#reject reject}(reason));
      * </pre>
      * @param reason    reason the corresponding promise will not be fulfilled
      */

@@ -11,18 +11,15 @@ import org.joe_e.Powerless;
 import org.joe_e.Selfless;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.Record;
-import org.ref_send.deserializer;
-import org.ref_send.name;
 import org.ref_send.type.Typedef;
 
 /**
  * A rejected promise.
  * @param <T> referent type
  */
-public final class
+/* package */ final class
 Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
-                       Selfless, Record, Serializable {
+                       Selfless, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
@@ -34,8 +31,8 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
      * Construct an instance.
      * @param reason    {@link #reason}
      */
-    public @deserializer
-    Rejected(@name("reason") final Exception reason) {
+    public
+    Rejected(final Exception reason) {
         this.reason = reason;
     }
     
@@ -76,9 +73,9 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
      * @param proxy     eventual reference
      * @param method    method to invoke
      * @param args      invocation arguments
-     * @return eventual reference for the invocation return
+     * @return {@link Eventual#cast cast} of <code>this</code>
      * @throws Exception    problem invoking an {@link Object} method
-     * @throws Error        <code>method</code> return cannot be eventualized
+     * @throws Error        <code>method</code> return cannot be cast to
      */
     public Object
     invoke(final Object proxy, final Method method,
@@ -93,31 +90,8 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
             }
         }
         try {
-            return _(Typedef.raw(Typedef.bound(
-                    method.getGenericReturnType(), proxy.getClass())));
+            return Eventual.cast(Typedef.raw(Typedef.bound(
+                    method.getGenericReturnType(), proxy.getClass())), this);
         } catch (final Exception e) { throw new Error(e); }
-    }
-    
-    // org.ref_send.promise.Rejected interface
-    
-    /**
-     * Creates a rejected reference.
-     * @param type  referent type
-     * @return corresponding eventual reference, or <code>null</code> if
-     *         <code>type</code> is not eventualizable
-     */
-	public @SuppressWarnings("unchecked") T
-    _(final Class<?> type) {
-	    try {
-            return (T)(Void.class == type || void.class == type
-                ? null
-            : Float.class == type || float.class == type
-                ? Float.NaN
-            : Double.class == type || double.class == type
-                ? Double.NaN
-            : type.isAssignableFrom(Rejected.class)
-                ? this
-            : Proxies.proxy(this, type, Powerless.class, Selfless.class));
-	    } catch (final Exception e) { return null; }
     }
 }
