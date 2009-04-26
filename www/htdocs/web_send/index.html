@@ -100,16 +100,21 @@ promise. In this case, the base URL was
 <p>Sometimes, an invoked method will throw an exception. A thrown exception
 should be encoded in JSON as:</p>
 <pre>
+{ "!" : "LPT1 on fire" }
+</pre>
+<p>The value of the <code>"!"</code> member can be any JSON value. Use it
+to communicate the server method's error information. In the shown example, a
+simple string is used for error information. More information can be provided
+by using a JSON object:</p>
+<pre>
 {
-  "$" : [ "org.ref_send.promise.Rejected" ],
-  "reason" : {
-    "$" : [ "NaN" ]
+  "!" : {
+    "message" : "LPT1 on fire",
+    "errno" : "-1",
+    "stack" : "print()@42"
   }
 }
 </pre>
-<p>The value of the <code>"reason"</code> member can be any JSON value. Use it
-to communicate the server method's error information. In the shown example, a
-floating-point NaN exception is returned.</p>
 <p>Following this convention for exceptional returns enables the following
 client-side error handling code:</p>
 <pre>
@@ -226,7 +231,7 @@ library using the <a href="../bang/">Bang Tutorial</a>.</p>
 </div>
 <p class="footer comment">
 <a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
-<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-04-23</a>
+<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-04-26</a>
 </p>
 </body>
 </html>
