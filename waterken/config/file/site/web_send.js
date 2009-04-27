@@ -56,6 +56,7 @@ ADSAFE.lib('web', function (lib) {
             arg = { '=' : arg };
         }
         return JSON.stringify(arg, function (key, value) {
+            if (undefined === value || null === value) { return value; }
             switch (typeof value) {
             case 'function':
                 unsealedURLref = null;
@@ -137,7 +138,7 @@ ADSAFE.lib('web', function (lib) {
                 return http.responseText;
             }
             var r = JSON.parse(http.responseText, function (key, value) {
-                if (null === value) { return value; }
+                if (undefined === value || null === value) { return value; }
                 if ('object' !== typeof value) { return value; }
                 if (value.hasOwnProperty('=')) { return value['=']; }
                 if (value.hasOwnProperty('@')) {
@@ -148,7 +149,8 @@ ADSAFE.lib('web', function (lib) {
                 }
                 return value;
             });
-            if (null !== r && 'object' === typeof r && r.hasOwnProperty('=')) {
+            if (undefined !== r && null !== r &&
+                'object' === typeof r && r.hasOwnProperty('=')) {
                 r = r['='];
             }
             return r;
