@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * ref_send.js version: 2009-04-26
+ * ref_send.js version: 2009-04-27
  */
 "use strict";
 ADSAFE.lib('Q', function () {
@@ -162,10 +162,10 @@ ADSAFE.lib('Q', function () {
          * Constructs a ( promise, resolver ) pair.
          * <p>
          * The resolver is a callback to invoke with a more resolved value for
-         * the promise. To fulfill the promise, simply invoke the callback with
-         * an immediate reference. To reject the promise, invoke the callback
+         * the promise. To fulfill the promise, simply invoke the resolver with
+         * an immediate reference. To reject the promise, invoke the resolver
          * with the return from a call to reject(). To put the promise in the
-         * same state as another promise, invoke the callback with that other
+         * same state as another promise, invoke the resolver with that other
          * promise.
          * </p>
          */

@@ -278,6 +278,8 @@ ADSAFE.lib('web', function (lib) {
         /**
          * Navigate the window.
          * @param target    remote promise for new location
+         * @return <code>true</code> if navigation successful,
+         *         else <code>false</code>
          */
         navigate: function (target) {
             var href = crack(target);
@@ -290,6 +292,7 @@ ADSAFE.lib('web', function (lib) {
          * Sets the 'href' attribute.
          * @param elements  bunch of elements to modify
          * @param target    remote promise
+         * @return <code>true</code> if attribute set, else <code>false</code>
          */
         href: function (elements, target) {
             if (null === target) {
@@ -317,6 +320,7 @@ ADSAFE.lib('web', function (lib) {
          * Sets the 'src' attribute.
          * @param elements  bunch of elements to modify
          * @param target    remote promise
+         * @return <code>true</code> if attribute set, else <code>false</code>
          */
         src: function (img, target) {
             if (null === target) {
@@ -354,7 +358,7 @@ ADSAFE.lib('web', function (lib) {
 
         /**
          * Extracts the URLref contained within a remote promise.
-         * @param p remote promise to crack
+         * @param promise remote promise to crack
          * @return the URLref, or <code>null</code> if not a remote promise
          */
         _crack: crack
