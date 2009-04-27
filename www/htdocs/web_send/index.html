@@ -354,10 +354,10 @@ these JavaScript files.</p>
 <div class="comment">
 Constructs a ( promise, resolver ) pair.
 <p>The resolver is a callback to invoke with a more resolved value for the
-promise. To fulfill the promise, simply invoke the callback with an immediate
-reference. To reject the promise, invoke the callback with the return from a
+promise. To fulfill the promise, simply invoke the resolver with an immediate
+reference. To reject the promise, invoke the resolver with the return from a
 call to reject(). To put the promise in the same state as another promise,
-invoke the callback with that other promise.</p>
+invoke the resolver with that other promise.</p>
 </div>
 <dl class="parameters">
 </dl>
