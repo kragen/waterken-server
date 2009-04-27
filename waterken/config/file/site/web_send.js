@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-04-26
+ * web_send.js version: 2009-04-27
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -26,10 +26,6 @@ ADSAFE.lib('web', function (lib) {
      */
     var unsealedURLref = null;
 
-    /**
-     * Constructs a remote promise.
-     * @param URLref    URL reference to wrap
-     */
     function proxy(URLref) {
         var self = function (op, arg1, arg2, arg3) {
             if (undefined === op) {
@@ -264,11 +260,6 @@ ADSAFE.lib('web', function (lib) {
         };
     }) ();
 
-    /**
-     * Extracts the URLref contained within a remote promise.
-     * @param p remote promise to crack
-     * @return the URLref, or <code>null</code> if not a remote promise
-     */
     function crack(p) {
         unsealedURLref = null;
         if ('function' === typeof p) { p(); }
@@ -351,6 +342,21 @@ ADSAFE.lib('web', function (lib) {
          * Sets the document title.
          * @param text  new title text
          */
-        setTitle: function (text) { window.document.title = text; }
+        setTitle: function (text) { window.document.title = text; },
+
+        // Non-ADsafe API
+
+        /**
+         * Constructs a remote promise.
+         * @param URLref    URL reference to wrap
+         */
+        _proxy: proxy,
+
+        /**
+         * Extracts the URLref contained within a remote promise.
+         * @param p remote promise to crack
+         * @return the URLref, or <code>null</code> if not a remote promise
+         */
+        _crack: crack
     };
 });
