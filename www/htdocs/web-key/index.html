@@ -592,19 +592,19 @@ that is intended to be secret.  URIs are frequently displayed by browsers,
 stored in clear text bookmarks, and logged by user agent history and
 intermediary applications (proxies)."</p>
 </blockquote>
-<h3><a name="proxies" href="#proxies">Proxies</a></h3>
+<h4><a name="proxies" href="#proxies">Proxies</a></h4>
 <p>A web-key is a convention for construction of an https URL. When
 dereferencing such a URL, the HTTP protocol is run over an SSL connection that
 tunnels through proxies. The proxy server sees only the encrypted SSL data and
 not the HTTP requests, nor any contained web-keys.</p>
-<h3><a name="server_logs" href="#server_logs">Server logs</a></h3>
+<h4><a name="server_logs" href="#server_logs">Server logs</a></h4>
 <p>When deploying a web application that uses web-keys, it is expected that the
 developer will have the ability to choose, or appropriately configure, the
 server. Configuring the server to not make logs available to unauthorized third
 parties is an important step to take. The web-key https URL convention
 presented in this paper also makes it easy to write a program that sanitizes a
 server log of any contained keys.</p>
-<h3><a name="username-password" href="#username-password">Inclusion of a username/password</a></h3>
+<h4><a name="username-password" href="#username-password">Inclusion of a username/password</a></h4>
 <p>Inclusion of a username/password in a URL is not safe and is not what a
 web-key does. A username/password provides authority over an entire user
 account; whereas a web-key only provides permission to access the identified
@@ -615,7 +615,7 @@ non-web-key design, a URL identifying a specific email but also containing the
 user's password, provides the recipient full authority over the web-mail
 account. This excess grant of authority may be very surprising for the user,
 and so lead to unanticipated and detrimental consequences.</p>
-<h3><a name="shoulder_surfing" href="#shoulder_surfing">Shoulder surfing</a></h3>
+<h4><a name="shoulder_surfing" href="#shoulder_surfing">Shoulder surfing</a></h4>
 <p>When directly viewing a page identified by a web-key in a stock browser, the
 key may be displayed in the browser's address bar. Many stock browsers can be
 easily configured to not show the address bar; however, in many situations,
@@ -631,7 +631,7 @@ user's web-keys, which are manipulated by code running inside the top level
 page. From the web browser's perspective, the web application consists of a
 single page, identified by an innocuous URL, similar to many Web 2.0
 applications.</p>
-<h3><a name="browser_cache" href="#browser_cache">Browser cache</a></h3>
+<h4><a name="browser_cache" href="#browser_cache">Browser cache</a></h4>
 <p>Even before web-keys, the browser's cache contained much sensitive
 information. Protecting this sensitive information has long received some
 attention and is recently receiving more. For example, Internet Explorer has
@@ -640,7 +640,7 @@ now support an option to empty the cache when the browser is closed.
 Independent of web-keys, measures such as these to protect the browser cache
 are important. These measures are also sufficient for protection of web-keys in
 the browser cache.</p>
-<h3><a name="bookmarks" href="#bookmarks">Clear text bookmarks</a></h3>
+<h4><a name="bookmarks" href="#bookmarks">Clear text bookmarks</a></h4>
 <p>The web-key is specifically designed to support bookmarking. Bookmarks are
 part of the user interface that has made the publicly accessible Web usable,
 and are needed to bring the same usability to private Web resources. Doing so
