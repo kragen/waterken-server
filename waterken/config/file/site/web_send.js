@@ -48,11 +48,14 @@ ADSAFE.lib('web', function (lib) {
     }
 
     /**
-     * Produce the JSON text for a JSON object.
-     * @param argv  JSON object to serialize
+     * Produce the JSON text for a JSON value.
+     * @param arg   JSON value to serialize
      */
-    function serialize(argv) {
-        return JSON.stringify(argv, function (key, value) {
+    function serialize(arg) {
+        if (null === arg || 'object' !== typeof arg) {
+            arg = { '=' : arg };
+        }
+        return JSON.stringify(arg, function (key, value) {
             switch (typeof value) {
             case 'function':
                 unsealedURLref = null;
