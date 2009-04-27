@@ -16,26 +16,27 @@
 <div class="main">
 <a href="https://waterken.svn.sourceforge.net/svnroot/waterken/server/trunk/waterken/config/file/site/">SVN URL</a>,
 <a href="../bang/">Bang Tutorial</a>
+
 <h1><a name="title" href="#title">Browser shell for JSON resources</a></h1>
 <p>Not so long ago, in less constrained times, the self-sufficient programmer
 would design a simple text string protocol for interacting with a server-side
-program. A basic telnet program was then all that was needed to test the
+program. A basic telnet program was then all that was needed to test
 server-side code during development: write some code, launch the server, poke
 and prod it from the telnet session to make sure it does what you want. Today,
 such ingenuity at the protocol layer is lost to us, forbidden by our firewalls.
 Woe unto the server-side developer.</p>
-<p>If we are willing to embrace our HTTP overlord, we can regain that lost
-productivity, plus some extra.  Since the browser provides us with a full
-programming language (JavaScript) and a console
-(<a title="Firefox addon page" href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a>),
-we can turn it into a command-line interpreter for the server-side code. With
-such a tool we could hold onto and reuse server responses using actual
-variables, instead of copying and pasting text!  All we need is a library with
-an easy syntax for generating HTTP requests. The web_send library is that
-library: providing a remote promise API for HTTP URLs. A promise is a special
-kind of reference that lets you easily work with objects that you only have
-asynchronous access to, like remote objects.
-</p>
+<p>If we are willing to embrace our web browser overlord, we can regain that
+lost productivity, plus some extra.  Since the browser provides us with a full
+programming language (JavaScript) and a console (<a title="Firefox addon page"
+href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a>), we can turn
+it into a command-line interpreter for the server-side code. With such a tool
+we could hold onto and reuse server responses using actual variables, instead
+of copying and pasting text!  All we need is a library with an easy syntax for
+generating HTTP requests. The web_send library is that library: providing a
+remote promise API for HTTP URLs. A promise is a special kind of reference that
+lets you easily work with objects that you only have asynchronous access to,
+such as remote objects.</p>
+
 <h2><a name="quickStart" href="#quickStart">Some quick introductory examples</a></h2>
 <p>For example, say you've got a brand new server-side object sitting at a URL
 like: <code>&lt;https://example.com/myApp/obj123&gt;</code>. All you want to do
@@ -79,10 +80,12 @@ previous request. For this to work, the web_send library introduces some
 conventions for HTTP requests and responses. These conventions are the least
 restrictive they can be, while still supporting the client-side promise API.
 The rest of this document explains these conventions.</p>
+
 <h2><a name="JSON" href="#JSON">JSON conventions</a></h2>
 <p>The web_send library can generate an HTTP request entity using JSON and
 extract information from the JSON in an HTTP response. Doing so requires a
 few conventions.</p>
+
 <h3><a name="JSONlink" href="#JSONlink">JSON link</a></h3>
 <p>In the introductory example, one of the requests was sent on a promise
 derived from a previous HTTP response. For this to work, the web_send library
@@ -96,6 +99,7 @@ enable this, represent a URL as a JSON object having a single member named
 promise. In this case, the base URL was
 <code>&lt;https://example.com/myApp/obj123&gt;</code>, making the resolved URL
 <code>&lt;https://example.com/myApp/obj456&gt;</code>.</p>
+
 <h3><a name="JSONerror" href="#JSONerror">JSON error</a></h3>
 <p>Sometimes, an invoked method will throw an exception. A thrown exception
 should be encoded in JSON as:</p>
@@ -127,6 +131,7 @@ lib.Q.when(hits, function (value) {
 </pre>
 <p>The reason passed to the error callback is the value of the <code>"!"</code>
 member.</p>
+
 <h3><a name="JSONvalue" href="#JSONvalue">JSON value</a></h3>
 <p>Some methods only need to return a simple value, like a string or a number;
 whereas <a href="http://www.ietf.org/rfc/rfc4627.txt">JSON</a> requires that a
@@ -136,10 +141,12 @@ value. For example, to return the number <code>42</code>:</p>
 <pre>
 { "=" : 42 }
 </pre>
+
 <h2><a name="URLref" href="#URLref">URL conventions</a></h2>
 <p>When sending an HTTP request, it is often useful to include some arguments
 in the Request-URI. The web_send library supports the following
 conventions:</p>
+
 <h3><a name="q" href="#q">'q' query string argument</a></h3>
 <p>Both <code>Q.post()</code> and <code>Q.get()</code> take an optional string
 argument. If a value is provided, it will be appended to the Request-URI's
@@ -155,6 +162,7 @@ lib.Q.get(drum, 'hits');
 <tr><td>/myApp/?id=obj456</td><td>/myApp/?id=obj456&amp;q=hits</td></tr>
 <tr><td>/myApp/?q=42</td><td>/myApp/?q=42&amp;q=hits</td></tr>
 </table>
+
 <h3><a name="fragment" href="#fragment">fragment arguments</a></h3>
 <p>Sometimes, it is useful to include information in a URL that won't show up
 in the HTTP protocol's Referer header, but can be made available to the server
@@ -174,6 +182,7 @@ lib.Q.get(drum, 'hits');
 <p>In the last example, the character sequence '<code>&amp;=</code>' is
 recognized as terminating the part of the fragment that should be copied to the
 Request-URI.</p>
+
 <h3><a name="session" href="#session">session identifier</a></h3>
 <p>Before sending any POST request, the web_send library will first send a
 request asking the server if a session should be created. This request is sent
@@ -193,6 +202,9 @@ lib.Q.post(drum, 'bang', [ 3 ]);
 </pre>
 <p>The Request-URI will be
 <code>&lt;/myApp/obj456?q=bang&amp;x=sessionid&amp;w=1&gt;</code>.</p>
+<p>If your server does not wish to use a session, respond to the session
+creation request with a <code>404</code> response.</p>
+
 <h3><a name="remotePromise" href="#remotePromise">server-side promise</a></h3>
 <p>If your server-side code also uses promises, a URLref that refers to a
 promise must be distinguished from one that refers to a direct object
@@ -215,6 +227,7 @@ lib.Q.when(remotePromise, function(value) {
     // or the reason the GET request failed
 });
 </pre>
+
 <h2><a name="files" href="#files">Server-side files</a></h2>
 <p>The code for the web_send library must be delivered to the browser by your
 server. Checkout the necessary files using the subversion command:</p>
@@ -226,7 +239,64 @@ file. This code links in the necessary JavaScript code. For example, if your
 application objects are at URLs like:
 <code>&lt;https://example.com/myApp/#s=obj123&gt;</code>, you should serve this
 HTML from a request to <code>&lt;https://example.com/myApp/&gt;</code>.</p>
-<h3><a name="firebug" href="#firebug">Using the Firebug console</a></h3>
+
+<h3><a name="core" href="#core">Core files</a></h3>
+<p>The <code>example/index.html</code> file includes lots of example code and
+is designed as an <a href="http://adsafe.org/">ADsafe</a> widget. You don't
+have to use the ADsafe verifier, or include much of this code. The file
+<code><a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/minimal/index.html?view=markup">minimal/index.html</a></code>
+shows the minimum requirements:</p>
+<pre>
+&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd"&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta http-equiv="content-type" content="text/html; charset=UTF-8"&gt;
+&lt;title&gt;&lt;/title&gt;
+&lt;script type="text/javascript" src="/site/json2.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="/site/adsafe.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;noscript&gt;
+&lt;p&gt;This page requires a Javascript enabled web browser.&lt;/p&gt;
+&lt;/noscript&gt;
+
+&lt;div id="WIDGET_"&gt;
+&lt;script type="text/javascript"&gt;
+"use strict";
+ADSAFE.id('WIDGET_');
+&lt;/script&gt;
+&lt;script type="text/javascript" src="/site/ref_send.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="/site/web_send.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript"&gt;
+"use strict";
+ADSAFE.go('WIDGET_', function (dom, lib) {
+    /*
+     * The ADsafe and web_send libraries are now initialized. Start your
+     * application code from here.
+     */
+});
+&lt;/script&gt;
+&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<p>The key components are:</p>
+<dl>
+<dt>json2.js</dt>
+<dd>JSON encoding and decoding</dd>
+<dt>adsafe.js</dt>
+<dd>HTML manipulation</dd>
+<dt>ref_send.js</dt>
+<dd>public API for promises</dd>
+<dt>web_send.js</dt>
+<dd>remote promise implementation</dd>
+<dt><code>ADSAFE.go()</code></dt>
+<dd>initializes all the libraries</dd>
+</dl>
+
+<h2><a name="firebug" href="#firebug">Using the Firebug console</a></h2>
 <p>Try out the
 <a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/web_send.js?view=markup">web_send</a>
 library using the <a href="../bang/">Bang Tutorial</a>.</p>
