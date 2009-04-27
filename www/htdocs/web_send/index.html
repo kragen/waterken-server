@@ -384,29 +384,29 @@ invoke the callback with that other promise.</p>
 <span class="return comment">promise for the return value from the invoked
 callback</span>
 </dd>
-<dt><code>get(value, noun)</code></dt>
+<dt><code>get(target, q)</code></dt>
 <dd>
-<span class="comment">Gets the value of a property in a future turn.</span>
+<span class="comment">Sends a <code>GET</code> request.</span>
 <dl class="parameters">
-<dt><code>value</code></dt>
-<dd class="comment">promise or immediate reference to get property from</dd>
-<dt><code>noun</code></dt>
-<dd class="comment">name of property to get</dd>
+<dt><code>target</code></dt>
+<dd class="comment">promise or immediate reference to send request to</dd>
+<dt><code>q</code></dt>
+<dd class="comment">optional additional query string argument</dd>
 </dl>
-<span class="return comment">promise for the property value</span>
+<span class="return comment">promise for the response entity</span>
 </dd>
-<dt><code>post(value, verb, argv)</code></dt>
+<dt><code>post(target, q, entity)</code></dt>
 <dd>
-<span class="comment">Invokes a method in a future turn.</span>
+<span class="comment">Sends a <code>POST</code> request.</span>
 <dl class="parameters">
-<dt><code>value</code></dt>
-<dd class="comment">promise or immediate reference to invoke</dd>
-<dt><code>verb</code></dt>
-<dd class="comment">name of method to invoke</dd>
-<dt><code>argv</code></dt>
-<dd class="comment">array of invocation arguments</dd>
+<dt><code>target</code></dt>
+<dd class="comment">promise or immediate reference to send request to</dd>
+<dt><code>q</code></dt>
+<dd class="comment">optional additional query string argument</dd>
+<dt><code>entity</code></dt>
+<dd class="comment">optional JSON value for request entity</dd>
 </dl>
-<span class="return comment">promise for the return value</span>
+<span class="return comment">promise for the response entity</span>
 </dd>
 </dl>
 
