@@ -313,7 +313,8 @@ JODB<S> extends Database<S> {
             
             final int startCycle = stack.lastIndexOf(f);
             if (-1 != startCycle) {
-                PowerlessArray<String> cycle = PowerlessArray.array();
+                PowerlessArray<String> cycle =
+                    PowerlessArray.array(new String[] {});
                 for (final String at : stack.subList(startCycle,stack.size())) {
                     try {
                         cycle = cycle.with(identify(tx.update.read(at + ext)));
