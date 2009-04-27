@@ -11,8 +11,15 @@ img { border: none }
 sup { font-size: small }
 .highlight { background-color: yellow }
 .comment { color: gray; font-style: italic }
-.figure { padding-left: 5em; width: 400px }
-caption, .caption { font-size: large; font-weight: bold }
+.figure {
+    margin-left: auto;
+    margin-right: auto;
+    width: 20em;
+}
+caption, .caption {
+    font-size: large;
+    font-weight: bold;
+}
 pre {
     border: 2px dotted gray;
     padding: 0.5em;
@@ -31,7 +38,7 @@ td {
     padding-right: 1em;
 }
 body {
-    max-width: 600px;
+    max-width: 40em;
     margin-left: auto;
     margin-right: auto;
 }

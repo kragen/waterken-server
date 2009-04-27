@@ -86,7 +86,7 @@ The rest of this document explains these conventions.</p>
 extract information from the JSON in an HTTP response. Doing so requires a
 few conventions.</p>
 
-<h3><a name="JSONlink" href="#JSONlink">JSON link</a></h3>
+<h3><a name="JSONlink" href="#JSONlink">JSONlink</a></h3>
 <p>In the introductory example, one of the requests was sent on a promise
 derived from a previous HTTP response. For this to work, the web_send library
 needs to know where to find the corresponding URL inside the HTTP response. To
@@ -100,7 +100,7 @@ promise. In this case, the base URL was
 <code>&lt;https://example.com/myApp/obj123&gt;</code>, making the resolved URL
 <code>&lt;https://example.com/myApp/obj456&gt;</code>.</p>
 
-<h3><a name="JSONerror" href="#JSONerror">JSON error</a></h3>
+<h3><a name="JSONerror" href="#JSONerror">JSONerror</a></h3>
 <p>Sometimes, an invoked method will throw an exception. A thrown exception
 should be encoded in JSON as:</p>
 <pre>
@@ -132,7 +132,7 @@ lib.Q.when(hits, function (value) {
 <p>The reason passed to the error callback is the value of the <code>"!"</code>
 member.</p>
 
-<h3><a name="JSONvalue" href="#JSONvalue">JSON value</a></h3>
+<h3><a name="JSONvalue" href="#JSONvalue">JSONvalue</a></h3>
 <p>Some methods only need to return a simple value, like a string or a number;
 whereas <a href="http://www.ietf.org/rfc/rfc4627.txt">JSON</a> requires that a
 JSON text be a JSON object or JSON array. To return a simple value, return a
@@ -294,6 +294,195 @@ ADSAFE.go('WIDGET_', function (dom, lib) {
 <dd>remote promise implementation</dd>
 <dt><code>ADSAFE.go()</code></dt>
 <dd>initializes all the libraries</dd>
+</dl>
+
+<h2><a name="securityModel" href="#securityModel">Security model</a></h2>
+<p>If you do want to make use of the <a href="http://adsafe.org/">ADsafe</a>
+verifier, you can use it and the web_send library to constrain the network
+access of widgets on your web pages. By default, the ADsafe verifier prevents
+any network access by a verified widget. If you allow such a widget to load the
+web_send library, it gets permission to send requests using the
+<code>window.location</code> URL, and any URL received in a request response.
+By controlling what URLs your server returns in its responses, you can control
+what URLs the verified widgets can access.</p>
+<p>The web_send library also allows clients to navigate the browser window
+using any received remote promise. If you wish to allow a widget to message
+with a particular server-side object, but not navigate the browser, load the
+web_send library in a separate widget which then passes a remote promise to the
+more constrained widget. Using this remote promise and the ref_send library,
+the more constrained widget can message with the server-side object, but cannot
+navigate the browser, since it doesn't have access to the web_send library.</p>
+
+<h2><a name="API" href="#API">API</a></h2>
+<p>The API is divided into two parts:
+<a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/ref_send.js?view=markup">ref_send</a>,
+the promise API; and
+<a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/web_send.js?view=markup">web_send</a>,
+the network access API. The public APIs are defined at the bottom of each of
+these JavaScript files.</p>
+
+<h3><a name="ref_send" href="#ref_send">ref_send API</a></h3>
+<dl class="methods">
+<dt><code>run(task)</code></dt>
+<dd>
+<span class="comment">Enqueues a task to be run in a future turn.</span>
+<dl class="parameters">
+<dt><code>task</code></dt>
+<dd class="comment">function to invoke later</dd>
+</dl>
+</dd>
+<dt><code>reject(reason, $)</code></dt>
+<dd>
+<span class="comment">Constructs a rejected promise.</span>
+<dl class="parameters">
+<dt><code>reason</code></dt>
+<dd class="comment">Error object describing the failure</dd>
+<dt><code>$</code></dt>
+<dd class="comment">optional type info to add to reason</dd>
+</dl>
+</dd>
+<dt><code>ref(value)</code></dt>
+<dd>
+<span class="comment">Constructs a promise for an immediate reference.</span>
+<dl class="parameters">
+<dt><code>value</code></dt>
+<dd class="comment">immediate reference</dd>
+</dl>
+</dd>
+<dt><code>defer()</code></dt>
+<dd>
+<div class="comment">
+Constructs a ( promise, resolver ) pair.
+<p>The resolver is a callback to invoke with a more resolved value for the
+promise. To fulfill the promise, simply invoke the callback with an immediate
+reference. To reject the promise, invoke the callback with the return from a
+call to reject(). To put the promise in the same state as another promise,
+invoke the callback with that other promise.</p>
+</div>
+<dl class="parameters">
+</dl>
+</dd>
+<dt><code>near(value)</code></dt>
+<dd>
+<span class="comment">Gets the current value of a promise.</span>
+<dl class="parameters">
+<dt><code>value</code></dt>
+<dd class="comment">promise or immediate reference to evaluate</dd>
+</dl>
+</dd>
+<dt><code>when(value, fulfilled, rejected</code></dt>
+<dd>
+<span class="comment">Registers an observer on a promise.</span>
+<dl class="parameters">
+<dt><code>value</code></dt>
+<dd class="comment">promise or immediate reference to observe</dd>
+<dt><code>fulfilled</code></dt>
+<dd class="comment">function to be called with the resolved value</dd>
+<dt><code>rejected</code></dt>
+<dd class="comment">function to be called with the rejection reason</dd>
+</dl>
+<span class="return comment">promise for the return value from the invoked
+callback</span>
+</dd>
+<dt><code>get(value, noun)</code></dt>
+<dd>
+<span class="comment">Gets the value of a property in a future turn.</span>
+<dl class="parameters">
+<dt><code>value</code></dt>
+<dd class="comment">promise or immediate reference to get property from</dd>
+<dt><code>noun</code></dt>
+<dd class="comment">name of property to get</dd>
+</dl>
+<span class="return comment">promise for the property value</span>
+</dd>
+<dt><code>post(value, verb, argv)</code></dt>
+<dd>
+<span class="comment">Invokes a method in a future turn.</span>
+<dl class="parameters">
+<dt><code>value</code></dt>
+<dd class="comment">promise or immediate reference to invoke</dd>
+<dt><code>verb</code></dt>
+<dd class="comment">name of method to invoke</dd>
+<dt><code>argv</code></dt>
+<dd class="comment">array of invocation arguments</dd>
+</dl>
+<span class="return comment">promise for the return value</span>
+</dd>
+</dl>
+
+<h3><a name="web_send" href="#web_send">web_send API</a></h3>
+<dl class="methods">
+<dt><code>getLocation()</code></dt>
+<dd>
+<span class="comment">Gets a promise for the window's current location.</span>
+<dl class="parameters">
+</dl>
+</dd>
+<dt><code>navigate(target)</code></dt>
+<dd>
+<span class="comment">Navigate the window.</span>
+<dl class="parameters">
+<dt><code>target</code></dt>
+<dd class="comment">remote promise for new location</dd>
+</dl>
+<span class="return comment"><code>true</code> if navigation successful, else
+<code>false</code></span>
+</dd>
+<dt><code>href(elements, target)</code></dt>
+<dd>
+<span class="comment">Sets the 'href' attribute.</span>
+<dl class="parameters">
+<dt><code>elements</code></dt>
+<dd class="comment">bunch of elements to modify</dd>
+<dt><code>target</code></dt>
+<dd class="comment">remote promise</dd>
+</dl>
+<span class="return comment"><code>true</code> if attribute set, else
+<code>false</code></span>
+</dd>
+<dt><code>src(elements, target)</code></dt>
+<dd>
+<span class="comment">Sets the 'src' attribute.</span>
+<dl class="parameters">
+<dt><code>elements</code></dt>
+<dd class="comment">bunch of elements to modify</dd>
+<dt><code>target</code></dt>
+<dd class="comment">remote promise</dd>
+</dl>
+<span class="return comment"><code>true</code> if attribute set, else
+<code>false</code></span>
+</dd>
+<dt><code>getTitle()</code></dt>
+<dd>
+<span class="comment">Gets the document title.</span>
+<dl class="parameters">
+</dl>
+</dd>
+<dt><code>setTitle()</code></dt>
+<dd>
+<span class="comment">Sets the document title.</span>
+<dl class="parameters">
+</dl>
+</dd>
+<dt><code>_proxy(URLref)</code></dt>
+<dd>
+<span class="comment">Constructs a remote promise.</span>
+<dl class="parameters">
+<dt><code>URLref</code></dt>
+<dd class="comment">URL reference to wrap</dd>
+</dl>
+</dd>
+<dt><code>_crack(promise)</code></dt>
+<dd>
+<span class="comment">Extracts the URLref contained within a remote
+promise.</span>
+<dl class="parameters">
+<dt><code>promise</code></dt>
+<dd class="comment">remote promise to crack</dd>
+</dl>
+<span class="return comment">the URLref, or <code>null</code> if not a remote
+promise</span>
+</dd>
 </dl>
 
 <h2><a name="firebug" href="#firebug">Using the Firebug console</a></h2>
