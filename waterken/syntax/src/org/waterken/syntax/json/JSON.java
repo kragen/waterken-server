@@ -42,7 +42,7 @@ JSON {
         new Alias(Exception.class, "Error"),
         new Alias(java.lang.reflect.Method.class, "function"),
         new Alias(Class.class, "class"),
-        new Alias(ClassCastException.class, "NoMatch"),
+        new Alias(ClassCastException.class, "Mismatch"),
         new Alias(NullPointerException.class, "NaO"),
         new Alias(ArithmeticException.class, "NaN"),
         new Alias(org.joe_e.array.ConstArray.class, "array")
