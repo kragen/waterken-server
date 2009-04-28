@@ -481,10 +481,38 @@ promise</span>
 </dd>
 </dl>
 
+<h2><a name="securityConsiderations" href="#securityConsiderations">Security considerations</a></h2>
+<p>For HTTP requests issued by the web_send library, the query component of the
+Request-URI contains data contributed by: the query component of the target
+promise URLref, optional arguments added by the web_send library
+(<a href="#q"><code>'q'</code></a>, <a href="#session"><code>'x'</code> and
+<code>'w'</code></a>), and the <a href="#fragment">fragment component</a> of
+the target promise URLref. These elements are added to the Request-URI's query
+component in that order, which allows a server to disambiguate them. A request
+with duplicate query parameters may indicate an attack. For example, the
+following code:</p>
+<pre>
+var target = &hellip;   // @ &lt;https://example.com/myApp#q=foo&gt;
+lib.Q.post(target, 'bar', []);
+</pre>
+<p>Generates a POST request to:
+<code>&lt;https://example.com/myApp?q=bar&amp;q=foo&gt;</code>. In this case,
+the server-side code could either: treat only the first <code>'q'</code>
+argument as the client specified query string; or reject the request. When
+designing the namespace of URLs issued by a web-application, ensure that the
+server can always either correctly disambiguate parameters in the query
+component of a Request-URI, or reject the request.</p>
+
+<h2><a name="acknowledgments" href="#acknowledgments">Acknowledgments</a></h2>
+<p>Thanks to Bill
+Frantz, Charles Landau, Chip Morningstar, David-Sarah Hopwood and Mike Samuel
+for comments and contributions.</p>
+
 <h2><a name="firebug" href="#firebug">Using the Firebug console</a></h2>
 <p>Try out the
 <a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/web_send.js?view=markup">web_send</a>
 library using the <a href="../bang/">Bang Tutorial</a>.</p>
+
 </div>
 <p class="footer comment">
 <a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
