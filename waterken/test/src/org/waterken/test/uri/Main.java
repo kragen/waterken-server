@@ -25,6 +25,7 @@ Main {
         testAuthority();
         testPath();
         testStandard();
+        testRelate();
     }
     
     static private void
@@ -197,5 +198,23 @@ Main {
         test(URI.resolve(base, "g?y/../x"),         "http://a/b/c/g?y/../x");
         test(URI.resolve(base, "g#s/./x"),          "http://a/b/c/g#s/./x");
         test(URI.resolve(base, "g#s/../x"),         "http://a/b/c/g#s/../x");
+    }
+    
+    static private void
+    testRelate() {
+        final String base = "http://a/b/c/d;p?q#f";
+        
+        test(URI.relate(base, "http://a/b/c/d;p?q#f"),  "./d;p?q#f");
+        test(URI.relate(base, "http://a/b/c/d;p?q#f2"), "./d;p?q#f2");
+        test(URI.relate(base, "http://a/b/c/d;p?q"),    "./d;p?q");
+        test(URI.relate(base, "http://a/b/c/d;p"),      "./d;p");
+        test(URI.relate(base, "http://a/b/c/"),         "./");
+        test(URI.relate(base, "http://a/b/c"),          "../c");
+        test(URI.relate(base, "http://a/b/"),           "../");
+        test(URI.relate(base, "http://a/b"),            "../../b");
+        test(URI.relate(base, "http://a/"),             "../../");
+
+        test(URI.relate(base, "http://a2/"),            "http://a2/");
+        test(URI.relate(base, "https://a/"),            "https://a/");
     }
 }
