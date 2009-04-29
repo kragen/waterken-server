@@ -185,19 +185,21 @@ recognized as terminating the part of the fragment that should be copied to the
 Request-URI.</p>
 
 <h3><a name="session" href="#session">session identifier</a></h3>
-<p>Before sending any POST request, the web_send library will first send a
-request asking the server if a session should be created. This <code>POST</code>
-request is sent to the URL <code>&lt;?q=create&amp;s=sessions&gt;</code>, resolved
-relative to the promise URL that is about to be used.  If your server wishes to
-associate requests with a session, respond with JSON like:</p>
+<p>Before sending any <code>POST</code> request, the web_send library will first
+send a request asking the server if a session should be created. This
+<code>POST</code> request is sent to the URL
+<code>&lt;?q=create&amp;s=sessions&gt;</code>, resolved relative to the promise
+URL that is about to be used.  If your server wishes to associate requests with
+a session, respond with JSON like:</p>
 <pre>
 {
   "key" : "sessionid"
 }
 </pre>
 <p>The web_send library will then include this key as the '<code>x</code>'
-parameter in all POST requests, as well as a number '<code>w</code>', which is
-incremented on each POST request. For example, for the code:</p>
+parameter in all <code>POST</code> requests, as well as a number
+'<code>w</code>', which is incremented on each <code>POST</code> request. For
+example, for the code:</p>
 <pre>
 lib.Q.post(drum, 'bang', [ 3 ]);
 </pre>
@@ -498,7 +500,7 @@ attack. For example, the following code:</p>
 var target = &hellip;   // @ &lt;https://example.com/myApp?q=foo#q=bar&gt;
 lib.Q.post(target, 'baz', []);
 </pre>
-<p>Generates a POST request to:
+<p>Generates a <code>POST</code> request to:
 <code>&lt;https://example.com/myApp?q=baz&amp;q=foo&amp;q=bar&gt;</code>. In
 this case, the server-side code could either: treat only the first
 <code>'q'</code> argument as the client specified query string; or reject the
