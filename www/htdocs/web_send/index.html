@@ -95,9 +95,10 @@ enable this, represent a URL as a JSON object having a single member named
 <pre>
 { "@" : "obj456" }
 </pre>
-<p>The provided URL will be interpreted relative to the URL in the target
-promise. In this case, the base URL was
-<code>&lt;https://example.com/myApp/obj123&gt;</code>, making the resolved URL
+<p>The provided URL will be interpreted relative to the Request-URI.  In this
+case, the base URL was
+<code>&lt;https://example.com/myApp/obj123?q=makeDrum&gt;</code>,
+making the resolved URL
 <code>&lt;https://example.com/myApp/obj456&gt;</code>.</p>
 
 <h3><a name="JSONerror" href="#JSONerror">JSONerror</a></h3>
@@ -520,7 +521,7 @@ library using the <a href="../bang/">Bang Tutorial</a>.</p>
 </div>
 <p class="footer comment">
 <a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
-<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-04-28</a>
+<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-04-29</a>
 </p>
 </body>
 </html>
