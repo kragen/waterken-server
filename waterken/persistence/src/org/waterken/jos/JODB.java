@@ -263,6 +263,13 @@ JODB<S> extends Database<S> {
     
     private void
     create(final String f, final Object o) {
+        /*
+         * to support caching of query responses, forbid export of selfish state
+         * from a query transaction
+         */
+        if (tx.isQuery && null != o && !Slicer.inline(o.getClass())) {
+            throw new ProhibitedCreation(Reflection.getName(o.getClass()));
+        }
         if (null != f2b.put(f,
             new Bucket(new CacheReference<String,Object>(f, o, wiped),
                        true, null, false, null))) {throw new AssertionError();}
@@ -334,7 +341,7 @@ JODB<S> extends Database<S> {
                 final ByteArray version;
                 final Milestone<Boolean> unmanaged = Milestone.plan();
                 final HashSet<String> splices = new HashSet<String>(8);
-                if (canonicalize(JODB.secret).equals(f)) {
+                if (JODB.secret.equals(f)) {
                     // base case for loading the master secret
                     final ObjectInputStream oin = new ObjectInputStream(in);
                     in = oin;
@@ -454,8 +461,8 @@ JODB<S> extends Database<S> {
                 final String wf = tx.o2wf.get(o);
                 if (null != wf) {
                     if (!isWeak) {
-                        tx.o2wf.remove(o);
                         create(wf, o);
+                        tx.o2wf.remove(o);
                     }
                     return wf;
                 }
@@ -482,12 +489,6 @@ JODB<S> extends Database<S> {
                         return r;   // recalculated key for a stored object
                     }
                 } catch (final Exception e) { throw new Error(e); }
-            } else if (tx.isQuery) {
-                /*
-                 * to support caching of query responses, forbid export of
-                 * selfish state in a query transaction
-                 */
-                throw new ProhibitedCreation(Reflection.getName(o.getClass()));
             } else {
                 final byte[] k = new byte[keyBytes];
                 prng.nextBytes(k);
@@ -604,8 +605,8 @@ JODB<S> extends Database<S> {
                             local.fetch(null, Database.effect);
                         local.assign(Database.destruct,
                                      makeDestructor(effect));
-                        sub.create(canonicalize(Database.log), EventSender.make(
-                                        sub.txerr, turn.mark, tracer));
+                        sub.create(Database.log,
+                                EventSender.make(sub.txerr, turn.mark, tracer));
                         return setup.run(local);
                     }
                 });
