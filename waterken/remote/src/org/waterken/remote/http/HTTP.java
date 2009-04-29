@@ -160,7 +160,7 @@ HTTP extends Eventual implements Serializable {
             final String peerKey = ".peer-" + URLEncoding.encode(peer);
             Pipeline msgs = _.root.fetch(null, peerKey);
             if (null == msgs) {
-                final SessionInfo s = new SessionMaker(_.root).create();
+                final SessionInfo s = new SessionMaker(_.root).getNew();
                 msgs = new Pipeline(peer, s.key, s.name, _.effect, _.outbound);
                 _.root.assign(peerKey, msgs);
             }

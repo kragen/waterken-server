@@ -43,7 +43,7 @@ SessionMaker implements Serializable {
     }
     
     public SessionInfo
-    create() {
+    getNew() {
         final String key = root.export(new Token(), true);
         return new SessionInfo(key, hash(key));
     }
