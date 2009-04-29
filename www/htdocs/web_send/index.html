@@ -501,7 +501,9 @@ the server-side code could either: treat only the first <code>'q'</code>
 argument as the client specified query string; or reject the request. When
 designing the namespace of URLs issued by a web-application, ensure that the
 server can always either correctly disambiguate parameters in the query
-component of a Request-URI, or reject the request.</p>
+component of a Request-URI, or reject the request. Keep in mind that an
+attacker may send a user a specially crafted URLref that includes unexpected
+arguments in the query or fragment component.</p>
 
 <h2><a name="acknowledgments" href="#acknowledgments">Acknowledgments</a></h2>
 <p>Thanks to Bill
