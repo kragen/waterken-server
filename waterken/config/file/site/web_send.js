@@ -240,9 +240,8 @@ ADSAFE.lib('web', function (lib) {
                     };
                     ADSAFE.set(sessions, origin, session);
                     pending.push({
-                        URLref: resolveURI(URLref, '#s=sessions'),
-                        op: 'GET',
-                        q: 'new',
+                        URLref: resolveURI(URLref, '?q=create&s=sessions'),
+                        op: 'POST',
                         resolve: function (value) {
                             session.x = value.key;
                         }
