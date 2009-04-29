@@ -245,6 +245,7 @@ ADSAFE.lib('web', function (lib) {
                     pending.push({
                         URLref: resolveURI(URLref, '?q=create&s=sessions'),
                         op: 'POST',
+                        argv: [],
                         resolve: function (value) {
                             session.x = value.key;
                         }
