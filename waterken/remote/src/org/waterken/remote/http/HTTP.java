@@ -313,7 +313,7 @@ HTTP extends Eventual implements Serializable {
      */
     static protected String
     href(final String subject, final boolean isPromise) {
-        return "#"+ (isPromise ? "o=&" : "") + "s="+URLEncoding.encode(subject);
+        return "./#"+(isPromise ? "o=&" : "")+"s="+URLEncoding.encode(subject);
     }
 
     /**
