@@ -7,9 +7,7 @@ package org.waterken.uri;
  */
 public final class
 URI {
-
-    private
-    URI() {}
+    private URI() {}
 
     /**
      * Extracts the <code>scheme</code> component.
@@ -150,51 +148,51 @@ URI {
 
     /**
      * Resolves a relative URI string.
-     * @param base      trusted URI
-     * @param relative  untrusted URI
+     * @param base  trusted URI
+     * @param href  untrusted URI
      * @return resolved and trusted absolute URI
      * @throws InvalidURI   rejected <code>relative</code>
      */
     static public String
-    resolve(final String base, final String relative) throws InvalidURI {
-        if ("".equals(relative)) { return proxy(base); }
+    resolve(final String base, final String href) throws InvalidURI {
+        if ("".equals(href)) { return proxy(base); }
 
         final String hierarchy;     // trusted scheme : hier-part
         final String tail;          // untrusted ? query # fragment
-        if (relative.startsWith("#")) {
+        if (href.startsWith("#")) {
             hierarchy = proxy(base);
-            tail = relative;
-        } else if (relative.startsWith("?")) {
+            tail = href;
+        } else if (href.startsWith("?")) {
             hierarchy = base.substring(0, hierarchyLast(base, 0));
-            tail = relative;
+            tail = href;
         } else {
             final int relativePathFirst;
             final String root;      // trusted scheme : authority /
             final String folder;    // untrusted base path
-            if (-1 != schemeLast(relative)) {
-                final int authorityLast = serviceLast(relative);
+            if (-1 != schemeLast(href)) {
+                final int authorityLast = serviceLast(href);
                 for (int i = 0; authorityLast != i; ++i) {
-                    final char c = relative.charAt(i);
+                    final char c = href.charAt(i);
                     if (!(URI.unreserved(c) || URI.subdelim(c) ||
                           "@/:[]%".indexOf(c) != -1)) {throw new InvalidURI();}
                 }
-                relativePathFirst = relative.startsWith("/", authorityLast)
+                relativePathFirst = href.startsWith("/", authorityLast)
                     ? authorityLast + 1 : authorityLast;
-                root = relative.substring(0, relativePathFirst);
+                root = href.substring(0, relativePathFirst);
                 folder = "";
-            } else if (relative.startsWith("//")) {
-                final int authorityLast = authorityLast(relative,"//".length());
+            } else if (href.startsWith("//")) {
+                final int authorityLast = authorityLast(href,"//".length());
                 for (int i = "//".length(); authorityLast != i; ++i) {
-                    final char c = relative.charAt(i);
+                    final char c = href.charAt(i);
                     if (!(URI.unreserved(c) || URI.subdelim(c) ||
                           "@:[]%".indexOf(c) != -1)) { throw new InvalidURI(); }
                 }
-                relativePathFirst = relative.startsWith("/", authorityLast)
+                relativePathFirst = href.startsWith("/", authorityLast)
                     ? authorityLast + 1 : authorityLast;
                 root = base.substring(0, schemeLast(base) + 1) +
-                       relative.substring(0, relativePathFirst);
+                       href.substring(0, relativePathFirst);
                 folder = "";
-            } else if (relative.startsWith("/")) {
+            } else if (href.startsWith("/")) {
                 relativePathFirst = 1;
                 root = service(base) + "/";
                 folder = "";
@@ -213,11 +211,11 @@ URI {
 
             // Resolve the relative URI string against the context.
             final int relativePathLast =
-                hierarchyLast(relative, relativePathFirst);
+                hierarchyLast(href, relativePathFirst);
             final String relativePath =
-                relative.substring(relativePathFirst, relativePathLast);
+                href.substring(relativePathFirst, relativePathLast);
             hierarchy = root + Path.vet(folder + relativePath);
-            tail = relative.substring(relativePathLast);
+            tail = href.substring(relativePathLast);
         }
         final int hash = tail.indexOf('#');
         if (tail.startsWith("?")) {
@@ -236,56 +234,38 @@ URI {
 
     /**
      * Encodes an absolute URI relative to a base URI.
-     * @param base      base URI
-     * @param target    target URI
+     * @param base  base URI
+     * @param href  target URI
      * @return relative URI string from base to target
      */
     static public String
-    relate(final String base, final String target) {
+    relate(final String base, final String href) {
         final int first = serviceLast(base);
-        if (!base.regionMatches(0, target, 0, first + 1)) { return target; }
+        if (!base.regionMatches(0, href, 0, first + 1)) { return href; }
         
         // determine the common parent folder
         final int last = hierarchyLast(base, first);
         final String path = base.substring(first, last);
         int i = 0;
         int j = path.indexOf('/');
-        while (-1 != j && path.regionMatches(i, target, first + i, j + 1 - i)) {
+        while (-1 != j && path.regionMatches(i, href, first + i, j + 1 - i)) {
             j = path.indexOf('/', i = j + 1);
         }
-        if (-1 != j) {
-            // wind up to the common base
-            final StringBuilder buffer = new StringBuilder();
-            if (0 == j) {
-                j = path.indexOf('/', 1);
-            }
-            while (j != -1) {
-                buffer.append("../");
-                j = path.indexOf('/', j + 1);
-            }
-            if (0 == buffer.length()) {
-                buffer.append("./");
-            }
-            buffer.append(target.substring(first + i));
-            return buffer.toString();
-        }
         
-        // compare the last segment
-        j = last - first;
-        if (!(path.regionMatches(i, target, first + i, j - i) &&
-             (last == target.length() || '?' == target.charAt(last) ||
-              '#' == target.charAt(last)))) {
-            return "./" + target.substring(first + i);
+        // wind up to the common base
+        final StringBuilder buffer = new StringBuilder();
+        if (0 == j) {
+            j = path.indexOf('/', 1);
         }
-
-        // compare the query
-        int f = base.indexOf('#', last);
-        if (-1 == f) {
-            f = base.length();
+        while (j != -1) {
+            buffer.append("../");
+            j = path.indexOf('/', j + 1);
         }
-        return base.regionMatches(last, target, last, f - last) &&
-               (f == target.length() || '#' == target.charAt(f))
-            ? target.substring(f) : target.substring(last);
+        if (0 == buffer.length()) {
+            buffer.append("./");
+        }
+        buffer.append(href.substring(first + i));
+        return buffer.toString();
     }
     
     static private boolean
