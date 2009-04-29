@@ -190,22 +190,25 @@ ADSAFE.lib('web', function (lib) {
 
         var output = function () {
             var m = pending[0];
-            var urlref = /([^#]*)(.*)/.exec(m.URLref);
-            var url = urlref[1];
-            var sep = /\?/.test(url) ? '&' : '?';
+            var url = '';
             if (undefined !== m.q) {
-                url += sep + 'q=' + encodeURIComponent(m.q);
-                sep = '&';
+                url = '?q=' + encodeURIComponent(m.q);
             }
             if (m.session && undefined !== m.session.x) {
-                url += sep + 'x=' + encodeURIComponent(m.session.x);
-                sep = '&';
-                url += sep + 'w=' + m.session.w;
+                url += '' === url ? '?' : '&';
+                url += 'x=' + encodeURIComponent(m.session.x);
+                url += '&w=' + m.session.w;
             }
-            if (urlref[2]) {
-                url += urlref[2].replace('#', sep);
+            var upqf = /([^\?#]*)([^#]*)(.*)/.exec(m.URLref);
+            if (upqf[2]) {
+                url += '' === url ? '?' : '&';
+                url += upqf[2].substring(1);
             }
-            http.open(m.op, url, true);
+            if (upqf[3]) {
+                url += '' === url ? '?' : '&';
+                url += upqf[3].substring(1);
+            }
+            http.open(m.op, upqf[1] + url, true);
             http.onreadystatechange = function () {
                 if (4 !== http.readyState) { return; }
                 if (m !== pending.shift()) { throw new Error(); }

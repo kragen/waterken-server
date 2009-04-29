@@ -269,23 +269,31 @@ HTTP extends Eventual implements Serializable {
     static protected String
     post(final String href, final String predicate,
          final String sessionKey, final long window, final int message) {
-        String r = URI.resolve(href, "");
-        char sep = r.indexOf('?') == -1 ? '?' : '&';
+        final StringBuilder r = new StringBuilder();
         if (null != predicate) {
-            r += sep + "q=" + URLEncoding.encode(predicate);
-            sep = '&';
+            r.append("?q=");
+            r.append(URLEncoding.encode(predicate));
         }
         if (null != sessionKey) {
-            r += sep + "x=" + URLEncoding.encode(sessionKey) +
-                      "&w=" + window +
-                      "&m=" + message;
-            sep = '&';
+            r.append(0 == r.length() ? '?' : '&');
+            r.append("x=");
+            r.append(URLEncoding.encode(sessionKey));
+            r.append("&w=");
+            r.append(window);
+            r.append("&m=");
+            r.append(message);
         }
-        final String query = URI.fragment("", href);
+        final String query = URI.query("", href);
         if (!"".equals(query)) {
-            r += sep + query;
+            r.append(0 == r.length() ? '?' : '&');
+            r.append(query);
         }
-        return r;
+        final String fragment = URI.fragment("", href);
+        if (!"".equals(fragment)) {
+            r.append(0 == r.length() ? '?' : '&');
+            r.append(fragment);
+        }
+        return URI.resolve(href, r.toString());
     }
     
     /**
