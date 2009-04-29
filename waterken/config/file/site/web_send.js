@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-04-28
+ * web_send.js version: 2009-04-29
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -48,10 +48,38 @@ ADSAFE.lib('web', function (lib) {
     }
 
     /**
+     * Produces a relative URL reference.
+     * @param base  absolute base URLref
+     * @param href  absolute target URLref
+     */
+    function relateURI(base, href) {
+        var baseUOP = /^([a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\/)([^\?#]*)/.exec(base);
+        var hrefUOPR= /^([a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\/)([^\?#]*)(.*)$/.
+                                                                     exec(href);
+        if (!baseUOP || !hrefUOPR || baseUOP[1] !== hrefUOPR[1]) {return href;}
+
+        // determine the common parent folder
+        var basePath = baseUOP[2].split('/');
+        var hrefPath = hrefUOPR[2].split('/');
+        var maxMatch = Math.min(basePath.length, hrefPath.length) - 1;
+        var i = 0;
+        while (i !== maxMatch && basePath[i] === hrefPath[i]) { ++i; }
+
+        // wind up to the common base
+        var cd = '';
+        for (var n = basePath.length - i - 1; 0 !== n--;) { cd += '../'; }
+        if ('' === cd) {
+            cd = './';
+        }
+        return cd + hrefPath.slice(i).join('/') + hrefUOPR[3];
+    }
+
+    /**
      * Produce the JSON text for a JSON value.
+     * @param base  absolute base URLref
      * @param arg   JSON value to serialize
      */
-    function serialize(arg) {
+    function serialize(base, arg) {
         if (null === arg || 'object' !== typeof arg) {
             arg = { '=' : arg };
         }
@@ -62,7 +90,7 @@ ADSAFE.lib('web', function (lib) {
                 unsealedURLref = null;
                 value = value();
                 if (null !== unsealedURLref) {
-                    value = { '@' : unsealedURLref };
+                    value = { '@' : relateURI(base, unsealedURLref) };
                 }
                 unsealedURLref = null;
                 break;
@@ -190,25 +218,26 @@ ADSAFE.lib('web', function (lib) {
 
         var output = function () {
             var m = pending[0];
-            var url = '';
+            var requestQuery = '';
             if (undefined !== m.q) {
-                url = '?q=' + encodeURIComponent(m.q);
+                requestQuery = '?q=' + encodeURIComponent(m.q);
             }
             if (m.session && undefined !== m.session.x) {
-                url += '' === url ? '?' : '&';
-                url += 'x=' + encodeURIComponent(m.session.x);
-                url += '&w=' + m.session.w;
+                requestQuery += '' === requestQuery ? '?' : '&';
+                requestQuery += 'x=' + encodeURIComponent(m.session.x);
+                requestQuery += '&w=' + m.session.w;
             }
             var upqf = /([^\?#]*)([^#]*)(.*)/.exec(m.URLref);
             if (upqf[2]) {
-                url += '' === url ? '?' : '&';
-                url += upqf[2].substring(1);
+                requestQuery += '' === requestQuery ? '?' : '&';
+                requestQuery += upqf[2].substring(1);
             }
             if (upqf[3]) {
-                url += '' === url ? '?' : '&';
-                url += upqf[3].substring(1);
+                requestQuery += '' === requestQuery ? '?' : '&';
+                requestQuery += upqf[3].substring(1);
             }
-            http.open(m.op, upqf[1] + url, true);
+            var requestURI = upqf[1] + requestQuery;
+            http.open(m.op, requestURI, true);
             http.onreadystatechange = function () {
                 if (4 !== http.readyState) { return; }
                 if (m !== pending.shift()) { throw new Error(); }
@@ -221,13 +250,13 @@ ADSAFE.lib('web', function (lib) {
                     m.session.w += 1;
                 }
 
-                m.resolve(deserialize(m.URLref, http));
+                m.resolve(deserialize(requestURI, http));
             };
             if (undefined === m.argv) {
                 http.send(null);
             } else {
                 http.setRequestHeader('Content-Type', 'text/plain');
-                http.send(serialize(m.argv));
+                http.send(serialize(requestURI, m.argv));
             }
 
             // TODO: monitor the request with a local timeout
