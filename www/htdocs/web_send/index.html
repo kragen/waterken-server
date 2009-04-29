@@ -185,10 +185,10 @@ Request-URI.</p>
 
 <h3><a name="session" href="#session">session identifier</a></h3>
 <p>Before sending any POST request, the web_send library will first send a
-request asking the server if a session should be created. This request is sent
-to the URL <code>&lt;?q=create&amp;s=sessions&gt;</code>, resolved relative to
-the promise URL that is about to be used.  If your server wishes to associate
-requests with a session, respond with JSON like:</p>
+request asking the server if a session should be created. This <code>GET</code>
+request is sent to the URL <code>&lt;?q=new&amp;s=sessions&gt;</code>, resolved
+relative to the promise URL that is about to be used.  If your server wishes to
+associate requests with a session, respond with JSON like:</p>
 <pre>
 {
   "key" : "sessionid"
