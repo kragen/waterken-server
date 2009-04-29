@@ -159,8 +159,8 @@ lib.Q.get(drum, 'hits');
 <table>
 <tr><th>target URLref</th><th>Request-URI</th></tr>
 <tr><td>/myApp/obj456</td><td>/myApp/obj456?q=hits</td></tr>
-<tr><td>/myApp/?id=obj456</td><td>/myApp/?id=obj456&amp;q=hits</td></tr>
-<tr><td>/myApp/?q=42</td><td>/myApp/?q=42&amp;q=hits</td></tr>
+<tr><td>/myApp/?id=obj456</td><td>/myApp/?q=hits&amp;id=obj456</td></tr>
+<tr><td>/myApp/?q=42</td><td>/myApp/?q=hits&amp;q=42</td></tr>
 </table>
 
 <h3><a name="fragment" href="#fragment">fragment arguments</a></h3>
@@ -175,9 +175,9 @@ lib.Q.get(drum, 'hits');
 <table>
 <tr><th>target URLref</th><th>Request-URI</th></tr>
 <tr><td>/myApp#s=obj456</td><td>/myApp?q=hits&amp;s=obj456</td></tr>
-<tr><td>/myApp?id=42#s=obj456</td><td>/myApp?id=42&amp;q=hits&amp;s=obj456</td></tr>
-<tr><td>/myApp?s=42#s=obj456</td><td>/myApp?s=42&amp;q=hits&amp;s=obj456</td></tr>
-<tr><td>/myApp?s=42#s=obj456&amp;t=6&amp;=label</td><td>/myApp?s=42&amp;q=hits&amp;s=obj456&amp;t=6</td></tr>
+<tr><td>/myApp?id=42#s=obj456</td><td>/myApp?q=hits&amp;id=42&amp;s=obj456</td></tr>
+<tr><td>/myApp?s=42#s=obj456</td><td>/myApp?q=hits&amp;s=42&amp;s=obj456</td></tr>
+<tr><td>/myApp?s=42#s=obj456&amp;t=6&amp;=label</td><td>/myApp?q=hits&amp;s=42&amp;s=obj456&amp;t=6</td></tr>
 </table>
 <p>In the last example, the character sequence '<code>&amp;=</code>' is
 recognized as terminating the part of the fragment that should be copied to the
@@ -483,26 +483,26 @@ promise</span>
 
 <h2><a name="securityConsiderations" href="#securityConsiderations">Security considerations</a></h2>
 <p>For HTTP requests issued by the web_send library, the query component of the
-Request-URI contains data contributed by: the query component of the target
-promise URLref, optional arguments added by the web_send library
-(<a href="#q"><code>'q'</code></a>, <a href="#session"><code>'x'</code> and
-<code>'w'</code></a>), and the <a href="#fragment">fragment component</a> of
-the target promise URLref. These elements are added to the Request-URI's query
-component in that order, which allows a server to disambiguate them. A request
-with duplicate query parameters may indicate an attack. For example, the
-following code:</p>
+Request-URI contains data contributed by: optional arguments added by the
+web_send library (<a href="#q"><code>'q'</code></a>,
+<a href="#session"><code>'x'</code> and <code>'w'</code></a>), the query
+component of the target promise URLref, and the <a href="#fragment">fragment
+component</a> of the target promise URLref. These elements are added to the
+Request-URI's query component in that order, which allows a server to
+disambiguate them. A request with duplicate query parameters may indicate an
+attack. For example, the following code:</p>
 <pre>
-var target = &hellip;   // @ &lt;https://example.com/myApp#q=foo&gt;
-lib.Q.post(target, 'bar', []);
+var target = &hellip;   // @ &lt;https://example.com/myApp?q=foo#q=bar&gt;
+lib.Q.post(target, 'baz', []);
 </pre>
 <p>Generates a POST request to:
-<code>&lt;https://example.com/myApp?q=bar&amp;q=foo&gt;</code>. In this case,
-the server-side code could either: treat only the first <code>'q'</code>
-argument as the client specified query string; or reject the request. When
-designing the namespace of URLs issued by a web-application, ensure that the
-server can always either correctly disambiguate parameters in the query
-component of a Request-URI, or reject the request. Keep in mind that an
-attacker may send a user a specially crafted URLref that includes unexpected
+<code>&lt;https://example.com/myApp?q=baz&amp;q=foo&amp;q=bar&gt;</code>. In
+this case, the server-side code could either: treat only the first
+<code>'q'</code> argument as the client specified query string; or reject the
+request. When designing the namespace of URLs issued by a web-application,
+ensure that the server can always either correctly disambiguate parameters in
+the query component of a Request-URI, or reject the request. Keep in mind that
+an attacker may send a user a specially crafted URLref that includes unexpected
 arguments in the query and fragment components.</p>
 
 <h2><a name="acknowledgments" href="#acknowledgments">Acknowledgments</a></h2>
