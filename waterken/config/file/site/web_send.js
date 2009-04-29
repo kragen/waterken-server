@@ -359,9 +359,12 @@ ADSAFE.lib('web', function (lib) {
 
         /**
          * Constructs a remote promise.
-         * @param URLref    URL reference to wrap
+         * @param href  URLref to wrap
+         * @param base  optional base URL for relative href
          */
-        _proxy: proxy,
+        _proxy: function (href, base) {
+            return proxy(base ? resolveURI(base, href) : href);
+        },
 
         /**
          * Extracts the URLref contained within a remote promise.
