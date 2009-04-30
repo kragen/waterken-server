@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-04-29
+ * web_send.js version: 2009-04-30
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -26,21 +26,21 @@ ADSAFE.lib('web', function (lib) {
      */
     var unsealedURLref = null;
 
-    function proxy(URLref) {
+    function proxy(target) {
         var self = function (op, arg1, arg2, arg3) {
             if (undefined === op) {
-                unsealedURLref = URLref;
+                unsealedURLref = target;
                 return self;
             }
-            if (/#o=/.test(URLref)) {
-                send(URLref, 'GET', function (x) {
+            if (/#o=/.test(target)) {
+                send(target, 'GET', function (x) {
                     ('function'===typeof x?x:lib.Q.ref(x))(op,arg1,arg2,arg3);
                 });
             } else {
                 if ('WHEN' === op) {
                     arg1(self);
                 } else {
-                    send(URLref, op, arg1, arg2, arg3);
+                    send(target, op, arg1, arg2, arg3);
                 }
             }
         };
@@ -198,8 +198,36 @@ ADSAFE.lib('web', function (lib) {
     }
 
     /**
+     * Constructs a Request-URI for a web-key with options.
+     * @param target    target URLref
+     * @param q         optional client-specified query
+     * @param session   optional session arguments.
+     */
+    function makeRequestURI(target, q, session) {
+        var requestQuery = '';
+        if (undefined !== q) {
+            requestQuery = '?q=' + encodeURIComponent(q);
+        }
+        if (session && undefined !== session.x) {
+            requestQuery += '' === requestQuery ? '?' : '&';
+            requestQuery += 'x=' + encodeURIComponent(session.x);
+            requestQuery += '&w=' + session.w;
+        }
+        var upqf = /([^\?#]*)([^#]*)(.*)/.exec(target);
+        if (upqf[2]) {
+            requestQuery += '' === requestQuery ? '?' : '&';
+            requestQuery += upqf[2].substring(1);
+        }
+        if (upqf[3]) {
+            requestQuery += '' === requestQuery ? '?' : '&';
+            requestQuery += upqf[3].substring(1);
+        }
+        return upqf[1] + requestQuery;
+    }
+
+    /**
      * Enqueues an HTTP request.
-     * @param URLref    target URLref
+     * @param target    target URLref
      * @param op        HTTP verb
      * @param resolve   response resolver
      * @param q         query parameter value
@@ -218,25 +246,7 @@ ADSAFE.lib('web', function (lib) {
 
         var output = function () {
             var m = pending[0];
-            var requestQuery = '';
-            if (undefined !== m.q) {
-                requestQuery = '?q=' + encodeURIComponent(m.q);
-            }
-            if (m.session && undefined !== m.session.x) {
-                requestQuery += '' === requestQuery ? '?' : '&';
-                requestQuery += 'x=' + encodeURIComponent(m.session.x);
-                requestQuery += '&w=' + m.session.w;
-            }
-            var pqf = /([^\?#]*)([^#]*)(.*)/.exec(m.URLref);
-            if (pqf[2]) {
-                requestQuery += '' === requestQuery ? '?' : '&';
-                requestQuery += pqf[2].substring(1);
-            }
-            if (pqf[3]) {
-                requestQuery += '' === requestQuery ? '?' : '&';
-                requestQuery += pqf[3].substring(1);
-            }
-            var requestURI = pqf[1] + requestQuery;
+            var requestURI = makeRequestURI(m.target, m.q, m.session);
             http.open(m.op, requestURI, true);
             http.onreadystatechange = function () {
                 if (4 !== http.readyState) { return; }
@@ -261,10 +271,10 @@ ADSAFE.lib('web', function (lib) {
 
             // TODO: monitor the request with a local timeout
         };
-        return function (URLref, op, resolve, q, argv) {
+        return function (target, op, resolve, q, argv) {
             var session = null;
             if ('POST' === op) {
-                var origin = resolveURI(URLref, '/');
+                var origin = resolveURI(target, '/');
                 session = ADSAFE.get(sessions, origin);
                 if (!session) {
                     session = {
@@ -272,7 +282,7 @@ ADSAFE.lib('web', function (lib) {
                     };
                     ADSAFE.set(sessions, origin, session);
                     pending.push({
-                        URLref: resolveURI(URLref, '?q=create&s=sessions'),
+                        target: resolveURI(target, '?q=create&s=sessions'),
                         op: 'POST',
                         argv: [],
                         resolve: function (value) {
@@ -283,7 +293,7 @@ ADSAFE.lib('web', function (lib) {
             }
             pending.push({
                 session: session,
-                URLref: URLref,
+                target: target,
                 op: op,
                 resolve: resolve,
                 q: q,
@@ -328,49 +338,67 @@ ADSAFE.lib('web', function (lib) {
          * Sets the 'href' attribute.
          * @param elements  bunch of elements to modify
          * @param target    remote promise
-         * @return <code>true</code> if attribute set, else <code>false</code>
+         * @return number of elements modified
          */
         href: function (elements, target) {
+            var n = 0;
             if (null === target) {
-                elements.___nodes___.filter(function (element) {
-                    element.removeAttribute('href');
-                    element.onclick = undefined;
+                elements.___nodes___.filter(function (node) {
+                    node.removeAttribute('href');
+                    node.onclick = undefined;
+                    n += 1;
                 });
             } else {
                 var href = crack(target);
-                if (null === href) { return false; }
-                elements.___nodes___.filter(function (element) {
-                    element.setAttribute('href', href);
+                if (null !== href) {
+                    elements.___nodes___.filter(function (node) {
+                        switch (node.tagName.toUpperCase()) {
+                        case 'A':
+                            node.setAttribute('href', href);
 
-                    // do page navigation, even if fragment is only difference
-                    element.onclick = function () {
-                        // TODO: do original fragment navigation
-                        window.location.assign(href);
-                    };
-                });
+                            // navigate even if fragment is only difference
+                            node.onclick = function () {
+                                // TODO: do original fragment navigation
+                                window.location.assign(href);
+                            };
+
+                            n += 1;
+                            break;
+                        }
+                    });
+                }
             }
-            return true;
+            return n;
         },
 
         /**
          * Sets the 'src' attribute.
          * @param elements  bunch of elements to modify
          * @param target    remote promise
-         * @return <code>true</code> if attribute set, else <code>false</code>
+         * @return number of elements modified
          */
         src: function (img, target) {
+            var n = 0;
             if (null === target) {
-                elements.___nodes___.filter(function (element) {
-                    element.removeAttribute('src');
+                elements.___nodes___.filter(function (node) {
+                    node.removeAttribute('src');
+                    n += 1;
                 });
             } else {
                 var src = crack(target);
-                if (null === src) { return false; }
-                elements.___nodes___.filter(function (element) {
-                    element.setAttribute('src', src);
-                });
+                if (null !== src) {
+                    elements.___nodes___.filter(function (node) {
+                        switch (node.tagName.toUpperCase()) {
+                        case 'IMG':
+                        case 'INPUT':
+                            node.setAttribute('src', makeRequestURI(src));
+                            n += 1;
+                            break;
+                        }
+                    });
+                }
             }
-            return true;
+            return n;
         },
 
         /**
