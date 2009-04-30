@@ -412,8 +412,15 @@ ADSAFE.lib('web', function (lib) {
         /**
          * Extracts the URLref contained within a remote promise.
          * @param promise remote promise to crack
+         * @param target  optional remote promise for base URL
          * @return the URLref, or <code>null</code> if not a remote promise
          */
-        _crack: crack
+        _crack: function (promise, target) {
+            var href = crack(promise);
+            if (null === href || !target) { return href; }
+            var base = crack(target);
+            if (null === base) { return href; }
+            return relateURI(base, href);
+        }
     };
 });
