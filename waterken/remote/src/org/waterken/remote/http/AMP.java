@@ -58,14 +58,20 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
             // check for web browser bootstrap request
             final String q = URI.query(null, head.uri);
             if (null == q) {
-                final String project = vat.enter(Transaction.query,
-                        new Transaction<PowerlessArray<String>>() {
-                    public PowerlessArray<String>
-                    run(final Root root) throws Exception {
-                        final String r = root.fetch(null, Database.project);
-                        return PowerlessArray.array(r);
-                    }
-                }).call().get(0);
+                final String project;
+                try {
+                    project = vat.enter(Transaction.query,
+                            new Transaction<PowerlessArray<String>>() {
+                        public PowerlessArray<String>
+                        run(final Root root) throws Exception {
+                            final String r = root.fetch(null, Database.project);
+                            return PowerlessArray.array(r);
+                        }
+                    }).call().get(0);
+                } catch (final DoesNotExist e) {
+                    client.receive(Response.gone(), null);
+                    return;
+                }
                 bootstrap.serve(new Request(head.version, head.method,
                         "/site/" + URLEncoding.encode(project) + "/" +
                         URLEncoding.encode(Path.name(URI.path(head.uri)))+"?o=",
