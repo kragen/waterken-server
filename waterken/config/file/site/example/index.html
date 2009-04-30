@@ -102,23 +102,24 @@ ADSAFE.go('WIDGET_', function (dom, lib) {
     // Normally, you'd put your code here, instead of writing in the console.
     // For example, ...
     function render(value, $) {
-        if (undefined === $) {
+        if (void 0 === $) {
             $ = [];
         }
         var r;
-        if (undefined === value || null === value) {
-            $.push('void');
-            r = dom.tag('span');
-        } else if ('boolean' === typeof value) {
+        switch (typeof value) {
+        case 'boolean':
             $.push('boolean');
             $.push(value ? 'true' : 'false');
             r = dom.tag('span');
-        } else if ('number' === typeof value) {
+            break;
+        case 'number':
             $.push('number');
             r = dom.tag('span').append(dom.text('' + value));
-        } else if ('string' === typeof value) {
+            break;
+        case 'string':
             r = dom.tag('span').append(dom.text(value));
-        } else if ('function' === typeof value) {
+            break;
+        case 'function':
             var referent = lib.Q.near(value);
             r = dom.tag('a');
             if (lib.web.href(r, referent)) {
@@ -126,25 +127,31 @@ ADSAFE.go('WIDGET_', function (dom, lib) {
             } else {
                 r = render(referent, $);
             }
-        } else if (ADSAFE.isArray(value)) {
-            r = dom.tag('ol');
-            value.filter(function (element) {
-                r.append(dom.tag('li').append(render(element)));
-            });
-        } else {
-            r = dom.tag('div');
-            for (name in value) { if (value.hasOwnProperty(name)) {
-                if ('$' === name) {
-                    $ = $.concat(value.$);
-                } else if ('!' === name) {
-                    $ = $.concat('Rejected');
-                    r.append(render(ADSAFE.get(value, name), [ 'reason' ]));
-                    r.append(dom.text(' '));
-                } else {
-                    r.append(render(ADSAFE.get(value, name), [ name ]));
-                    r.append(dom.text(' '));
-                }
-            } }
+            break;
+        default:
+            if (void 0 === value || null === value) {
+                $.push('void');
+                r = dom.tag('span');
+            } else if (ADSAFE.isArray(value)) {
+                r = dom.tag('ol');
+                value.filter(function (element) {
+                    r.append(dom.tag('li').append(render(element)));
+                });
+            } else {
+                r = dom.tag('div');
+                for (name in value) { if (value.hasOwnProperty(name)) {
+                    if ('$' === name) {
+                        $ = $.concat(value.$);
+                    } else if ('!' === name) {
+                        $ = $.concat('Rejected');
+                        r.append(render(ADSAFE.get(value, name), [ 'reason' ]));
+                        r.append(dom.text(' '));
+                    } else {
+                        r.append(render(ADSAFE.get(value, name), [ name ]));
+                        r.append(dom.text(' '));
+                    }
+                } }
+            }
         }
         if (0 !== $.length) {
             r.klass($.join(' '));
