@@ -620,7 +620,11 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         }
 
         public T
-        call() throws Exception { return state.get().call(); }
+        call() throws Exception {
+            final Promise<T> value = state.get();
+            if (null == value) { throw new Unresolved(); }
+            return value.call();
+        }
 
         public void
         when(final Do<T,?> observer) { state.observe(observer); }
