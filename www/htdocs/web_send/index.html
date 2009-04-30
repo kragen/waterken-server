@@ -256,8 +256,8 @@ shows the minimum requirements:</p>
 &lt;head&gt;
 &lt;meta http-equiv="content-type" content="text/html; charset=UTF-8"&gt;
 &lt;title&gt;&lt;/title&gt;
-&lt;script type="text/javascript" src="/site/json2.js"&gt;&lt;/script&gt;
-&lt;script type="text/javascript" src="/site/adsafe.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="/site/<span class="highlight">json2.js</span>"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="/site/<span class="highlight">adsafe.js</span>"&gt;&lt;/script&gt;
 &lt;/head&gt;
 &lt;body&gt;
 &lt;noscript&gt;
@@ -269,11 +269,11 @@ shows the minimum requirements:</p>
 "use strict";
 ADSAFE.id('WIDGET_');
 &lt;/script&gt;
-&lt;script type="text/javascript" src="/site/ref_send.js"&gt;&lt;/script&gt;
-&lt;script type="text/javascript" src="/site/web_send.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="/site/<span class="highlight">ref_send.js</span>"&gt;&lt;/script&gt;
+&lt;script type="text/javascript" src="/site/<span class="highlight">web_send.js</span>"&gt;&lt;/script&gt;
 &lt;script type="text/javascript"&gt;
 "use strict";
-ADSAFE.go('WIDGET_', function (dom, lib) {
+<span class="highlight">ADSAFE.go</span>('WIDGET_', function (dom, lib) {
     /*
      * The ADsafe and web_send libraries are now initialized. Start your
      * application code from here.
@@ -326,7 +326,7 @@ these JavaScript files.</p>
 
 <h3><a name="ref_send" href="#ref_send">ref_send API</a></h3>
 <dl class="methods">
-<dt><code>run(task)</code></dt>
+<dt><code><a name="Q.run" href="#Q.run">run</a>(task)</code></dt>
 <dd>
 <span class="comment">Enqueues a task to be run in a future turn.</span>
 <dl class="parameters">
@@ -334,7 +334,7 @@ these JavaScript files.</p>
 <dd class="comment">function to invoke later</dd>
 </dl>
 </dd>
-<dt><code>reject(reason, $)</code></dt>
+<dt><code><a name="Q.reject" href="#Q.reject">reject</a>(reason, $)</code></dt>
 <dd>
 <span class="comment">Constructs a rejected promise.</span>
 <dl class="parameters">
@@ -344,7 +344,7 @@ these JavaScript files.</p>
 <dd class="comment">optional type info to add to reason</dd>
 </dl>
 </dd>
-<dt><code>ref(value)</code></dt>
+<dt><code><a name="Q.ref" href="#Q.ref">ref</a>(value)</code></dt>
 <dd>
 <span class="comment">Constructs a promise for an immediate reference.</span>
 <dl class="parameters">
@@ -352,7 +352,7 @@ these JavaScript files.</p>
 <dd class="comment">immediate reference</dd>
 </dl>
 </dd>
-<dt><code>defer()</code></dt>
+<dt><code><a name="Q.defer" href="#Q.defer">defer</a>()</code></dt>
 <dd>
 <div class="comment">
 Constructs a ( promise, resolver ) pair.
@@ -363,7 +363,7 @@ call to reject(). To put the promise in the same state as another promise,
 invoke the resolver with that other promise.</p>
 </div>
 </dd>
-<dt><code>near(value)</code></dt>
+<dt><code><a name="Q.near" href="#Q.near">near</a>(value)</code></dt>
 <dd>
 <span class="comment">Gets the current value of a promise.</span>
 <dl class="parameters">
@@ -371,7 +371,7 @@ invoke the resolver with that other promise.</p>
 <dd class="comment">promise or immediate reference to evaluate</dd>
 </dl>
 </dd>
-<dt><code>when(value, fulfilled, rejected)</code></dt>
+<dt><code><a name="Q.when" href="#Q.when">when</a>(value, fulfilled, rejected)</code></dt>
 <dd>
 <span class="comment">Registers an observer on a promise.</span>
 <dl class="parameters">
@@ -385,7 +385,7 @@ invoke the resolver with that other promise.</p>
 <span class="return comment">promise for the return value from the invoked
 callback</span>
 </dd>
-<dt><code>get(target, q)</code></dt>
+<dt><code><a name="Q.get" href="#Q.get">get</a>(target, q)</code></dt>
 <dd>
 <span class="comment">Sends a <code>GET</code> request.</span>
 <dl class="parameters">
@@ -396,7 +396,7 @@ callback</span>
 </dl>
 <span class="return comment">promise for the response entity</span>
 </dd>
-<dt><code>post(target, q, entity)</code></dt>
+<dt><code><a name="Q.post" href="#Q.post">post</a>(target, q, entity)</code></dt>
 <dd>
 <span class="comment">Sends a <code>POST</code> request.</span>
 <dl class="parameters">
@@ -413,11 +413,11 @@ callback</span>
 
 <h3><a name="web_send" href="#web_send">web_send API</a></h3>
 <dl class="methods">
-<dt><code>getLocation()</code></dt>
+<dt><code><a name="web.getLocation" href="#web.getLocation">getLocation</a>()</code></dt>
 <dd>
 <span class="comment">Gets a promise for the window's current location.</span>
 </dd>
-<dt><code>navigate(target)</code></dt>
+<dt><code><a name="web.navigate" href="#web.navigate">navigate</a>(target)</code></dt>
 <dd>
 <span class="comment">Navigate the window.</span>
 <dl class="parameters">
@@ -427,7 +427,7 @@ callback</span>
 <span class="return comment"><code>true</code> if navigation successful, else
 <code>false</code></span>
 </dd>
-<dt><code>href(elements, target)</code></dt>
+<dt><code><a name="web.href" href="#web.href">href</a>(elements, target)</code></dt>
 <dd>
 <span class="comment">Sets the 'href' attribute.</span>
 <dl class="parameters">
@@ -439,7 +439,7 @@ callback</span>
 <span class="return comment"><code>true</code> if attribute set, else
 <code>false</code></span>
 </dd>
-<dt><code>src(elements, target)</code></dt>
+<dt><code><a name="web.src" href="#web.src">src</a>(elements, target)</code></dt>
 <dd>
 <span class="comment">Sets the 'src' attribute.</span>
 <dl class="parameters">
@@ -451,11 +451,11 @@ callback</span>
 <span class="return comment"><code>true</code> if attribute set, else
 <code>false</code></span>
 </dd>
-<dt><code>getTitle()</code></dt>
+<dt><code><a name="web.getTitle" href="#web.getTitle">getTitle</a>()</code></dt>
 <dd>
 <span class="comment">Gets the document title.</span>
 </dd>
-<dt><code>setTitle(text)</code></dt>
+<dt><code><a name="web.setTitle" href="#web.setTitle">setTitle</a>(text)</code></dt>
 <dd>
 <span class="comment">Sets the document title.</span>
 <dl class="parameters">
@@ -463,28 +463,90 @@ callback</span>
 <dd class="comment">new title text</dd>
 </dl>
 </dd>
-<dt><code>_proxy(href, base)</code></dt>
+<dt><code><a name="web._proxy" href="#web._proxy">_proxy</a>(href, base)</code></dt>
 <dd>
 <span class="comment">Constructs a remote promise.</span>
 <dl class="parameters">
+<dt><code>base</code></dt>
+<dd class="comment">optional remote promise for base URLref</dd>
 <dt><code>href</code></dt>
 <dd class="comment">URLref to wrap</dd>
-<dt><code>base</code></dt>
-<dd class="comment">optional base URL for relative href</dd>
+<dt><code>args</code></dt>
+<dd class="comment">optional query argument map</dd>
 </dl>
 </dd>
-<dt><code>_crack(promise)</code></dt>
+<dt><code><a name="web._crack" href="#web._crack">_crack</a>(promise, target)</code></dt>
 <dd>
 <span class="comment">Extracts the URLref contained within a remote
 promise.</span>
 <dl class="parameters">
 <dt><code>promise</code></dt>
 <dd class="comment">remote promise to crack</dd>
+<dt><code>target</code></dt>
+<dd class="comment">optional remote promise for base URL</dd>
 </dl>
 <span class="return comment">the URLref, or <code>null</code> if not a remote
 promise</span>
 </dd>
 </dl>
+
+<h2><a name="legacy" href="#legacy">Legacy JSON resources</a></h2>
+<p>Though existing JSON resources may not follow the introduced conventions for
+<a href="#URLref">URLs</a> and <a href="#JSON">entities</a>, it may still be
+more convenient to use the web_send library to interact with them, than it is to
+use XMLHttpRequest, or even another wrapper library. This section explains how.
+
+<h3><a name="manual" href="#manual">Construct a promise from a URL</a></h3>
+<p>If your JSON doesn't follow the <a href="#JSONlink">JSONlink</a> convention,
+you'll have to construct your promises manually, instead of having the web_send
+library do it for you automatically. After extracting a URL from a JSON
+response, pass it and the request promise to
+<a href="#web._proxy">web._proxy</a>(). For example:</p>
+<pre>
+var page = lib.web.getLocation(); // @ &lt;https://example.com/myApp/&gt;
+lib.Q.when(lib.Q.get(page), function (value) {
+    var stuff = <span class="highlight">lib.web._proxy(page, value.stuff.url);</span>
+    // if stuff.url was "stuff.php", then stuff is
+    // &lt;https://example.com/myApp/stuff.php&gt;
+
+    // make a request using the constructed promise
+    var moreStuff = lib.Q.get(stuff);
+    &hellip;
+});
+</pre>
+<p>You can also augment the URL with query arguments:</p>
+<pre>
+var stuffArgs = lib.web._proxy(page, value.stuff.url, {
+    on: true,
+    id: 'P123'
+});
+</pre>
+<p>Extract the URL from a promise with a call to
+<a href="web._crack">web._crack</a>(). For example:</p>
+<pre>
+var url = lib.web._crack(stuffArgs);
+// url is &lt;https://example.com/myApp/stuff.php?on=true&amp;id=P123&gt;
+</pre>
+<p>The extracted URL is an absolute URL, unless you specify an optional
+base:</p>
+<pre>
+var relativeURL = lib.web._crack(stuffArgs, page);
+// relativeURL is &lt;./stuff.php?on=true&amp;id=P123&gt;
+</pre>
+
+<h3><a name="HTTPerror" href="#HTTPerror">Only HTTP error branch</a></h3>
+<p>If your JSON doesn't follow the <a href="#JSONerror">JSONerror</a>
+convention, only HTTP level errors will trigger the rejection callback provided
+to <a href="#Q.when">Q.when</a>(). All successful HTTP requests are sent to the
+fulfilled callback. For example:</p>
+<pre>
+lib.Q.when(lib.Q.get(stuff), function (value) {
+    // value is JSON entity from a success HTTP response
+}, function (reason) {
+    var status = reason.status; // HTTP status code
+    var phrase = reason.phrase; // HTTP reason phrase
+});
+</pre>
 
 <h2><a name="securityConsiderations" href="#securityConsiderations">Security considerations</a></h2>
 <p>For HTTP requests issued by the web_send library, the query component of the
