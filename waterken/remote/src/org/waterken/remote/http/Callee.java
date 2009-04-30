@@ -17,6 +17,7 @@ import org.joe_e.charset.UTF8;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Unresolved;
 import org.ref_send.scope.Layout;
 import org.ref_send.scope.Scope;
 import org.waterken.http.Message;
@@ -63,11 +64,8 @@ Callee extends Struct implements Serializable {
             Object value;
             try {
                 // AUDIT: call to untrusted application code
-                value = exports.reference(query);
-                if (null != value) {
-                    value = Eventual.ref(value).call();
-                }
-            } catch (final NullPointerException e) {
+                value = Eventual.ref(exports.reference(query)).call();
+            } catch (final Unresolved e) {
                 return serialize(m.head.method, "404", "not yet",
                                  Server.ephemeral, JSON.Rejected.make(e));
             } catch (final Exception e) {
