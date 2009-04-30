@@ -109,11 +109,6 @@ ADSAFE.go('WIDGET_', function (dom, lib) {
         if (undefined === value || null === value) {
             $.push('void');
             r = dom.tag('span');
-        } else if (ADSAFE.isArray(value)) {
-            r = dom.tag('ol');
-            value.filter(function (element) {
-                r.append(dom.tag('li').append(render(element)));
-            });
         } else if ('boolean' === typeof value) {
             $.push('boolean');
             $.push(value ? 'true' : 'false');
@@ -131,11 +126,20 @@ ADSAFE.go('WIDGET_', function (dom, lib) {
             } else {
                 r = render(referent, $);
             }
+        } else if (ADSAFE.isArray(value)) {
+            r = dom.tag('ol');
+            value.filter(function (element) {
+                r.append(dom.tag('li').append(render(element)));
+            });
         } else {
             r = dom.tag('div');
             for (name in value) { if (value.hasOwnProperty(name)) {
                 if ('$' === name) {
                     $ = $.concat(value.$);
+                } else if ('!' === name) {
+                    $ = $.concat('Rejected');
+                    r.append(render(ADSAFE.get(value, name), [ 'reason' ]));
+                    r.append(dom.text(' '));
                 } else {
                     r.append(render(ADSAFE.get(value, name), [ name ]));
                     r.append(dom.text(' '));
