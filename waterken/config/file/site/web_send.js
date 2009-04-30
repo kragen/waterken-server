@@ -53,25 +53,25 @@ ADSAFE.lib('web', function (lib) {
      * @param href  absolute target URLref
      */
     function relateURI(base, href) {
-        var baseUOP = /^([a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\/)([^\?#]*)/.exec(base);
-        var hrefUOPR= /^([a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\/)([^\?#]*)(.*)$/.
+        var baseOP  = /^([a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\/)([^\?#]*)/.exec(base);
+        var hrefOPR = /^([a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\/)([^\?#]*)(.*)$/.
                                                                      exec(href);
-        if (!baseUOP || !hrefUOPR || baseUOP[1] !== hrefUOPR[1]) {return href;}
+        if (!baseOP || !hrefOPR || baseOP[1] !== hrefOPR[1]) { return href; }
 
         // determine the common parent folder
-        var basePath = baseUOP[2].split('/');
-        var hrefPath = hrefUOPR[2].split('/');
+        var basePath = baseOP[2].split('/');
+        var hrefPath = hrefOPR[2].split('/');
         var maxMatch = Math.min(basePath.length, hrefPath.length) - 1;
         var i = 0;
         while (i !== maxMatch && basePath[i] === hrefPath[i]) { ++i; }
 
-        // wind up to the common base
+        // wind up to the common parent folder
         var cd = '';
         for (var n = basePath.length - i - 1; 0 !== n--;) { cd += '../'; }
         if ('' === cd) {
             cd = './';
         }
-        return cd + hrefPath.slice(i).join('/') + hrefUOPR[3];
+        return cd + hrefPath.slice(i).join('/') + hrefOPR[3];
     }
 
     /**
@@ -110,11 +110,11 @@ ADSAFE.lib('web', function (lib) {
      * @param href  relative URL to resolve
      */
     function resolveURI(base, href) {
-        base = /^[^#]*/.exec(base)[0];  // never include base fragment
+        if (/^[a-zA-Z][\w\-\.\+]*:/.test(href)) { return href; }
 
+        base = /^[^#]*/.exec(base)[0];  // never include base fragment
         if ('' === href) { return base; }
         if (/^#/.test(href)) { return base + href; }
-        if (/^[a-zA-Z][\w\-\.\+]*:/.test(href)) { return href; }
         if (/^\/\//.test(href)) {
             return /^[a-zA-Z][\w\-\.\+]*:/.exec(base)[0] + href;
         }
@@ -127,9 +127,9 @@ ADSAFE.lib('web', function (lib) {
 
         // unwind relative path operators
         base = base.substring(0, base.lastIndexOf('/') + 1);
-        var parts = /^([a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\/)(.*)$/.exec(base);
-        var host = parts[1];
-        var path = parts[2];
+        var baseOR = /^([a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\/)(.*)$/.exec(base);
+        var host = baseOR[1];
+        var path = baseOR[2];
         while (true) {
             if (/^\.\.\//.test(href)) {
                 path = path.substring(0, path.lastIndexOf('/',path.length-2)+1);
@@ -227,16 +227,16 @@ ADSAFE.lib('web', function (lib) {
                 requestQuery += 'x=' + encodeURIComponent(m.session.x);
                 requestQuery += '&w=' + m.session.w;
             }
-            var upqf = /([^\?#]*)([^#]*)(.*)/.exec(m.URLref);
-            if (upqf[2]) {
+            var pqf = /([^\?#]*)([^#]*)(.*)/.exec(m.URLref);
+            if (pqf[2]) {
                 requestQuery += '' === requestQuery ? '?' : '&';
-                requestQuery += upqf[2].substring(1);
+                requestQuery += pqf[2].substring(1);
             }
-            if (upqf[3]) {
+            if (pqf[3]) {
                 requestQuery += '' === requestQuery ? '?' : '&';
-                requestQuery += upqf[3].substring(1);
+                requestQuery += pqf[3].substring(1);
             }
-            var requestURI = upqf[1] + requestQuery;
+            var requestURI = pqf[1] + requestQuery;
             http.open(m.op, requestURI, true);
             http.onreadystatechange = function () {
                 if (4 !== http.readyState) { return; }
@@ -388,11 +388,25 @@ ADSAFE.lib('web', function (lib) {
 
         /**
          * Constructs a remote promise.
+         * @param base  optional remote promise for base URLref
          * @param href  URLref to wrap
-         * @param base  optional base URL for relative href
+         * @param args  optional query argument map
          */
-        _proxy: function (href, base) {
-            return proxy(base ? resolveURI(base, href) : href);
+        _proxy: function (base, href, args) {
+            var url = resolveURI(crack(base), href);
+            if (args) {
+                if ("object" !== typeof args) { throw new TypeError(); }
+                var query = '?';
+                for (k in args) { if (Object.hasOwnProperty.call(args, k)) {
+                    if ('?' !== query) {
+                        query += '&';
+                    }
+                    query += encodeURIComponent(String(k)) + '=' +
+                             encodeURIComponent(String(ADSAFE.get(args, k)));
+                } }
+                url = resolveURI(url, query);
+            }
+            return proxy(url);
         },
 
         /**
