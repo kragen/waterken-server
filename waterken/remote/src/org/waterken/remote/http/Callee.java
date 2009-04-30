@@ -84,16 +84,13 @@ Callee extends Struct implements Serializable {
         try {
             final Promise<?> subject = Eventual.ref(exports.reference(query));
             // to preserve message order, only access members on a fulfilled ref
-            if (!Fulfilled.isInstance(subject)) { throw new Exception(); }
-            // AUDIT: call to untrusted application code
+            if (!Fulfilled.isInstance(subject)) { throw new Unresolved(); }
             target = subject.call();
+            // prevent access to local implementation details
+            if (HTTP.isPBC(target)) { throw new Unresolved(); }
         } catch (final Exception e) {
             return serialize(m.head.method, "404", "never", Server.forever,
                              JSON.Rejected.make(e));
-        }       
-        if (HTTP.isPBC(target)) {
-            // prevent access to local implementation details
-            return new Message<Response>(Response.gone(), null);
         }
         
         // determine the type of accessed member
