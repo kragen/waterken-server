@@ -8,15 +8,23 @@
  * designed to provide a controlled interface to the network, that can be
  * loaded as an ADsafe library. Clients of this library have permission to send
  * requests to the window target, and any target returned in a request
- * response.  Clients *cannot* construct a remote promise from whole cloth by
- * providing a URL. In this way, a server can control the client's network
- * access by controlling what remote targets are made available to the client.
+ * response.  ADsafe verified clients *cannot* construct a remote promise from
+ * whole cloth by providing a URL. In this way, a server can control the
+ * client's network access by controlling what remote targets are made
+ * available to the client.
  *
- * In addition to messaging, the client is also permitted to navigate the
- * window and read/write the window title.
+ * In addition to messaging, the client is also permitted to read/write the
+ * window title and navigate the window to any received remote target.
  */
 "use strict";
 ADSAFE.lib('web', function (lib) {
+
+    /**
+     * Does an object define a given key?
+     */
+    function includes(map, key) {
+        return map && Object.hasOwnProperty.call(map, key);
+    }
 
     /**
      * secret slot to extract the URL from a promise
@@ -28,7 +36,7 @@ ADSAFE.lib('web', function (lib) {
 
     function proxy(target) {
         var self = function (op, arg1, arg2, arg3) {
-            if (undefined === op) {
+            if (void 0 === op) {
                 unsealedURLref = target;
                 return self;
             }
@@ -84,7 +92,6 @@ ADSAFE.lib('web', function (lib) {
             arg = { '=' : arg };
         }
         return JSON.stringify(arg, function (key, value) {
-            if (undefined === value || null === value) { return value; }
             switch (typeof value) {
             case 'function':
                 unsealedURLref = null;
@@ -165,23 +172,14 @@ ADSAFE.lib('web', function (lib) {
             if (/^application\/do-not-execute$/i.test(contentType)) {
                 return http.responseText;
             }
-            var r = JSON.parse(http.responseText, function (key, value) {
-                if (undefined === value || null === value) { return value; }
-                if ('object' !== typeof value) { return value; }
-                if (value.hasOwnProperty('=')) { return value['=']; }
-                if (value.hasOwnProperty('@')) {
+            return JSON.parse(http.responseText, function (key, value) {
+                if (includes(value, '=')) { return value['=']; }
+                if (includes(value, '@')) {
                     return proxy(resolveURI(base, value['@']));
                 }
-                if (value.hasOwnProperty('!')) {
-                    return lib.Q.reject(value['!']);
-                }
+                if (includes(value, '!')) { return lib.Q.reject(value['!']); }
                 return value;
             });
-            if (undefined !== r && null !== r &&
-                'object' === typeof r && r.hasOwnProperty('=')) {
-                r = r['='];
-            }
-            return r;
         case 204:
         case 205:
             return null;
@@ -205,10 +203,10 @@ ADSAFE.lib('web', function (lib) {
      */
     function makeRequestURI(target, q, session) {
         var requestQuery = '';
-        if (undefined !== q) {
+        if (void 0 !== q && null !== q) {
             requestQuery = '?q=' + encodeURIComponent(q);
         }
-        if (session && undefined !== session.x) {
+        if (includes(session, 'x')) {
             requestQuery += '' === requestQuery ? '?' : '&';
             requestQuery += 'x=' + encodeURIComponent(session.x);
             requestQuery += '&w=' + session.w;
@@ -262,7 +260,7 @@ ADSAFE.lib('web', function (lib) {
 
                 m.resolve(deserialize(requestURI, http));
             };
-            if (undefined === m.argv) {
+            if (void 0 === m.argv) {
                 http.send(null);
             } else {
                 http.setRequestHeader('Content-Type', 'text/plain');
@@ -345,7 +343,7 @@ ADSAFE.lib('web', function (lib) {
             if (null === target) {
                 elements.___nodes___.filter(function (node) {
                     node.removeAttribute('href');
-                    node.onclick = undefined;
+                    node.onclick = void 0;
                     n += 1;
                 });
             } else {
@@ -425,7 +423,7 @@ ADSAFE.lib('web', function (lib) {
             if (args) {
                 if ("object" !== typeof args) { throw new TypeError(); }
                 var query = '?';
-                for (k in args) { if (Object.hasOwnProperty.call(args, k)) {
+                for (k in args) { if (includes(args, k)) {
                     if ('?' !== query) {
                         query += '&';
                     }
