@@ -2,15 +2,15 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-04-30
+ * web_send.js version: 2009-05-01
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
  * loaded as an ADsafe library. Clients of this library have permission to send
  * requests to the window target, and any target returned in a request
- * response.  ADsafe verified clients *cannot* construct a remote promise from
- * whole cloth by providing a URL. In this way, a server can control the
- * client's network access by controlling what remote targets are made
+ * response.  ADsafe verified clients *cannot* construct a remote reference
+ * from whole cloth by providing a URL. In this way, a server can control the
+ * client's network access by controlling what remote references are made
  * available to the client.
  *
  * In addition to messaging, the client is also permitted to read/write the
@@ -27,9 +27,9 @@ ADSAFE.lib('web', function (lib) {
     }
 
     /**
-     * secret slot to extract the URL from a promise
+     * secret slot to extract the URL from a remote reference
      * <p>
-     * Invoking a promise puts the URL in the slot.
+     * Invoking a remote reference puts the URL in the slot.
      * </p>
      */
     var unsealedURLref = null;
@@ -173,11 +173,11 @@ ADSAFE.lib('web', function (lib) {
                 return http.responseText;
             }
             return JSON.parse(http.responseText, function (key, value) {
-                if (includes(value, '=')) { return value['=']; }
+                if (includes(value, '!')) { return lib.Q.reject(value['!']); }
                 if (includes(value, '@')) {
                     return proxy(resolveURI(base, value['@']));
                 }
-                if (includes(value, '!')) { return lib.Q.reject(value['!']); }
+                if (includes(value, '=')) { return value['=']; }
                 return value;
             });
         case 204:
@@ -315,13 +315,13 @@ ADSAFE.lib('web', function (lib) {
     return {
 
         /**
-         * Gets a promise for the window's current location.
+         * Gets a remote reference for the window's current location.
          */
         getLocation: function () { return proxy(window.location.href); },
 
         /**
          * Navigate the window.
-         * @param target    remote promise for new location
+         * @param target    remote reference for new location
          * @return <code>true</code> if navigation successful,
          *         else <code>false</code>
          */
@@ -335,7 +335,7 @@ ADSAFE.lib('web', function (lib) {
         /**
          * Sets the 'href' attribute.
          * @param elements  bunch of elements to modify
-         * @param target    remote promise
+         * @param target    remote reference
          * @return number of elements modified
          */
         href: function (elements, target) {
@@ -372,7 +372,7 @@ ADSAFE.lib('web', function (lib) {
         /**
          * Sets the 'src' attribute.
          * @param elements  bunch of elements to modify
-         * @param target    remote promise
+         * @param target    remote reference
          * @return number of elements modified
          */
         src: function (img, target) {
@@ -413,12 +413,12 @@ ADSAFE.lib('web', function (lib) {
         // Non-ADsafe API
 
         /**
-         * Constructs a remote promise.
-         * @param base  optional remote promise for base URLref
+         * Constructs a remote reference.
+         * @param base  optional remote reference for base URLref
          * @param href  URLref to wrap
          * @param args  optional query argument map
          */
-        _proxy: function (base, href, args) {
+        _ref: function (base, href, args) {
             var url = resolveURI(crack(base), href);
             if (args) {
                 if ("object" !== typeof args) { throw new TypeError(); }
@@ -436,13 +436,13 @@ ADSAFE.lib('web', function (lib) {
         },
 
         /**
-         * Extracts the URLref contained within a remote promise.
-         * @param promise remote promise to crack
-         * @param target  optional remote promise for base URL
-         * @return the URLref, or <code>null</code> if not a remote promise
+         * Extracts the URLref contained within a remote reference.
+         * @param arg       remote reference to extract URLref from
+         * @param target    optional remote reference for base URL
+         * @return the URLref, or <code>null</code> if not a remote reference
          */
-        _crack: function (promise, target) {
-            var href = crack(promise);
+        _url: function (arg, target) {
+            var href = crack(arg);
             if (null === href || !target) { return href; }
             var base = crack(target);
             if (null === base) { return href; }
