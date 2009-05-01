@@ -33,9 +33,10 @@ it into a command-line interpreter for the server-side code. With such a tool
 we could hold onto and reuse server responses using actual variables, instead
 of copying and pasting text!  All we need is a library with an easy syntax for
 generating HTTP requests. The web_send library is that library: providing a
-remote promise API for HTTP URLs. A promise is a special kind of reference that
-lets you easily work with objects that you only have asynchronous access to,
-such as remote objects.</p>
+remote reference API for HTTP URLs. This API lets you easily send asynchronous
+remote requests which include arguments from past responses. Consequently,
+working with remote objects is almost as easy as working with local, in-browser
+objects.</p>
 
 <h2><a name="quickStart" href="#quickStart">Some quick introductory examples</a></h2>
 <p>For example, say you've got a brand new server-side object sitting at a URL
@@ -43,8 +44,8 @@ like: <code>&lt;https://example.com/myApp/obj123&gt;</code>. All you want to do
 is invoke one of its methods, to see what happens. Using the web_send library
 from the Firebug console, you could write:</p>
 <pre>
-maker = lib.web.getLocation();
-drum = lib.Q.post(maker, 'makeDrum', []);
+factory = lib.web.getLocation();
+drum = lib.Q.post(factory, 'makeDrum', []);
 </pre>
 <p>That code generates the following HTTP request:</p>
 <pre>
@@ -57,9 +58,9 @@ Content-Length: 2
 </pre>
 <p>The arguments to <code>Q.post()</code> are:</p>
 <ol>
-<li>promise for the target object</li>
+<li>remote reference for the target object</li>
 <li>optional argument to add to the query string</li>
-<li>optional JSON array for the request body</li>
+<li>optional JSON value for the request body</li>
 </ol>
 <p>The <code>makeDrum()</code> method didn't take any arguments. Here's one
 that does:</p>
@@ -78,25 +79,33 @@ Content-Length: 5
 <p>The target URL in the above request was taken from the HTTP response to the
 previous request. For this to work, the web_send library introduces some
 conventions for HTTP requests and responses. These conventions are the least
-restrictive they can be, while still supporting the client-side promise API.
-The rest of this document explains these conventions.</p>
+restrictive they can be, while still supporting the client-side remote
+reference API.  This document explains these <a href="#JSON">conventions</a>
+and shows how to use <a href="#legacy">legacy JSON resources</a> that don't
+follow the conventions.</p>
 
 <h2><a name="JSON" href="#JSON">JSON conventions</a></h2>
-<p>The web_send library can generate an HTTP request entity using JSON and
-extract information from the JSON in an HTTP response. Doing so requires a
-few conventions.</p>
+<p>The web_send library generates JSON for an HTTP request entity and extracts
+information from the JSON in an HTTP response entity. Doing so requires a few
+conventions.</p>
 
 <h3><a name="JSONlink" href="#JSONlink">JSONlink</a></h3>
-<p>In the introductory example, one of the requests was sent on a promise
+<p>In the introductory example, one of the requests was sent on a reference
 derived from a previous HTTP response. For this to work, the web_send library
 needs to know where to find the corresponding URL inside the HTTP response. To
 enable this, represent a URL as a JSON object having a single member named
-<code>"@"</code>, whose value is the URL string. For example, the JSON response entity in the introductory example was:</p>
+<code>"@"</code>, whose value is the URL string. For example, the HTTP response
+in the introductory example was:</p>
 <pre>
-{ "@" : "obj456" }
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 19
+
+<span class="highlight">{ "@" : "obj456" }</span>
 </pre>
-<p>The provided URL will be interpreted relative to the Request-URI.  In this
-case, the base URL was
+<p>When constructing a remote reference, the web_send library will resolve any
+relative URL. Following the convention in HTTP, the Request-URI is the base URL
+for any relative URL in the response entity.  In this case, the base URL was
 <code>&lt;https://example.com/myApp/obj123?q=makeDrum&gt;</code>,
 making the resolved URL
 <code>&lt;https://example.com/myApp/obj456&gt;</code>.</p>
@@ -185,12 +194,12 @@ recognized as terminating the part of the fragment that should be copied to the
 Request-URI.</p>
 
 <h3><a name="session" href="#session">session identifier</a></h3>
-<p>Before sending any <code>POST</code> request, the web_send library will first
-send a request asking the server if a session should be created. This
+<p>Before sending any <code>POST</code> request, the web_send library will
+first send a request asking the server if a session should be created. This
 <code>POST</code> request is sent to the URL
-<code>&lt;?q=create&amp;s=sessions&gt;</code>, resolved relative to the promise
-URL that is about to be used.  If your server wishes to associate requests with
-a session, respond with JSON like:</p>
+<code>&lt;?q=create&amp;s=sessions&gt;</code>, resolved relative to the remote
+reference URL that is about to be used.  If your server wishes to associate
+requests with a session, respond with JSON like:</p>
 <pre>
 {
   "key" : "sessionid"
@@ -209,14 +218,19 @@ lib.Q.post(drum, 'bang', [ 3 ]);
 creation request with a <code>404</code> response.</p>
 
 <h3><a name="remotePromise" href="#remotePromise">server-side promise</a></h3>
-<p>If your server-side code also uses promises, a URLref that refers to a
-promise must be distinguished from one that refers to a direct object
-reference.  Mark a URLref as referring to a promise by starting the fragment
-with the text '<code>o=</code>'.  This marking is used by
-<code>Q.when()</code>, which registers callbacks to be notified when a promise
-is resolved. If the promise marking is present, <code>Q.when()</code> will
-fetch the resolved value from the server; otherwise, it will treat the
-client-side promise as the fulfilled value. For example:</p>
+<p>The reference returned by a call to <code><a href="#Q.get">Q.get</a>()</code>
+or <code><a href="#Q.post">Q.post</a>()</code> is a special kind of reference
+called a "<a href="../promise/">promise</a>". A promise is unlike a normal
+reference in that it can refer to an object that is yet-to-be-determined, such
+as the return value from an asynchronous request.  If your server-side code
+also uses promises, a URLref that refers to a promise must be distinguished
+from one that refers to a direct object reference.  Mark a URLref as referring
+to a promise by starting the fragment with the text '<code>o=</code>'.  This
+marking is used by <code><a href="#Q.when">Q.when</a>()</code>, which registers
+callbacks to be notified when a promise is resolved. If the promise marking is
+present, <code>Q.when()</code> will fetch the resolved value from the server;
+otherwise, it will treat the client-side promise as the fulfilled value. For
+example:</p>
 <pre>
 var remoteProxy = &hellip; // @ https://example.com/myApp/#s=obj123
 lib.Q.when(remoteProxy, function(value) {
@@ -292,39 +306,49 @@ ADSAFE.id('WIDGET_');
 <dt>adsafe.js</dt>
 <dd>HTML manipulation</dd>
 <dt>ref_send.js</dt>
-<dd>public API for promises</dd>
+<dd>asynchronous operations</dd>
 <dt>web_send.js</dt>
-<dd>remote promise implementation</dd>
+<dd>remote reference implementation</dd>
 <dt><code>ADSAFE.go()</code></dt>
 <dd>initializes all the libraries</dd>
 </dl>
 
 <h2><a name="securityModel" href="#securityModel">Security model</a></h2>
 <p>If you do want to make use of the <a href="http://adsafe.org/">ADsafe</a>
-verifier, you can use it and the web_send library to constrain the network
-access of widgets on your web pages. By default, the ADsafe verifier prevents
-any network access by a verified widget. If you allow such a widget to load the
-web_send library, it gets permission to send requests using the
-<code>window.location</code> URL, and any URL received in a request response.
-By controlling what URLs your server returns in its responses, you can control
-what URLs the verified widgets can access.</p>
+verifier, you can use it and the web_send library to control the network access
+of widgets on your web pages. ADsafe is a subset of
+<a href="http://code.google.com/p/google-caja/">Caja</a>, so any code you
+produce under ADsafe should also work in a Caja environment.</p>
+<p>By default, the ADsafe verifier prevents any network access by a verified
+widget. If you allow such a widget to load the web_send library, it gets
+permission to send requests using the <code>window.location</code> URL, and any
+URL received in a request response.  By controlling what URLs your server
+returns in its responses, you can control what URLs the verified widget can
+access. For example, your social networking site may host third-party
+applications running within your pages in the browser. Using ADsafe and
+web_send, you could give such an application access to a server-side user
+database and know that it cannot call home to its developer, nor leak the
+provided permission to another application.</p>
 <p>The web_send library also allows clients to navigate the browser window
-using any received remote promise. If you wish to allow a widget to message
+using any received remote reference. If you wish to allow a widget to message
 with a particular server-side object, but not navigate the browser, load the
-web_send library in a separate widget which then passes a remote promise to the
-more constrained widget. Using this remote promise and the ref_send library,
-the more constrained widget can message with the server-side object, but cannot
-navigate the browser, since it doesn't have access to the web_send library.</p>
+web_send library in a separate widget which then passes a remote reference to
+the more constrained widget. Using this remote reference and the
+<code><a href="#Q">lib.Q</a></code> library, the more constrained widget can
+message with the server-side object, but cannot navigate the browser, since it
+doesn't have access to the <code><a href="#web">lib.web</a></code> library.</p>
 
 <h2><a name="API" href="#API">API</a></h2>
-<p>The API is divided into two parts:
-<a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/ref_send.js?view=markup">ref_send</a>,
-the promise API; and
-<a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/web_send.js?view=markup">web_send</a>,
-the network access API. The public APIs are defined at the bottom of each of
-these JavaScript files.</p>
+<p>The API is divided into two parts: <code><a href="#Q">lib.Q</a></code>, the
+asynchronous operation API; and <code><a href="#web">lib.web</a></code>, the
+network access API.</p>
 
-<h3><a name="Q" href="#Q">ref_send API</a></h3>
+<h3><a name="Q" href="#Q"><code>lib.Q</code> API</a></h3>
+<p>The <code><a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/ref_send.js?view=markup">ref_send.js</a></code>
+script defines the ADsafe library: <code>lib.Q</code>. This API supports
+asynchronous operations; such as <a href="#Q.get">sending a <code>GET</code>
+request</a>, and <a href="#Q.when">setting up a callback</a> for a request
+response.</p>
 <dl class="methods">
 <dt><code><a name="Q.run" href="#Q.run">run</a>(task)</code></dt>
 <dd>
@@ -390,7 +414,7 @@ callback</span>
 <span class="comment">Sends a <code>GET</code> request.</span>
 <dl class="parameters">
 <dt><code>target</code></dt>
-<dd class="comment">promise or immediate reference to send request to</dd>
+<dd class="comment">request target reference</dd>
 <dt><code>q</code></dt>
 <dd class="comment">optional additional query string argument</dd>
 </dl>
@@ -401,7 +425,7 @@ callback</span>
 <span class="comment">Sends a <code>POST</code> request.</span>
 <dl class="parameters">
 <dt><code>target</code></dt>
-<dd class="comment">promise or immediate reference to send request to</dd>
+<dd class="comment">request target reference</dd>
 <dt><code>q</code></dt>
 <dd class="comment">optional additional query string argument</dd>
 <dt><code>entity</code></dt>
@@ -411,18 +435,23 @@ callback</span>
 </dd>
 </dl>
 
-<h3><a name="web" href="#web">web_send API</a></h3>
+<h3><a name="web" href="#web"><code>lib.web</code> API</a></h3>
+<p>The <code><a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/web_send.js?view=markup">web_send.js</a></code>
+script defines the ADsafe library: <code>lib.web</code>. This API provides a
+remote reference interface to the network; such as <a href="#web._ref">creating
+a remote reference from a URL</a>, and <a href="#web.href">creating a hyperlink
+from a remote reference</a>.</p>
 <dl class="methods">
 <dt><code><a name="web.getLocation" href="#web.getLocation">getLocation</a>()</code></dt>
 <dd>
-<span class="comment">Gets a promise for the window's current location.</span>
+<span class="comment">Constructs a remote reference for the current <code>window.location</code>.</span>
 </dd>
 <dt><code><a name="web.navigate" href="#web.navigate">navigate</a>(target)</code></dt>
 <dd>
-<span class="comment">Navigate the window.</span>
+<span class="comment">Navigates the window.</span>
 <dl class="parameters">
 <dt><code>target</code></dt>
-<dd class="comment">remote promise for new location</dd>
+<dd class="comment">remote reference for new location</dd>
 </dl>
 <span class="return comment"><code>true</code> if navigation successful, else
 <code>false</code></span>
@@ -434,7 +463,7 @@ callback</span>
 <dt><code>elements</code></dt>
 <dd class="comment">bunch of elements to modify</dd>
 <dt><code>target</code></dt>
-<dd class="comment">remote promise</dd>
+<dd class="comment">remote reference</dd>
 </dl>
 <span class="return comment">number of elements modified</span>
 </dd>
@@ -445,7 +474,7 @@ callback</span>
 <dt><code>elements</code></dt>
 <dd class="comment">bunch of elements to modify</dd>
 <dt><code>target</code></dt>
-<dd class="comment">remote promise</dd>
+<dd class="comment">remote reference</dd>
 </dl>
 <span class="return comment">number of elements modified</span>
 </dd>
@@ -461,30 +490,30 @@ callback</span>
 <dd class="comment">new title text</dd>
 </dl>
 </dd>
-<dt><code><a name="web._proxy" href="#web._proxy">_proxy</a>(base, href, args)</code></dt>
+<dt><code><a name="web._ref" href="#web._ref">_ref</a>(base, href, args)</code></dt>
 <dd>
-<span class="comment">Constructs a remote promise.</span>
+<span class="comment">Constructs a remote reference.</span>
 <dl class="parameters">
 <dt><code>base</code></dt>
-<dd class="comment">optional remote promise for base URL</dd>
+<dd class="comment">optional remote reference for base URL</dd>
 <dt><code>href</code></dt>
 <dd class="comment">URLref to wrap</dd>
 <dt><code>args</code></dt>
 <dd class="comment">optional query argument map</dd>
 </dl>
 </dd>
-<dt><code><a name="web._crack" href="#web._crack">_crack</a>(promise, target)</code></dt>
+<dt><code><a name="web._url" href="#web._url">_url</a>(arg, target)</code></dt>
 <dd>
 <span class="comment">Extracts the URLref contained within a remote
-promise.</span>
+reference.</span>
 <dl class="parameters">
-<dt><code>promise</code></dt>
-<dd class="comment">remote promise to crack</dd>
+<dt><code>arg</code></dt>
+<dd class="comment">remote reference to extract URLref from</dd>
 <dt><code>target</code></dt>
-<dd class="comment">optional remote promise for base URL</dd>
+<dd class="comment">optional remote reference for base URL</dd>
 </dl>
 <span class="return comment">the URLref, or <code>null</code> if not a remote
-promise</span>
+reference</span>
 </dd>
 </dl>
 
@@ -494,41 +523,41 @@ promise</span>
 more convenient to use the web_send library to interact with them, than it is to
 use XMLHttpRequest, or even another wrapper library. This section explains how.
 
-<h3><a name="manual" href="#manual">Construct a promise from a URL</a></h3>
+<h3><a name="manual" href="#manual">Construct a remote reference from a URL</a></h3>
 <p>If your JSON doesn't follow the <a href="#JSONlink">JSONlink</a> convention,
-you'll have to construct your promises manually, instead of having the web_send
-library do it for you automatically. After extracting a URL from a JSON
-response, pass it and the request promise to
-<a href="#web._proxy">web._proxy</a>(). For example:</p>
+you'll have to construct your remote references manually, instead of having the
+web_send library do it for you automatically. After extracting a URL from a
+JSON response, pass it and the request target reference to
+<a href="#web._ref">web._ref</a>(). For example:</p>
 <pre>
 var page = lib.web.getLocation(); // @ &lt;https://example.com/myApp/&gt;
 lib.Q.when(lib.Q.get(page), function (value) {
-    var stuff = <span class="highlight">lib.web._proxy(page, value.stuff.url);</span>
+    var stuff = <span class="highlight">lib.web._ref(page, value.stuff.url)</span>;
     // if stuff.url was "stuff.php", then stuff is
     // &lt;https://example.com/myApp/stuff.php&gt;
 
-    // make a request using the constructed promise
+    // make a request using the constructed remote reference
     var moreStuff = lib.Q.get(stuff);
     &hellip;
 });
 </pre>
 <p>You can also augment the URL with query arguments:</p>
 <pre>
-var stuffArgs = lib.web._proxy(page, value.stuff.url, {
+var stuffArgs = lib.web._ref(page, value.stuff.url, {
     on: true,
     id: 'P123'
 });
 </pre>
-<p>Extract the URL from a promise with a call to
-<a href="web._crack">web._crack</a>(). For example:</p>
+<p>Extract the URL from a remote reference with a call to
+<a href="web._url">web._url</a>(). For example:</p>
 <pre>
-var url = lib.web._crack(stuffArgs);
+var url = lib.web._url(stuffArgs);
 // url is &lt;https://example.com/myApp/stuff.php?on=true&amp;id=P123&gt;
 </pre>
 <p>The extracted URL is an absolute URL, unless you specify an optional
 base:</p>
 <pre>
-var relativeURL = lib.web._crack(stuffArgs, page);
+var relativeURL = lib.web._url(stuffArgs, page);
 // relativeURL is &lt;./stuff.php?on=true&amp;id=P123&gt;
 </pre>
 
@@ -546,13 +575,19 @@ lib.Q.when(lib.Q.get(stuff), function (value) {
 });
 </pre>
 
+<h3><a name="cookies" href="#cookies">HTTP cookies</a></h3>
+<p>If your JSON resources require use of cookies, set these up as you normally
+would. The web_send library doesn't provide an API for doing this, but also
+doesn't prevent the browser from sending and receiving cookies with the
+produced HTTP requests.</p>
+
 <h2><a name="securityConsiderations" href="#securityConsiderations">Security considerations</a></h2>
 <p>For HTTP requests issued by the web_send library, the query component of the
 Request-URI contains data contributed by: optional arguments added by the
 web_send library (<a href="#q"><code>'q'</code></a>,
 <a href="#session"><code>'x'</code> and <code>'w'</code></a>), the query
-component of the target promise URLref, and the <a href="#fragment">fragment
-component</a> of the target promise URLref. These elements are added to the
+component of the target URLref, and the <a href="#fragment">fragment
+component</a> of the target URLref. These elements are added to the
 Request-URI's query component in that order, which allows a server to
 disambiguate them. A request with duplicate query parameters may indicate an
 attack. For example, the following code:</p>
@@ -571,19 +606,18 @@ an attacker may send a user a specially crafted URLref that includes unexpected
 arguments in the query and fragment components.</p>
 
 <h2><a name="acknowledgments" href="#acknowledgments">Acknowledgments</a></h2>
-<p>Thanks to Bill
-Frantz, Charles Landau, Chip Morningstar, David-Sarah Hopwood and Mike Samuel
-for comments and contributions.</p>
+<p>Thanks to Alan Karp, Bill Frantz, Brian Warner, Charles Landau, Chip
+Morningstar, David-Sarah Hopwood, Doug Crockford, Marc Stiegler, Mark Miller,
+Mike Samuel and Norm Hardy for comments and contributions.</p>
 
 <h2><a name="firebug" href="#firebug">Using the Firebug console</a></h2>
-<p>Try out the
-<a href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/web_send.js?view=markup">web_send</a>
-library using the <a href="../bang/">Bang Tutorial</a>.</p>
+<p>Try out the web_send library using the <a href="../bang/">Bang
+Tutorial</a>.</p>
 
 </div>
 <p class="footer comment">
 <a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
-<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-04-30</a>
+<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-05-01</a>
 </p>
 </body>
 </html>
