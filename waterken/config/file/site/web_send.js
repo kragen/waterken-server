@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-01
+ * web_send.js version: 2009-05-05
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -20,6 +20,11 @@
 ADSAFE.lib('web', function (lib) {
 
     /**
+     * initial number of milliseconds to wait before retrying a request
+     */
+    var initialTimeout = 15 * 1000;
+
+    /**
      * Does an object define a given key?
      */
     function includes(map, key) {
@@ -34,26 +39,59 @@ ADSAFE.lib('web', function (lib) {
      */
     var unsealedURLref = null;
 
-    function proxy(target) {
-        var self = function (op, arg1, arg2, arg3) {
-            if (void 0 === op) {
-                unsealedURLref = target;
-                return self;
-            }
-            if (/#o=/.test(target)) {
-                send(target, 'GET', function (x) {
-                    ('function'===typeof x?x:lib.Q.ref(x))(op,arg1,arg2,arg3);
-                });
-            } else {
-                if ('WHEN' === op) {
-                    arg1(self);
-                } else {
-                    send(target, op, arg1, arg2, arg3);
+    /**
+     * value returned on a 404 server response
+     */
+    var notYetPumpkin = lib.Q.reject({
+        $: [ 'org.ref_send.promise.Failure', 'NaO' ],
+        status: 404,
+        phrase: 'Not Found'
+    });
+
+    /**
+     * Constructs a remote reference.
+     * @param target    absolute URLref for target resource
+     */
+    var sealURLref = (function () {
+        var pendingRemotePromises = { /* URLref => local promise */ };
+        return function (target) {
+            var self = function (op, arg1, arg2, arg3) {
+                if (void 0 === op) {
+                    unsealedURLref = target;
+                    return self;
                 }
-            }
+                if (/#o=/.test(target)) {
+                    var local = ADSAFE.get(pendingRemotePromises, target);
+                    if (!local) {
+                        var pr = lib.Q.defer();
+                        local = pr.promise;
+                        ADSAFE.set(pendingRemotePromises, target, local);
+                        var timeout = initialTimeout;
+                        var retry = function (x) {
+                            if (notYetPumpkin === x) {
+                                ADSAFE.later(function () {
+                                    send(target, 'GET', retry);
+                                }, timeout);
+                                timeout = Math.min(2*timeout, 60*60*1000);
+                            } else {
+                                delete pendingRemotePromises[target];
+                                pr.resolve(x);
+                            }
+                        };
+                        send(target, 'GET', retry);
+                    }
+                    local(op, arg1, arg2, arg3);
+                } else {
+                    if ('WHEN' === op) {
+                        arg1(self);
+                    } else {
+                        send(target, op, arg1, arg2, arg3);
+                    }
+                }
+            };
+            return self;
         };
-        return self;
-    }
+    }) ();
 
     /**
      * Produces a relative URL reference.
@@ -175,7 +213,7 @@ ADSAFE.lib('web', function (lib) {
             return JSON.parse(http.responseText, function (key, value) {
                 if (includes(value, '!')) { return lib.Q.reject(value['!']); }
                 if (includes(value, '@')) {
-                    return proxy(resolveURI(base, value['@']));
+                    return sealURLref(resolveURI(base, value['@']));
                 }
                 if (includes(value, '=')) { return value['=']; }
                 return value;
@@ -185,7 +223,9 @@ ADSAFE.lib('web', function (lib) {
             return null;
         case 303:
             var see = http.getResponseHeader('Location');
-            return see ? proxy(resolveURI(base, see)) : null;
+            return see ? sealURLref(resolveURI(base, see)) : null;
+        case 404:
+            return notYetPumpkin;
         default:
             return lib.Q.reject({
                 $: [ 'org.ref_send.promise.Failure', 'NaO' ],
@@ -199,28 +239,136 @@ ADSAFE.lib('web', function (lib) {
      * Constructs a Request-URI for a web-key with options.
      * @param target    target URLref
      * @param q         optional client-specified query
-     * @param session   optional session arguments.
+     * @param x         optional session key
+     * @param w         optional message window number
      */
-    function makeRequestURI(target, q, session) {
+    function makeRequestURI(target, q, x, w) {
         var requestQuery = '';
         if (void 0 !== q && null !== q) {
-            requestQuery = '?q=' + encodeURIComponent(q);
+            requestQuery = '?q=' + encodeURIComponent(String(q));
         }
-        if (includes(session, 'x')) {
+        if (x) {
             requestQuery += '' === requestQuery ? '?' : '&';
-            requestQuery += 'x=' + encodeURIComponent(session.x);
-            requestQuery += '&w=' + session.w;
+            requestQuery += 'x=' + encodeURIComponent(String(x));
+            requestQuery += '&w=' + encodeURIComponent(String(w));
         }
-        var upqf = /([^\?#]*)([^#]*)(.*)/.exec(target);
-        if (upqf[2]) {
+        var pqf = /([^\?#]*)([^#]*)(.*)/.exec(target);
+        if (pqf[2]) {
             requestQuery += '' === requestQuery ? '?' : '&';
-            requestQuery += upqf[2].substring(1);
+            requestQuery += pqf[2].substring(1);
         }
-        if (upqf[3]) {
+        if (pqf[3]) {
             requestQuery += '' === requestQuery ? '?' : '&';
-            requestQuery += upqf[3].substring(1);
+            requestQuery += pqf[3].substring(1);
         }
-        return upqf[1] + requestQuery;
+        return pqf[1] + requestQuery;
+    }
+
+    /**
+     * Constructs a pending request queue.
+     */
+    function makeSession() {
+        var x = null;               // session id
+        var w = 0;                  // number of received responses
+        var pending = [];           // pending requests
+        var initialized = false;    // session initialization request queued?
+        var connection = null;      // current connection
+
+        function makeConnection(timeout) {
+            if (void 0 === timeout) {
+                timeout = initialTimeout;
+            }
+            var http;
+            if (window.XMLHttpRequest) {
+                http = new XMLHttpRequest();
+            } else {
+                http = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            var heartbeat = (new Date()).getTime();
+            var self = function () {
+                if (self !== connection) { return; }
+
+                var m = pending[0];
+                var requestURI = makeRequestURI(
+                    m.target, m.q, m.idempotent ? null : x, w);
+                http.open(m.op, requestURI, true);
+                http.onreadystatechange = function () {
+                    if (3 === http.readyState || 4 === http.readyState) {
+                        heartbeat = (new Date()).getTime();
+                    }
+                    if (self !== connection) { return; }
+
+                    if (4 !== http.readyState) { return; }
+                    if (http.status < 200 || http.status >= 500) { return; }
+
+                    if (m !== pending.shift()) { throw new Error(); }
+                    w += 1;
+                    if (0 === pending.length) {
+                        connection = null;
+                    } else {
+                        ADSAFE.later(self);
+                    }
+
+                    m.resolve(deserialize(requestURI, http));
+                };
+                if (void 0 === m.argv) {
+                    http.send(null);
+                } else {
+                    http.setRequestHeader('Content-Type', 'text/plain');
+                    http.send(serialize(requestURI, m.argv));
+                }
+            };
+            if (timeout) { (function () {
+                var watcher = function () {
+                    if (connection !== self) { return; }
+
+                    var delta = ((new Date()).getTime()) - heartbeat;
+                    if (delta >= timeout) {
+                        if (x || pending[0].idempotent) {
+                            connection = makeConnection(
+                                Math.min(2 * timeout, 60 * 60 * 1000));
+                            ADSAFE.later(connection);
+                            if ('function' === http.abort) { http.abort(); }
+                        }
+                    } else {
+                        ADSAFE.later(watcher, timeout - delta);
+                    }
+                };
+                ADSAFE.later(watcher, timeout);
+            }) (); }
+            return self;
+        }
+
+        return function (target, op, resolve, q, argv) {
+            var idempotent = 'GET' === op || 'HEAD' === op ||
+                             'PUT' === op || 'DELETE' === op ||
+                             'OPTIONS' === op || 'TRACE' === op;
+            var m = {
+                idempotent: idempotent,
+                target: target,
+                op: op,
+                resolve: resolve,
+                q: q,
+                argv: argv
+            };
+            if (!idempotent && !initialized) {
+                pending.push({
+                    idempotent: true,
+                    target: resolveURI(target, '?q=create&s=sessions'),
+                    op: 'POST',
+                    argv: [],
+                    resolve: function (value) {
+                        x = value.key;
+                    }
+                });
+                initialized = true;
+            }
+            pending.push(m);
+            if (!connection) {
+                connection = makeConnection();
+                ADSAFE.later(connection);
+            }
+        };
     }
 
     /**
@@ -232,79 +380,19 @@ ADSAFE.lib('web', function (lib) {
      * @param argv      JSON value for request body
      */
     var send = (function () {
-        var active = false;
-        var pending = [];
-        var http;
-        if (window.XMLHttpRequest) {
-            http = new XMLHttpRequest();
-        } else {
-            http = new ActiveXObject('MSXML2.XMLHTTP.3.0');
-        }
         var sessions = { /* origin => session */ };
-
-        var output = function () {
-            var m = pending[0];
-            var requestURI = makeRequestURI(m.target, m.q, m.session);
-            http.open(m.op, requestURI, true);
-            http.onreadystatechange = function () {
-                if (4 !== http.readyState) { return; }
-                if (m !== pending.shift()) { throw new Error(); }
-                if (0 === pending.length) {
-                    active = false;
-                } else {
-                    ADSAFE.later(output);
-                }
-                if (m.session) {
-                    m.session.w += 1;
-                }
-
-                m.resolve(deserialize(requestURI, http));
-            };
-            if (void 0 === m.argv) {
-                http.send(null);
-            } else {
-                http.setRequestHeader('Content-Type', 'text/plain');
-                http.send(serialize(requestURI, m.argv));
-            }
-
-            // TODO: monitor the request with a local timeout
-        };
         return function (target, op, resolve, q, argv) {
-            var session = null;
-            if ('POST' === op) {
-                var origin = resolveURI(target, '/');
-                session = ADSAFE.get(sessions, origin);
-                if (!session) {
-                    session = {
-                        w: 1
-                    };
-                    ADSAFE.set(sessions, origin, session);
-                    pending.push({
-                        target: resolveURI(target, '?q=create&s=sessions'),
-                        op: 'POST',
-                        argv: [],
-                        resolve: function (value) {
-                            session.x = value.key;
-                        }
-                    });
-                }
+            var origin = resolveURI(target, '/');
+            var session = ADSAFE.get(sessions, origin);
+            if (!session) {
+                session = makeSession();
+                ADSAFE.set(sessions, origin, session);
             }
-            pending.push({
-                session: session,
-                target: target,
-                op: op,
-                resolve: resolve,
-                q: q,
-                argv: argv
-            });
-            if (!active) {
-                ADSAFE.later(output);
-                active = true;
-            }
+            return session(target, op, resolve, q, argv);
         };
     }) ();
 
-    function crack(p) {
+    function unsealURLref(p) {
         unsealedURLref = null;
         if ('function' === typeof p) { p(); }
         var r = unsealedURLref;
@@ -317,7 +405,7 @@ ADSAFE.lib('web', function (lib) {
         /**
          * Gets a remote reference for the window's current location.
          */
-        getLocation: function () { return proxy(window.location.href); },
+        getLocation: function () { return sealURLref(window.location.href); },
 
         /**
          * Navigate the window.
@@ -326,7 +414,7 @@ ADSAFE.lib('web', function (lib) {
          *         else <code>false</code>
          */
         navigate: function (target) {
-            var href = crack(target);
+            var href = unsealURLref(target);
             if (null === href) { return false; }
             window.location.assign(href);
             return true;
@@ -347,7 +435,7 @@ ADSAFE.lib('web', function (lib) {
                     n += 1;
                 });
             } else {
-                var href = crack(target);
+                var href = unsealURLref(target);
                 if (null !== href) {
                     elements.___nodes___.filter(function (node) {
                         switch (node.tagName.toUpperCase()) {
@@ -383,7 +471,7 @@ ADSAFE.lib('web', function (lib) {
                     n += 1;
                 });
             } else {
-                var src = crack(target);
+                var src = unsealURLref(target);
                 if (null !== src) {
                     elements.___nodes___.filter(function (node) {
                         switch (node.tagName.toUpperCase()) {
@@ -419,7 +507,7 @@ ADSAFE.lib('web', function (lib) {
          * @param args  optional query argument map
          */
         _ref: function (base, href, args) {
-            var url = resolveURI(crack(base), href);
+            var url = resolveURI(unsealURLref(base), href);
             if (args) {
                 if ("object" !== typeof args) { throw new TypeError(); }
                 var query = '?';
@@ -432,7 +520,7 @@ ADSAFE.lib('web', function (lib) {
                 } }
                 url = resolveURI(url, query);
             }
-            return proxy(url);
+            return sealURLref(url);
         },
 
         /**
@@ -442,9 +530,9 @@ ADSAFE.lib('web', function (lib) {
          * @return the URLref, or <code>null</code> if not a remote reference
          */
         _url: function (arg, target) {
-            var href = crack(arg);
+            var href = unsealURLref(arg);
             if (null === href || !target) { return href; }
-            var base = crack(target);
+            var base = unsealURLref(target);
             if (null === base) { return href; }
             return relateURI(base, href);
         }
