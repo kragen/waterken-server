@@ -4,6 +4,7 @@ package org.waterken.remote.http;
 
 import static org.ref_send.promise.Failure.maxEntitySize;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -116,8 +117,10 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                         client.fail(e);
                         throw e;
                     }
-                    client.receive(r.head,
-                                   null!=r.body ?r.body.asInputStream() :null);
+                    try {
+                        client.receive(
+                            r.head, null!=r.body ?r.body.asInputStream() :null);
+                    } catch (final IOException e) {}
                     return null;
                 }
             });
