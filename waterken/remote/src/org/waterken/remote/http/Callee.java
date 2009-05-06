@@ -95,7 +95,8 @@ Callee extends Struct implements Serializable {
         
         // determine the type of accessed member
         final Method lambda = HTTP.dispatch(target, p);
-        if (null == lambda) {                   // no such member
+        final Method declaration = bubble(lambda);
+        if (null == declaration) {              // no such member
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
                     Response.options("TRACE", "OPTIONS"), null);
@@ -116,7 +117,7 @@ Callee extends Struct implements Serializable {
             Object value;
             try {
                 // AUDIT: call to untrusted application code
-                final Object r = Reflection.invoke(bubble(lambda), target);
+                final Object r = Reflection.invoke(declaration, target);
                 value = Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
             } catch (final Exception e) {
                 value = JSON.Rejected.make(e);
@@ -165,7 +166,7 @@ Callee extends Struct implements Serializable {
                 }
 
                 // AUDIT: call to untrusted application code
-                final Object r = Reflection.invoke(bubble(lambda), target,
+                final Object r = Reflection.invoke(declaration, target,
                         argv.toArray(new Object[argv.length()]));
                 return Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
             }
