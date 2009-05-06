@@ -4,7 +4,7 @@
       xml:base="http://waterken.sourceforge.net/">
 
 <id>http://waterken.sourceforge.net/recent</id>
-<updated>2009-03-25T00:00:00Z</updated>
+<updated>2009-05-06T00:00:00Z</updated>
 <title>Waterken News</title>
 <subtitle>Capability-based security on the Web</subtitle>
 <link href="recent.html"/>
@@ -15,6 +15,26 @@
     <name>Tyler Close</name>
     <uri>http://waterken.sourceforge.net/recent.html</uri>
 </author>
+
+<entry>
+<id>http://waterken.sourceforge.net/recent#10</id>
+<updated>2009-05-06T00:00:00Z</updated>
+<title>web_send: Browser shell for JSON resources</title>
+<link href="http://waterken.sourceforge.net/web_send/"/>
+<content type="xhtml">
+<div xmlns="http://www.w3.org/1999/xhtml">
+<p>The web_send library provides a concise and expressive API for interacting
+with arbitrary JSON resources from the web browser. When used from the
+<a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a> console,
+it acts like a command line for your web server; a great help during
+development of server-side code. The same API is also convenient for creating
+an AJAX user interface to JSON resources; so code born on the interactive
+command line migrates smoothly into application code. This tutorial also links
+to a <a href="bang/">live web page</a> where you can try out the library
+against a simple server-side counter object.</p>
+</div>
+</content>
+</entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#9</id>
