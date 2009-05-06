@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * ref_send.js version: 2009-04-27
+ * ref_send.js version: 2009-05-06
  */
 "use strict";
 ADSAFE.lib('Q', function () {
@@ -44,35 +44,7 @@ ADSAFE.lib('Q', function () {
         };
     }
 
-    /*
-     * The above functions, reject() and ref(), each construct a kind of
-     * promise. Other libraries can provide other kinds of promises by
-     * implementing the same API. A promise is a function with signature:
-     * function (op, arg1, arg2, arg3). The first argument determines the
-     * interpretation of the remaining arguments. The following cases must be
-     * handled:
-     *
-     * 'op' is undefined:
-     *  Return the most resolved current value of the promise.
-     *
-     * 'op' is 'WHEN':
-     *  'arg1': callback to invoke with the fulfilled value of the promise
-     *  'arg2': callback to invoke with the rejection reason for the promise
-     *
-     * 'op' is 'GET':
-     *  'arg1': callback to invoke with the value of the named property
-     *  'arg2': name of the property to read
-     *
-     * 'op' is 'POST':
-     *  'arg1': callback to invoke with the return value from the invocation
-     *  'arg2': name of the method to invoke
-     *  'arg3': array of invocation arguments
-     *
-     * 'op' is unrecognized:
-     *  'arg1': callback to invoke with a rejected promise
-     */
-
-    var enqueue = function () {
+    var enqueue = (function () {
         var active = false;
         var pending = [];
         var run = function () {
@@ -91,10 +63,36 @@ ADSAFE.lib('Q', function () {
                 active = true;
             }
         };
-    } ();
+    })();
 
     /**
      * Enqueues a promise operation.
+     *
+     * The above functions, reject() and ref(), each construct a kind of
+     * promise. Other libraries can provide other kinds of promises by
+     * implementing the same API. A promise is a function with signature:
+     * function (op, arg1, arg2, arg3). The first argument determines the
+     * interpretation of the remaining arguments. The following cases must be
+     * handled:
+     *
+     * 'op' is undefined:
+     *  Return the most resolved current value of the promise.
+     *
+     * 'op' is "WHEN":
+     *  'arg1': callback to invoke with the fulfilled value of the promise
+     *  'arg2': callback to invoke with the rejection reason for the promise
+     *
+     * 'op' is "GET":
+     *  'arg1': callback to invoke with the value of the named property
+     *  'arg2': name of the property to read
+     *
+     * 'op' is "POST":
+     *  'arg1': callback to invoke with the return value from the invocation
+     *  'arg2': name of the method to invoke
+     *  'arg3': array of invocation arguments
+     *
+     * 'op' is unrecognized:
+     *  'arg1': callback to invoke with a rejected promise
      */
     function forward(p, op, arg1, arg2, arg3) {
         enqueue(function () { p(op, arg1, arg2, arg3); });
@@ -148,7 +146,7 @@ ADSAFE.lib('Q', function () {
         /**
          * Constructs a rejected promise.
          * @param reason    Error object describing the failure
-         * @param $         optional type info to add to <code>reason</code>
+         * @param $         optional type info to add to reason
          */
         reject: reject,
 
@@ -160,14 +158,13 @@ ADSAFE.lib('Q', function () {
 
         /**
          * Constructs a ( promise, resolver ) pair.
-         * <p>
+         *
          * The resolver is a callback to invoke with a more resolved value for
          * the promise. To fulfill the promise, simply invoke the resolver with
          * an immediate reference. To reject the promise, invoke the resolver
          * with the return from a call to reject(). To put the promise in the
          * same state as another promise, invoke the resolver with that other
          * promise.
-         * </p>
          */
         defer: defer,
 
