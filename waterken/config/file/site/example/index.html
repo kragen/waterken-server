@@ -11,12 +11,27 @@
 </head>
 <body>
 <noscript><p>This page requires a Javascript enabled web browser.</p></noscript>
+<script type="text/javascript">
+// reload the document if the fragment changes
+(function () {
+    var originalFragment = window.location.hash;
+    var checker = function () {
+        if (originalFragment !== window.location.hash) {
+            // TODO: do original fragment navigation
+            window.location.reload();
+        } else {
+            setTimeout(checker, 100);
+        }
+    };
+    setTimeout(checker, 100);
+}());
+</script>
 
-<div id="WIDGET_">
-<div id="WIDGET_BODY">
+<div id="EXAMPLE_">
 <!-- Normally, you'd put your widget's initial HTML content here. -->
 <!-- For example... -->
-<div id="WIDGET_BANG" style="display: none">
+<div id="EXAMPLE_ANY" style="display: none"></div>
+<div id="EXAMPLE_BANG" style="display: none">
 <style type="text/css">
 .input, .prompt { color: blue }
 .output { color: green }
@@ -42,7 +57,7 @@ the bottom of the window:</p>
 // GET request sent above will already have been received and
 // processed by the time I hit the 'Enter' key.</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="WIDGET_BANG0">waiting...</span>
+<span class="output" id="EXAMPLE_BANG0">waiting...</span>
 <span class="comment">
 // Send a POST request to increment the counter...</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ 1 ])</span>
@@ -50,7 +65,7 @@ the bottom of the window:</p>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
 <span class="output">function()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="WIDGET_BANG1">waiting...</span>
+<span class="output" id="EXAMPLE_BANG1">waiting...</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ 2 ])</span>
 <span class="output">function()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
@@ -74,26 +89,29 @@ the bottom of the window:</p>
 // the POST request that increases the counter.</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(lib.Q.post(drum, 'bang', [ 3 ]), 'hits')</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="WIDGET_BANG6">waiting...</span>
+<span class="output" id="EXAMPLE_BANG6">waiting...</span>
 <span class="comment">
 // Promises can also be used as arguments...</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ hits ])</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
 <span class="output">function()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="WIDGET_BANG12">waiting...</span>
+<span class="output" id="EXAMPLE_BANG12">waiting...</span>
 </pre>
 </div>
+<div id="EXAMPLE_SERIES" style="display: none">
+<p>Append a value to the series:</p>
+<input type="text" id="EXAMPLE_SERIESPRODUCER" autocomplete="off" />
 </div>
 <script type="text/javascript">
 "use strict";
-ADSAFE.id('WIDGET_');
+ADSAFE.id('EXAMPLE_');
 </script>
 <script type="text/javascript" src="/site/ref_send.js?o="></script>
 <script type="text/javascript" src="/site/web_send.js?o="></script>
 <script type="text/javascript">
 "use strict";
-ADSAFE.go('WIDGET_', function (dom, lib) {
+ADSAFE.go('EXAMPLE_', function (dom, lib) {
     // Promote the widget context...
     window.dom = dom;           // not ADsafe
     window.lib = lib;           // not ADsafe
@@ -123,7 +141,7 @@ ADSAFE.go('WIDGET_', function (dom, lib) {
             var referent = lib.Q.near(value);
             r = dom.tag('a');
             if (lib.web.href(r, referent)) {
-                r.append(dom.tag('span').klass('empty'));
+                r.append(dom.tag('span').klass('empty').append(dom.text('X')));
             } else {
                 r = render(referent, $);
             }
@@ -160,10 +178,70 @@ ADSAFE.go('WIDGET_', function (dom, lib) {
     }
     function renderBody(value) {
         var node = render(value);
-        var body = dom.q('#WIDGET_BODY');
-        body.empty();
-        body.append(dom.tag('h1').append(dom.text(node.getClass())));
-        body.append(node);
+        dom.q('#EXAMPLE_ANY').
+            style('display', 'block').
+            append(dom.tag('h1').append(dom.text(node.getClass()))).
+            append(node);
+    }
+    function renderBang(factory) {
+        dom.q('#EXAMPLE_BANG').style('display', 'block');
+        var drum = lib.Q.post(factory, 'makeDrum', []);
+        lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
+            dom.q('#EXAMPLE_BANG0').empty().append(render(value));
+        }, function (reason) {
+            dom.q('#EXAMPLE_BANG0').empty().append(render(reason));
+        });
+        lib.Q.post(drum, 'bang', [ 1 ]);
+        lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
+            dom.q('#EXAMPLE_BANG1').empty().append(render(value));
+        }, function (reason) {
+            dom.q('#EXAMPLE_BANG1').empty().append(render(reason));
+        });
+        lib.Q.post(drum, 'bang', [ 2 ]);
+        lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
+            ADSAFE.log('hits = ' + value);
+        }, function (reason) {
+            ADSAFE.log('request failed');
+        });
+        lib.Q.when(lib.Q.get(lib.Q.post(drum, 'bang', [ 3 ]), 'hits'),
+                   function (value) {
+            dom.q('#EXAMPLE_BANG6').empty().append(render(value));
+
+            lib.Q.post(drum, 'bang', [ lib.Q.get(drum, 'hits') ]);
+            lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
+                dom.q('#EXAMPLE_BANG12').empty().append(render(value));
+            }, function (reason) {
+                dom.q('#EXAMPLE_BANG12').empty().append(render(reason));
+            });
+        }, function (reason) {
+            dom.q('#EXAMPLE_BANG6').empty().append(render(reason));
+        });
+    }
+    function renderSeries(series) {
+        var ol = dom.tag('ol');
+        var grow = function () {
+            var li = dom.tag('li');
+            ol.append(li);
+            var p = lib.Q.post(series, 'consume', []);
+            var update = function () { li.append(render(p)); };
+            lib.Q.when(series, update, update);
+            lib.Q.when(p, function (value) {
+                li.append(dom.text(' = '));
+                li.append(render(value));
+            }, function (reason) {
+                li.append(dom.text(' = '));
+                li.append(render(lib.Q.reject(reason)));
+            });
+            lib.Q.when(p, grow, grow);
+        };
+        grow();
+        var input = dom.q('#EXAMPLE_SERIESPRODUCER');
+        input.on('enterkey', function (e) {
+            lib.Q.post(series, 'produce', [ input.getValue() ]);
+            input.value('');
+        });
+        dom.q('#EXAMPLE_SERIES').style('display', 'block').append(ol);
+        input.focus();
     }
     function isa(value, type) {
         return value && value.$ &&
@@ -173,38 +251,9 @@ ADSAFE.go('WIDGET_', function (dom, lib) {
     var representation = lib.Q.get(target);
     lib.Q.when(representation, function (value) {
         if (isa(value, 'org.waterken.bang.DrumFactory')) {
-            dom.q('#WIDGET_BANG').style('display', 'block');
-            var drum = lib.Q.post(target, 'makeDrum', []);
-            lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
-                dom.q('#WIDGET_BANG0').empty().append(render(value));
-            }, function (reason) {
-                dom.q('#WIDGET_BANG0').empty().append(render(reason));
-            });
-            lib.Q.post(drum, 'bang', [ 1 ]);
-            lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
-                dom.q('#WIDGET_BANG1').empty().append(render(value));
-            }, function (reason) {
-                dom.q('#WIDGET_BANG1').empty().append(render(reason));
-            });
-            lib.Q.post(drum, 'bang', [ 2 ]);
-            lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
-                ADSAFE.log('hits = ' + value);
-            }, function (reason) {
-                ADSAFE.log('request failed');
-            });
-            lib.Q.when(lib.Q.get(lib.Q.post(drum, 'bang', [ 3 ]), 'hits'),
-                       function (value) {
-                dom.q('#WIDGET_BANG6').empty().append(render(value));
-
-                lib.Q.post(drum, 'bang', [ lib.Q.get(drum, 'hits') ]);
-                lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
-                    dom.q('#WIDGET_BANG12').empty().append(render(value));
-                }, function (reason) {
-                    dom.q('#WIDGET_BANG12').empty().append(render(reason));
-                });
-            }, function (reason) {
-                dom.q('#WIDGET_BANG6').empty().append(render(reason));
-            });
+            renderBang(target);
+        } else if (isa(value, 'org.waterken.serial.Series')) {
+             renderSeries(target);
         } else {
             renderBody(value);
         }

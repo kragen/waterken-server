@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-05
+ * web_send.js version: 2009-05-06
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -18,11 +18,6 @@
  */
 "use strict";
 ADSAFE.lib('web', function (lib) {
-
-    /**
-     * initial number of milliseconds to wait before retrying a request
-     */
-    var initialTimeout = 15 * 1000;
 
     /**
      * Does an object define a given key?
@@ -50,43 +45,39 @@ ADSAFE.lib('web', function (lib) {
 
     /**
      * Constructs a remote reference.
-     * @param target    absolute URLref for target resource
+     * @param href  absolute URLref for target resource
      */
     var sealURLref = (function () {
         var pendingRemotePromises = { /* URLref => local promise */ };
-        return function (target) {
+        return function (href) {
             var self = function (op, arg1, arg2, arg3) {
                 if (void 0 === op) {
-                    unsealedURLref = target;
+                    unsealedURLref = href;
                     return self;
                 }
-                if (/#o=/.test(target)) {
-                    var local = ADSAFE.get(pendingRemotePromises, target);
+                if (/#o=/.test(href)) {
+                    var local = ADSAFE.get(pendingRemotePromises, href);
                     if (!local) {
                         var pr = lib.Q.defer();
                         local = pr.promise;
-                        ADSAFE.set(pendingRemotePromises, target, local);
-                        var timeout = initialTimeout;
+                        ADSAFE.set(pendingRemotePromises, href, local);
+                        var timeout = 1 * 1000;
                         var retry = function (x) {
                             if (notYetPumpkin === x) {
                                 ADSAFE.later(function () {
-                                    send(target, 'GET', retry);
+                                    send(self, href, 'GET', retry);
                                 }, timeout);
-                                timeout = Math.min(2*timeout, 60*60*1000);
+                                timeout = Math.min(10*timeout, 60*60*1000);
                             } else {
-                                delete pendingRemotePromises[target];
+                                delete pendingRemotePromises[href];
                                 pr.resolve(x);
                             }
                         };
-                        send(target, 'GET', retry);
+                        send(self, href, 'GET', retry);
                     }
                     local(op, arg1, arg2, arg3);
                 } else {
-                    if ('WHEN' === op) {
-                        arg1(self);
-                    } else {
-                        send(target, op, arg1, arg2, arg3);
-                    }
+                    send(self, href, op, arg1, arg2, arg3);
                 }
             };
             return self;
@@ -237,12 +228,12 @@ ADSAFE.lib('web', function (lib) {
 
     /**
      * Constructs a Request-URI for a web-key with options.
-     * @param target    target URLref
-     * @param q         optional client-specified query
-     * @param x         optional session key
-     * @param w         optional message window number
+     * @param href  target URLref
+     * @param q     optional client-specified query
+     * @param x     optional session key
+     * @param w     optional message window number
      */
-    function makeRequestURI(target, q, x, w) {
+    function makeRequestURI(href, q, x, w) {
         var requestQuery = '';
         if (void 0 !== q && null !== q) {
             requestQuery = '?q=' + encodeURIComponent(String(q));
@@ -252,7 +243,7 @@ ADSAFE.lib('web', function (lib) {
             requestQuery += 'x=' + encodeURIComponent(String(x));
             requestQuery += '&w=' + encodeURIComponent(String(w));
         }
-        var pqf = /([^\?#]*)([^#]*)(.*)/.exec(target);
+        var pqf = /([^\?#]*)([^#]*)(.*)/.exec(href);
         if (pqf[2]) {
             requestQuery += '' === requestQuery ? '?' : '&';
             requestQuery += pqf[2].substring(1);
@@ -276,8 +267,9 @@ ADSAFE.lib('web', function (lib) {
 
         function makeConnection(timeout) {
             if (void 0 === timeout) {
-                timeout = initialTimeout;
+                timeout = 15 * 1000;
             }
+
             var http;
             if (window.XMLHttpRequest) {
                 http = new XMLHttpRequest();
@@ -289,8 +281,20 @@ ADSAFE.lib('web', function (lib) {
                 if (self !== connection) { return; }
 
                 var m = pending[0];
+                if ('WHEN' === m.op) {
+                    pending.shift();
+                    if (0 === pending.length) {
+                        connection = null;
+                    } else {
+                        ADSAFE.later(self);
+                    }
+
+                    m.resolve(m.target);
+                    return;
+                }
+
                 var requestURI = makeRequestURI(
-                    m.target, m.q, m.idempotent ? null : x, w);
+                    m.href, m.q, m.idempotent ? null : x, w);
                 http.open(m.op, requestURI, true);
                 http.onreadystatechange = function () {
                     if (3 === http.readyState || 4 === http.readyState) {
@@ -326,7 +330,7 @@ ADSAFE.lib('web', function (lib) {
                     if (delta >= timeout) {
                         if (x || pending[0].idempotent) {
                             connection = makeConnection(
-                                Math.min(2 * timeout, 60 * 60 * 1000));
+                                Math.min(10 * timeout, 60 * 60 * 1000));
                             ADSAFE.later(connection);
                             if ('function' === http.abort) { http.abort(); }
                         }
@@ -339,14 +343,15 @@ ADSAFE.lib('web', function (lib) {
             return self;
         }
 
-        return function (target, op, resolve, q, argv) {
+        return function (target, href, op, resolve, q, argv) {
             var idempotent = 'GET' === op || 'HEAD' === op ||
                              'PUT' === op || 'DELETE' === op ||
-                             'OPTIONS' === op || 'TRACE' === op;
+                             'OPTIONS' === op || 'TRACE' === op ||
+                             'WHEN' === op;
             if (!idempotent && !initialized) {
                 pending.push({
                     idempotent: true,
-                    target: resolveURI(target, '?q=create&s=sessions'),
+                    href: resolveURI(href, '?q=create&s=sessions'),
                     op: 'POST',
                     argv: [],
                     resolve: function (value) {
@@ -358,6 +363,7 @@ ADSAFE.lib('web', function (lib) {
             pending.push({
                 idempotent: idempotent,
                 target: target,
+                href: href,
                 op: op,
                 resolve: resolve,
                 q: q,
@@ -372,7 +378,8 @@ ADSAFE.lib('web', function (lib) {
 
     /**
      * Enqueues an HTTP request.
-     * @param target    target URLref
+     * @param target    target reference
+     * @param href      target URLref
      * @param op        HTTP verb
      * @param resolve   response resolver
      * @param q         query string argument
@@ -380,14 +387,14 @@ ADSAFE.lib('web', function (lib) {
      */
     var send = (function () {
         var sessions = { /* origin => session */ };
-        return function (target, op, resolve, q, argv) {
-            var origin = resolveURI(target, '/');
+        return function (target, href, op, resolve, q, argv) {
+            var origin = resolveURI(href, '/');
             var session = ADSAFE.get(sessions, origin);
             if (!session) {
                 session = makeSession();
                 ADSAFE.set(sessions, origin, session);
             }
-            return session(target, op, resolve, q, argv);
+            return session(target, href, op, resolve, q, argv);
         };
     }());
 
@@ -430,7 +437,6 @@ ADSAFE.lib('web', function (lib) {
             if (null === target) {
                 elements.___nodes___.filter(function (node) {
                     node.removeAttribute('href');
-                    node.onclick = void 0;
                     n += 1;
                 });
             } else {
@@ -440,13 +446,6 @@ ADSAFE.lib('web', function (lib) {
                         switch (node.tagName.toUpperCase()) {
                         case 'A':
                             node.setAttribute('href', href);
-
-                            // navigate even if fragment is only difference
-                            node.onclick = function () {
-                                // TODO: do original fragment navigation
-                                window.location.assign(href);
-                            };
-
                             n += 1;
                             break;
                         }
