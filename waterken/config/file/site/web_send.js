@@ -282,7 +282,7 @@ ADSAFE.lib('web', function (lib) {
             if (window.XMLHttpRequest) {
                 http = new XMLHttpRequest();
             } else {
-                http = new ActiveXObject("Microsoft.XMLHTTP");
+                http = new ActiveXObject('Microsoft.XMLHTTP');
             }
             var heartbeat = (new Date()).getTime();
             var self = function () {
@@ -343,14 +343,6 @@ ADSAFE.lib('web', function (lib) {
             var idempotent = 'GET' === op || 'HEAD' === op ||
                              'PUT' === op || 'DELETE' === op ||
                              'OPTIONS' === op || 'TRACE' === op;
-            var m = {
-                idempotent: idempotent,
-                target: target,
-                op: op,
-                resolve: resolve,
-                q: q,
-                argv: argv
-            };
             if (!idempotent && !initialized) {
                 pending.push({
                     idempotent: true,
@@ -363,7 +355,14 @@ ADSAFE.lib('web', function (lib) {
                 });
                 initialized = true;
             }
-            pending.push(m);
+            pending.push({
+                idempotent: idempotent,
+                target: target,
+                op: op,
+                resolve: resolve,
+                q: q,
+                argv: argv
+            });
             if (!connection) {
                 connection = makeConnection();
                 ADSAFE.later(connection);
@@ -376,7 +375,7 @@ ADSAFE.lib('web', function (lib) {
      * @param target    target URLref
      * @param op        HTTP verb
      * @param resolve   response resolver
-     * @param q         query parameter value
+     * @param q         query string argument
      * @param argv      JSON value for request body
      */
     var send = (function () {
@@ -508,16 +507,19 @@ ADSAFE.lib('web', function (lib) {
          */
         _ref: function (base, href, args) {
             var url = resolveURI(unsealURLref(base), href);
-            if (args) {
-                if ("object" !== typeof args) { throw new TypeError(); }
+            if (void 0 !== args && null !== args) {
                 var query = '?';
-                for (k in args) { if (includes(args, k)) {
-                    if ('?' !== query) {
-                        query += '&';
-                    }
-                    query += encodeURIComponent(String(k)) + '=' +
-                             encodeURIComponent(String(ADSAFE.get(args, k)));
-                } }
+                if ('object' === typeof args) {
+                    for (k in args) { if (includes(args, k)) {
+                        if ('?' !== query) {
+                            query += '&';
+                        }
+                        query += encodeURIComponent(String(k)) + '=' +
+                                 encodeURIComponent(String(ADSAFE.get(args,k)));
+                    } }
+                } else {
+                    query += args;
+                }
                 url = resolveURI(url, query);
             }
             return sealURLref(url);
