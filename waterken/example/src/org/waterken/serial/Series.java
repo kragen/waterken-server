@@ -11,7 +11,8 @@ import org.ref_send.promise.Promise;
  * list before they have been added. An invocation of {@link #consume} returns
  * a promise for what will be the next element in the list, once it is added, at
  * which time it will already have been removed. ;)
- * </p> 
+ * </p>
+ * @param <T>   value type
  */
 public interface
 Series<T> extends Iterable<Promise<T>> {

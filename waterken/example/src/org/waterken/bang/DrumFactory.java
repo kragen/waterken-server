@@ -10,7 +10,7 @@ import org.joe_e.Struct;
 import org.ref_send.promise.Promise;
 
 /**
- * 
+ * A {@link Drum} factory.
  */
 public final class
 DrumFactory extends Struct implements Serializable {
@@ -19,9 +19,15 @@ DrumFactory extends Struct implements Serializable {
     private
     DrumFactory() {}
 
+    /**
+     * Constructs an instance.
+     */
     static public Promise<DrumFactory>
     make() { return ref(new DrumFactory()); }
     
+    /**
+     * Constructs a drum.
+     */
     public Drum
     makeDrum() { return Bang.make(); }
 }
