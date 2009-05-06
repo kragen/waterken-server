@@ -18,11 +18,11 @@
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#10</id>
+<published>2009-05-06T00:00:00Z</published>
 <updated>2009-05-06T00:00:00Z</updated>
 <title>web_send: Browser shell for JSON resources</title>
 <link href="http://waterken.sourceforge.net/web_send/"/>
-<content type="xhtml">
-<div xmlns="http://www.w3.org/1999/xhtml">
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>The web_send library provides a concise and expressive API for interacting
 with arbitrary JSON resources from the web browser. When used from the
 <a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a> console,
@@ -32,17 +32,16 @@ an AJAX user interface to JSON resources; so code born on the interactive
 command line migrates smoothly into application code. This tutorial also links
 to a <a href="bang/">live web page</a> where you can try out the library
 against a simple server-side counter object.</p>
-</div>
-</content>
+</div></content>
 </entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#9</id>
+<published>2009-03-25T00:00:00Z</published>
 <updated>2009-03-25T00:00:00Z</updated>
 <title>Deferred vs promise</title>
 <link href="http://groups.google.com/group/serverjs/browse_thread/thread/e93f73ef97e88439"/>
-<content type="xhtml">
-<div xmlns="http://www.w3.org/1999/xhtml">
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>The <a href="http://groups.google.com/group/serverjs">serverjs</a> group is
 working on a set of APIs for server-side Javascript programming. I've joined in
 on a <a
@@ -62,34 +61,32 @@ convince the serverjs group to adopt promises instead of Deferreds;
 specifically, the <a
 href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/waterken/config/file/site/ref_send.js?view=markup">Javascript
 ref_send library</a>.</p>
-</div>
-</content>
+</div></content>
 </entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#8</id>
+<published>2009-01-28T00:00:00Z</published>
 <updated>2009-01-28T00:00:00Z</updated>
 <title>ACLs don't</title>
 <link href="http://waterken.sourceforge.net/aclsdont/"/>
-<content type="xhtml">
-<div xmlns="http://www.w3.org/1999/xhtml">
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>The ACL model is unable to make correct access decisions for interactions
 involving more than two principals, since required information is not retained
 across message sends. Though this deficiency has long been documented in the
 published literature, it is not widely understood. This logic error in the ACL
 model is exploited by both the clickjacking and Cross-Site Request Forgery
 attacks that affect many Web applications.</p>
-</div>
-</content>
+</div></content>
 </entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#7</id>
+<published>2008-10-15T00:00:00Z</published>
 <updated>2008-10-15T00:00:00Z</updated>
 <title>clickjacking: The Confused Deputy rides again!</title>
 <link href="http://waterken.sourceforge.net/clickjacking/"/>
-<content type="xhtml">
-<div xmlns="http://www.w3.org/1999/xhtml">
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>The <a href="http://ha.ckers.org/blog/20080915/clickjacking/">announcement
 of the clickjacking research</a> ignited interest in a number of Web exploits,
 some of which seem new and others similar to known exploits. Already, there's
@@ -105,87 +102,81 @@ clickjacking and there would be no need to reduce the flexibility of the
 browser's user interface languages. Web applications can be implemented to an
 explicit authorization model without any change to Web protocols or
 formats.</p>
-</div>
-</content>
+</div></content>
 </entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#6</id>
+<published>2008-09-25T00:00:00Z</published>
 <updated>2008-09-25T00:00:00Z</updated>
-<title>Petname Tool: updated for Firefox 3</title>
+<title>Petname Tool: published for Firefox 3</title>
 <link href="https://addons.mozilla.org/en-US/firefox/addon/957"/>
-<content type="xhtml">
-<div xmlns="http://www.w3.org/1999/xhtml">
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>I've ported the Petname Tool to the new
 Places API for bookmarks in Firefox 3.</p>
-</div>
-</content>
+</div></content>
 </entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#5</id>
+<published>2008-07-24T00:00:00Z</published>
 <updated>2008-07-24T00:00:00Z</updated>
 <title>Can the evolution of programming languages inform usable security?</title>
 <link href="http://usablesecurity.com/2008/07/24/testing-for-usable-security-what-relationship-if-any-does-it-have-to-product-design/"/>
-<content type="xhtml">
-<div xmlns="http://www.w3.org/1999/xhtml">
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>Richard Conlan blogs about a SOUPS 2008 panel that I participated in.</p>
-</div>
-</content>
+</div></content>
 </entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#4</id>
+<published>2008-04-25T00:00:00Z</published>
 <updated>2008-04-25T00:00:00Z</updated>
 <title>Using promises to orchestrate Web interactions</title>
 <link href="http://www.windley.com/archives/2008/04/tyler_close_using_promises_to_orchestrate_web_interactions.shtml"/>
-<content type="xhtml">
-<div xmlns="http://www.w3.org/1999/xhtml">
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>Phil Windley blogs about
 <a href="http://www2008.org/program/program-DevTrack.html#seven">my WWW 2008
 presentation</a> of the <a href="bang/">ref_send library for
 Javascript</a>.</p>
-</div>
-</content>
+</div></content>
 </entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#3</id>
+<published>2008-03-22T00:00:00Z</published>
 <updated>2008-03-22T00:00:00Z</updated>
 <title>upgrade: Live fast, die young and leave a good-looking corpse</title>
 <link href="http://waterken.sourceforge.net/upgrade/"/>
-<content type="xhtml">
-<div xmlns="http://www.w3.org/1999/xhtml">
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>Any application that keeps state needs a plan for maintaining it as the
 application evolves. Successfully managing these upgrades is one of the more
 challenging aspects of application development. This document explains several
 patterns and techniques for managing upgrade in a Waterken application.</p>
-</div>
-</content>
+</div></content>
 </entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#2</id>
+<published>2008-03-06T00:00:00Z</published>
 <updated>2008-03-06T00:00:00Z</updated>
 <title>W3C Note on browser security UI finishes Last Call</title>
 <link href="http://www.w3.org/TR/wsc-usecases/"/>
-<content type="xhtml">
-<div xmlns="http://www.w3.org/1999/xhtml">
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>This publication completes my duties as editor for the W3C Web Security
 Context Working Group. I think the
 <a href="http://www.w3.org/TR/wsc-usecases/#problems">Problems with the status
 quo</a> section provides a good summary of the challenges facing the group.</p>
-</div>
-</content>
+</div></content>
 </entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#1</id>
+<published>2007-10-28T00:00:00Z</published>
 <updated>2007-10-28T00:00:00Z</updated>
 <title>web-key: Mashing with permission</title>
 <link href="http://waterken.sourceforge.net/web-key/"/>
-<content type="xhtml">
-<div xmlns="http://www.w3.org/1999/xhtml">
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>Mashups, web applications that interact with other web applications, are
 receiving increasing developer interest and providing users with valuable new
 functionality. When one or more of the interacting applications have access
@@ -198,8 +189,7 @@ introduces a solution, the web-key, an https URL convention for representing a
 transferable permission in a web application.  Using web-keys, access control
 challenges can be effectively solved using existing development tools for web
 applications deployed to existing web browsers.</p>
-</div>
-</content>
+</div></content>
 </entry>
 
 </feed>
