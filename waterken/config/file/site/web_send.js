@@ -91,7 +91,7 @@ ADSAFE.lib('web', function (lib) {
             };
             return self;
         };
-    }) ();
+    }());
 
     /**
      * Produces a relative URL reference.
@@ -335,7 +335,7 @@ ADSAFE.lib('web', function (lib) {
                     }
                 };
                 ADSAFE.later(watcher, timeout);
-            }) (); }
+            }()); }
             return self;
         }
 
@@ -389,7 +389,7 @@ ADSAFE.lib('web', function (lib) {
             }
             return session(target, op, resolve, q, argv);
         };
-    }) ();
+    }());
 
     function unsealURLref(p) {
         unsealedURLref = null;

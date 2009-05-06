@@ -63,7 +63,7 @@ ADSAFE.lib('Q', function () {
                 active = true;
             }
         };
-    })();
+    }());
 
     /**
      * Enqueues a promise operation.
