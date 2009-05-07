@@ -18,25 +18,15 @@
 <a href="../bang/">Bang Tutorial</a>
 
 <h1><a name="title" href="#title">Browser shell for JSON resources</a></h1>
-<p>Not so long ago, in less constrained times, the self-sufficient programmer
-would design a simple text string protocol for interacting with a server-side
-program. A basic telnet program was then all that was needed to test
-server-side code during development: write some code, launch the server, poke
-and prod it from the telnet session to make sure it does what you want. Today,
-such ingenuity at the protocol layer is lost to us, forbidden by our firewalls.
-Woe unto the server-side developer.</p>
-<p>If we are willing to embrace our web browser overlord, we can regain that
-lost productivity, plus some extra.  Since the browser provides us with a full
-programming language (JavaScript) and a console (<a title="Firefox addon page"
-href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a>), we can turn
-it into a command-line interpreter for the server-side code. With such a tool
-we could hold onto and reuse server responses using actual variables, instead
-of copying and pasting text!  All we need is a library with an easy syntax for
-generating HTTP requests. The web_send library is that library: providing a
-remote reference API for HTTP URLs. This API lets you easily send asynchronous
-remote requests which include arguments from past responses. Consequently,
-working with remote objects is almost as easy as working with local, in-browser
-objects.</p>
+<p>The web_send library provides a concise and expressive API for interacting
+with arbitrary JSON resources from the web browser. When used from the
+<a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a> console,
+it acts like a command line for your web server; a great help during
+development of server-side code. The same API is also convenient for creating
+an AJAX user interface to JSON resources; so code born on the interactive
+command line migrates smoothly into application code. This tutorial also links
+to a <a href="bang/">live web page</a> where you can try out the library
+against a simple server-side counter object.</p>
 
 <h2><a name="quickStart" href="#quickStart">Some quick introductory examples</a></h2>
 <p>For example, say you've got a brand new server-side object sitting at a URL
@@ -617,7 +607,7 @@ Tutorial</a>.</p>
 </div>
 <p class="footer comment">
 <a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
-<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-05-05</a>
+<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-05-06</a>
 </p>
 </body>
 </html>
