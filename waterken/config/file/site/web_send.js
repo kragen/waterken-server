@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-06
+ * web_send.js version: 2009-05-07
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -227,7 +227,7 @@ ADSAFE.lib('web', function (lib) {
     }
 
     /**
-     * Constructs a Request-URI for a web-key with options.
+     * Constructs a Request-URI with options.
      * @param href  target URLref
      * @param q     optional client-specified query
      * @param x     optional session key
@@ -249,8 +249,12 @@ ADSAFE.lib('web', function (lib) {
             requestQuery += pqf[2].substring(1);
         }
         if (pqf[3]) {
-            requestQuery += '' === requestQuery ? '?' : '&';
-            requestQuery += pqf[3].substring(1);
+            var args = pqf[3].substring(1).split('&');
+            for (var i = 0; i != args.length; ++i) {
+                if (/^=/.test(args[i])) { break; }
+                requestQuery += '' === requestQuery ? '?' : '&';
+                requestQuery += args[i];
+            }
         }
         return pqf[1] + requestQuery;
     }
