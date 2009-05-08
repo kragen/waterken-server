@@ -238,13 +238,10 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
             ol.append(li);
         };
         var listing = dom.q('#EXAMPLE_SERIESLIST');
-        function renderList() {
-            var ol = dom.tag('ol');
-            listing.empty().append(ol);
-            var front = lib.Q.get(series, 'front');
-            after(series, function () { grow(ol, front); });
-        }
-        renderList();
+        var ol = dom.tag('ol');
+        listing.append(ol);
+        var front = lib.Q.get(series, 'front');
+        after(series, function () { grow(ol, front); });
         var slot = dom.q('#EXAMPLE_SERIESSLOT');
         var consume = dom.q('#EXAMPLE_SERIESCONSUME');
         consume.on('click', function (e) {
@@ -253,7 +250,6 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
             slot.empty().append(entry);
             after(series, update(entry, consumed));
             after(consumed, update(entry, consumed));
-            renderList();
         });
         var produce = dom.q('#EXAMPLE_SERIESPRODUCE');
         produce.on('enterkey', function (e) {
