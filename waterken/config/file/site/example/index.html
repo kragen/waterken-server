@@ -253,6 +253,13 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
         dom.q('#EXAMPLE_SERIES').style('display', 'block').append(ol);
         produce.focus();
     }
+    function renderSeriesFactory(factory) {
+        lib.Q.when(lib.Q.post(factory, 'makeSeries', []), function (value) {
+            if (!lib.web.navigate(value)) { throw new Error(); }
+        }, function (reason) {
+            renderBody(reason);
+        });
+    }
     function isa(value, type) {
         return value && value.$ &&
                value.$.filter(function (x) { return x === type; }).length;
@@ -264,6 +271,8 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
             renderBang(target);
         } else if (isa(value, 'org.waterken.serial.Series')) {
             renderSeries(target);
+        } else if (isa(value, 'org.waterken.serial.SeriesFactory')) {
+            renderSeriesFactory(target);
         } else {
             renderBody(value);
         }
