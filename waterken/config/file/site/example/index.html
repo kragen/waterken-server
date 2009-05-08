@@ -37,7 +37,7 @@
 .output { color: green }
 </style>
 <p>Using this page, you can try out the
-<a href="/site/ref_send.js?o=">ref_send promise API</a> in the
+<a href="/site/ref_send.js?o=2009-05-08">ref_send promise API</a> in the
 <a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a> console.
 For example, select the "Console" tab in Firebug and then enter the following
 commands at the "<kbd><span class="prompt">&gt;&gt;&gt;</span></kbd>" prompt at
@@ -100,15 +100,17 @@ the bottom of the window:</p>
 </pre>
 </div>
 <div id="EXAMPLE_SERIES" style="display: none">
-<p>Append a value to the series:</p>
-<input type="text" id="EXAMPLE_SERIESPRODUCER" autocomplete="off" />
+<p><input type="button" id="EXAMPLE_SERIESCONSUME" value="Consume"/> a value:
+<span id="EXAMPLE_SERIESSLOT"></span></p>
+<p>Produce a value:
+<input type="text" autocomplete="off" id="EXAMPLE_SERIESPRODUCE" /></p>
 </div>
 <script type="text/javascript">
 "use strict";
 ADSAFE.id('EXAMPLE_');
 </script>
-<script type="text/javascript" src="/site/ref_send.js?o="></script>
-<script type="text/javascript" src="/site/web_send.js?o="></script>
+<script type="text/javascript" src="/site/ref_send.js?o=2009-05-08"></script>
+<script type="text/javascript" src="/site/web_send.js?o=2009-05-08"></script>
 <script type="text/javascript">
 "use strict";
 ADSAFE.go('EXAMPLE_', function (dom, lib) {
@@ -217,31 +219,39 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
             dom.q('#EXAMPLE_BANG6').empty().append(render(reason));
         });
     }
+    function update(element, value, $) {
+        return function () { return element.empty().append(render(value, $)); };
+    }
+    function after(p, f) { return lib.Q.when(p, f, f); }
     function renderSeries(series) {
         var ol = dom.tag('ol');
-        var grow = function () {
-            var li = dom.tag('li');
-            ol.append(li);
-            var p = lib.Q.post(series, 'consume', []);
-            var update = function () { li.append(render(p)); };
-            lib.Q.when(series, update, update);
-            lib.Q.when(p, function (value) {
-                li.append(dom.text(' = '));
-                li.append(render(value));
+        function grow(pLink) {
+            var li = dom.tag('li').append(render(pLink));
+            lib.Q.when(pLink, function (link) {
+                after(link.value, update(li, link.value));
+                grow(link.next);
             }, function (reason) {
-                li.append(dom.text(' = '));
-                li.append(render(lib.Q.reject(reason)));
+                li.empty().append(render(pLink));
             });
-            lib.Q.when(p, grow, grow);
+            ol.append(li);
         };
-        grow();
-        var input = dom.q('#EXAMPLE_SERIESPRODUCER');
-        input.on('enterkey', function (e) {
-            lib.Q.post(series, 'produce', [ input.getValue() ]);
-            input.value('');
+        var front = lib.Q.get(series, 'front');
+        after(series, function () { grow(front); });
+        var slot = dom.q('#EXAMPLE_SERIESSLOT');
+        var consume = dom.q('#EXAMPLE_SERIESCONSUME');
+        consume.on('click', function (e) {
+            var consumed = lib.Q.post(series, 'consume', []);
+            after(series, update(slot, consumed));
+            after(consumed, update(slot, consumed));
+            ol.q('li:first').remove();
+        });
+        var produce = dom.q('#EXAMPLE_SERIESPRODUCE');
+        produce.on('enterkey', function (e) {
+            lib.Q.post(series, 'produce', [ produce.getValue() ]);
+            produce.value('');
         });
         dom.q('#EXAMPLE_SERIES').style('display', 'block').append(ol);
-        input.focus();
+        produce.focus();
     }
     function isa(value, type) {
         return value && value.$ &&
@@ -253,7 +263,7 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
         if (isa(value, 'org.waterken.bang.DrumFactory')) {
             renderBang(target);
         } else if (isa(value, 'org.waterken.serial.Series')) {
-             renderSeries(target);
+            renderSeries(target);
         } else {
             renderBody(value);
         }

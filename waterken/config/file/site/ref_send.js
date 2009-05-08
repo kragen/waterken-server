@@ -2,15 +2,12 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * ref_send.js version: 2009-05-06
+ * ref_send.js version: 2009-05-08
  */
 "use strict";
 ADSAFE.lib('Q', function () {
 
-    function reject(reason, $) {
-        if (undefined !== $) {
-            reason.$ = $;
-        }
+    function reject(reason) {
         return function (op, arg1, arg2, arg3) {
             if (undefined === op) {
                 return { '!' : reason };
@@ -22,23 +19,47 @@ ADSAFE.lib('Q', function () {
 
     function ref(value) {
         if (null === value || undefined === value) {
-            return reject(new ReferenceError(), [ 'NaO' ]);
+            return reject({ $: [ 'NaO' ] });
         }
         if ('number' === typeof value && !isFinite(value)) {
-            return reject(new RangeError(), [ 'NaN' ]);
+            return reject({ $: [ 'NaN' ] });
         }
         return function (op, arg1, arg2, arg3) {
             if (undefined === op) { return value; }
 
             var r;
-            if ('WHEN' === op) {
+            switch (op) {
+            case 'WHEN':
                 r = value;
-            } else if ('GET' === op) {
-                r = undefined === arg2 ? value : ADSAFE.get(value, arg2);
-            } else if ('POST' === op) {
-                r = ADSAFE.invoke(value, arg2, arg3);
-            } else {
-                r = reject(new TypeError(), [ 'NaO' ]);
+                break;
+            case 'GET':
+                r = (undefined === arg2) ? value : ADSAFE.get(value, arg2);
+                break;
+            case 'POST':
+                if (undefined === arg2) {
+                    r = reject({});
+                } else {
+                    r = ADSAFE.invoke(value, arg2, arg3);
+                }
+                break;
+            case 'PUT':
+                if (undefined === arg2) {
+                    r = reject({});
+                } else {
+                    ADSAFE.set(value, arg2, arg3);
+                    r = {};
+                }
+                break;
+            case 'DELETE':
+                if (undefined === arg2) {
+                    r = reject({});
+                } else {
+                    ADSAFE.remove(value, arg2);
+                    r = {};
+                }
+                break;
+            default:
+                r = reject({});
             }
             return arg1 ? arg1(r) : r;
         };
@@ -91,6 +112,15 @@ ADSAFE.lib('Q', function () {
      *  'arg2': name of the method to invoke
      *  'arg3': array of invocation arguments
      *
+     * 'op' is "PUT":
+     *  'arg1': callback to invoke with the return value from the operation
+     *  'arg2': name of the property to set
+     *  'arg3': new value of property
+     *
+     * 'op' is "DELETE":
+     *  'arg1': callback to invoke with the return value from the operation
+     *  'arg2': name of the property to delete
+     *
      * 'op' is unrecognized:
      *  'arg1': callback to invoke with a rejected promise
      */
@@ -102,28 +132,24 @@ ADSAFE.lib('Q', function () {
      * Gets the corresponding promise for a given reference.
      */
     function promise(value) {
-        return 'function' === typeof value ? value : ref(value);
+        return ('function' === typeof value) ? value : ref(value);
     }
 
     function defer() {
-        var value = reject(new Error(), [ 'NaO' ]);
+        var value;
         var pending = [];
+        var tail = function (op, arg1, arg2, arg3) {
+            if (undefined === op) { return pending ? tail : value(); }
+            if (pending) {
+                pending.push({ op: op, arg1: arg1, arg2: arg2, arg3: arg3 });
+            } else {
+                forward(value, op, arg1, arg2, arg3);
+            }
+        };
         return {
-            promise: function (op, arg1, arg2, arg3) {
-                if (undefined === op) { return value(); }
-                if (null === pending) {
-                    forward(value, op, arg1, arg2, arg3);
-                } else {
-                    pending.push({
-                        op: op,
-                        arg1: arg1,
-                        arg2: arg2,
-                        arg3: arg3
-                    });
-                }
-            },
+            promise: tail,
             resolve: function (p) {
-                if (null === pending) { return; }
+                if (!pending) { return; }
 
                 var todo = pending;
                 pending = null;
@@ -145,8 +171,7 @@ ADSAFE.lib('Q', function () {
 
         /**
          * Constructs a rejected promise.
-         * @param reason    Error object describing the failure
-         * @param $         optional type info to add to reason
+         * @param reason    value describing the failure
          */
         reject: reject,
 
@@ -173,7 +198,7 @@ ADSAFE.lib('Q', function () {
          * @param value promise or immediate reference to evaluate
          */
         near: function (value) {
-            return 'function' === typeof value ? value() : value;
+            return ('function' === typeof value) ? value() : value;
         },
 
         /**
@@ -194,9 +219,6 @@ ADSAFE.lib('Q', function () {
             }, function (reason) {
                 if (done) { throw new Error(); }
                 done = true;
-                if (!reason) {
-                    reason = new Error();
-                }
                 r.resolve(rejected ? rejected(reason) : reject(reason));
             });
             return r.promise;
@@ -204,26 +226,51 @@ ADSAFE.lib('Q', function () {
 
         /**
          * Gets the value of a property in a future turn.
-         * @param value promise or immediate reference to get property from
-         * @param noun  name of property to get
+         * @param target    promise or immediate reference for target object
+         * @param noun      name of property to get
          * @return promise for the property value
          */
-        get: function (value, noun) {
+        get: function (target, noun) {
             var r = defer();
-            forward(promise(value), 'GET', r.resolve, noun);
+            forward(promise(target), 'GET', r.resolve, noun);
             return r.promise;
         },
 
         /**
          * Invokes a method in a future turn.
-         * @param value promise or immediate reference to invoke
-         * @param verb  name of method to invoke
-         * @param argv  array of invocation arguments
+         * @param target    promise or immediate reference for target object
+         * @param verb      name of method to invoke
+         * @param argv      array of invocation arguments
          * @return promise for the return value
          */
-        post: function (value, verb, argv) {
+        post: function (target, verb, argv) {
             var r = defer();
-            forward(promise(value), 'POST', r.resolve, verb, argv);
+            forward(promise(target), 'POST', r.resolve, verb, argv);
+            return r.promise;
+        },
+
+        /**
+         * Sets the value of a property in a future turn.
+         * @param target    promise or immediate reference for target object
+         * @param noun      name of property to set
+         * @param value     new value of property
+         * @return promise for the return value
+         */
+        put: function (target, noun, value) {
+            var r = defer();
+            forward(promise(target), 'PUT', r.resolve, noun, value);
+            return r.promise;
+        },
+
+        /**
+         * Deletes a property in a future turn.
+         * @param target    promise or immediate reference for target object
+         * @param noun      name of property to delete
+         * @return promise for the return value
+         */
+        remove: function (target, noun) {
+            var r = defer();
+            forward(promise(target), 'DELETE', r.resolve, noun);
             return r.promise;
         }
     };

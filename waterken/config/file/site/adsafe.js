@@ -1,5 +1,5 @@
 // adsafe.js
-// 2009-04-22
+// 2009-05-06
 
 //    Public Domain.
 
@@ -18,7 +18,7 @@
 // USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
 // NOT CONTROL.
 
-/*global ADSAFE */
+/*global ADSAFE, window */
 
 /*jslint browser: true, evil: true, nomen: false */
 
@@ -1544,7 +1544,7 @@ ADSAFE = (function () {
                              root.onclick     = root.ondblclick  =
                              root.onkeypress  = dom_event;
         }
-        return [dom, Bunch];
+        return [dom, Bunch.prototype];
     }
 
 
@@ -1684,11 +1684,22 @@ ADSAFE = (function () {
         log: function log(s) {
             if (window.console) {
                 console.log(s);        /* Firebug */
-            } else if (window.Debug) {
+            } else if (typeof Debug === 'object') {
                 Debug.writeln(s);      /* IE */
-            } else if (window.opera) {
+            } else if (typeof opera === 'opera') {
                 opera.postError(s);    /* Opera */
             }
+        },
+
+
+//  ADSAFE.remove deletes a value from an object.
+
+        remove: function (object, name) {
+            if (arguments.length === 2 && !reject(object, name)) {
+                delete object[name];
+                return;
+            }
+            return error();
         },
 
 
