@@ -133,6 +133,7 @@ HTTP extends Eventual implements Serializable {
             if (isPromise(URI.fragment("", href))) {
                 peer(href).when(href, proxy, observer);
             } else {
+                // TODO: do this via the peer object to keep order
                 final Class<?> P = Typedef.raw(Local.parameter(observer));
                 _.when(P, HTTP.inline(Eventual.cast(P, proxy)), observer);
             }
