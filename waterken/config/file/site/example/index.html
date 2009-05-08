@@ -103,7 +103,9 @@ the bottom of the window:</p>
 <p><input type="button" id="EXAMPLE_SERIESCONSUME" value="Consume"/> a value:
 <span id="EXAMPLE_SERIESSLOT"></span></p>
 <p>Produce a value:
-<input type="text" autocomplete="off" id="EXAMPLE_SERIESPRODUCE" /></p>
+<input type="text" autocomplete="off" id="EXAMPLE_SERIESPRODUCE" />
+(press the 'Enter' key)</p>
+<div id="EXAMPLE_SERIESLIST"></div>
 </div>
 <script type="text/javascript">
 "use strict";
@@ -224,33 +226,40 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
     }
     function after(p, f) { return lib.Q.when(p, f, f); }
     function renderSeries(series) {
-        var ol = dom.tag('ol');
-        function grow(pLink) {
+        dom.q('#EXAMPLE_SERIES').style('display', 'block');
+        function grow(ol, pLink) {
             var li = dom.tag('li').append(render(pLink));
             lib.Q.when(pLink, function (link) {
                 after(link.value, update(li, link.value));
-                grow(link.next);
+                grow(ol, link.next);
             }, function (reason) {
                 li.empty().append(render(pLink));
             });
             ol.append(li);
         };
-        var front = lib.Q.get(series, 'front');
-        after(series, function () { grow(front); });
+        var listing = dom.q('#EXAMPLE_SERIESLIST');
+        function renderList() {
+            var ol = dom.tag('ol');
+            listing.empty().append(ol);
+            var front = lib.Q.get(series, 'front');
+            after(series, function () { grow(ol, front); });
+        }
+        renderList();
         var slot = dom.q('#EXAMPLE_SERIESSLOT');
         var consume = dom.q('#EXAMPLE_SERIESCONSUME');
         consume.on('click', function (e) {
             var consumed = lib.Q.post(series, 'consume', []);
-            after(series, update(slot, consumed));
-            after(consumed, update(slot, consumed));
-            ol.q('li:first').remove();
+            var entry = dom.tag('span');
+            slot.empty().append(entry);
+            after(series, update(entry, consumed));
+            after(consumed, update(entry, consumed));
+            renderList();
         });
         var produce = dom.q('#EXAMPLE_SERIESPRODUCE');
         produce.on('enterkey', function (e) {
             lib.Q.post(series, 'produce', [ produce.getValue() ]);
             produce.value('');
         });
-        dom.q('#EXAMPLE_SERIES').style('display', 'block').append(ol);
         produce.focus();
     }
     function renderSeriesFactory(factory) {
