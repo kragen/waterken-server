@@ -340,6 +340,7 @@ asynchronous operations; such as <a href="#Q.get">sending a <code>GET</code>
 request</a>, and <a href="#Q.when">setting up a callback</a> for a request
 response.</p>
 <dl class="methods">
+
 <dt><code><a name="Q.run" href="#Q.run">run</a>(task)</code></dt>
 <dd>
 <span class="comment">Enqueues a task to be run in a future turn.</span>
@@ -348,16 +349,16 @@ response.</p>
 <dd class="comment">function to invoke later</dd>
 </dl>
 </dd>
+
 <dt><code><a name="Q.reject" href="#Q.reject">reject</a>(reason, $)</code></dt>
 <dd>
 <span class="comment">Constructs a rejected promise.</span>
 <dl class="parameters">
 <dt><code>reason</code></dt>
-<dd class="comment">Error object describing the failure</dd>
-<dt><code>$</code></dt>
-<dd class="comment">optional type info to add to reason</dd>
+<dd class="comment">object describing the failure</dd>
 </dl>
 </dd>
+
 <dt><code><a name="Q.ref" href="#Q.ref">ref</a>(value)</code></dt>
 <dd>
 <span class="comment">Constructs a promise for an immediate reference.</span>
@@ -366,6 +367,7 @@ response.</p>
 <dd class="comment">immediate reference</dd>
 </dl>
 </dd>
+
 <dt><code><a name="Q.defer" href="#Q.defer">defer</a>()</code></dt>
 <dd>
 <div class="comment">
@@ -377,6 +379,7 @@ call to reject(). To put the promise in the same state as another promise,
 invoke the resolver with that other promise.</p>
 </div>
 </dd>
+
 <dt><code><a name="Q.near" href="#Q.near">near</a>(value)</code></dt>
 <dd>
 <span class="comment">Gets the current value of a promise.</span>
@@ -385,6 +388,7 @@ invoke the resolver with that other promise.</p>
 <dd class="comment">promise or immediate reference to evaluate</dd>
 </dl>
 </dd>
+
 <dt><code><a name="Q.when" href="#Q.when">when</a>(value, fulfilled, rejected)</code></dt>
 <dd>
 <span class="comment">Registers an observer on a promise.</span>
@@ -399,6 +403,7 @@ invoke the resolver with that other promise.</p>
 <span class="return comment">promise for the return value from the invoked
 callback</span>
 </dd>
+
 <dt><code><a name="Q.get" href="#Q.get">get</a>(target, q)</code></dt>
 <dd>
 <span class="comment">Sends a <code>GET</code> request.</span>
@@ -410,6 +415,7 @@ callback</span>
 </dl>
 <span class="return comment">promise for the response entity</span>
 </dd>
+
 <dt><code><a name="Q.post" href="#Q.post">post</a>(target, q, entity)</code></dt>
 <dd>
 <span class="comment">Sends a <code>POST</code> request.</span>
@@ -423,6 +429,33 @@ callback</span>
 </dl>
 <span class="return comment">promise for the response entity</span>
 </dd>
+
+<dt><code><a name="Q.put" href="#Q.put">put</a>(target, q, entity)</code></dt>
+<dd>
+<span class="comment">Sends a <code>PUT</code> request.</span>
+<dl class="parameters">
+<dt><code>target</code></dt>
+<dd class="comment">request target reference</dd>
+<dt><code>q</code></dt>
+<dd class="comment">optional additional query string argument</dd>
+<dt><code>entity</code></dt>
+<dd class="comment">optional JSON value for request entity</dd>
+</dl>
+<span class="return comment">promise for the response entity</span>
+</dd>
+
+<dt><code><a name="Q.remote" href="#Q.remove">remove</a>(target, q)</code></dt>
+<dd>
+<span class="comment">Sends a <code>DELETE</code> request.</span>
+<dl class="parameters">
+<dt><code>target</code></dt>
+<dd class="comment">request target reference</dd>
+<dt><code>q</code></dt>
+<dd class="comment">optional additional query string argument</dd>
+</dl>
+<span class="return comment">promise for the response entity</span>
+</dd>
+
 </dl>
 
 <h3><a name="web" href="#web"><code>lib.web</code> API</a></h3>
@@ -432,10 +465,12 @@ remote reference interface to the network; such as <a href="#web._ref">creating
 a remote reference from a URL</a>, and <a href="#web.href">creating a hyperlink
 from a remote reference</a>.</p>
 <dl class="methods">
+
 <dt><code><a name="web.getLocation" href="#web.getLocation">getLocation</a>()</code></dt>
 <dd>
 <span class="comment">Constructs a remote reference for the current <code>window.location</code>.</span>
 </dd>
+
 <dt><code><a name="web.navigate" href="#web.navigate">navigate</a>(target)</code></dt>
 <dd>
 <span class="comment">Navigates the window.</span>
@@ -446,6 +481,7 @@ from a remote reference</a>.</p>
 <span class="return comment"><code>true</code> if navigation successful, else
 <code>false</code></span>
 </dd>
+
 <dt><code><a name="web.href" href="#web.href">href</a>(elements, target)</code></dt>
 <dd>
 <span class="comment">Sets the 'href' attribute.</span>
@@ -457,6 +493,7 @@ from a remote reference</a>.</p>
 </dl>
 <span class="return comment">number of elements modified</span>
 </dd>
+
 <dt><code><a name="web.src" href="#web.src">src</a>(elements, target)</code></dt>
 <dd>
 <span class="comment">Sets the 'src' attribute.</span>
@@ -468,10 +505,12 @@ from a remote reference</a>.</p>
 </dl>
 <span class="return comment">number of elements modified</span>
 </dd>
+
 <dt><code><a name="web.getTitle" href="#web.getTitle">getTitle</a>()</code></dt>
 <dd>
 <span class="comment">Gets the document title.</span>
 </dd>
+
 <dt><code><a name="web.setTitle" href="#web.setTitle">setTitle</a>(text)</code></dt>
 <dd>
 <span class="comment">Sets the document title.</span>
@@ -480,6 +519,7 @@ from a remote reference</a>.</p>
 <dd class="comment">new title text</dd>
 </dl>
 </dd>
+
 <dt><code><a name="web._ref" href="#web._ref">_ref</a>(base, href, args)</code></dt>
 <dd>
 <span class="comment">Constructs a remote reference.</span>
@@ -492,6 +532,7 @@ from a remote reference</a>.</p>
 <dd class="comment">optional query argument map</dd>
 </dl>
 </dd>
+
 <dt><code><a name="web._url" href="#web._url">_url</a>(arg, target)</code></dt>
 <dd>
 <span class="comment">Extracts the URLref contained within a remote
@@ -505,6 +546,7 @@ reference.</span>
 <span class="return comment">the URLref, or <code>null</code> if not a remote
 reference</span>
 </dd>
+
 </dl>
 
 <h2><a name="legacy" href="#legacy">Legacy JSON resources</a></h2>
@@ -607,7 +649,7 @@ Tutorial</a>.</p>
 </div>
 <p class="footer comment">
 <a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
-<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-05-06</a>
+<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-05-08</a>
 </p>
 </body>
 </html>
