@@ -7,11 +7,10 @@ import static org.ref_send.promise.Eventual.cast;
 import java.io.Serializable;
 import java.util.Iterator;
 
-import org.joe_e.Struct;
 import org.ref_send.promise.Channel;
 import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Resolver;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Resolver;
 
 /**
  * A {@link Series} maker.
@@ -67,7 +66,9 @@ Serial {
                 }
                 return new IteratorX();
             }
-
+            
+            public Element<T>
+            getFront() { return front_; }
 
             public void
             produce(final Promise<T> value) {
@@ -78,7 +79,7 @@ Serial {
                  * which is now the new last element.
                  */
                 final Channel<Element<T>> x = _.defer();
-                back.run(link(value, cast(Element.class, x.promise)));
+                back.run(Link.link(value, cast(Element.class, x.promise)));
                 back = x.resolver;
             }
 
@@ -95,25 +96,5 @@ Serial {
             }
         }
         return new SeriesX();
-    }
-
-    /**
-     * Constructs an element.
-     * @param <T>   {@link Element#getValue} type
-     * @param value {@link Element#getValue}
-     * @param next  {@link Element#getNext}
-     */
-    static private <T> Element<T>
-    link(final Promise<T> value, final Element<T> next) {
-        class ElementX extends Struct implements Element<T>, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Promise<T>
-            getValue() { return value; }
-
-            public Element<T>
-            getNext() { return next; }
-        }
-        return new ElementX();
     }
 }

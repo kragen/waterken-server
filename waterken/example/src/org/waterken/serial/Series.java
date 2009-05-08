@@ -16,6 +16,11 @@ import org.ref_send.promise.Promise;
  */
 public interface
 Series<T> extends Iterable<Promise<T>> {
+    
+    /**
+     * Gets the front element.
+     */
+    Element<T> getFront();
 
     /**
      * Appends a value to the end of the series.
