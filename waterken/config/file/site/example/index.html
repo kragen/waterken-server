@@ -100,8 +100,9 @@ the bottom of the window:</p>
 </pre>
 </div>
 <div id="EXAMPLE_SERIES" style="display: none">
-<p><input type="button" id="EXAMPLE_SERIESCONSUME" value="Consume"/> a value:
-<span id="EXAMPLE_SERIESSLOT"></span></p>
+<p><input type="button" id="EXAMPLE_SERIESCONSUME" value="Consume"/> a
+value:</p>
+<div id="EXAMPLE_SERIESCONSUMED"></div>
 <p>Produce a value:
 <input type="text" autocomplete="off" id="EXAMPLE_SERIESPRODUCE" />
 (press the 'Enter' key)</p>
@@ -124,7 +125,7 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
     // Normally, you'd put your code here, instead of writing in the console.
     // For example, ...
     function render(value, $) {
-        if (void 0 === $) {
+        if (undefined === $) {
             $ = [];
         }
         var r;
@@ -136,22 +137,34 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
             break;
         case 'number':
             $.push('number');
-            r = dom.tag('span').append(dom.text('' + value));
+            r = dom.tag('span').append(dom.text(String(value)));
             break;
         case 'string':
             r = dom.tag('span').append(dom.text(value));
             break;
         case 'function':
             var referent = lib.Q.near(value);
-            r = dom.tag('a');
-            if (lib.web.href(r, referent)) {
-                r.append(dom.tag('span').klass('empty').append(dom.text('X')));
+            if (referent === value) {
+                var types = $.slice(0);
+                r = dom.tag('span');
+                $.push('Promise');
+                var a = dom.tag('a');
+                if (lib.web.href(a, value)) {
+                    r.append(a.append(dom.text('?')));
+                }
+                lib.Q.when(value, function (fulfilled) {
+                    if (fulfilled !== value) {
+                        r.empty().append(render(fulfilled, types));
+                    }
+                }, function (reason) {
+                    r.empty().append(render(lib.Q.reject(reason), types));
+                });
             } else {
                 r = render(referent, $);
             }
             break;
         default:
-            if (void 0 === value || null === value) {
+            if (undefined === value || null === value) {
                 $.push('void');
                 r = dom.tag('span');
             } else if (ADSAFE.isArray(value)) {
@@ -165,7 +178,7 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                     if ('$' === name) {
                         $ = $.concat(value.$);
                     } else if ('!' === name) {
-                        $ = $.concat('Rejected');
+                        $.push('Rejected');
                         r.append(render(ADSAFE.get(value, name), [ 'reason' ]));
                         r.append(dom.text(' '));
                     } else {
@@ -227,29 +240,11 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
     function after(p, f) { return lib.Q.when(p, f, f); }
     function renderSeries(series) {
         dom.q('#EXAMPLE_SERIES').style('display', 'block');
-        function grow(ol, pLink) {
-            var li = dom.tag('li').append(render(pLink));
-            lib.Q.when(pLink, function (link) {
-                after(link.value, update(li, link.value));
-                grow(ol, link.next);
-            }, function (reason) {
-                li.empty().append(render(pLink));
-            });
-            ol.append(li);
-        };
-        var listing = dom.q('#EXAMPLE_SERIESLIST');
-        var ol = dom.tag('ol');
-        listing.append(ol);
-        var front = lib.Q.get(series, 'front');
-        after(series, function () { grow(ol, front); });
-        var slot = dom.q('#EXAMPLE_SERIESSLOT');
-        var consume = dom.q('#EXAMPLE_SERIESCONSUME');
-        consume.on('click', function (e) {
-            var consumed = lib.Q.post(series, 'consume', []);
-            var entry = dom.tag('span');
-            slot.empty().append(entry);
-            after(series, update(entry, consumed));
-            after(consumed, update(entry, consumed));
+        dom.q('#EXAMPLE_SERIESLIST').append(render(lib.Q.get(series, 'front')));
+        var consumed = dom.q('#EXAMPLE_SERIESCONSUMED');
+        dom.q('#EXAMPLE_SERIESCONSUME').on('click', function (e) {
+            consumed.append(dom.text(' '));
+            consumed.append(render(lib.Q.post(series, 'consume', [])));
         });
         var produce = dom.q('#EXAMPLE_SERIESPRODUCE');
         produce.on('enterkey', function (e) {

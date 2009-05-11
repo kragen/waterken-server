@@ -1,5 +1,5 @@
 // adsafe.js
-// 2009-05-06
+// 2009-05-08
 
 //    Public Domain.
 
@@ -1643,10 +1643,13 @@ ADSAFE = (function () {
         },
 
 //  ADSAFE.invoke invokes a method on an object. It takes an object,
-//  a method name, and an array of arguments.
+//  a method name, and an array of arguments, or a function and an array of
+//  arguments.
 
-        invoke: function (object, name, argv) {
-            return ADSAFE.get(object, name).apply(object, argv);
+        invoke: function (a, b, c) {
+            return typeof a === 'function' ?
+                a.apply(a, b) :
+                ADSAFE.get(a, b).apply(a, c);
         },
 
 //  ADSAFE.isArray returns true if the operand is an array.
