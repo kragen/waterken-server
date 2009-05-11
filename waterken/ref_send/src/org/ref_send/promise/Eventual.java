@@ -11,6 +11,8 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 
 import org.joe_e.Equatable;
+import org.joe_e.Immutable;
+import org.joe_e.JoeE;
 import org.joe_e.Selfless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
@@ -810,7 +812,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
             } catch (final Exception e) {}
         }
         try {
-          return new Enqueue<T>(this, ref(referent)).mimic(referent.getClass());
+          return cast(referent.getClass(), new Enqueue<T>(this, ref(referent)));
         } catch (final Exception e) { throw new Error(e); }
     }
 
@@ -842,7 +844,64 @@ Eventual implements Receiver<Promise<?>>, Serializable {
             ? cast(type, new Rejected<T>(new NullPointerException()))
         : type.isAssignableFrom(Promise.class)
             ? promise
-        : proxy((InvocationHandler)promise, type, Selfless.class));
+        : type.isInterface()
+            ? proxy((InvocationHandler)promise, type, Selfless.class)
+        : proxy((InvocationHandler)promise, ifaces(type)));
+    }
+    
+    /**
+     * Lists the proxy interfaces for a concrete type.
+     * @param concrete  type to mimic
+     */
+    static private Class<?>[]
+    ifaces(final Class<?> concrete) {
+        // build the list of types to implement
+        Class<?>[] types = virtualize(concrete);
+        boolean selfless = false;
+        for (final Class<?> i : types) {
+            selfless = Selfless.class.isAssignableFrom(i);
+            if (selfless) { break; }
+        }
+        if (!selfless) {
+            final int n = types.length;
+            System.arraycopy(types, 0, types = new Class[n + 1], 0, n);
+            types[n] = Selfless.class;
+        }
+        return types;
+    }
+
+    /**
+     * Lists the allowed interfaces implemented by a type.
+     * @param base  base type
+     * @return allowed interfaces implemented by <code>base</code>
+     */
+    static private Class<?>[]
+    virtualize(final Class<?> base) {
+        Class<?>[] r = base.getInterfaces();
+        int i = r.length;
+        final Class<?> parent = base.getSuperclass();
+        if (null != parent && Object.class != parent) {
+            final Class<?>[] p = virtualize(parent);
+            if (0 != p.length) {
+                System.arraycopy(r, 0, r = new Class<?>[i + p.length], 0, i);
+                System.arraycopy(p, 0, r, i, p.length);
+            }
+        }
+        while (i-- != 0) {
+            final Class<?> type = r[i];
+            if (type == Serializable.class ||
+                    !Proxies.isImplementable(type) ||
+                    JoeE.isSubtypeOf(type, Immutable.class) ||
+                    JoeE.isSubtypeOf(type, Equatable.class)) {
+                final Class<?>[] x = virtualize(r[i]);
+                final Class<?>[] c = r;
+                r = new Class<?>[c.length - 1 + x.length];
+                System.arraycopy(c, 0, r, 0, i);
+                System.arraycopy(x, 0, r, i, x.length);
+                System.arraycopy(c, i + 1, r, i + x.length, c.length - (i+1));
+            }
+        }
+        return r;
     }
     
     /**

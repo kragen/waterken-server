@@ -9,7 +9,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
-import org.joe_e.array.ArrayBuilder;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
@@ -176,7 +175,7 @@ Callee extends Struct implements Serializable {
     
     private Message<Response>
     serialize(final String method, final String status, final String phrase,
-              final int maxAge, Object value) throws Exception {
+              final int maxAge, final Object value) throws Exception {
         final String contentType;
         final ByteArray content;
         if (value instanceof ByteArray) {
@@ -246,31 +245,6 @@ Callee extends Struct implements Serializable {
     
     static private Scope
     describe(final Class<?> type) {
-        return new Layout(PowerlessArray.array("$")).make(types(type));
-    }
-    
-    /**
-     * Enumerate all types implemented by a class.
-     */
-    static private PowerlessArray<String>
-    types(final Class<?> actual) {
-        final Class<?> end =
-            Struct.class.isAssignableFrom(actual) ? Struct.class : Object.class;
-        final PowerlessArray.Builder<String> r = PowerlessArray.builder(4);
-        for (Class<?> i=actual; end!=i; i=i.getSuperclass()) { ifaces(i, r); }
-        return r.snapshot();
-    }
-
-    /**
-     * List all the interfaces implemented by a class.
-     */
-    static private void
-    ifaces(final Class<?> type, final ArrayBuilder<String> r) {
-        if (type == Serializable.class) { return; }
-        if (Modifier.isPublic(type.getModifiers())) {
-            try { r.append(Reflection.getName(type).replace('$', '-')); }
-            catch (final Exception e) {}
-        }
-        for (final Class<?> i : type.getInterfaces()) { ifaces(i, r); }
+        return new Layout(PowerlessArray.array("$")).make(JSON.types(type));
     }
 }

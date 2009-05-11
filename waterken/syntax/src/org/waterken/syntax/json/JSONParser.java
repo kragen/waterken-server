@@ -235,83 +235,7 @@ JSONParser {
     parseObject(final Type required) throws Exception {
         if (!"{".equals(lexer.getHead())) { throw new Exception(); }
         lexer.next();       // skip past the opening curly
-        if ("\"@\"".equals(lexer.getHead())) {
-            // connect to linked reference
-            if (!":".equals(lexer.next())) { throw new Exception(); }
-            final String href = string(lexer.next());
-            final Object value = connect.run(href, base, required);
-            lexer.next();   // skip past the href
-            skipMembers();
-            return value;
-        }
-        if ("\"=\"".equals(lexer.getHead())) {
-            // replace with the specified value
-            if (!":".equals(lexer.next())) { throw new Exception(); }
-            lexer.next();   // skip past the colon
-            final Object value = parseValue(required);
-            skipMembers();
-            return value;
-        }
-        if ("\"!\"".equals(lexer.getHead())) {
-            // construct a rejected promise
-            if (!":".equals(lexer.next())) { throw new Exception(); }
-            lexer.next();   // skip past the colon
-            final Object value = parseValue(Exception.class);
-            final Exception e = value instanceof Exception
-                ? (Exception)value
-            : value instanceof String
-                ? new Exception((String)value)
-            : new Exception();
-            skipMembers();
-            return Eventual.cast(Typedef.raw(required), Eventual.reject(e));
-        }
-        final Type promised = Typedef.value(R, required);
-        final Type expected = null != promised ? promised : required;
-        Class<?> actual = Typedef.raw(expected);
-        PowerlessArray<?> declaration = null;
-        if ("\"$\"".equals(lexer.getHead())) {
-            // try to find a corresponding local class
-            if (!":".equals(lexer.next())) { throw new Exception(); }
-            if (!"[".equals(lexer.next())) { throw new Exception(); }
-            declaration = (PowerlessArray<?>)parseArray(PowerlessArray.class);
-            for (final Object name : declaration) {
-                try {
-                    actual = JSON.load(code, (String)name);
-                    break;
-                } catch (final ClassNotFoundException e) {}
-            }
-            if (",".equals(lexer.getHead())) {
-                if ("}".equals(lexer.next())) { throw new Exception(); }
-            } else {
-                if (!"}".equals(lexer.getHead())) { throw new Exception(); }
-            }
-        }
-        if (Object.class == actual || Scope.class == actual) {
-            // just hold onto the members in a generic JSON container
-            final PowerlessArray.Builder<String> names=PowerlessArray.builder();
-            final ConstArray.Builder<Object> values = ConstArray.builder();
-            if (null != declaration) {
-                names.append("$");
-                values.append(declaration);
-            }
-            if (!"}".equals(lexer.getHead())) {
-                while (true) {
-                    names.append(string(lexer.getHead()));
-                    if (!":".equals(lexer.next())) { throw new Exception(); }
-                    lexer.next();
-                    values.append(parseValue(Object.class));
-                    if ("}".equals(lexer.getHead())) { break; }
-                    if (!",".equals(lexer.getHead())) { throw new Exception(); }
-                    lexer.next();
-                }
-            }
-            final Scope x = new Scope(new Layout(names.snapshot()),
-                                                 values.snapshot());  
-            lexer.next();    // skip past the closing curly
-            return null != promised ? ref(x) : x;
-        }
-        
-        // use reflection to construct an object of the specified type
+
         /*
          * SECURITY CLAIM: The held ClassLoader will only be used to construct
          * pass-by-construction Joe-E objects. Although any class may be loaded
@@ -323,91 +247,159 @@ JSONParser {
          * - declares a public constructor with the deserializer annotation
          * - is a subclass of Throwable and declares a public no-arg constructor
          */
+        
+        // determine the actual type
+        final Class<?> actual;
+        final PowerlessArray.Builder<String> names = PowerlessArray.builder(1);
+        final ConstArray.Builder<Object> values = ConstArray.builder(1);
+        if ("\"$\"".equals(lexer.getHead())) {
+            if (!":".equals(lexer.next())) { throw new Exception(); }
+            lexer.next();
+            Class<?> type = null;
+            final Object value = parseValue(PowerlessArray.class);
+            if (value instanceof PowerlessArray) {
+                for (final Object typename : (PowerlessArray<?>)value) {
+                    try {
+                        type = JSON.load(code, (String)typename);
+                        break;
+                    } catch (final ClassCastException e) {
+                    } catch (final ClassNotFoundException e) {}
+                }
+            }
+            actual = type;
+            names.append("$");
+            values.append(value);
+            if (",".equals(lexer.getHead())) { lexer.next(); }
+        } else {
+            actual = null;
+        }
+        final Type promised = Typedef.value(R, required);
+        final Type expected = null != promised ? promised : required;
+        final Class<?> concrete = null!=actual ? actual : Typedef.raw(expected);
         Constructor<?> make = null;
-        for (final Constructor<?> c : Reflection.constructors(actual)) {
+        for (final Constructor<?> c : Reflection.constructors(concrete)) {
             if (c.isAnnotationPresent(deserializer.class)) {
                 make = c;
                 break;
             }
         }
         if (null == make) {
-            if (Throwable.class.isAssignableFrom(actual)) {
-                for (Class<?> i = actual; null != i; i = i.getSuperclass()) {
+            if (Throwable.class.isAssignableFrom(concrete)) {
+                for (Class<?> i = concrete; null != i; i = i.getSuperclass()) {
                     try {
                         make = Reflection.constructor(i);
                         break;
                     } catch (final NoSuchMethodException e) {}
                 }
             }
-            if (null == make) {
-                throw new NoSuchMethodException(
-                    "not a pass-by-construction Joe-E class: " +
-                    Reflection.getName(actual));
-            }
         }
-        final Type[] paramv = make.getGenericParameterTypes(); {
-            int i = 0;
-            for (final Type p : paramv) {
-                paramv[i++] = Typedef.bound(p, expected);
-            }
-        }
-        final String[] namev = new String[paramv.length]; {
-            int i = 0;
-            for (final Annotation[] as : make.getParameterAnnotations()) {
-                for (final Annotation a : as) {
-                    if (a instanceof name) {
-                        namev[i] = ((name)a).value();
-                        break;
-                    }
+        final String[] namev;
+        final Type[] paramv;
+        final Object[] argv;
+        final boolean[] donev;
+        if (null == make) {
+            namev = new String[] {};
+            paramv = null;
+            argv = null;
+            donev = null;
+        } else {
+            paramv = make.getGenericParameterTypes(); {
+                int i = 0;
+                for (final Type p : paramv) {
+                    paramv[i++] = Typedef.bound(p, expected);
                 }
-                ++i;
             }
+            namev = new String[paramv.length]; {
+                int i = 0;
+                for (final Annotation[] as : make.getParameterAnnotations()) {
+                    for (final Annotation a : as) {
+                        if (a instanceof name) {
+                            namev[i] = ((name)a).value();
+                            break;
+                        }
+                    }
+                    ++i;
+                }
+            }
+            argv = new Object[paramv.length];
+            donev = new boolean[paramv.length];
         }
-        final Object[] argv = new Object[paramv.length];
-        final boolean[] donev = new boolean[paramv.length];
         if (!"}".equals(lexer.getHead())) {
             while (true) {
                 final String name = string(lexer.getHead());
+                if (!":".equals(lexer.next())) { throw new Exception(); }
+                lexer.next();
                 int slot = namev.length;
                 while (0 != slot-- && !name.equals(namev[slot])) {}
+                final Type type = -1 != slot ?
+                        paramv[slot] :
+                    "=".equals(name) ?
+                        (null != actual ? actual : required) :
+                    "!".equals(name) ?
+                        Exception.class :
+                    Object.class;
+                final Object value = parseValue(type);
                 if (-1 != slot) {
                     if (donev[slot]) { throw new Exception(); }
                     donev[slot] = true;
-                }
-                if (!":".equals(lexer.next())) { throw new Exception(); }
-                lexer.next();
-                final Type type = -1 != slot ? paramv[slot] : Object.class;
-                final Object value = parseValue(type);
-                if (-1 != slot) {
                     argv[slot] = value;
+                } else {
+                    names.append(name);
+                    values.append(value);
                 }
                 if ("}".equals(lexer.getHead())) { break; }
                 if (!",".equals(lexer.getHead())) { throw new Exception(); }
                 lexer.next();
             }
         }
-        for (int i = donev.length; 0 != i--;) {
-            if (!donev[i]) {
-                argv[i] = defaultValue(paramv[i]);
-                donev[i] = true;
-            }
-        }
-        final Object value = Reflection.construct(make, argv);
-        final Object r = null != promised ? ref(value) : value;
         lexer.next();       // skip past the closing curly
-        return r;
+
+        final PowerlessArray<String> undeclared = names.snapshot();
+        final int rejected = find("!", undeclared);
+        if (-1 != rejected) {
+            final Object reason = values.snapshot().get(rejected);
+            final Exception e = reason instanceof Exception ?
+                    (Exception)reason :
+                reason instanceof String ?
+                    new Exception((String)reason) :
+                new Exception();
+            final Promise<?> r = Eventual.reject(e);
+            return null != promised ? r : Eventual.cast(concrete, r);
+        }
+        
+        final int remote = find("@", undeclared);
+        if (-1 != remote) {
+            final String href = (String)values.snapshot().get(remote);
+            final Object r= connect.run(href,base,null!=actual?actual:required);
+            return null != promised ? ref(r) : r;
+        }
+        
+        final int replacement = find("=", undeclared);
+        if (-1 != replacement) {
+            final Object r = values.snapshot().get(replacement);
+            return null != promised ? ref(r) : r;
+        }
+        
+        final Object r;
+        if (null == make) {
+            r = new Scope(new Layout(undeclared), values.snapshot());  
+        } else {
+            for (int i = donev.length; 0 != i--;) {
+                if (!donev[i]) {
+                    donev[i] = true;
+                    argv[i] = defaultValue(paramv[i]);
+                }
+            }
+            r = Reflection.construct(make, argv);
+        }
+        return null != promised ? ref(r) : r;
     }
     
-    private void
-    skipMembers() throws Exception {
-        while (!"}".equals(lexer.getHead())) {
-            if (!",".equals(lexer.getHead())) { throw new Exception(); }
-            string(lexer.next());
-            if (!":".equals(lexer.next())) { throw new Exception(); }
-            lexer.next();
-            parseValue(Object.class);
-        }
-        lexer.next();       // skip past the closing curly
+    static private int
+    find(final String name, final PowerlessArray<String> names) {
+        int r = names.length();
+        while (0 != r-- && !name.equals(names.get(r))) {}
+        return r;
     }
     
     static private String

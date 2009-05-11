@@ -5,8 +5,6 @@ package org.waterken.bounce;
 import static org.ref_send.promise.Eventual.ref;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 
 import org.joe_e.Struct;
 import org.joe_e.array.BooleanArray;
@@ -76,8 +74,10 @@ Bounce {
                     ConstArray.array(
                         new ImmutableArray<PowerlessArray<Boolean>>().
                             with(PowerlessArray.array(true)),
-                        new BigInteger("9223372036854775808"),
-                        new BigDecimal("3.14")
+                        10
+                        // BigInteger.TEN,
+                        // new BigInteger(Long.toString(1L << 53)),
+                        // new BigDecimal("3.14")
                     )));
             }
 

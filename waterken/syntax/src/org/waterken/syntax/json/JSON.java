@@ -2,8 +2,11 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax.json;
 
+import java.lang.reflect.Modifier;
+
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
+import org.joe_e.array.ArrayBuilder;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.scope.Layout;
@@ -19,6 +22,33 @@ JSON {
      * encoding of a rejected promise
      */
     static public final Layout Rejected = new Layout(PowerlessArray.array("!"));
+    
+    /**
+     * Enumerate all types implemented by a class.
+     */
+    static public PowerlessArray<String>
+    types(final Class<?> actual) {
+        final Class<?> end =
+            Struct.class.isAssignableFrom(actual) ? Struct.class : Object.class;
+        final PowerlessArray.Builder<String> r = PowerlessArray.builder(4);
+        for (Class<?> i=actual; end!=i; i=i.getSuperclass()) { ifaces(i, r); }
+        return r.snapshot();
+    }
+
+    /**
+     * List all the interfaces implemented by a class.
+     */
+    static private void
+    ifaces(final Class<?> type, final ArrayBuilder<String> r) {
+        if (Modifier.isPublic(type.getModifiers())) {
+            try {
+                if (0 != Reflection.methods(type).length()) {
+                    r.append(name(type));
+                }
+            } catch (final Exception e) {}
+        }
+        for (final Class<?> i : type.getInterfaces()) { ifaces(i, r); }
+    }
     
     static private final class
     Alias extends Struct implements Powerless {

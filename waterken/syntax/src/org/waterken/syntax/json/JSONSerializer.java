@@ -9,6 +9,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.joe_e.Struct;
 import org.joe_e.inert;
@@ -119,6 +121,18 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.writeString(((Character)value).toString());
         } else if (Void.class == actual) {
             out.writeNull();
+        } else if (BigInteger.class == actual) {
+            final BigInteger num = (BigInteger)value;
+            if (num.bitLength() < Integer.SIZE) {
+                serialize(export, implicit, num.intValue(), out);
+            } else if (num.bitLength() < Long.SIZE) {
+                serialize(export, implicit, num.longValue(), out);
+            } else {
+                serialize(export, implicit,
+                          JSON.Rejected.make(new ArithmeticException()), out);
+            }
+        } else if (BigDecimal.class == actual) {
+            serialize(export, implicit, ((BigDecimal)value).doubleValue(), out);
         } else if (value instanceof ConstArray) {
             /*
              * SECURITY DEPENDENCY: Application code cannot extend ConstArray,
@@ -172,6 +186,17 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             oout.finish();
         } else {
             out.writeLink(export.run(value));
+            
+//            final Class<?>[] t = actual.getInterfaces(); 
+//            if (0 == t.length || t[0].isAssignableFrom(Typedef.raw(implicit))) {
+//                out.writeLink(export.run(value));
+//            } else {
+//                final JSONWriter.ObjectWriter oout = out.startObject();
+//                serialize(export, PowerlessArray.class,
+//                          JSON.types(actual), oout.startMember("$"));
+//                oout.startMember("@").writeString(export.run(value));
+//                oout.finish();
+//            }
         }
     }
 

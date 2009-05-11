@@ -164,9 +164,9 @@ ADSAFE.lib('web', function (lib) {
 
         // unwind relative path operators
         base = base.substring(0, base.lastIndexOf('/') + 1);
-        var baseOR = /^([a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\/)(.*)$/.exec(base);
-        var host = baseOR[1];
-        var path = baseOR[2];
+        var baseOP = /^([a-zA-Z][\w\-\.\+]*:\/\/[^\/]*\/)(.*)$/.exec(base);
+        var origin = baseOP[1];
+        var path = baseOP[2];
         while (true) {
             if (/^\.\.\//.test(href)) {
                 path = path.substring(0, path.lastIndexOf('/',path.length-2)+1);
@@ -184,7 +184,7 @@ ADSAFE.lib('web', function (lib) {
         if (/^\.(#|\?|$)/.test(href)) {
             href = href.substring('.'.length);
         }
-        return host + path + href;
+        return origin + path + href;
     }
 
     /**
@@ -199,7 +199,7 @@ ADSAFE.lib('web', function (lib) {
         case 202:
         case 203:
             var contentType = http.getResponseHeader('Content-Type');
-            if (/^application\/do-not-execute$/i.test(contentType)) {
+            if (/^application\/do-not-execute(?=;|$)/i.test(contentType)) {
                 return http.responseText;
             }
             return JSON.parse(http.responseText, function (key, value) {
