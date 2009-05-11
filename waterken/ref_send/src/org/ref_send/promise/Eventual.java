@@ -606,15 +606,15 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     Tail<T> extends Local<T> {
         static private final long serialVersionUID = 1L;
 
-        private final State<T> state;   // mutable store for promise's value
+        private final Promise<State<T>> state;      // promise's mutable state
 
         Tail(final Eventual _, final State<T> state) {
             super(_, _.local);
-            this.state = state;
+            this.state = new Fulfilled<State<T>>(false, state);
         }
 
         public int
-        hashCode() { return (int)state.condition + 0x3EFF7A11; }
+        hashCode() { return 0x3EFF7A11; }
 
         public boolean
         equals(final Object x) {
@@ -623,13 +623,13 @@ Eventual implements Receiver<Promise<?>>, Serializable {
 
         public T
         call() throws Exception {
-            final Promise<T> value = state.get();
+            final Promise<T> value = state.call().get();
             if (null == value) { throw new Unresolved(); }
             return value.call();
         }
 
         public void
-        when(final Do<T,?> observer) { state.observe(observer); }
+        when(final Do<T,?> observer) { near(state).observe(observer); }
     }
     
     private final class
@@ -640,11 +640,22 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         private final Promise<State<T>> state;  // promise's mutable state
         private final Promise<When<T>> front;   // first when block to run
         
-        Head(final long condition, final Promise<State<T>> state,
+        Head(final long condition, final State<T> state,
                                    final Promise<When<T>> front) {
             this.condition = condition;
-            this.state = state;
+            this.state = new Fulfilled<State<T>>(true, state);
             this.front = front;
+
+            /*
+             * The resolver only holds a weak reference to the promise's mutable
+             * state, allowing it to be garbage collected even if the resolver
+             * is still held. This implementation takes advantage of a common
+             * pattern in which a when block is registered on a promise as soon
+             * as it is created, but no other reference to the promise is
+             * retained. Combined with the recycling of when blocks, this common
+             * pattern generates no dead objects. Much of the implementation's
+             * complexity is in service to this goal.
+             */
         }
         
         public void
@@ -706,17 +717,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         final Promise<When<T>> front = allocWhen(condition);
         final State<T> state = new State<T>(condition, front);
         return new Channel<T>(new Tail<T>(this, state),
-            new Head<T>(condition, new Fulfilled<State<T>>(true,state),front));
-        /**
-         * The resolver only holds a weak reference to the promise's mutable
-         * state, allowing it to be garbage collected even if the resolver is
-         * still held. This implementation takes advantage of a common pattern
-         * in which a when block is registered on a promise as soon as it is
-         * created, but no other reference to the promise is retained. Combined
-         * with the recycling of when blocks, this common pattern generates no
-         * dead objects. Much of the implementation's complexity is in service
-         * to this goal.
-         */
+                              new Head<T>(condition, state,front));
     }
 
     /**
