@@ -57,7 +57,7 @@ the bottom of the window:</p>
 // GET request sent above will already have been received and
 // processed by the time I hit the 'Enter' key.</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="EXAMPLE_BANG0">waiting...</span>
+<span class="output" id="EXAMPLE_BANG0"></span>
 <span class="comment">
 // Send a POST request to increment the counter...</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ 1 ])</span>
@@ -65,7 +65,7 @@ the bottom of the window:</p>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
 <span class="output">function()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="EXAMPLE_BANG1">waiting...</span>
+<span class="output" id="EXAMPLE_BANG1"></span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ 2 ])</span>
 <span class="output">function()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
@@ -89,14 +89,14 @@ the bottom of the window:</p>
 // the POST request that increases the counter.</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(lib.Q.post(drum, 'bang', [ 3 ]), 'hits')</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="EXAMPLE_BANG6">waiting...</span>
+<span class="output" id="EXAMPLE_BANG6"></span>
 <span class="comment">
 // Promises can also be used as arguments...</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ hits ])</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
 <span class="output">function()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="EXAMPLE_BANG12">waiting...</span>
+<span class="output" id="EXAMPLE_BANG12"></span>
 </pre>
 </div>
 <div id="EXAMPLE_SERIES" style="display: none">
@@ -154,7 +154,9 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                 $.push('Promise');
                 var a = dom.tag('a');
                 if (lib.web.href(a, value)) {
-                    r.append(a.append(dom.text('?')));
+                    r.append(a.append(dom.text('...')));
+                } else {
+                    r.append(dom.text('...'));
                 }
                 lib.Q.when(value, function (fulfilled) {
                     if (fulfilled !== value) {
@@ -199,43 +201,27 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
     }
     function renderBody(value) {
         var node = render(value);
-        dom.q('#EXAMPLE_ANY').
-            style('display', 'block').
+        dom.q('#EXAMPLE_ANY').style('display', 'block').
             append(dom.tag('h1').append(dom.text(node.getClass()))).
             append(node);
     }
-    function renderBang(factory) {
+    function renderDrumFactory(factory) {
         dom.q('#EXAMPLE_BANG').style('display', 'block');
         var drum = lib.Q.post(factory, 'makeDrum', []);
-        lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
-            dom.q('#EXAMPLE_BANG0').empty().append(render(value));
-        }, function (reason) {
-            dom.q('#EXAMPLE_BANG0').empty().append(render(reason));
-        });
+        dom.q('#EXAMPLE_BANG0').append(render(lib.Q.get(drum, 'hits')));
         lib.Q.post(drum, 'bang', [ 1 ]);
-        lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
-            dom.q('#EXAMPLE_BANG1').empty().append(render(value));
-        }, function (reason) {
-            dom.q('#EXAMPLE_BANG1').empty().append(render(reason));
-        });
+        dom.q('#EXAMPLE_BANG1').append(render(lib.Q.get(drum, 'hits')));
         lib.Q.post(drum, 'bang', [ 2 ]);
         lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
             ADSAFE.log('hits = ' + value);
         }, function (reason) {
             ADSAFE.log('request failed');
         });
-        lib.Q.when(lib.Q.get(lib.Q.post(drum, 'bang', [ 3 ]), 'hits'),
-                   function (value) {
-            dom.q('#EXAMPLE_BANG6').empty().append(render(value));
-
+        var hits = lib.Q.get(lib.Q.post(drum, 'bang', [ 3 ]), 'hits');
+        dom.q('#EXAMPLE_BANG6').append(render(hits));
+        lib.Q.when(hits, function () {
             lib.Q.post(drum, 'bang', [ lib.Q.get(drum, 'hits') ]);
-            lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
-                dom.q('#EXAMPLE_BANG12').empty().append(render(value));
-            }, function (reason) {
-                dom.q('#EXAMPLE_BANG12').empty().append(render(reason));
-            });
-        }, function (reason) {
-            dom.q('#EXAMPLE_BANG6').empty().append(render(reason));
+            dom.q('#EXAMPLE_BANG12').append(render(lib.Q.get(drum, 'hits')));
         });
     }
     function renderSeries(series) {
@@ -268,7 +254,7 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
     var representation = lib.Q.get(target);
     lib.Q.when(representation, function (value) {
         if (isa(value, 'org.waterken.bang.DrumFactory')) {
-            renderBang(target);
+            renderDrumFactory(target);
         } else if (isa(value, 'org.waterken.serial.Series')) {
             renderSeries(target);
         } else if (isa(value, 'org.waterken.serial.SeriesFactory')) {
