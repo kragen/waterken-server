@@ -94,7 +94,7 @@ Callee extends Struct implements Serializable {
         
         // determine the type of accessed member
         final Method lambda = HTTP.dispatch(target, p);
-        final Method declaration = bubble(lambda);
+        final Method declaration = null != lambda ? bubble(lambda) : null;
         if (null == declaration) {              // no such member
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
