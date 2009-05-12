@@ -34,7 +34,7 @@ like: <code>&lt;https://example.com/myApp/obj123&gt;</code>. All you want to do
 is invoke one of its methods, to see what happens. Using the web_send library
 from the Firebug console, you could write:</p>
 <pre>
-factory = lib.web.getLocation();
+factory = lib.web.getLocation();    // grab the window.location URL
 drum = lib.Q.post(factory, 'makeDrum', []);
 </pre>
 <p>That code generates the following HTTP request:</p>
@@ -72,7 +72,10 @@ conventions for HTTP requests and responses. These conventions are the least
 restrictive they can be, while still supporting the client-side remote
 reference API.  This document explains these <a href="#JSON">conventions</a>
 and shows how to use <a href="#legacy">legacy JSON resources</a> that don't
-follow the conventions.</p>
+follow the conventions. Using the support for legacy JSON resources,
+<code>GET</code>, <code>POST</code>, <code>PUT</code> and <code>DELETE</code>
+requests can be sent to a resource at any URL, with any JSON request entity and
+any JSON response entity.</p>
 
 <h2><a name="JSON" href="#JSON">JSON conventions</a></h2>
 <p>The web_send library generates JSON for an HTTP request entity and extracts
@@ -649,7 +652,7 @@ Tutorial</a>.</p>
 </div>
 <p class="footer comment">
 <a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
-<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-05-08</a>
+<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-05-12</a>
 </p>
 </body>
 </html>
