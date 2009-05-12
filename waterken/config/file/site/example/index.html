@@ -238,10 +238,6 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
             dom.q('#EXAMPLE_BANG6').empty().append(render(reason));
         });
     }
-    function update(element, value, $) {
-        return function () { return element.empty().append(render(value, $)); };
-    }
-    function after(p, f) { return lib.Q.when(p, f, f); }
     function renderSeries(series) {
         dom.q('#EXAMPLE_SERIES').style('display', 'block');
         dom.q('#EXAMPLE_SERIESLIST').append(render(lib.Q.get(series, 'front')));
