@@ -61,7 +61,6 @@ ADSAFE.lib('web', function (lib) {
                     cache = pr.promise;
                     var a = 0;
                     var b = 1 * 1000;
-                    var timeout = 1 * 1000;
                     var retry = function (x) {
                         if (notYetPumpkin === x) {
                             ADSAFE.later(function () {
