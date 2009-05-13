@@ -254,7 +254,11 @@ ADSAFE.lib('web', function (lib) {
         if (pqf[3]) {
             var args = pqf[3].substring(1).split('&');
             for (var i = 0; i != args.length; ++i) {
-                if (/^=/.test(args[i])) { break; }
+                if (/^=/.test(args[i])) {
+                    requestQuery += '#' + args[i].substring(1) +
+                                    args.slice(i + 1).join('&');
+                    break;
+                }
                 requestQuery += ('' === requestQuery) ? '?' : '&';
                 requestQuery += args[i];
             }
