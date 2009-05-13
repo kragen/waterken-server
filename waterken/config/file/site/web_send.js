@@ -48,6 +48,8 @@ ADSAFE.lib('web', function (lib) {
      * @param href  absolute URLref for target resource
      */
     function sealURLref(href) {
+        if ('string' !== typeof href) { throw new Error(); }
+
         var cache = null;
         var resolved = false;
         var self = function (op, arg1, arg2, arg3) {
@@ -121,23 +123,18 @@ ADSAFE.lib('web', function (lib) {
             arg = { '=' : arg };
         }
         return JSON.stringify(arg, function (key, value) {
-            switch (typeof value) {
-            case 'function':
+            if ('function' === typeof value) {
                 unsealedURLref = null;
                 value = value();
-                if (null !== unsealedURLref) {
-                    value = { '@' : relateURI(base, unsealedURLref) };
-                }
+                var href = unsealedURLref;
                 unsealedURLref = null;
-                break;
-            case 'number':
-                if (!isFinite(value)) {
-                    value = { '!' : { $: [ 'NaN' ] } };
-                }
-                break;
-            case 'object':
-                if (includes(value, '@')) {throw new Error('forged reference');}
-                break;
+
+                if (null !== href) { return { '@' : relateURI(base, href) }; }
+                if ('function' === typeof value) { return undefined; }
+            }
+            if (includes(value, '@')) { throw new Error('forged reference'); }
+            if ('number' === typeof value && !isFinite(value)) {
+                value = { '!' : { $: [ 'NaN' ] } };
             }
             return value;
         }, ' ');
