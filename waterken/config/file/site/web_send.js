@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-12
+ * web_send.js version: 2009-05-13
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -428,6 +428,10 @@ ADSAFE.lib('web', function (lib) {
         return r;
     }
 
+    function allowedNavigationScheme(href) {
+        return /^https:/i.test(href) || /^http:/i.test(href);
+    }
+
     return {
 
         /**
@@ -444,6 +448,8 @@ ADSAFE.lib('web', function (lib) {
         navigate: function (target) {
             var href = unsealURLref(target);
             if (null === href) { return false; }
+            if (!allowedNavigationScheme(href)) { return false; }
+
             window.location.assign(href);
             return true;
         },
@@ -457,17 +463,17 @@ ADSAFE.lib('web', function (lib) {
         href: function (elements, target) {
             var n = 0;
             if (null === target) {
-                elements.___nodes___.filter(function (node) {
-                    node.removeAttribute('href');
+                elements.___nodes___.filter(function (_node) {
+                    _node.removeAttribute('href');
                     n += 1;
                 });
             } else {
                 var href = unsealURLref(target);
-                if (null !== href) {
-                    elements.___nodes___.filter(function (node) {
-                        switch (node.tagName.toUpperCase()) {
+                if (null !== href && allowedNavigationScheme(href)) {
+                    elements.___nodes___.filter(function (_node) {
+                        switch (_node.tagName.toUpperCase()) {
                         case 'A':
-                            node.setAttribute('href', href);
+                            _node.setAttribute('href', href);
                             n += 1;
                             break;
                         }
@@ -483,21 +489,21 @@ ADSAFE.lib('web', function (lib) {
          * @param target    remote reference
          * @return number of elements modified
          */
-        src: function (img, target) {
+        src: function (elements, target) {
             var n = 0;
             if (null === target) {
-                elements.___nodes___.filter(function (node) {
-                    node.removeAttribute('src');
+                elements.___nodes___.filter(function (_node) {
+                    _node.removeAttribute('src');
                     n += 1;
                 });
             } else {
                 var src = unsealURLref(target);
-                if (null !== src) {
-                    elements.___nodes___.filter(function (node) {
-                        switch (node.tagName.toUpperCase()) {
+                if (null !== src && allowedNavigationScheme(src)) {
+                    elements.___nodes___.filter(function (_node) {
+                        switch (_node.tagName.toUpperCase()) {
                         case 'IMG':
                         case 'INPUT':
-                            node.setAttribute('src', makeRequestURI(src));
+                            _node.setAttribute('src', makeRequestURI(src));
                             n += 1;
                             break;
                         }
@@ -505,6 +511,21 @@ ADSAFE.lib('web', function (lib) {
                 }
             }
             return n;
+        },
+
+        /**
+         * Constructs a remote reference from a URL held in a password field.
+         * @param field bunch containing a single password field to read
+         */
+        read: function (field) {
+            var _nodes = field.___nodes___;
+            if (1 !== _nodes.length) { return; }
+            var _node = _nodes[0];
+            if (!/^INPUT$/i.test(_node.tagName)) { return; }
+            if (!/^password$/i.test(_node.type)) { return; }
+            var href = _node.value;
+            if (!/^[a-zA-Z][\w\-\.\+]*:/.test(href)) { return null; }
+            return sealURLref(href);
         },
 
         /**

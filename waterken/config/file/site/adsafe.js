@@ -1,5 +1,5 @@
 // adsafe.js
-// 2009-05-08
+// 2009-05-13
 
 //    Public Domain.
 
@@ -20,7 +20,7 @@
 
 /*global ADSAFE, window */
 
-/*jslint browser: true, evil: true, nomen: false */
+/*jslint browser: true, nomen: false */
 
 /*members "", "#", "&", ">", "*", "+", ".", "/", ":blur", ":checked",
     ":disabled", ":enabled", ":even", ":focus", ":hidden", ":odd", ":tag",
@@ -575,7 +575,7 @@ ADSAFE = (function () {
                 if (typeof func !== 'function') {
                     switch (selector.op) {
                     case ':first':
-                        result = [nodes[0]];
+                        result = nodes.slice(0, 1);
                         break;
                     case ':rest':
                         result = nodes.slice(1);
@@ -1079,7 +1079,7 @@ ADSAFE = (function () {
                     node = b[i];
                     if (node.nodeName === '#text') {
                         a[i] = node.nodeValue;
-                    } else if (node.tagName) {
+                    } else if (node.tagName && node.type !== 'password') {
                         a[i] = node.value;
                         if (a[i] === undefined && node.firstChild &&
                                 node.firstChild.nodeName === '#text') {
@@ -1393,15 +1393,17 @@ ADSAFE = (function () {
                     for (i = 0; i < b.length; i += 1) {
                         node = b[i];
                         if (node.tagName) {
-                            if (typeof node.value === 'string') {
-                                node.value = value[i];
-                            } else {
-                                while (node.firstChild) {
-                                    purge_event_handlers(node);
-                                    node.removeChild(node.firstChild);
+                            if (node.type !== 'password') {
+                                if (typeof node.value === 'string') {
+                                    node.value = value[i];
+                                } else {
+                                    while (node.firstChild) {
+                                        purge_event_handlers(node);
+                                        node.removeChild(node.firstChild);
+                                    }
+                                    node.appendChild(document.createTextNode(
+                                        String(value[i])));
                                 }
-                                node.appendChild(document.createTextNode(
-                                    String(value[i])));
                             }
                         } else if (node.nodeName === '#text') {
                             node.nodeValue = value[i];
