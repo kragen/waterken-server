@@ -132,10 +132,10 @@ ADSAFE.lib('web', function (lib) {
                 if (null !== href) { return { '@' : relateURI(base, href) }; }
                 if ('function' === typeof value) { return undefined; }
             }
-            if (includes(value, '@')) { throw new Error('forged reference'); }
             if ('number' === typeof value && !isFinite(value)) {
                 value = { '!' : { $: [ 'NaN' ] } };
             }
+            if (includes(value, '@')) { throw new Error('forged reference'); }
             return value;
         }, ' ');
     }
