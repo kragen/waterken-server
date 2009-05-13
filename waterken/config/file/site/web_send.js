@@ -306,7 +306,7 @@ ADSAFE.lib('web', function (lib) {
 
                 var requestURI = makeRequestURI(
                     m.href, m.q, m.idempotent ? null : x, w);
-                http.open(m.op, requestURI, true);
+                http.open(m.op, /^[^#]*/.exec(requestURI)[0], true);
                 http.onreadystatechange = function () {
                     if (3 === http.readyState || 4 === http.readyState) {
                         heartbeat = (new Date()).getTime();
