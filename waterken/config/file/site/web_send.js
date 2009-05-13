@@ -255,8 +255,10 @@ ADSAFE.lib('web', function (lib) {
             var args = pqf[3].substring(1).split('&');
             for (var i = 0; i != args.length; ++i) {
                 if (/^=/.test(args[i])) {
-                    requestQuery += '#' + args[i].substring(1) +
-                                    args.slice(i + 1).join('&');
+                    requestQuery += '#' + args[i].substring(1);
+                    if (i + 1 !== args.length) {
+                        requestQuery += '&' + args.slice(i + 1).join('&');
+                    }
                     break;
                 }
                 requestQuery += ('' === requestQuery) ? '?' : '&';
