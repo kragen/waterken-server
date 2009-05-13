@@ -514,10 +514,10 @@ ADSAFE.lib('web', function (lib) {
         },
 
         /**
-         * Constructs a remote reference from a URL held in a password field.
-         * @param field bunch containing a single password field to read
+         * Constructs a remote reference from a URLref held in a password field.
+         * @param field bunch containing a single password field
          */
-        read: function (field) {
+        fetch: function (field) {
             var _nodes = field.___nodes___;
             if (1 !== _nodes.length) { return; }
             var _node = _nodes[0];
