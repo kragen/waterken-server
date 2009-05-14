@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-13
+ * web_send.js version: 2009-05-14
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -16,6 +16,9 @@
  * In addition to messaging, the client is also permitted to read/write the
  * window title and navigate the window to any received remote target.
  */
+/*global ADSAFE, window, ActiveXObject, XMLHttpRequest */
+/*jslint bitwise: true, eqeqeq: true, immed: true, newcap: true,
+         plusplus: true, strict: true, undef: true */
 "use strict";
 ADSAFE.lib('web', function (lib) {
 
@@ -463,18 +466,16 @@ ADSAFE.lib('web', function (lib) {
          * @return number of elements modified
          */
         href: function (elements, target) {
-            var nodes = elements.___nodes___;
-
             var n = 0;
             if (null === target) {
-                nodes.filter(function (node) {
+                elements.___nodes___.filter(function (node) {
                     node.removeAttribute('href');
                     n += 1;
                 });
             } else {
                 var href = unsealURLref(target);
                 if (null !== href && allowedNavigationScheme(href)) {
-                    nodes.filter(function (node) {
+                    elements.___nodes___.filter(function (node) {
                         if ('A' === node.tagName.toUpperCase()) {
                             node.setAttribute('href', href);
                             n += 1;
@@ -492,22 +493,20 @@ ADSAFE.lib('web', function (lib) {
          * @return number of elements modified
          */
         src: function (elements, target) {
-            var nodes = elements.___nodes___;
-
             var n = 0;
             if (null === target) {
-                nodes.filter(function (node) {
-                    node.removeAttribute('src');
+                elements.___nodes___.filter(function (_node) {
+                    _node.removeAttribute('src');
                     n += 1;
                 });
             } else {
                 var src = unsealURLref(target);
                 if (null !== src && allowedNavigationScheme(src)) {
-                    nodes.filter(function (node) {
-                        switch (node.tagName.toUpperCase()) {
+                    elements.___nodes___.filter(function (_node) {
+                        switch (_node.tagName.toUpperCase()) {
                         case 'IMG':
                         case 'INPUT':
-                            node.setAttribute('src', makeRequestURI(src));
+                            _node.setAttribute('src', makeRequestURI(src));
                             n += 1;
                             break;
                         }
@@ -522,12 +521,12 @@ ADSAFE.lib('web', function (lib) {
          * @param field bunch containing a single password field
          */
         fetch: function (field) {
-            var nodes = field.___nodes___;
-            if (1 !== nodes.length) { return; }
-            var node = nodes[0];
-            if (!/^INPUT$/i.test(node.tagName)) { return; }
-            if ('password' !== node.type) { return; }
-            var href = node.value;
+            var _nodes = field.___nodes___;
+            if (1 !== _nodes.length) { return; }
+            var _node = _nodes[0];
+            if (!/^INPUT$/i.test(_node.tagName)) { return; }
+            if ('password' !== _node.type) { return; }
+            var href = _node.value;
             if (!/^[a-zA-Z][\w\-\.\+]*:/.test(href)) { return null; }
             return sealURLref(href);
         },
