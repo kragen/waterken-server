@@ -519,7 +519,7 @@ ADSAFE.lib('web', function (lib) {
             if (1 !== _nodes.length) { return; }
             var _node = _nodes[0];
             if (!/^INPUT$/i.test(_node.tagName)) { return; }
-            if (!/^password$/i.test(_node.type)) { return; }
+            if ('password' !== _node.type) { return; }
             var href = _node.value;
             if (!/^[a-zA-Z][\w\-\.\+]*:/.test(href)) { return null; }
             return sealURLref(href);
