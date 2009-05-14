@@ -60,10 +60,10 @@ ADSAFE.lib('web', function (lib) {
 
         var cache = null;
         var resolved = false;
-        var self = function (op, arg1, arg2, arg3) {
+        var m = function (op, arg1, arg2, arg3) {
             if (undefined === op) {
                 unsealedURLref = href;
-                return resolved ? cache() : self;
+                return resolved ? cache() : m;
             }
             if (/#o=/.test(href)) {
                 if (!cache) {
@@ -74,7 +74,7 @@ ADSAFE.lib('web', function (lib) {
                     var retry = function (x) {
                         if (notYetPumpkin === x) {
                             ADSAFE.later(function () {
-                                send(self, href, 'GET', retry);
+                                send(m, href, 'GET', retry);
                             }, b);
                             var c = Math.min(a + b, 60 * 60 * 1000);
                             a = b;
@@ -84,14 +84,14 @@ ADSAFE.lib('web', function (lib) {
                             resolved = true;
                         }
                     };
-                    send(self, href, 'GET', retry);
+                    send(m, href, 'GET', retry);
                 }
                 cache(op, arg1, arg2, arg3);
             } else {
-                send(self, href, op, arg1, arg2, arg3);
+                send(m, href, op, arg1, arg2, arg3);
             }
         };
-        return self;
+        return m;
     }
 
     /**
@@ -297,45 +297,45 @@ ADSAFE.lib('web', function (lib) {
                 http = new ActiveXObject('Microsoft.XMLHTTP');
             }
             var heartbeat = (new Date()).getTime();
-            var self = function () {
-                if (self !== connection) { return; }
+            var m = function () {
+                if (m !== connection) { return; }
 
-                var m = pending[0];
-                if ('WHEN' === m.op) {
+                var msg = pending[0];
+                if ('WHEN' === msg.op) {
                     pending.shift();
                     if (0 === pending.length) {
                         connection = null;
                     } else {
-                        ADSAFE.later(self);
+                        ADSAFE.later(m);
                     }
 
-                    m.resolve(m.target);
+                    msg.resolve(msg.target);
                     return;
                 }
 
                 var requestURI = makeRequestURI(
-                    m.href, m.q, m.idempotent ? null : x, w);
-                http.open(m.op, /^[^#]*/.exec(requestURI)[0], true);
+                    msg.href, msg.q, msg.idempotent ? null : x, w);
+                http.open(msg.op, /^[^#]*/.exec(requestURI)[0], true);
                 http.onreadystatechange = function () {
                     if (3 === http.readyState || 4 === http.readyState) {
                         heartbeat = (new Date()).getTime();
                     }
-                    if (self !== connection) { return; }
+                    if (m !== connection) { return; }
 
                     if (4 !== http.readyState) { return; }
                     if (http.status < 200 || http.status >= 500) { return; }
 
-                    if (m !== pending.shift()) { throw new Error(); }
+                    if (msg !== pending.shift()) { throw new Error(); }
                     w += 1;
                     if (0 === pending.length) {
                         connection = null;
                     } else {
-                        ADSAFE.later(self);
+                        ADSAFE.later(m);
                     }
 
-                    m.resolve(deserialize(requestURI, http));
+                    msg.resolve(deserialize(requestURI, http));
                 };
-                if (undefined === m.argv) {
+                if (undefined === msg.argv) {
                     http.send(null);
                 } else {
                     try {
@@ -346,12 +346,12 @@ ADSAFE.lib('web', function (lib) {
                          */
                         http.setRequestHeader('Content-Type', 'text/plain');
                     } catch (e) {}
-                    http.send(serialize(requestURI, m.argv));
+                    http.send(serialize(requestURI, msg.argv));
                 }
             };
             if (timeout) { (function () {
                 var watcher = function () {
-                    if (connection !== self) { return; }
+                    if (connection !== m) { return; }
 
                     var delta = ((new Date()).getTime()) - heartbeat;
                     if (delta >= timeout) {
@@ -367,7 +367,7 @@ ADSAFE.lib('web', function (lib) {
                 };
                 ADSAFE.later(watcher, timeout);
             }()); }
-            return self;
+            return m;
         }
 
         return function (target, href, op, resolve, q, argv) {
