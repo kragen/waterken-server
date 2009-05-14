@@ -44,6 +44,11 @@ ADSAFE.lib('web', function (lib) {
     });
 
     /**
+     * advance declaration of send() function for JSLint
+     */
+    var send = undefined;
+
+    /**
      * Constructs a remote reference.
      * @param href  absolute URLref for target resource
      */
@@ -102,11 +107,11 @@ ADSAFE.lib('web', function (lib) {
         var hrefPath = hrefOPR[2].split('/');
         var maxMatch = Math.min(basePath.length, hrefPath.length) - 1;
         var i = 0;
-        while (i !== maxMatch && basePath[i] === hrefPath[i]) { ++i; }
+        while (i !== maxMatch && basePath[i] === hrefPath[i]) { i += 1; }
 
         // wind up to the common parent folder
         var cd = '';
-        for (var n = basePath.length - i - 1; 0 !== n--;) { cd += '../'; }
+        for (var n = basePath.length - i - 1; 0 !== n; n -= 1) { cd += '../'; }
         if ('' === cd) {
             cd = './';
         }
@@ -152,10 +157,10 @@ ADSAFE.lib('web', function (lib) {
         if ('' === href) { return base; }
         if (/^#/.test(href)) { return base + href; }
         if (/^\/\//.test(href)) {
-            return /^[a-zA-Z][\w\-\.\+]*:/.exec(base)[0] + href;
+            return (/^[a-zA-Z][\w\-\.\+]*:/).exec(base)[0] + href;
         }
         if (/^\//.test(href)) {
-            return /^[a-zA-Z][\w\-\.\+]*:\/\/[^\/]*/.exec(base)[0] + href;
+            return (/^[a-zA-Z][\w\-\.\+]*:\/\/[^\/]*/).exec(base)[0] + href;
         }
 
         base = /^[^\?]*/.exec(base)[0]; // drop base query
@@ -250,7 +255,7 @@ ADSAFE.lib('web', function (lib) {
         }
         if (pqf[3]) {
             var args = pqf[3].substring(1).split('&');
-            for (var i = 0; i != args.length; ++i) {
+            for (var i = 0; i !== args.length; i += 1) {
                 if (/^=/.test(args[i])) {
                     var id = args[i].substring(1);
                     requestQuery += '#' + id;
@@ -404,7 +409,7 @@ ADSAFE.lib('web', function (lib) {
      * @param q         query string argument
      * @param argv      JSON value for request body
      */
-    var send = (function () {
+    send = (function () {
         var sessions = { /* origin => session */ };
         return function (target, href, op, resolve, q, argv) {
             var origin = resolveURI(href, '/');
@@ -426,7 +431,7 @@ ADSAFE.lib('web', function (lib) {
     }
 
     function allowedNavigationScheme(href) {
-        return /^https:/i.test(href) || /^http:/i.test(href);
+        return (/^https:/i).test(href) || (/^http:/i).test(href);
     }
 
     return {
@@ -458,21 +463,21 @@ ADSAFE.lib('web', function (lib) {
          * @return number of elements modified
          */
         href: function (elements, target) {
+            var nodes = elements.___nodes___;
+
             var n = 0;
             if (null === target) {
-                elements.___nodes___.filter(function (_node) {
-                    _node.removeAttribute('href');
+                nodes.filter(function (node) {
+                    node.removeAttribute('href');
                     n += 1;
                 });
             } else {
                 var href = unsealURLref(target);
                 if (null !== href && allowedNavigationScheme(href)) {
-                    elements.___nodes___.filter(function (_node) {
-                        switch (_node.tagName.toUpperCase()) {
-                        case 'A':
-                            _node.setAttribute('href', href);
+                    nodes.filter(function (node) {
+                        if ('A' === node.tagName.toUpperCase()) {
+                            node.setAttribute('href', href);
                             n += 1;
-                            break;
                         }
                     });
                 }
@@ -487,20 +492,22 @@ ADSAFE.lib('web', function (lib) {
          * @return number of elements modified
          */
         src: function (elements, target) {
+            var nodes = elements.___nodes___;
+
             var n = 0;
             if (null === target) {
-                elements.___nodes___.filter(function (_node) {
-                    _node.removeAttribute('src');
+                nodes.filter(function (node) {
+                    node.removeAttribute('src');
                     n += 1;
                 });
             } else {
                 var src = unsealURLref(target);
                 if (null !== src && allowedNavigationScheme(src)) {
-                    elements.___nodes___.filter(function (_node) {
-                        switch (_node.tagName.toUpperCase()) {
+                    nodes.filter(function (node) {
+                        switch (node.tagName.toUpperCase()) {
                         case 'IMG':
                         case 'INPUT':
-                            _node.setAttribute('src', makeRequestURI(src));
+                            node.setAttribute('src', makeRequestURI(src));
                             n += 1;
                             break;
                         }
@@ -515,12 +522,12 @@ ADSAFE.lib('web', function (lib) {
          * @param field bunch containing a single password field
          */
         fetch: function (field) {
-            var _nodes = field.___nodes___;
-            if (1 !== _nodes.length) { return; }
-            var _node = _nodes[0];
-            if (!/^INPUT$/i.test(_node.tagName)) { return; }
-            if ('password' !== _node.type) { return; }
-            var href = _node.value;
+            var nodes = field.___nodes___;
+            if (1 !== nodes.length) { return; }
+            var node = nodes[0];
+            if (!/^INPUT$/i.test(node.tagName)) { return; }
+            if ('password' !== node.type) { return; }
+            var href = node.value;
             if (!/^[a-zA-Z][\w\-\.\+]*:/.test(href)) { return null; }
             return sealURLref(href);
         },
@@ -549,7 +556,7 @@ ADSAFE.lib('web', function (lib) {
             if (undefined !== args && null !== args) {
                 var query = '?';
                 if ('object' === typeof args) {
-                    for (k in args) { if (includes(args, k)) {
+                    for (var k in args) { if (includes(args, k)) {
                         if ('?' !== query) {
                             query += '&';
                         }
