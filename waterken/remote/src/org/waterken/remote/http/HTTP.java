@@ -377,6 +377,7 @@ HTTP extends Eventual implements Serializable {
             Void.class == type ||
             java.math.BigInteger.class == type ||
             java.math.BigDecimal.class == type ||
+            org.ref_send.scope.Scope.class == type ||
             org.ref_send.Record.class.isAssignableFrom(type) ||
             Throwable.class.isAssignableFrom(type) ||
             org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
