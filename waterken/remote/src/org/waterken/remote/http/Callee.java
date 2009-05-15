@@ -66,7 +66,7 @@ Callee extends Struct implements Serializable {
                 value = Eventual.ref(exports.reference(query)).call();
             } catch (final Unresolved e) {
                 return serialize(m.head.method, "404", "not yet",
-                                 Server.ephemeral, JSON.Rejected.make(e));
+                                 Server.ephemeral, e);
             } catch (final Exception e) {
                 value = JSON.Rejected.make(e);
             }
