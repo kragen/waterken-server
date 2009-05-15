@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-14
+ * web_send.js version: 2009-05-15
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -206,17 +206,15 @@ ADSAFE.lib('web', function (lib) {
         case 202:
         case 203:
             var contentType = http.getResponseHeader('Content-Type');
-            if (/^application\/do-not-execute(?=;|$)/i.test(contentType)) {
-                return http.responseText;
-            }
-            return JSON.parse(http.responseText, function (key, value) {
-                if (includes(value, '!')) { return lib.Q.reject(value['!']); }
-                if (includes(value, '@')) {
-                    return sealURLref(resolveURI(base, value['@']));
-                }
-                if (includes(value, '=')) { return value['=']; }
-                return value;
-            });
+            return (/^application\/json(?=;|$)/i).test(contentType) ?
+                JSON.parse(http.responseText, function (key, value) {
+                    if (includes(value, '!')) {return lib.Q.reject(value['!']);}
+                    if (includes(value, '@')) {
+                        return sealURLref(resolveURI(base, value['@']));
+                    }
+                    if (includes(value, '=')) { return value['=']; }
+                    return value;
+                }) : http.responseText;
         case 204:
         case 205:
             return null;
@@ -371,18 +369,17 @@ ADSAFE.lib('web', function (lib) {
         }
 
         return function (target, href, op, resolve, q, argv) {
-            var idempotent = 'GET' === op || 'HEAD' === op ||
-                             'PUT' === op || 'DELETE' === op ||
-                             'OPTIONS' === op || 'TRACE' === op ||
-                             'WHEN' === op;
+            var idempotent = 'GET'     === op || 'HEAD'   === op ||
+                             'PUT'     === op || 'DELETE' === op ||
+                             'OPTIONS' === op || 'TRACE'  === op ||
+                             'WHEN'    === op;
             if (!idempotent && !initialized) {
                 pending.push({
                     idempotent: true,
-                    href: resolveURI(href, '?q=create&s=sessions'),
-                    op: 'POST',
-                    argv: [],
+                    href: resolveURI(href, '?q=fresh&s=sessions'),
+                    op: 'GET',
                     resolve: function (value) {
-                        x = value.key;
+                        x = value.sessionKey;
                     }
                 });
                 initialized = true;
