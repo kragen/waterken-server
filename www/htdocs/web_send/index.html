@@ -190,13 +190,13 @@ Request-URI.</p>
 <h3><a name="session" href="#session">session identifier</a></h3>
 <p>Before sending any <code>POST</code> request, the web_send library will
 first send a request asking the server if a session should be created. This
-<code>POST</code> request is sent to the URL
-<code>&lt;?q=create&amp;s=sessions&gt;</code>, resolved relative to the remote
+<code>GET</code> request is sent to the URL
+<code>&lt;?q=fresh&amp;s=sessions&gt;</code>, resolved relative to the remote
 reference URL that is about to be used.  If your server wishes to associate
 requests with a session, respond with JSON like:</p>
 <pre>
 {
-  "key" : "sessionid"
+  "sessionKey" : "session123"
 }
 </pre>
 <p>The web_send library will then include this key as the '<code>x</code>'
@@ -207,9 +207,10 @@ code:</p>
 lib.Q.post(drum, 'bang', [ 3 ]);
 </pre>
 <p>The Request-URI will be
-<code>&lt;/myApp/obj456?q=bang&amp;x=sessionid&amp;w=1&gt;</code>.</p>
+<code>&lt;/myApp/obj456?q=bang&amp;x=session123&amp;w=2&gt;</code>.</p>
 <p>If your server does not wish to use a session, respond to the session
-creation request with a <code>404</code> response.</p>
+creation request with a <code>404</code> response. Make the response cacheable
+to avoid receiving future session creation requests.</p>
 
 <h3><a name="remotePromise" href="#remotePromise">server-side promise</a></h3>
 <p>The reference returned by a call to <code><a href="#Q.get">Q.get</a>()</code>
@@ -662,7 +663,7 @@ Tutorial</a>.</p>
 </div>
 <p class="footer comment">
 <a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
-<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-05-13</a>
+<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-05-15</a>
 </p>
 </body>
 </html>
