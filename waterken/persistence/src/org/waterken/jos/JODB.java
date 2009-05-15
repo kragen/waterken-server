@@ -505,6 +505,7 @@ JODB<S> extends Database<S> {
     final TransactionMonitor monitor = new TransactionMonitor() {
         public String
         tag() {
+            if (!tx.o2wf.isEmpty()) { return null; }
             final Mac mac;
             try {
                 mac = allocMac(root);
