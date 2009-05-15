@@ -379,7 +379,9 @@ ADSAFE.lib('web', function (lib) {
                     href: resolveURI(href, '?q=fresh&s=sessions'),
                     op: 'GET',
                     resolve: function (value) {
-                        x = value.sessionKey;
+                        if (includes(value, 'sessionKey')) {
+                            x = value.sessionKey;
+                        }
                     }
                 });
                 initialized = true;
