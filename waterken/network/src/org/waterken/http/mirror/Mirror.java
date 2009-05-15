@@ -15,6 +15,7 @@ import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
+import org.waterken.http.TokenList;
 import org.waterken.io.FileType;
 import org.waterken.io.MIME;
 import org.waterken.uri.Filename;
@@ -52,8 +53,11 @@ Mirror extends Struct implements Server, Serializable {
                               final Client client) throws Exception {
 
         // determine the request target
-        FileType contentType = FileType.unknown;
+        FileType type = FileType.unknown;
+        String encoding;
         Archive.Entry target; {
+            final boolean gz = TokenList.includes("gzip",
+                    TokenList.list("Accept-Encoding", head.headers));
             final String path = URI.path(head.uri);
             final String name = Path.name(path);
             final String ext = Filename.ext(name);
@@ -70,26 +74,37 @@ Mirror extends Struct implements Server, Serializable {
                         return;
                     }
                 }
+                encoding = null;
                 target = null;
                 final String pathname =
                     Path.folder(path) + ("".equals(name) ? "index" : name);
                 for (final FileType t : formats.known) {
-                    final Archive.Entry x = archive.find(pathname + t.ext);
+                    Archive.Entry x =
+                        gz && t.z ? archive.find(pathname + t.ext+".gz") : null;
+                    if (null != x) {
+                        encoding = "gzip";
+                    } else {
+                        x = archive.find(pathname + t.ext);
+                    }
                     if (null != x) {
                         target = x;
-                        contentType = t;
+                        type = t;
                         break;
                     }
                 }
             } else {
-                target = archive.find(path);
-                if (null != target) {
-                    for (final FileType format : formats.known) {
-                        if (Header.equivalent(format.ext, ext)) {
-                            contentType = format;
-                            break;
-                        }
+                for (final FileType format : formats.known) {
+                    if (Header.equivalent(format.ext, ext)) {
+                        type = format;
+                        break;
                     }
+                }
+                target = type.z && gz ? archive.find(path + ".gz") : null;
+                if (null != target) {
+                    encoding = "gzip";
+                } else {
+                    encoding = null;
+                    target = archive.find(path);
                 }
             }
         }
@@ -111,11 +126,11 @@ Mirror extends Struct implements Server, Serializable {
                 new Header("Cache-Control",
                            null != promise ? "max-age=" + forever : "no-cache"),
                 new Header("Content-Length", "" + target.getLength()),
-                new Header("Content-Type", contentType.name)
+                new Header("Content-Type", type.name)
             );
-            if (null != contentType.encoding) {
-                header = header.with(new Header("Content-Encoding",
-                                                contentType.encoding));
+            if (null != encoding) {
+                header = header.with(new Header("Content-Encoding", encoding));
+                header = header.with(new Header("Vary", "Accept-Encoding"));
             }
             client.receive(new Response("HTTP/1.1", "200", "OK", header),
                            "HEAD".equals(head.method) ? null : in);

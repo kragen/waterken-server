@@ -21,13 +21,13 @@ FileType implements Powerless, Selfless, Record, Serializable {
      * <code>application/do-not-execute</code> MIME type
      */
     static public final FileType unknown =
-        new FileType("",        "application/do-not-execute",           null);
+        new FileType("",        "application/do-not-execute",           false);
     
     /**
      * <code>application/json</code> MIME type
      */
     static public final FileType json =
-        new FileType(".json",   "application/json",                     null);
+        new FileType(".json",   "application/json",                     true);
 
     /**
      * filename extension
@@ -40,26 +40,26 @@ FileType implements Powerless, Selfless, Record, Serializable {
     public final String name;
     
     /**
-     * Content-Encoding
+     * Is this Content-Type compressible?
      */
-    public final String encoding;
+    public final boolean z;
 
     /**
      * Constructs an instance.
-     * @param ext       {@link #ext}
-     * @param name      {@link #name}
-     * @param encoding  {@link #encoding}
+     * @param ext   {@link #ext}
+     * @param name  {@link #name}
+     * @param z     {@link #z}
      */
     public @deserializer
     FileType(@name("ext") final String ext,
              @name("name") final String name,
-             @name("encoding") final String encoding) {
+             @name("z") final boolean z) {
         if (null == ext) { throw new NullPointerException(); }
         if (null == name) { throw new NullPointerException(); }
         
         this.ext = ext;
         this.name = name;
-        this.encoding = encoding;
+        this.z = z;
     }
 
     // java.lang.Object interface
@@ -74,8 +74,7 @@ FileType implements Powerless, Selfless, Record, Serializable {
         boolean r = null != o && getClass() == o.getClass();
         if (r) {
             final FileType x = (FileType)o;
-            r = ext.equals(x.ext) && name.equals(x.name) &&
-                (null!=encoding ?encoding.equals(x.encoding) :null==x.encoding);
+            r = ext.equals(x.ext) && name.equals(x.name) && z == x.z;
         }
         return r;
     }
@@ -85,7 +84,6 @@ FileType implements Powerless, Selfless, Record, Serializable {
      */
     public int
     hashCode() {
-        return 0x313E719E + ext.hashCode() + name.hashCode() +
-               (null != encoding ? encoding.hashCode() : 0);
+        return 0x313E719E + ext.hashCode() + name.hashCode() + (z ? 1 : 0);
     }
 }

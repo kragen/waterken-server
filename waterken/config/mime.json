@@ -1,22 +1,22 @@
 {
   "$" : [ "org.waterken.io.MIME" ],
   "known" : [
-    { "ext" : ".html",  "name" : "text/html" },
+    { "ext" : ".html",  "name" : "text/html", "z" : true },
     { "ext" : ".swf",   "name" : "application/x-shockwave-flash" },
 
-    { "ext" : ".htm",   "name" : "text/html" },
-    { "ext" : ".js",    "name" : "application/javascript" },
-    { "ext" : ".css",   "name" : "text/css; charset=ISO-8859-1" },
+    { "ext" : ".js",    "name" : "application/javascript", "z" : true },
+    { "ext" : ".css",   "name" : "text/css; charset=ISO-8859-1", "z" : true },
     { "ext" : ".png",   "name" : "image/png" },
     { "ext" : ".gif",   "name" : "image/gif" },
     { "ext" : ".jpg",   "name" : "image/jpg" },
     { "ext" : ".ico",   "name" : "image/vnd.microsoft.icon" },
-    { "ext" : ".xml",   "name" : "application/xml" },
-    { "ext" : ".rdf",   "name" : "application/rdf+xml" },
-    { "ext" : ".xsl",   "name" : "application/xsl" },
-    { "ext" : ".txt",   "name" : "text/plain" },
+    { "ext" : ".xml",   "name" : "application/xml", "z" : true },
+    { "ext" : ".rdf",   "name" : "application/rdf+xml", "z" : true },
+    { "ext" : ".xsl",   "name" : "application/xsl", "z" : true },
+    { "ext" : ".txt",   "name" : "text/plain", "z" : true },
     { "ext" : ".zip",   "name" : "application/zip" },
-    { "ext" : ".json",  "name" : "application/json" },
+    { "ext" : ".json",  "name" : "application/json", "z" : true },
+    { "ext" : ".htm",   "name" : "text/html", "z" : true },
     { "ext" : ".uri",   "name" : "text/uri-list; charset=US-ASCII" }
   ]
 }

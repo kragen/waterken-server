@@ -11,9 +11,7 @@ import org.waterken.uri.Header;
  */
 public final class
 TokenList {
-
-    private
-    TokenList() {}
+    private TokenList() {}
 
     /**
      * Encodes a list of <code>token</code>.
@@ -40,7 +38,7 @@ TokenList {
      */
     static public PowerlessArray<String>
     decode(final String list) {
-        PowerlessArray.Builder<String> r = PowerlessArray.builder();
+        PowerlessArray.Builder<String> r = PowerlessArray.builder(2);
         final int end = list.length();
         int i = 0;
         while (true) {
@@ -198,6 +196,20 @@ TokenList {
             if (Header.equivalent(name, header.name)) { return header.value; }
         }
         return otherwise;
+    }
+    
+    /**
+     * Does a token list include a given token?
+     * @param token     searched for token
+     * @param tokens    token list
+     * @return <code>true</code> if included, else <code>false</code>
+     */
+    static public boolean
+    includes(final String token, final String tokens) {
+        for (final String x : decode(tokens)) {
+            if (Header.equivalent(token, x)) { return true; }
+        }
+        return false;
     }
     
     /**
