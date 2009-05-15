@@ -208,6 +208,9 @@ lib.Q.post(drum, 'bang', [ 3 ]);
 </pre>
 <p>The Request-URI will be
 <code>&lt;/myApp/obj456?q=bang&amp;x=session123&amp;w=2&gt;</code>.</p>
+<p>It is crucial to ensure a success response to the session creation request
+is marked not cacheable, such as by including the response header:
+<code>Cache-control: no-cache</code>.</p>
 <p>If your server does not wish to use a session, respond to the session
 creation request with a <code>404</code> response. Make the response cacheable
 to avoid receiving future session creation requests.</p>
