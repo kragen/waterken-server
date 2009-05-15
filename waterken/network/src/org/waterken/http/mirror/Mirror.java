@@ -121,19 +121,19 @@ Mirror extends Struct implements Server, Serializable {
         final String promise = Query.arg(null, URI.query("", head.uri), "o");
         final InputStream in = target.open();
         try {
-            PowerlessArray<Header> header = PowerlessArray.array(
-                new Header("ETag", etag),
-                new Header("Cache-Control",
-                           null != promise ? "max-age=" + forever : "no-cache"),
-                new Header("Content-Length", "" + target.getLength()),
-                new Header("Content-Type", type.name)
-            );
+            final PowerlessArray.Builder<Header> headers =
+                PowerlessArray.builder(6);
+            headers.append(new Header("ETag", etag));
+            headers.append(new Header("Cache-Control",
+                    null != promise ? "max-age=" + forever : "no-cache"));
+            headers.append(new Header("Content-Length", ""+target.getLength()));
+            headers.append(new Header("Content-Type", type.name));
             if (null != encoding) {
-                header = header.with(new Header("Content-Encoding", encoding));
-                header = header.with(new Header("Vary", "Accept-Encoding"));
+                headers.append(new Header("Content-Encoding", encoding));
+                headers.append(new Header("Vary", "Accept-Encoding"));
             }
-            client.receive(new Response("HTTP/1.1", "200", "OK", header),
-                           "HEAD".equals(head.method) ? null : in);
+            client.receive(new Response("HTTP/1.1", "200", "OK",
+                headers.snapshot()), "HEAD".equals(head.method) ? null : in);
         } catch (final Exception e) {
             try { in.close(); } catch (final Exception e2) {}
             throw e;
