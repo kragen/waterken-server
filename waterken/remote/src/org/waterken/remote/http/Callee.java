@@ -88,8 +88,7 @@ Callee extends Struct implements Serializable {
             // prevent access to local implementation details
             if (HTTP.isPBC(target)) { throw new Unresolved(); }
         } catch (final Exception e) {
-            return serialize(m.head.method, "404", "never", Server.forever,
-                             JSON.Rejected.make(e));
+            return serialize(m.head.method, "404", "never", Server.forever, e);
         }
 
         if ("GET".equals(m.head.method) || "HEAD".equals(m.head.method)) {
