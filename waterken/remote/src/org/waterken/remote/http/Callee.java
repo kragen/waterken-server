@@ -54,7 +54,7 @@ Callee extends Struct implements Serializable {
         if (null == p) {                        // introspection or when block
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
-                    Response.options("TRACE","OPTIONS","GET","HEAD"), null);
+                    Response.options("TRACE", "OPTIONS", "GET", "HEAD"), null);
             }
             if (!("GET".equals(m.head.method) || "HEAD".equals(m.head.method))){
                 return new Message<Response>(
@@ -91,37 +91,24 @@ Callee extends Struct implements Serializable {
             return serialize(m.head.method, "404", "never", Server.forever,
                              JSON.Rejected.make(e));
         }
-        
-        // determine the type of accessed member
-        final Method lambda = HTTP.dispatch(target, p);
-        final Method declaration = null != lambda ? bubble(lambda) : null;
-        if (null == declaration) {              // no such member
-            if ("OPTIONS".equals(m.head.method)) {
-                return new Message<Response>(
-                    Response.options("TRACE", "OPTIONS"), null);
+
+        if ("GET".equals(m.head.method) || "HEAD".equals(m.head.method)) {
+            final Method property = bubble(HTTP.dispatchGET(target, p));
+            if (null == property) {             // no such property
+                final boolean post = null!=bubble(HTTP.dispatchPOST(target, p));
+                return new Message<Response>(Response.notAllowed(
+                    post ? new String[] { "TRACE", "OPTIONS", "POST" } : 
+                           new String[] { "TRACE", "OPTIONS"         }), null);
             }
-            return new Message<Response>(
-                    Response.notAllowed("TRACE", "OPTIONS"), null);
-        }
-        
-        if (null != HTTP.property(lambda)) {    // property access
-            if ("OPTIONS".equals(m.head.method)) {
-                return new Message<Response>(
-                    Response.options("TRACE","OPTIONS","GET","HEAD"), null);
-            }
-            if (!("GET".equals(m.head.method) || "HEAD".equals(m.head.method))){
-                return new Message<Response>(
-                    Response.notAllowed("TRACE","OPTIONS","GET","HEAD"), null);
-            }
-            Object value;
+            Object value;                       // property access
             try {
                 // AUDIT: call to untrusted application code
-                final Object r = Reflection.invoke(declaration, target);
+                final Object r = Reflection.invoke(property, target);
                 value = Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
             } catch (final Exception e) {
                 value = JSON.Rejected.make(e);
             }
-            final boolean constant = "getClass".equals(lambda.getName());
+            final boolean constant = "getClass".equals(property.getName());
             final int maxAge = constant ? Server.forever : Server.ephemeral; 
             final String etag = constant ? null : exports.getTransactionTag();
             final Response failed = m.head.allow(etag);
@@ -134,43 +121,57 @@ Callee extends Struct implements Serializable {
             return r;
         }
         
-        if ("OPTIONS".equals(m.head.method)) {  // method invocation
-            return new Message<Response>(
-                Response.options("TRACE", "OPTIONS", "POST"), null);
-        }
-        if (!"POST".equals(m.head.method)) {
-            return new Message<Response>(
-                Response.notAllowed("TRACE", "OPTIONS", "POST"), null);
-        }
-        final Response failed = m.head.allow(null);
-        if (null != failed) { return new Message<Response>(failed, null); }
-        final Object value=exports.execute(query, lambda, new Promise<Object>(){
-            public Object
-            call() throws Exception {
-                /*
-                 * SECURITY CLAIM: deserialize inside the once block to ensure
-                 * application code cannot detect request replay by causing
-                 * failed deserialization
-                 */ 
-                final ConstArray<?> argv;
-                try {
-                    argv = deserialize(m,
-                        ConstArray.array(lambda.getGenericParameterTypes()));
-                } catch (final BadSyntax e) {
+        if ("POST".equals(m.head.method)) {
+            final Method lambda = HTTP.dispatchPOST(target, p);
+            final Method declaration = bubble(lambda);
+            if (null == declaration) {          // no such method
+                final boolean get = null != bubble(HTTP.dispatchGET(target, p));
+                return new Message<Response>(Response.notAllowed(
+                    get ? new String[] { "TRACE", "OPTIONS", "GET" } : 
+                          new String[] { "TRACE", "OPTIONS"        }), null);
+            }                                   // method invocation
+            final Response failed = m.head.allow(null);
+            if (null != failed) { return new Message<Response>(failed, null); }
+            final Object value = exports.execute(query, lambda,
+                                                 new Promise<Object>(){
+                public Object
+                call() throws Exception {
                     /*
-                     * strip out the parsing information to avoid leaking
-                     * information to the application layer
+                     * SECURITY CLAIM: deserialize inside the once block to
+                     * ensure application code cannot detect request replay by
+                     * causing failed deserialization
                      */ 
-                    throw (Exception)e.getCause();
-                }
+                    final ConstArray<?> argv;
+                    try {
+                        argv = deserialize(m, ConstArray.array(
+                                lambda.getGenericParameterTypes()));
+                    } catch (final BadSyntax e) {
+                        /*
+                         * strip out the parsing information to avoid leaking
+                         * information to the application layer
+                         */ 
+                        throw (Exception)e.getCause();
+                    }
 
-                // AUDIT: call to untrusted application code
-                final Object r = Reflection.invoke(declaration, target,
-                        argv.toArray(new Object[argv.length()]));
-                return Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
-            }
-        });
-        return serialize(m.head.method, "200", "OK", Server.ephemeral, value);
+                    // AUDIT: call to untrusted application code
+                    final Object r = Reflection.invoke(declaration, target,
+                            argv.toArray(new Object[argv.length()]));
+                    return Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
+                }
+            });
+            return serialize(m.head.method,"200","OK", Server.ephemeral, value);
+        }
+        
+        final boolean get = null != bubble(HTTP.dispatchGET(target, p));
+        final boolean post = null != bubble(HTTP.dispatchPOST(target, p));
+        final String[] allow =
+            get && post ? new String[] { "TRACE", "OPTIONS", "GET", "POST" } : 
+            get         ? new String[] { "TRACE", "OPTIONS", "GET"         } :
+                   post ? new String[] { "TRACE", "OPTIONS",        "POST" } :
+                          new String[] { "TRACE", "OPTIONS"                };
+        return "OPTIONS".equals(m.head.method) ?
+                new Message<Response>(Response.options(allow), null) :
+            new Message<Response>(Response.notAllowed(allow), null);
     }
     
     private Message<Response>
@@ -185,23 +186,23 @@ Callee extends Struct implements Serializable {
             contentType = FileType.json.name;
             content = new JSONSerializer().run(exports.export(), value);
         }
-        if ("POST".equals(method)) {
+        if ("GET".equals(method) || "HEAD".equals(method)) {
             return new Message<Response>(new Response(
                 "HTTP/1.1", status, phrase,
                 PowerlessArray.array(
+                    new Header("Cache-Control", 
+                               0 < maxAge ? "max-age=" + maxAge : "no-cache"),
                     new Header("Content-Type", contentType),
                     new Header("Content-Length", "" + content.length())
-                )), content);
+                )),
+                "HEAD".equals(method) ? null : content);
         }
         return new Message<Response>(new Response(
             "HTTP/1.1", status, phrase,
             PowerlessArray.array(
-                new Header("Cache-Control", 
-                           0 < maxAge ? "max-age=" + maxAge : "no-cache"),
                 new Header("Content-Type", contentType),
                 new Header("Content-Length", "" + content.length())
-            )),
-            "HEAD".equals(method) ? null : content);
+            )), content);
     }
     
     private ConstArray<?>
@@ -217,10 +218,11 @@ Callee extends Struct implements Serializable {
     }
 
     /**
-     * Finds the first invocable declaration of a public method.
+     * Finds the first invokable declaration of a public method.
      */
     static private Method
     bubble(final Method method) {
+        if (null == method) { return null; }
         final Class<?> declarer = method.getDeclaringClass();
         if (Object.class == declarer || Struct.class == declarer) {return null;}
         if (Modifier.isPublic(declarer.getModifiers())) { return method; }

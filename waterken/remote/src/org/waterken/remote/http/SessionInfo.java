@@ -19,22 +19,22 @@ SessionInfo extends Struct implements Record, Serializable {
     /**
      * secret key for messaging
      */
-    public final String key;
+    public final String sessionKey;
     
     /**
      * GUID for session logging
      */
-    public final String name;
+    public final String sessionName;
     
     /**
      * Constructs an instance.
-     * @param key   {@link #key}
-     * @param name  {@link #name}
+     * @param sessionKey    {@link #sessionKey}
+     * @param sessionName   {@link #sessionName}
      */
     public @deserializer
-    SessionInfo(@name("key") final String key,
-                @name("name") final String name) {
-        this.key = key;
-        this.name = name;
+    SessionInfo(@name("sessionKey") final String sessionKey,
+                @name("sessionName") final String sessionName) {
+        this.sessionKey = sessionKey;
+        this.sessionName = sessionName;
     }
 }

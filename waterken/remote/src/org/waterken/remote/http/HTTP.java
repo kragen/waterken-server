@@ -161,8 +161,9 @@ HTTP extends Eventual implements Serializable {
             final String peerKey = ".peer-" + URLEncoding.encode(peer);
             Pipeline msgs = _.root.fetch(null, peerKey);
             if (null == msgs) {
-                final SessionInfo s = new SessionMaker(_.root).create();
-                msgs = new Pipeline(peer, s.key, s.name, _.effect, _.outbound);
+                final SessionInfo s = new SessionMaker(_.root).getFresh();
+                msgs = new Pipeline(peer, s.sessionKey, s.sessionName,
+                                    _.effect, _.outbound);
                 _.root.assign(peerKey, msgs);
             }
             return new Caller(_,_.here,getCodebase(), connect(),export(),msgs);
@@ -411,6 +412,29 @@ HTTP extends Eventual implements Serializable {
         }
         return r;
     }
+    
+    /**
+     * Finds a named property accessor.
+     * @param target    invocation target
+     * @param name      property name
+     * @return corresponding method, or <code>null</code> if not found
+     */
+    static public Method
+    dispatchGET(final Object target, final String name) {
+        final Class<?> type = null != target ? target.getClass() : Void.class;
+        final boolean c = Class.class == type;
+        Method r = null;
+        for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
+            final int flags = m.getModifiers();
+            if (c == isStatic(flags) && !m.isSynthetic() && !m.isBridge()) {
+                if (name.equals(property(m))) {
+                    if (null != r) { return null; }
+                    r = m;
+                }
+            }
+        }
+        return r;
+    }
 
     /**
      * Finds a named method.
@@ -419,18 +443,14 @@ HTTP extends Eventual implements Serializable {
      * @return corresponding method, or <code>null</code> if not found
      */
     static public Method
-    dispatch(final Object target, final String name) {
+    dispatchPOST(final Object target, final String name) {
         final Class<?> type = null != target ? target.getClass() : Void.class;
         final boolean c = Class.class == type;
         Method r = null;
         for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
             final int flags = m.getModifiers();
             if (c == isStatic(flags) && !m.isSynthetic() && !m.isBridge()) {
-                String mn = property(m);
-                if (null == mn) {
-                    mn = m.getName();
-                }
-                if (name.equals(mn)) {
+                if (name.equals(m.getName()) && null == property(m)) {
                     if (null != r) { return null; }
                     r = m;
                 }

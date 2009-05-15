@@ -90,7 +90,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     create(final Database<Server> parent, final String project,
            final String base, final String label,
            final Class<?> maker, final Object... argv) throws Exception {
-        final Method make = HTTP.dispatch(maker, "make");
+        final Method make = HTTP.dispatchPOST(maker, "make");
         final ByteArray body =
             new JSONSerializer().run(null, ConstArray.array(argv)); 
         return parent.enter(Transaction.update,
