@@ -200,31 +200,33 @@ ADSAFE.lib('web', function (lib) {
      * @param http  HTTP response
      */
     function deserialize(base, http) {
+        var isJSON = (/^application\/json(?=;|$)/i).test(
+                            http.getResponseHeader('Content-Type'));
+        var value = isJSON ?
+            JSON.parse(http.responseText, function (key, value) {
+                if (includes(value, '!')) { return lib.Q.reject(value['!']); }
+                if (includes(value, '@')) {
+                    return sealURLref(resolveURI(base, value['@']));
+                }
+                if (includes(value, '=')) { return value['=']; }
+                return value;
+            }) : http.responseText;
         switch (http.status) {
         case 200:
         case 201:
         case 202:
         case 203:
-            var contentType = http.getResponseHeader('Content-Type');
-            return (/^application\/json(?=;|$)/i).test(contentType) ?
-                JSON.parse(http.responseText, function (key, value) {
-                    if (includes(value, '!')) {return lib.Q.reject(value['!']);}
-                    if (includes(value, '@')) {
-                        return sealURLref(resolveURI(base, value['@']));
-                    }
-                    if (includes(value, '=')) { return value['=']; }
-                    return value;
-                }) : http.responseText;
+            return value;
         case 204:
         case 205:
             return null;
         case 303:
             var see = http.getResponseHeader('Location');
-            return see ? sealURLref(resolveURI(base, see)) : null;
+            return (isJSON || !see) ? value : sealURLref(resolveURI(base, see));
         case 404:
             return notYetPumpkin;
         default:
-            return lib.Q.reject({
+            return lib.Q.reject(isJSON ? value : {
                 $: [ 'org.ref_send.promise.Failure', 'NaO' ],
                 status: http.status,
                 phrase: http.statusText
