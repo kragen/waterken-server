@@ -219,7 +219,7 @@ ADSAFE.lib('web', function (lib) {
             return value;
         case 204:
         case 205:
-            return null;
+            return {};
         case 303:
             var see = http.getResponseHeader('Location');
             return (isJSON || !see) ? value : sealURLref(resolveURI(base, see));
