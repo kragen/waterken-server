@@ -2,10 +2,9 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.bang;
 
-import static org.ref_send.test.Logic.and;
+import static org.ref_send.test.Logic.join;
 import static org.ref_send.test.Logic.was;
 
-import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
@@ -43,7 +42,7 @@ Beat {
      * @param _     eventual operator
      * @param drum  test subject
      */
-    static public Promise<Boolean>
+    static public Promise<?>
     make(final Eventual _, final Drum drum) {
         /*
          * First, ensure that we have an eventual reference to the drum, since
@@ -67,7 +66,7 @@ Beat {
          * expected. We'll hold onto this promise and use it to produce the
          * promise returned to our caller.
          */
-        final Promise<Boolean> zero = _.when(drum_.getHits(), was(0));
+        final Promise<?> zero = _.when(drum_.getHits(), was(0));
         
         /*
          * Increment the hit counter by doing an eventual invocation of
@@ -82,13 +81,13 @@ Beat {
          * so another check of the drum's hit count will see a value 1
          * more than the previous check.
          */
-        final Promise<Boolean> one = _.when(drum_.getHits(), was(1));
+        final Promise<?> one = _.when(drum_.getHits(), was(1));
         
         // We can queue up as many requests as we like...
         drum_.bang(2);
         
         // ...and they will all be sent in order.
-        final Promise<Boolean> three = _.when(drum_.getHits(), was(3));
+        final Promise<?> three = _.when(drum_.getHits(), was(3));
         
         /*
          * The Waterken server can log the causal chaining of all these
@@ -98,31 +97,25 @@ Beat {
         _.log.comment("all bang requests queued");
         
         /*
-         * We now have 3 promises for checks on the expected value of
-         * the drum's hit count. We'll combine these 3 promises into 1
-         * by doing an eventual AND operation on them. The promise
-         * returned to our caller will resolve as soon as any one of
-         * these 3 promises doesn't resolve to true, or after all of
-         * them have resolved to true. Note that none of the HTTP
-         * requests have actually been sent yet; we've just scheduled
-         * them to be sent and setup code to be run when the responses
-         * eventually come back.
+         * We now have 3 promises for checks on the expected value of the drum's
+         * hit count. We'll combine these 3 promises into 1 by doing an eventual
+         * join operation on them. The promise returned to our caller will
+         * resolve as soon as any one of the promises is rejected, or after all
+         * of them are fulfilled. Note that none of the HTTP requests have
+         * actually been sent yet; we've just scheduled them to be sent and
+         * setup code to be run when the responses eventually come back.
          */
-        return and(_, new ConstArray<Promise<Boolean>>().
-                                with(zero).with(one).with(three));
+        return join(_, zero, one, three);
         
         /*
-         * In total, we've scheduled 3 GET requests and 2 POST requests
-         * and produced a promise which will only resolve to true after
-         * all of these network requests have completed successfully. If
-         * any of these communications are interrupted, due to a server
-         * crash or lost connection, the software will remember where it
-         * left off and resume as soon as network connections can be
-         * re-established, which the software will also periodically
-         * retry. Regardless of how often this process is interrupted,
-         * or for how long, the hit count on the drum will only be
-         * incremented by 3, the number specified by the algorithm
-         * above.
+         * In total, we've scheduled 3 GET requests and 2 POST requests. If any
+         * of these communications are interrupted, due to a server crash or
+         * lost connection, the software will remember where it left off and
+         * resume as soon as network connections can be re-established, which
+         * the software will also periodically retry. Regardless of how often
+         * this process is interrupted, or for how long, the hit count on the
+         * drum will only be incremented by 3, the number specified by the
+         * algorithm above.
          */
     }
     
@@ -149,8 +142,8 @@ Beat {
          */
         final List<Promise<?>> work = List.list();
         final Eventual _ = new Eventual(work.appender());
-        final Promise<Boolean> result = make(_, Bang.make());
+        final Promise<?> result = make(_, Bang.make());
         while (!work.isEmpty()) { work.pop().call(); }
-        if (!result.call()) { throw new Exception("test failed"); }
+        result.call();
     }
 }

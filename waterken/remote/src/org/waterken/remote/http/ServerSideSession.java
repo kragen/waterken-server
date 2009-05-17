@@ -29,7 +29,7 @@ ServerSideSession implements Serializable {
         this.log = log;
         
         current = -1;
-        returns = new ConstArray<Object>();
+        returns = ConstArray.array(new Object[] {});
     }
     
     static protected Object
@@ -48,7 +48,7 @@ ServerSideSession implements Serializable {
             if (message != returns.length()) { return returns.get(message); }
         } else {
             current = window;
-            returns = new ConstArray<Object>();
+            returns = ConstArray.array(new Object[] {});
         }
         log.got(name + "-" + window + "-" + message, null, method);
         final Object r = execute(op);

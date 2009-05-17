@@ -2,9 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.all;
 
-import static org.ref_send.test.Logic.and;
+import static org.ref_send.test.Logic.join;
 
-import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
@@ -29,25 +28,23 @@ All {
      * Constructs an instance.
      * @param _ eventual operator
      */
-    static public Promise<Boolean>
+    static public Promise<?>
     make(final Eventual _) throws Exception {
-        final ConstArray.Builder<Promise<Boolean>> r = ConstArray.builder();
-        
         _.log.comment("testing EQ operations on promises");
-        r.append(SoundCheck.make(_));
+        final Promise<?> a = SoundCheck.make(_);
         
         _.log.comment("testing argument passing");
         final Vat<Wall> wall = _.spawn("wall", Bounce.class);
-        r.append(Pitch.make(_, wall.top));
+        final Promise<?> b = Pitch.make(_, wall.top);
         
         _.log.comment("testing message pipelining");
         final Vat<Drum> drum = _.spawn("drum", Bang.class);
-        r.append(Beat.make(_, drum.top));
+        final Promise<?> c = Beat.make(_, drum.top);
         
         _.log.comment("testing promise resolution");
-        r.append(PopPushN.make(_, 4));
+        final Promise<?> d = PopPushN.make(_, 4);
 
-        return and(_, r.snapshot());
+        return join(_, a, b, c, d);
     }
     
     // Command line interface
@@ -60,8 +57,8 @@ All {
     static public void
     main(final String[] args) throws Exception {
         final List<Promise<?>> work = List.list();
-        final Promise<Boolean> result = make(new Eventual(work.appender()));
+        final Promise<?> result = make(new Eventual(work.appender()));
         while (!work.isEmpty()) { work.pop().call(); }
-        if (!result.call()) { throw new Exception("test failed"); }
+        result.call();
     }
 }

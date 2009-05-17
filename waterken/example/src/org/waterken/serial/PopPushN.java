@@ -3,7 +3,7 @@
 package org.waterken.serial;
 
 import static org.ref_send.promise.Eventual.ref;
-import static org.ref_send.test.Logic.and;
+import static org.ref_send.test.Logic.join;
 import static org.ref_send.test.Logic.was;
 
 import org.joe_e.array.ConstArray;
@@ -29,7 +29,7 @@ PopPushN {
      * @param _ eventual operator
      * @param n number of test iterations
      */
-    static public Promise<Boolean>
+    static public Promise<?>
     make(final Eventual _, final int n) {
         final Series<Integer> x = Serial.make(_);
         
@@ -37,7 +37,7 @@ PopPushN {
          * Check that the first n integers in the series will be the
          * numbers from 0 through n.
          */
-        final ConstArray.Builder<Promise<Boolean>> r = ConstArray.builder();
+        final ConstArray.Builder<Promise<?>> r = ConstArray.builder();
         for (int i = 0; i != n; ++i) {
             r.append(_.when(x.consume(), was(i)));
         }
@@ -49,7 +49,7 @@ PopPushN {
             x.produce(ref(i));
         }
         
-        return and(_, r.snapshot());
+        return join(_, r.snapshot().toArray(new Promise<?>[0]));
     }
     
     // Command line interface
@@ -64,8 +64,8 @@ PopPushN {
         final int n = args.length > 0 ? Integer.parseInt(args[0]) : 4;
         
         final List<Promise<?>> work = List.list();
-        final Promise<Boolean> result = make(new Eventual(work.appender()), n);
+        final Promise<?> result = make(new Eventual(work.appender()), n);
         while (!work.isEmpty()) { work.pop().call(); }
-        if (!result.call()) { throw new Exception("test failed"); }
+        result.call();
     }
 }

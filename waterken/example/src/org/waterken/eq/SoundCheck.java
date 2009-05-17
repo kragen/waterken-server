@@ -4,11 +4,10 @@ package org.waterken.eq;
 
 import static org.ref_send.promise.Eventual.near;
 import static org.ref_send.promise.Eventual.ref;
-import static org.ref_send.test.Logic.and;
+import static org.ref_send.test.Logic.join;
 
 import java.io.Serializable;
 
-import org.joe_e.array.ConstArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
@@ -26,39 +25,35 @@ SoundCheck {
      * Runs a unit test.
      * @param _ eventual operator
      */
-    static public Promise<Boolean>
+    static public Promise<?>
     make(final Eventual _) throws Exception {
-        final ConstArray.Builder<Promise<Boolean>> r = ConstArray.builder();
-        r.append(testNormal(_, _));
-        r.append(testNull(_, null));
-        r.append(testDouble(_));
-        r.append(testFloat(_));
-        return and(_, r.snapshot());
+        return join(_, testNormal(_, _),
+                      testNull(_, null),
+                      testDouble(_),
+                      testFloat(_));
     }
 
     /**
      * Tests promises for a normal reference.
      */
-    static private <T extends Receiver<?>> Promise<Boolean>
+    static private <T extends Receiver<?>> Promise<?>
     testNormal(final Eventual _, final T x) throws Exception {
-        final ConstArray.Builder<Promise<Boolean>> r = ConstArray.builder();
-        
         final Promise<T> p = ref(x);
         check(p.equals(p));
         check(ref(x).equals(p));
         check(x.equals(p.call()));
-        class EQ extends Do<T,Promise<Boolean>> implements Serializable {
+        class EQ extends Do<T,Promise<?>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Promise<Boolean>
+            public Promise<?>
             fulfill(final T arg) throws Exception {
                 check(x.equals(arg));
                 return ref(true);
             }
         }
-        r.append(_.when(p, new EQ()));
-        r.append(_.when(x, new EQ()));
-        r.append(_.when(new Sneaky<T>(x), new EQ()));
+        final Promise<?> a = _.when(p, new EQ());
+        final Promise<?> b = _.when(x, new EQ());
+        final Promise<?> c = _.when(new Sneaky<T>(x), new EQ());
         
         final T x_ = _._(x);
         check(x_.equals(x_));
@@ -66,18 +61,16 @@ SoundCheck {
         check(_._(x).equals(x_));
         check(ref(x_).equals(p));
         check(x == near(x_));
-        r.append(_.when(x_, new EQ()));
+        final Promise<?> d = _.when(x_, new EQ());
         
-        return and(_, r.snapshot());
+        return join(_, a, b, c, d);
     }
 
     /**
      * Tests promises for a <code>null</code>.
      */
-    static private <T extends Receiver<?>> Promise<Boolean>
+    static private <T extends Receiver<?>> Promise<?>
     testNull(final Eventual _, final T x) throws Exception {
-        final ConstArray.Builder<Promise<Boolean>> r = ConstArray.builder();
-        
         final Promise<T> p = ref(x);
         check(p.equals(p));
         check(!ref(x).equals(p));
@@ -97,24 +90,22 @@ SoundCheck {
                 throw reason;
             }
         }
-        r.append(_.when(p, new NE()));
-        r.append(_.when(x, new NE()));
-        r.append(_.when(new Sneaky<T>(x), new NE()));
+        final Promise<?> a = _.when(p, new NE());
+        final Promise<?> b = _.when(x, new NE());
+        final Promise<?> c = _.when(new Sneaky<T>(x), new NE());
         
         final T x_ = Eventual.cast(Receiver.class, p);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
         check(Eventual.cast(Receiver.class, p).equals(x_));
         check(ref(x_).equals(p));
-        r.append(_.when(x_, new NE()));
+        final Promise<?> d = _.when(x_, new NE());
         
-        return and(_, r.snapshot());
+        return join(_, a, b, c, d);
     }
     
-    static private <T> Promise<Boolean>
+    static private <T> Promise<?>
     testNaN(final Eventual _, final T x) throws Exception {
-        final ConstArray.Builder<Promise<Boolean>> r = ConstArray.builder();
-        
         final Promise<T> p = ref(x);
         check(p.equals(p));
         check(!p.equals(ref(x)));
@@ -134,20 +125,18 @@ SoundCheck {
                 throw reason;
             }
         }
-        r.append(_.when(p, new ENaN()));
-        r.append(_.when(x, new ENaN()));
-        r.append(_.when(new Sneaky<T>(x), new ENaN()));
+        final Promise<?> a = _.when(p, new ENaN());
+        final Promise<?> b = _.when(x, new ENaN());
+        final Promise<?> c = _.when(new Sneaky<T>(x), new ENaN());
 
-        return and(_, r.snapshot());
+        return join(_, a, b, c);
     }
 
     /**
      * Tests promises for {@link Double}.
      */
-    static private Promise<Boolean>
+    static private Promise<?>
     testDouble(final Eventual _) throws Exception {
-        final ConstArray.Builder<Promise<Boolean>> r = ConstArray.builder();
-        
         // check normal handling
         final Promise<Double> pMin = ref(Double.MIN_VALUE);
         check(pMin.equals(pMin));
@@ -162,23 +151,21 @@ SoundCheck {
                 return ref(true);
             }
         }
-        r.append(_.when(pMin, new EQ()));
-        r.append(_.when(Double.MIN_VALUE, new EQ()));
+        final Promise<?> a = _.when(pMin, new EQ());
+        final Promise<?> b = _.when(Double.MIN_VALUE, new EQ());
         
-        r.append(testNaN(_, Double.NaN));
-        r.append(testNaN(_, Double.NEGATIVE_INFINITY));
-        r.append(testNaN(_, Double.POSITIVE_INFINITY));
+        final Promise<?> c = testNaN(_, Double.NaN);
+        final Promise<?> d = testNaN(_, Double.NEGATIVE_INFINITY);
+        final Promise<?> e = testNaN(_, Double.POSITIVE_INFINITY);
 
-        return and(_, r.snapshot());
+        return join(_, a, b, c, d, e);
     }
 
     /**
      * Tests promises for {@link Float}.
      */
-    static private Promise<Boolean>
+    static private Promise<?>
     testFloat(final Eventual _) throws Exception {
-        final ConstArray.Builder<Promise<Boolean>> r = ConstArray.builder();
-        
         // check normal handling
         final Promise<Float> pMin = ref(Float.MIN_VALUE);
         check(pMin.equals(pMin));
@@ -193,14 +180,14 @@ SoundCheck {
                 return ref(true);
             }
         }
-        r.append(_.when(pMin, new EQ()));
-        r.append(_.when(Float.MIN_VALUE, new EQ()));
+        final Promise<?> a = _.when(pMin, new EQ());
+        final Promise<?> b = _.when(Float.MIN_VALUE, new EQ());
         
-        r.append(testNaN(_, Float.NaN));
-        r.append(testNaN(_, Float.NEGATIVE_INFINITY));
-        r.append(testNaN(_, Float.POSITIVE_INFINITY));
+        final Promise<?> c = testNaN(_, Float.NaN);
+        final Promise<?> d = testNaN(_, Float.NEGATIVE_INFINITY);
+        final Promise<?> e = testNaN(_, Float.POSITIVE_INFINITY);
 
-        return and(_, r.snapshot());
+        return join(_, a, b, c, d, e);
     }
     
     static private void
@@ -218,8 +205,8 @@ SoundCheck {
     static public void
     main(final String[] args) throws Exception {
         final List<Promise<?>> work = List.list();
-        final Promise<Boolean> result = make(new Eventual(work.appender()));
+        final Promise<?> result = make(new Eventual(work.appender()));
         while (!work.isEmpty()) { work.pop().call(); }
-        if (!result.call()) { throw new Exception("test failed"); }
+        result.call();
     }
 }

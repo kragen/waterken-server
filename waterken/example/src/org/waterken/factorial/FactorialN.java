@@ -20,7 +20,7 @@ FactorialN {
      * @param _ eventual operator
      * @param n number to compute factorial of
      */
-    static public Promise<Boolean>
+    static public Promise<?>
     make(final Eventual _, final int n) {
         int r = 1;
         for (int i = n; i > 0; --i) {
@@ -41,8 +41,8 @@ FactorialN {
         final int n = args.length > 0 ? Integer.parseInt(args[0]) : 4;
         
         final List<Promise<?>> work = List.list();
-        final Promise<Boolean> result = make(new Eventual(work.appender()), n);
+        final Promise<?> result = make(new Eventual(work.appender()), n);
         while (!work.isEmpty()) { work.pop().call(); }
-        if (!result.call()) { throw new Exception("test failed"); }
+        result.call();
     }
 }

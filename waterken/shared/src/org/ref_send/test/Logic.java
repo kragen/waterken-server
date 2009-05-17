@@ -6,7 +6,6 @@ import static org.ref_send.promise.Eventual.ref;
 
 import java.io.Serializable;
 
-import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Channel;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
@@ -18,21 +17,19 @@ import org.ref_send.promise.Resolver;
  */
 public final class
 Logic {
-
-    private
-    Logic() {}
+    private Logic() {}
 
     /**
      * Creates a when block that compares against an expected value.
      * @param <T> referent type
      * @param expected  expected value
      */
-    static public <T> Do<T,Promise<Boolean>>
+    static public <T> Do<T,Promise<?>>
     was(final T expected) {
-        class Was extends Do<T,Promise<Boolean>> implements Serializable {
+        class Was extends Do<T,Promise<?>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Promise<Boolean>
+            public Promise<?>
             fulfill(final T value) throws Exception {
                 if (expected.equals(value)) { return ref(true); }
                 throw new Exception();
@@ -42,30 +39,24 @@ Logic {
     }
 
     /**
-     * Create a promise for the logical AND of multiple boolean promises.
+     * Creates a promise that resolves when a list of other promises resolve.
      * @param _     eventual operator
-     * @param tests	each boolean promise
-     * @return promise for the logical AND of each <code>condition</code>
+     * @param tests	each promise
+     * @return promise that is fulfilled iff each of the promises is fulfilled
      */
-    static public Promise<Boolean>
-    and(final Eventual _, final ConstArray<? extends Promise<Boolean>> tests) {
-        if (0 == tests.length()) { return ref(true); }
-        final Channel<Boolean> answer = _.defer();
-        final int[] todo = { tests.length() };
-        final Resolver<Boolean> resolver = answer.resolver;
-        for (final Promise<Boolean> test : tests) {
-            class AND extends Do<Boolean,Void> implements Serializable {
+    static public Promise<?>
+    join(final Eventual _, final Promise<?>... tests) {
+        if (0 == tests.length) { return ref(true); }
+        final Channel<Object> answer = _.defer();
+        final int[] todo = { tests.length };
+        final Resolver<Object> resolver = answer.resolver;
+        for (final Promise<?> test : tests) {
+            class All extends Do<Object,Void> implements Serializable {
                 static private final long serialVersionUID = 1L;
 
                 public Void
-                fulfill(final Boolean value) {
-                    if (value) {
-                        if (0 == --todo[0]) {
-                            resolver.run(true);
-                        }
-                    } else {
-                        resolver.run(false);
-                    }
+                fulfill(final Object value) {
+                    if (0 == --todo[0]) { resolver.run(true); }
                     return null;
                 }
                 public Void
@@ -74,7 +65,7 @@ Logic {
                     return null;
                 }
             }
-            _.when(test, new AND());
+            _.when(test, new All());
         }
         return answer.promise;
     }

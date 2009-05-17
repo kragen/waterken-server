@@ -5,6 +5,8 @@ package org.waterken.bounce;
 import static org.ref_send.promise.Eventual.ref;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.joe_e.Struct;
 import org.joe_e.array.BooleanArray;
@@ -52,12 +54,12 @@ Bounce {
                     FloatArray.array(0.0F,
                           Float.MAX_VALUE, Float.MIN_VALUE,
                           -Float.MAX_VALUE, -Float.MIN_VALUE,
-                          // Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY,
+                          Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY,
                           Float.NaN),
-                    DoubleArray.array(0.0,
+                    DoubleArray.array(0.0, Math.E, Math.PI,
                           Double.MAX_VALUE, Double.MIN_VALUE,
                           -Double.MAX_VALUE, -Double.MIN_VALUE,
-                          // Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
+                          Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
                           Double.NaN),
                     ByteArray.array((byte)0, Byte.MAX_VALUE, Byte.MIN_VALUE),
                     ShortArray.array((short)0, Short.MAX_VALUE,Short.MIN_VALUE),
@@ -74,10 +76,10 @@ Bounce {
                     ConstArray.array(
                         new ImmutableArray<PowerlessArray<Boolean>>().
                             with(PowerlessArray.array(true)),
-                        10
-                        // BigInteger.TEN,
-                        // new BigInteger(Long.toString(1L << 53)),
-                        // new BigDecimal("3.14")
+                        10,
+                        BigInteger.TEN,
+                        new BigInteger(Long.toString(1L << 53)),
+                        new BigDecimal("3.14")
                     )));
             }
 
