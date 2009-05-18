@@ -51,12 +51,16 @@ Logic {
         final int[] todo = { tests.length };
         final Resolver<Object> resolver = answer.resolver;
         for (final Promise<?> test : tests) {
-            class All extends Do<Object,Void> implements Serializable {
+            class Join extends Do<Object,Void> implements Serializable {
                 static private final long serialVersionUID = 1L;
 
                 public Void
                 fulfill(final Object value) {
-                    if (0 == --todo[0]) { resolver.run(true); }
+                    if (0 == --todo[0]) {
+                        resolver.run(true);
+                    } else {
+                        resolver.progress();
+                    }
                     return null;
                 }
                 public Void
@@ -65,7 +69,7 @@ Logic {
                     return null;
                 }
             }
-            _.when(test, new All());
+            _.when(test, new Join());
         }
         return answer.promise;
     }

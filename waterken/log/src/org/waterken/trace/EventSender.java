@@ -7,8 +7,11 @@ import java.lang.reflect.Method;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.log.Comment;
 import org.ref_send.log.Event;
+import org.ref_send.log.Fulfilled;
 import org.ref_send.log.Got;
 import org.ref_send.log.Problem;
+import org.ref_send.log.Progressed;
+import org.ref_send.log.Rejected;
 import org.ref_send.log.Resolved;
 import org.ref_send.log.Returned;
 import org.ref_send.log.Sent;
@@ -58,25 +61,43 @@ EventSender {
             }
 
             public @Override void
-            returned(final String message) {
-                stderr.run(new Returned(mark.run(), null, message));
-            }
-
-            public @Override void
             sent(final String message) {
                 stderr.run(new Sent(mark.run(), tracer.traceHere(), message));
             }
 
             public @Override void
+            returned(final String message) {
+                stderr.run(new Returned(mark.run(), null, message));
+            }
+
+            protected @Override void
+            sentIf(final String message, final String condition) {
+                stderr.run(new SentIf(mark.run(), tracer.traceHere(),
+                                      message, condition));
+            }
+
+            protected @Override void
             resolved(final String condition) {
                 stderr.run(new Resolved(mark.run(), tracer.traceHere(),
                                         condition));
             }
 
-            public @Override void
-            sentIf(final String message, final String condition) {
-                stderr.run(new SentIf(mark.run(), tracer.traceHere(),
-                                      message, condition));
+            protected @Override void
+            fulfilled(final String condition) {
+                stderr.run(new Fulfilled(mark.run(), tracer.traceHere(),
+                                         condition));
+            }
+            
+            protected @Override void
+            rejected(final String condition, final Exception reason) {
+                stderr.run(new Rejected(mark.run(), tracer.traceHere(),
+                                        condition, reason));
+            }
+            
+            protected @Override void
+            progressed(final String condition) {
+                stderr.run(new Progressed(mark.run(), tracer.traceHere(),
+                                        condition));
             }
         }
         return new LogX();

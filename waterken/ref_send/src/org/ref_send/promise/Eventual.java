@@ -662,23 +662,27 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         run(final T referent) { resolve(ref(referent)); }
 
         public void
-        reject(final Exception reason) { chain(new Rejected<T>(reason)); }
+        reject(final Exception reason) { resolve(new Rejected<T>(reason)); }
         
         public void
-        resolve(final Promise<T> p) {
-            chain(p instanceof Fulfilled
-                ? ((Fulfilled<T>)p).getState()
-            : null != p
-                ? p
-            : new Rejected<T>(new NullPointerException()));
+        resolve(Promise<T> p) {
+            if (null == p) {
+                p = new Rejected<T>(new NullPointerException());
+            }
+            if (p instanceof Fulfilled) {
+                p = ((Fulfilled<T>)p).getState(); 
+                log.fulfilled(here + "#p" + condition);
+            } else if (p instanceof Rejected) {
+                log.rejected(here + "#p" + condition, ((Rejected<T>)p).reason);
+            } else {
+                log.resolved(here + "#p" + condition);
+            }
+            enqueue.run(new Forward<T>(true, condition, p, front));
+            try { state.call().mark(p); } catch (final Exception e) {}
         }
-        
-        private void
-        chain(final Promise<T> promise) {
-            log.resolved(here + "#p" + condition);
-            enqueue.run(new Forward<T>(true, condition, promise, front));
-            try { state.call().mark(promise); } catch (final Exception e) {}
-        }
+
+        public void
+        progress() { log.progressed(here + "#p" + condition); }
     }
     
     /**

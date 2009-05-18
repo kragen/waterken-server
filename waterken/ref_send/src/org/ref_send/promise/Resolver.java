@@ -39,4 +39,9 @@ Resolver<T> extends Receiver<T> {
      * @param promise   promise to forward requests to
      */
     void resolve(Promise<T> promise);
+    
+    /**
+     * Logs progress towards resolution.
+     */
+    void progress();
 }

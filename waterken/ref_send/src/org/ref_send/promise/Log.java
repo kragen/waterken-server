@@ -39,27 +39,47 @@ Log implements Serializable {
     public void got(String message, Class<?> concrete, Method method) {}
     
     /**
-     * Logs sending of a return value.
-     * @param message   return message identifier
-     */
-    public void returned(String message) {}
-    
-    /**
      * Logs a message send.
      * @param message   sent message identifier
      */
     public void sent(String message) {}
+    
+    /**
+     * Logs sending of a return value.
+     * @param message   return message identifier
+     */
+    public void returned(String message) { sent(message); }
 
     /**
      * Logs a conditional message send.
      * @param message   message identifier
      * @param condition condition identifier
      */
-    public void sentIf(String message, String condition) {}
+    protected void sentIf(String message, String condition) { sent(message); }
     
     /**
-     * Logs resolution of a condition.
+     * Logs resolution of a promise.
      * @param condition condition identifier
      */
-    public void resolved(String condition) {}
+    protected void resolved(String condition) {}
+    
+    /**
+     * Logs fulfillment of a promise.
+     * @param condition condition identifier
+     */
+    protected void fulfilled(String condition) { resolved(condition); }
+    
+    /**
+     * Logs rejection of a promise.
+     * @param condition condition identifier
+     */
+    protected void rejected(String condition, Exception reason) {
+        resolved(condition);
+    }
+    
+    /**
+     * Logs progress towards fulfillment of a promise.
+     * @param condition condition identifier
+     */
+    protected void progressed(String condition) { resolved(condition); }
 }
