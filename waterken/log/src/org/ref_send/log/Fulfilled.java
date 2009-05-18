@@ -6,8 +6,7 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * Logs {@linkplain org.ref_send.promise.Resolver#fulfill fulfillment} of a
- * promise.
+ * Logs {@linkplain org.ref_send.promise.Resolver#run fulfillment} of a promise.
  */
 public class
 Fulfilled extends Resolved {
