@@ -9,9 +9,7 @@ ADSAFE.lib('Q', function () {
 
     function reject(reason) {
         return function (op, arg1, arg2, arg3) {
-            if (undefined === op) {
-                return { '!' : reason };
-            }
+            if (undefined === op) { return { '!' : reason }; }
             if ('WHEN' === op) { return arg2 ? arg2(reason) : reject(reason); }
             return arg1 ? arg1(reject(reason)) : reject(reason);
         };
@@ -158,8 +156,8 @@ ADSAFE.lib('Q', function () {
                 pending = null;
                 value = promised(p);
                 for (var i = 0; i !== todo.length; i += 1) {
-                    var task = todo[+i];
-                    forward(value, task.op, task.arg1, task.arg2, task.arg3);
+                    var x = todo[+i];
+                    forward(value, x.op, x.arg1, x.arg2, x.arg3);
                 }
             }
         };
