@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * ref_send.js version: 2009-05-14
+ * ref_send.js version: 2009-05-21
  */
 "use strict";
 ADSAFE.lib('Q', function () {
@@ -97,8 +97,7 @@ ADSAFE.lib('Q', function () {
      * promise. Other libraries can provide other kinds of promises by
      * implementing the same API. A promise is a function with signature:
      * function (op, arg1, arg2, arg3). The first argument determines the
-     * interpretation of the remaining arguments. The following cases must be
-     * handled:
+     * interpretation of the remaining arguments. The following cases exist:
      *
      * 'op' is undefined:
      *  Return the most resolved current value of the promise.
@@ -135,7 +134,7 @@ ADSAFE.lib('Q', function () {
     /**
      * Gets the corresponding promise for a given reference.
      */
-    function promise(value) {
+    function promised(value) {
         return ('function' === typeof value) ? value : ref(value);
     }
 
@@ -157,10 +156,11 @@ ADSAFE.lib('Q', function () {
 
                 var todo = pending;
                 pending = null;
-                value = promise(p);
-                todo.filter(function (task) {
+                value = promised(p);
+                for (var i = 0; i !== todo.length; i += 1) {
+                    var task = todo[+i];
                     forward(value, task.op, task.arg1, task.arg2, task.arg3);
-                });
+                }
             }
         };
     }
@@ -216,7 +216,7 @@ ADSAFE.lib('Q', function () {
             var r = defer();
             var done = false;   // ensure the untrusted promise makes at most a
                                 // single call to one of the callbacks
-            forward(promise(value), 'WHEN', function (x) {
+            forward(promised(value), 'WHEN', function (x) {
                 if (done) { throw new Error(); }
                 done = true;
                 r.resolve(ref(x)('WHEN', fulfilled, rejected));
@@ -236,7 +236,7 @@ ADSAFE.lib('Q', function () {
          */
         get: function (target, noun) {
             var r = defer();
-            forward(promise(target), 'GET', r.resolve, noun);
+            forward(promised(target), 'GET', r.resolve, noun);
             return r.promise;
         },
 
@@ -249,7 +249,7 @@ ADSAFE.lib('Q', function () {
          */
         post: function (target, verb, argv) {
             var r = defer();
-            forward(promise(target), 'POST', r.resolve, verb, argv);
+            forward(promised(target), 'POST', r.resolve, verb, argv);
             return r.promise;
         },
 
@@ -262,7 +262,7 @@ ADSAFE.lib('Q', function () {
          */
         put: function (target, noun, value) {
             var r = defer();
-            forward(promise(target), 'PUT', r.resolve, noun, value);
+            forward(promised(target), 'PUT', r.resolve, noun, value);
             return r.promise;
         },
 
@@ -274,7 +274,7 @@ ADSAFE.lib('Q', function () {
          */
         remove: function (target, noun) {
             var r = defer();
-            forward(promise(target), 'DELETE', r.resolve, noun);
+            forward(promised(target), 'DELETE', r.resolve, noun);
             return r.promise;
         }
     };
