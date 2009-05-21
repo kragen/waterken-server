@@ -168,7 +168,8 @@ Caller extends Struct implements Messenger, Serializable {
             
             public Message<Request>
             render(final String x, final long w, final int m) throws Exception {
-                return serialize(here,export, HTTP.post(href,name,x,w,m), argv);
+                return serialize(here, export, HTTP.post(href, name, x, w, m),
+                    ConstArray.array(method.getGenericParameterTypes()), argv);
             }
 
             public void
@@ -213,8 +214,8 @@ Caller extends Struct implements Messenger, Serializable {
             "202".equals(m.head.status) || "203".equals(m.head.status)) {
             if (Header.equivalent(FileType.unknown.name,
                                   m.head.getContentType())) { return m.body; }
-            return new JSONDeserializer().run(base, connect, R, codebase,
-                                              m.body.asInputStream());
+            return new JSONDeserializer().deserialize(
+                    base, connect, R, codebase, m.body.asInputStream());
         } 
         if ("204".equals(m.head.status) ||
             "205".equals(m.head.status)) { return null; }
@@ -230,8 +231,9 @@ Caller extends Struct implements Messenger, Serializable {
     }
     
     static protected Message<Request>
-    serialize(final String here, final Exporter export,
-              final String target, final ConstArray<?> argv) throws Exception {
+    serialize(final String here, final Exporter export, final String target,
+              final ConstArray<Type> types,
+              final ConstArray<?> argv) throws Exception {
         final String contentType;
         final ByteArray content;
         if (argv.length() == 1 && argv.get(0) instanceof ByteArray) {
@@ -239,8 +241,9 @@ Caller extends Struct implements Messenger, Serializable {
             content = (ByteArray)argv.get(0);
         } else {
             contentType = FileType.json.name;
-            content = new JSONSerializer().run(HTTP.changeBase(here, export,
-                                               URI.resolve(target, ".")), argv);
+            content = new JSONSerializer().serializeTuple(
+                HTTP.changeBase(here, export, URI.resolve(target, ".")),
+                types, argv);
         }
         final String authority = URI.authority(target);
         final String location = Authority.location(authority);

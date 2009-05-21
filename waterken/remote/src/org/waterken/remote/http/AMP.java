@@ -133,8 +133,9 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
         run(final Object value) {
             try {
                 final String target = HTTP.post(href, "run", null, 0, 0);
-                final Message<Request> q =
-                    Caller.serialize("", null, target, ConstArray.array(value));
+                final Message<Request> q = Caller.serialize("", null, target,
+                     ConstArray.array((Type)Object.class),
+                     ConstArray.array(value));
                 proxy.serve(q.head, q.body.asInputStream(), new Client() {
                     public void
                     receive(final Response head, final InputStream body) {}

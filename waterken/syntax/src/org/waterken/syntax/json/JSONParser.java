@@ -248,8 +248,9 @@ JSONParser {
          * - is a subclass of Throwable and declares a public no-arg constructor
          */
         
-        // determine the actual type
+        // determine the actual type and a corresponding constructor
         final Class<?> actual;
+              Constructor<?> make = null;
         final PowerlessArray.Builder<String> names = PowerlessArray.builder(1);
         final ConstArray.Builder<Object> values = ConstArray.builder(1);
         if ("\"$\"".equals(lexer.getHead())) {
@@ -260,8 +261,10 @@ JSONParser {
             if (value instanceof PowerlessArray) {
                 for (final Object typename : (PowerlessArray<?>)value) {
                     try {
-                        type = JSON.load(code, (String)typename);
-                        break;
+                        final Class<?> t = JSON.load(code, (String)typename);
+                        if (null == type) { type = t; }
+                        make = construct(t);
+                        if (null != make) { break; }
                     } catch (final ClassCastException e) {
                     } catch (final ClassNotFoundException e) {}
                 }
@@ -276,22 +279,8 @@ JSONParser {
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
         final Class<?> concrete = null!=actual ? actual : Typedef.raw(expected);
-        Constructor<?> make = null;
-        for (final Constructor<?> c : Reflection.constructors(concrete)) {
-            if (c.isAnnotationPresent(deserializer.class)) {
-                make = c;
-                break;
-            }
-        }
-        if (null == make) {
-            if (Throwable.class.isAssignableFrom(concrete)) {
-                for (Class<?> i = concrete; null != i; i = i.getSuperclass()) {
-                    try {
-                        make = Reflection.constructor(i);
-                        break;
-                    } catch (final NoSuchMethodException e) {}
-                }
-            }
+        if (null == make && null == actual) {
+            make = construct(concrete);
         }
         final String[] namev;
         final Type[] paramv;
@@ -393,6 +382,21 @@ JSONParser {
             r = Reflection.construct(make, argv);
         }
         return null != promised ? ref(r) : r;
+    }
+    
+    static private Constructor<?>
+    construct(final Class<?> type) {
+        for (Class<?> i = type; null != i; i = i.getSuperclass()) {
+            try {
+                for (final Constructor<?> c : Reflection.constructors(i)) {
+                    if (c.isAnnotationPresent(deserializer.class)) { return c; }
+                }
+                if (Throwable.class.isAssignableFrom(i)) {
+                    return Reflection.constructor(i);
+                }
+            } catch (final NoSuchMethodException e) {}
+        }
+        return null;
     }
     
     static private int

@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.lang.reflect.Type;
 
 import org.joe_e.Powerless;
+import org.joe_e.array.ConstArray;
 
 /**
  * An object deserializer.
@@ -20,9 +21,23 @@ Deserializer extends Powerless {
      * @param type      expected type
      * @param code      class loader
      * @param content   serialized content input, will be closed
-     * @return each deserialized argument
+     * @return deserialized object
      * @throws Exception    any exception
      */
-    Object run(String base, Importer connect, Type type,
-               ClassLoader code, InputStream content) throws Exception;
+    Object deserialize(String base, Importer connect, Type type,
+                       ClassLoader code, InputStream content) throws Exception;
+
+    /**
+     * Deserializes a tuple.
+     * @param base      base URL
+     * @param connect   reference importer
+     * @param types     each expected type
+     * @param code      class loader
+     * @param content   serialized content input, will be closed
+     * @return deserialized tuple
+     * @throws Exception    any exception
+     */
+    ConstArray<?> deserializeTuple(String base, Importer connect,
+                                   ConstArray<Type> types, ClassLoader code,
+                                   InputStream content) throws Exception;
 }

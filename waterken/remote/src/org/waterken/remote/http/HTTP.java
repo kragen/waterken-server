@@ -84,8 +84,9 @@ HTTP extends Eventual implements Serializable {
         final Class<?> R = make.getReturnType();
         try {
             final Exports http = new Exports(this);
-            final ByteArray body = new JSONSerializer().run(
-                    http.export(), ConstArray.array(argv)); 
+            final ByteArray body = new JSONSerializer().serializeTuple(
+                http.export(),ConstArray.array(make.getGenericParameterTypes()),
+                ConstArray.array(argv)); 
             final PowerlessArray<String> rd = creator.run(null, here, label,
                 new VatInitializer(make, here, body)).call();
             log.sent(rd.get(0));
@@ -191,9 +192,9 @@ HTTP extends Eventual implements Serializable {
                 run(final String href, final String base,
                                        final Type type) throws Exception {
                     final String URL=null!=base ? URI.resolve(base,href) : href;
-                    return Header.equivalent(URI.resolve(URL, "."), _.here)
-                        ? reference(URI.fragment("", URL))
-                    : next.run(URL, null, type);
+                    return Header.equivalent(URI.resolve(URL, "."), _.here) ?
+                            reference(URI.fragment("", URL)) :
+                        next.run(URL, null, type);
                 }
             }
             return new ImporterX();

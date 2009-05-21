@@ -148,22 +148,28 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
             break;
         case 'function':
             var referent = lib.Q.near(value);
-            if (referent === value) {
-                var types = $.slice(0);
-                r = dom.tag('span');
+            if ('function' === typeof referent) {
+                if (referent.$) {
+                    $ = $.concat(referent.$);
+                }
                 $.push('Promise');
+                r = dom.tag('span');
                 var a = dom.tag('a');
-                if (lib.web.href(a, value)) {
+                if (lib.web.href(a, referent)) {
                     r.append(a.append(dom.text('...')));
                 } else {
                     r.append(dom.text('...'));
                 }
                 lib.Q.when(value, function (fulfilled) {
-                    if (fulfilled !== value) {
-                        r.empty().append(render(fulfilled, types));
+                    if (referent !== fulfilled) {
+                        if ('function' === typeof fulfilled) {
+                            lib.web.href(a, fulfilled);
+                        } else {
+                            r.empty().append(render(fulfilled));
+                        }
                     }
                 }, function (reason) {
-                    r.empty().append(render(lib.Q.reject(reason), types));
+                    r.empty().append(render(lib.Q.reject(reason)));
                 });
             } else {
                 r = render(referent, $);
@@ -251,8 +257,7 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                value.$.filter(function (x) { return x === type; }).length;
     }
     var target = lib.web.getLocation();
-    var representation = lib.Q.get(target);
-    lib.Q.when(representation, function (value) {
+    lib.Q.when(target, function (value) {
         if (isa(value, 'org.waterken.bang.DrumFactory')) {
             renderDrumFactory(target);
         } else if (isa(value, 'org.waterken.serial.Series')) {
@@ -260,10 +265,10 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
         } else if (isa(value, 'org.waterken.serial.SeriesFactory')) {
             renderSeriesFactory(target);
         } else {
-            renderBody(value);
+            renderBody(target);
         }
     }, function (reason) {
-        renderBody(representation);
+        renderBody(lib.Q.reject(reason));
     });
 });
 </script>

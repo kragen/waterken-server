@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import java.io.BufferedReader;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -12,13 +11,10 @@ import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
-import org.joe_e.charset.UTF8;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Unresolved;
-import org.ref_send.scope.Layout;
-import org.ref_send.scope.Scope;
 import org.waterken.http.Message;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
@@ -26,7 +22,7 @@ import org.waterken.http.Server;
 import org.waterken.io.FileType;
 import org.waterken.syntax.BadSyntax;
 import org.waterken.syntax.json.JSON;
-import org.waterken.syntax.json.JSONParser;
+import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.uri.Header;
 
@@ -51,7 +47,7 @@ Callee extends Struct implements Serializable {
         
         // further dispatch the request based on the accessed member
         final String p = HTTP.predicate(query);
-        if (null == p) {                        // introspection or when block
+        if (null == p) {                        // when block
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
                     Response.options("TRACE", "OPTIONS", "GET", "HEAD"), null);
@@ -66,16 +62,14 @@ Callee extends Struct implements Serializable {
                 value = Eventual.ref(exports.reference(query)).call();
             } catch (final Unresolved e) {
                 return serialize(m.head.method, "404", "not yet",
-                                 Server.ephemeral, e);
+                                 Server.ephemeral, Exception.class, e);
             } catch (final Exception e) {
                 value = JSON.Rejected.make(e);
             }
-            if (!HTTP.isPromise(query) && !HTTP.isPBC(value)) {
-                value = describe(value.getClass());
-            }
             final Response failed = m.head.allow("\"\"");
             if (null != failed) { return new Message<Response>(failed, null); }
-            return serialize(m.head.method, "200", "OK", Server.forever, value);
+            return serialize(m.head.method, "200", "OK", Server.forever,
+                             Object.class, value);
         }                                       // member access
 
         // determine the target object
@@ -88,7 +82,8 @@ Callee extends Struct implements Serializable {
             // prevent access to local implementation details
             if (HTTP.isPBC(target)) { throw new Unresolved(); }
         } catch (final Exception e) {
-            return serialize(m.head.method, "404", "never", Server.forever, e);
+            return serialize(m.head.method, "404", "never", Server.forever,
+                             Exception.class, e);
         }
 
         if ("GET".equals(m.head.method) || "HEAD".equals(m.head.method)) {
@@ -112,8 +107,8 @@ Callee extends Struct implements Serializable {
             final String etag = constant ? null : exports.getTransactionTag();
             final Response failed = m.head.allow(etag);
             if (null != failed) { return new Message<Response>(failed, null); }
-            Message<Response> r =
-                serialize(m.head.method, "200", "OK", maxAge, value);
+            Message<Response> r = serialize(m.head.method, "200", "OK", maxAge,
+                                        property.getGenericReturnType(), value);
             if (null != etag) {
                 r = new Message<Response>(r.head.with("ETag", etag), r.body);
             }
@@ -158,7 +153,8 @@ Callee extends Struct implements Serializable {
                     return Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
                 }
             });
-            return serialize(m.head.method,"200","OK", Server.ephemeral, value);
+            return serialize(m.head.method, "200", "OK", Server.ephemeral,
+                             declaration.getGenericReturnType(), value);
         }
         
         final boolean get = null != bubble(HTTP.dispatchGET(target, p));
@@ -174,8 +170,9 @@ Callee extends Struct implements Serializable {
     }
     
     private Message<Response>
-    serialize(final String method, final String status, final String phrase,
-              final int maxAge, final Object value) throws Exception {
+    serialize(final String method, final String status,
+              final String phrase, final int maxAge,
+              final Type type, final Object value) throws Exception {
         final String contentType;
         final ByteArray content;
         if (value instanceof ByteArray) {
@@ -183,7 +180,8 @@ Callee extends Struct implements Serializable {
             content = (ByteArray)value;
         } else {
             contentType = FileType.json.name;
-            content = new JSONSerializer().run(exports.export(), value);
+            content = new JSONSerializer().serialize(
+                    exports.export(), type, value);
         }
         if ("GET".equals(method) || "HEAD".equals(method)) {
             return new Message<Response>(new Response(
@@ -210,10 +208,9 @@ Callee extends Struct implements Serializable {
         if (Header.equivalent(FileType.unknown.name, m.head.getContentType())) {
             return ConstArray.array(m.body);
         }
-        return new JSONParser(
-            exports.getHere(), exports.connect(), exports.getCodebase(),
-            new BufferedReader(UTF8.input(m.body.asInputStream()))).
-                readTuple(parameters);
+        return new JSONDeserializer().deserializeTuple(exports.getHere(),
+            exports.connect(), parameters, exports.getCodebase(),
+            m.body.asInputStream());
     }
 
     /**
@@ -242,10 +239,5 @@ Callee extends Struct implements Serializable {
             } catch (final NoSuchMethodException e) {}
         }
         return null;
-    }
-    
-    static private Scope
-    describe(final Class<?> type) {
-        return new Layout(PowerlessArray.array("$")).make(JSON.types(type));
     }
 }

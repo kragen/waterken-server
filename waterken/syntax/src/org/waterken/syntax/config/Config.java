@@ -209,8 +209,8 @@ Config {
                 final File file = Filesystem.file(folder, filename);
                 if (!file.isFile()) { continue; }
                 final String subBaseURI = path + filename;
-                r = syntax.deserialize.run(subBaseURI, sub(folder, subBaseURI),
-                                           type, code, Filesystem.read(file));
+                r = syntax.deserializer.deserialize(subBaseURI,
+                    sub(folder, subBaseURI), type, code, Filesystem.read(file));
                 break;
             }
             cacheKeys = cacheKeys.with(key);
@@ -240,7 +240,8 @@ Config {
     public void
     init(final String name, final Object value,
                             final Exporter export) throws Exception {
-        final ByteArray content = output.serialize.run(export, value);
+        final ByteArray content =
+            output.serializer.serialize(export, Object.class, value);
         final OutputStream out =
             Filesystem.writeNew(Filesystem.file(root, name + output.ext));
         out.write(content.toByteArray());

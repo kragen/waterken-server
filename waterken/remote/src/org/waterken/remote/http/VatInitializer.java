@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import java.io.BufferedReader;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -13,7 +12,6 @@ import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
-import org.joe_e.charset.UTF8;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
@@ -27,7 +25,7 @@ import org.waterken.db.Root;
 import org.waterken.db.Transaction;
 import org.waterken.http.Server;
 import org.waterken.syntax.Exporter;
-import org.waterken.syntax.json.JSONParser;
+import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 
 /**
@@ -72,10 +70,9 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             parameters = parameters.without(0);
             argv[0] = exports._;
         }
-        final ConstArray<?> optional = new JSONParser(
-            base, exports.connect(), exports.getCodebase(),
-            new BufferedReader(UTF8.input(body.asInputStream()))).
-                readTuple(parameters);
+        final ConstArray<?> optional = new JSONDeserializer().deserializeTuple(
+            base, exports.connect(), parameters, exports.getCodebase(),
+            body.asInputStream());
         for (int i = optional.length(), j = argv.length; 0 != i;) {
             argv[--j] = optional.get(--i);
         }
@@ -91,8 +88,9 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
            final String base, final String label,
            final Class<?> maker, final Object... argv) throws Exception {
         final Method make = HTTP.dispatchPOST(maker, "make");
-        final ByteArray body =
-            new JSONSerializer().run(null, ConstArray.array(argv)); 
+        final ByteArray body = new JSONSerializer().serializeTuple(null,
+            ConstArray.array(make.getGenericParameterTypes()),
+            ConstArray.array(argv)); 
         return parent.enter(Transaction.update,
                             new Transaction<PowerlessArray<String>>() {
             public PowerlessArray<String>

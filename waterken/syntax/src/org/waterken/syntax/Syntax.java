@@ -25,25 +25,25 @@ Syntax extends Struct implements Powerless, Record, Serializable {
     /**
      * serializer
      */
-    public final Serializer serialize;
+    public final Serializer serializer;
     
     /**
      * deserializer
      */
-    public final Deserializer deserialize;
+    public final Deserializer deserializer;
     
     /**
      * Constructs an instance.
      * @param ext           {@link #ext}
-     * @param serialize     {@link #serialize}
-     * @param deserialize   {@link #deserialize}
+     * @param serializer    {@link #serializer}
+     * @param deserializer  {@link #deserializer}
      */
     public @deserializer
     Syntax(@name("ext") final String ext,
-           @name("serialize") final Serializer serialize,
-           @name("deserialize") final Deserializer deserialize) {
+           @name("serializer") final Serializer serializer,
+           @name("deserializer") final Deserializer deserializer) {
         this.ext = ext;
-        this.serialize = serialize;
-        this.deserialize = deserialize;
+        this.serializer = serializer;
+        this.deserializer = deserializer;
     }
 }

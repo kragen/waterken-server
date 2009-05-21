@@ -3,12 +3,13 @@
 package org.waterken.syntax.json;
 
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
-import org.joe_e.array.ArrayBuilder;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
+import org.ref_send.promise.Promise;
 import org.ref_send.scope.Layout;
 
 /**
@@ -24,14 +25,31 @@ JSON {
     static public final Layout Rejected = new Layout(PowerlessArray.array("!"));
     
     /**
-     * Enumerate all types implemented by a class.
+     * Enumerate an inheritance chain from [ bottom, top ).
+     * @param bottom    bottom of the inheritance chain
+     * @param top       top of the inheritance chain
      */
     static public PowerlessArray<String>
-    types(final Class<?> actual) {
-        final Class<?> end =
-            Struct.class.isAssignableFrom(actual) ? Struct.class : Object.class;
+    upto(final Class<?> bottom, final Class<?> top) {
+        if (Promise.class.isAssignableFrom(bottom)) {
+            return PowerlessArray.array(new String[] {});
+        }
+        
+        // simplify the knot at the top of the world
+        final Class<?> limit = Struct.class.isAssignableFrom(bottom) ? 
+                Struct.class :
+            Proxy.class.isAssignableFrom(bottom) ?
+                Proxy.class :
+            RuntimeException.class.isAssignableFrom(bottom) ?
+                (Exception.class.isAssignableFrom(top) ?
+                        RuntimeException.class : Exception.class) :
+            Exception.class.isAssignableFrom(bottom) ?
+                Throwable.class :
+            Object.class;
         final PowerlessArray.Builder<String> r = PowerlessArray.builder(4);
-        for (Class<?> i=actual; end!=i; i=i.getSuperclass()) { ifaces(i, r); }
+        for (Class<?> i = bottom; limit != i; i = i.getSuperclass()) {
+            ifaces(top, i, r);
+        }
         return r.snapshot();
     }
 
@@ -39,15 +57,21 @@ JSON {
      * List all the interfaces implemented by a class.
      */
     static private void
-    ifaces(final Class<?> type, final ArrayBuilder<String> r) {
+    ifaces(final Class<?> top, final Class<?> type,
+           final PowerlessArray.Builder<String> r) {
+        if (top == type) { return; }
         if (Modifier.isPublic(type.getModifiers())) {
             try {
-                if (0 != Reflection.methods(type).length()) {
-                    r.append(name(type));
-                }
+                if (org.joe_e.Selfless.class != type &&
+                    org.joe_e.Equatable.class != type &&
+                    org.joe_e.Powerless.class != type &&
+                    org.joe_e.Immutable.class != type &&
+                    org.ref_send.Record.class != type &&
+                    java.lang.Comparable.class != type &&
+                    java.io.Serializable.class != type) {r.append(name(type));}
             } catch (final Exception e) {}
         }
-        for (final Class<?> i : type.getInterfaces()) { ifaces(i, r); }
+        for (final Class<?> i : type.getInterfaces()) { ifaces(top, i, r); }
     }
     
     static private final class

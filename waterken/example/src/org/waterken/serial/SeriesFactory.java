@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 import org.joe_e.Struct;
 import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Promise;
 
 /**
  * A {@link Series} factory.
@@ -26,8 +25,8 @@ SeriesFactory extends Struct implements Serializable {
      * Constructs an instance.
      * @param _ eventual operator
      */
-    static public Promise<SeriesFactory>
-    make(final Eventual _) { return Eventual.ref(new SeriesFactory(_)); }
+    static public SeriesFactory
+    make(final Eventual _) { return new SeriesFactory(_); }
     
     /**
      * Constructs a series.

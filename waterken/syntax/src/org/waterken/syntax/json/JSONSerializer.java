@@ -21,6 +21,7 @@ import org.joe_e.charset.UTF8;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
+import org.ref_send.promise.Promise;
 import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.Exporter;
@@ -42,7 +43,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     // org.waterken.syntax.Serializer interface
 
     public ByteArray
-    run(final Exporter export, final @inert Object value) throws Exception {
+    serialize(final Exporter export,
+              final Type type, final @inert Object value) throws Exception {
         /*
          * SECURITY CLAIM: Only the immutable root of the application object
          * tree provided by the values argument is serialized. The Exporter is
@@ -63,26 +65,46 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
          */
         final ByteArray.BuilderOutputStream buffer =
             ByteArray.builder(512).asOutputStream();
-        write(export, value, new BufferedWriter(UTF8.output(buffer)));
+        write(export, type, value, new BufferedWriter(UTF8.output(buffer)));
+        return buffer.snapshot();
+    }
+    
+    public ByteArray
+    serializeTuple(final Exporter export, final ConstArray<Type> types,
+                   final @inert ConstArray<?> values) throws Exception {
+        final ByteArray.BuilderOutputStream buffer =
+            ByteArray.builder(512).asOutputStream();
+        final Writer text = new BufferedWriter(UTF8.output(buffer));
+        final JSONWriter top = JSONWriter.make(text);
+        final JSONWriter.ArrayWriter aout = top.startArray();
+        for (int i = 0; i != values.length(); ++i) {
+            serialize(export, types.get(i), values.get(i), aout.startElement());
+        }
+        aout.finish();
+        if (!top.isWritten()) { throw new RuntimeException(); }
+        text.flush();
+        text.close();
         return buffer.snapshot();
     }
     
     /**
      * Serializes a stream of Java objects to a JSON text stream.
      * @param export    reference exporter
+     * @param type      implicit type for <code>value</code>
      * @param value     value to serialize
      * @param text      UTF-8 text output, will be flushed and closed
      */
     static public void
-    write(final Exporter export, final @inert Object value,
+    write(final Exporter export, final Type type, final @inert Object value,
                                  final Writer text) throws Exception {
         final JSONWriter top = JSONWriter.make(text);
-        serialize(export, Object.class, value, top);
+        serialize(export, type, value, top);
         if (!top.isWritten()) { throw new RuntimeException(); }
         text.flush();
         text.close();
     }
 
+    static private final TypeVariable<?> R = Typedef.var(Promise.class, "T");
     static private final TypeVariable<?> T = Typedef.var(Iterable.class, "T");
     
     static private void
@@ -164,10 +186,13 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             oout.finish();
         } else if (value instanceof Record || value instanceof Throwable) {
             final JSONWriter.ObjectWriter oout = out.startObject();
-            final Class<?> top = Typedef.raw(implicit);
-            if (actual != top) {
+            final Type promised = Typedef.value(R, implicit);
+            final Type expected = null != promised ? promised : implicit;
+            final PowerlessArray<String> types =
+                JSON.upto(actual, Typedef.raw(expected));
+            if (0 != types.length()) {
                 serialize(export, PowerlessArray.class,
-                          upto(actual, top), oout.startMember("$"));
+                          types, oout.startMember("$"));
             }
             for (final Field f : Reflection.fields(actual)) {
                 if (!Modifier.isStatic(f.getModifiers()) &&
@@ -185,44 +210,19 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             }
             oout.finish();
         } else {
-            out.writeLink(export.run(value));
-            
-//            final Class<?>[] t = actual.getInterfaces(); 
-//            if (0 == t.length || t[0].isAssignableFrom(Typedef.raw(implicit))) {
-//                out.writeLink(export.run(value));
-//            } else {
-//                final JSONWriter.ObjectWriter oout = out.startObject();
-//                serialize(export, PowerlessArray.class,
-//                          JSON.types(actual), oout.startMember("$"));
-//                oout.startMember("@").writeString(export.run(value));
-//                oout.finish();
-//            }
-        }
-    }
-
-    /**
-     * Enumerate an inheritance chain from [ bottom, top ).
-     * @param bottom    bottom of the inheritance chain
-     * @param top       top of the inheritance chain.
-     */
-    static private PowerlessArray<String>
-    upto(final Class<?> bottom, final Class<?> top) {
-        // simplify the knot at the top of the world
-        final Class<?> limit = Struct.class.isAssignableFrom(bottom)
-            ? Struct.class
-        : RuntimeException.class.isAssignableFrom(bottom)
-            ? (Exception.class.isAssignableFrom(top)
-                ? RuntimeException.class
-            : Exception.class)
-        : Exception.class.isAssignableFrom(bottom)
-            ? Throwable.class
-        : Object.class;
-        final PowerlessArray.Builder<String> r = PowerlessArray.builder(4);
-        for (Class<?> i = bottom; top != i && limit != i; i=i.getSuperclass()) {
-            if (Modifier.isPublic(i.getModifiers())) {
-                try { r.append(JSON.name(i)); } catch (final Exception e) {}
+            final Type promised = Typedef.value(R, implicit);
+            final Type expected = null != promised ? promised : implicit;
+            final PowerlessArray<String> types =
+                JSON.upto(actual, Typedef.raw(expected));
+            if (0 == types.length()) {
+                out.writeLink(export.run(value));
+            } else {
+                final JSONWriter.ObjectWriter oout = out.startObject();
+                serialize(export, PowerlessArray.class,
+                          types, oout.startMember("$"));
+                oout.startMember("@").writeString(export.run(value));
+                oout.finish();
             }
         }
-        return r.snapshot();
     }
 }

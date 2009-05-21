@@ -2,12 +2,9 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.bang;
 
-import static org.ref_send.promise.Eventual.ref;
-
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.ref_send.promise.Promise;
 
 /**
  * A {@link Drum} factory.
@@ -22,8 +19,8 @@ DrumFactory extends Struct implements Serializable {
     /**
      * Constructs an instance.
      */
-    static public Promise<DrumFactory>
-    make() { return ref(new DrumFactory()); }
+    static public DrumFactory
+    make() { return new DrumFactory(); }
     
     /**
      * Constructs a drum.

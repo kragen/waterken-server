@@ -839,19 +839,21 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     static public @SuppressWarnings("unchecked") <T> T
     cast(final Class<?> type,
          final @inert Promise<T> promise) throws ClassCastException {
-        return (T)(Void.class == type || void.class == type
-            ? null
-        : Float.class == type || float.class == type
-            ? Float.NaN
-        : Double.class == type || double.class == type
-            ? Double.NaN
-        : null == promise
-            ? cast(type, new Rejected<T>(new NullPointerException()))
-        : type.isAssignableFrom(Promise.class)
-            ? promise
-        : type.isInterface()
-            ? proxy((InvocationHandler)promise, type, Selfless.class)
-        : proxy((InvocationHandler)promise, ifaces(type)));
+        return (T)(Void.class == type || void.class == type ?
+                null :
+            Float.class == type || float.class == type ?
+                Float.NaN :
+            Double.class == type || double.class == type ?
+                Double.NaN :
+            null == promise ?
+                cast(type, new Rejected<T>(new NullPointerException())) :
+            type.isAssignableFrom(Promise.class) ?
+                promise :
+            Selfless.class == type ?
+                proxy((InvocationHandler)promise, Selfless.class) :
+            type.isInterface() ?
+                proxy((InvocationHandler)promise, type, Selfless.class) :
+            proxy((InvocationHandler)promise, ifaces(type)));
     }
     
     /**

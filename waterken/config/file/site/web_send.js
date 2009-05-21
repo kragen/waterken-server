@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-15
+ * web_send.js version: 2009-05-19
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -31,11 +31,16 @@ ADSAFE.lib('web', function (lib) {
 
     /**
      * secret slot to extract the URL from a remote reference
-     * <p>
-     * Invoking a remote reference puts the URL in the slot.
-     * </p>
      */
     var unsealedURLref = null;
+
+    function unsealURLref(p) {
+        unsealedURLref = null;
+        if ('function' === typeof p) { p(); }
+        var r = unsealedURLref;
+        unsealedURLref = null;
+        return r;
+    }
 
     /**
      * value returned on a 404 server response
@@ -65,7 +70,7 @@ ADSAFE.lib('web', function (lib) {
                 unsealedURLref = href;
                 return resolved ? cache() : m;
             }
-            if (/#o=/.test(href)) {
+            if ('WHEN' === op) {
                 if (!cache) {
                     var pr = lib.Q.defer();
                     cache = pr.promise;
@@ -73,6 +78,7 @@ ADSAFE.lib('web', function (lib) {
                     var b = 1 * 1000;
                     var retry = function (x) {
                         if (notYetPumpkin === x) {
+                            // poll for the resolved value of the promise
                             ADSAFE.later(function () {
                                 send(m, href, 'GET', retry);
                             }, b);
@@ -80,15 +86,30 @@ ADSAFE.lib('web', function (lib) {
                             a = b;
                             b = c;
                         } else {
-                            pr.resolve(x);
+                            // if it resolved to itself, it's a remote
+                            // reference, not a promise
+                            pr.resolve((href===unsealURLref(x))?lib.Q.ref(x):x);
                             resolved = true;
                         }
                     };
                     send(m, href, 'GET', retry);
                 }
-                cache(op, arg1, arg2, arg3);
+                // process when blocks in the same order as other requests
+                send(cache, href, op, null, null, [ arg1, arg2 ]);
             } else {
-                send(m, href, op, arg1, arg2, arg3);
+                send(m, href, op, function (r) {
+                    if (notYetPumpkin === r) {
+                        // resend on the resolved value of the promise
+                        m('WHEN', function (x) {
+                            (('function' === typeof x) ? x : lib.Q.ref(x))(
+                                op, arg1, arg2, arg3);
+                        }, function (reason) {
+                            arg1(lib.Q.reject(reason));
+                        });
+                    } else {
+                        arg1(r);
+                    }
+                }, arg2, arg3);
             }
         };
         return m;
@@ -137,7 +158,15 @@ ADSAFE.lib('web', function (lib) {
                 var href = unsealedURLref;
                 unsealedURLref = null;
 
-                if (null !== href) { return { '@' : relateURI(base, href) }; }
+                if (null !== href) {
+                    var r = { '@' : relateURI(base, href) };
+                    for (var k in value) { if (includes(value, k)) {
+                        if ('@' !== k) {
+                            r[k] = value[k];
+                        }
+                    } }
+                    return r;
+                }
                 if ('function' === typeof value) { return undefined; }
             }
             if ('number' === typeof value && !isFinite(value)) {
@@ -206,7 +235,13 @@ ADSAFE.lib('web', function (lib) {
             JSON.parse(http.responseText, function (key, value) {
                 if (includes(value, '!')) { return lib.Q.reject(value['!']); }
                 if (includes(value, '@')) {
-                    return sealURLref(resolveURI(base, value['@']));
+                    var r = sealURLref(resolveURI(base, value['@']));
+                    for (var k in value) { if (includes(value, k)) {
+                        if ('@' !== k) {
+                            r[k] = value[k];
+                        }
+                    } }
+                    return r;
                 }
                 if (includes(value, '=')) { return value['=']; }
                 return value;
@@ -309,7 +344,7 @@ ADSAFE.lib('web', function (lib) {
                         ADSAFE.later(m);
                     }
 
-                    msg.resolve(msg.target);
+                    msg.target('WHEN', msg.argv[0], msg.argv[1]);
                     return;
                 }
 
@@ -323,7 +358,9 @@ ADSAFE.lib('web', function (lib) {
                     if (m !== connection) { return; }
 
                     if (4 !== http.readyState) { return; }
-                    if (http.status < 200 || http.status >= 500) { return; }
+                    try {
+                        if (http.status < 200 || http.status >= 500) { return; }
+                    } catch (e) { return; }
 
                     if (msg !== pending.shift()) { throw new Error(); }
                     w += 1;
@@ -333,7 +370,9 @@ ADSAFE.lib('web', function (lib) {
                         ADSAFE.later(m);
                     }
 
-                    msg.resolve(deserialize(requestURI, http));
+                    if (msg.resolve) {
+                        msg.resolve(deserialize(requestURI, http));
+                    }
                 };
                 if (undefined === msg.argv) {
                     http.send(null);
@@ -425,14 +464,6 @@ ADSAFE.lib('web', function (lib) {
             return session(target, href, op, resolve, q, argv);
         };
     }());
-
-    function unsealURLref(p) {
-        unsealedURLref = null;
-        if ('function' === typeof p) { p(); }
-        var r = unsealedURLref;
-        unsealedURLref = null;
-        return r;
-    }
 
     function allowedNavigationScheme(href) {
         return (/^https:/i).test(href) || (/^http:/i).test(href);
