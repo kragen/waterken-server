@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-19
+ * web_send.js version: 2009-05-21
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -17,8 +17,8 @@
  * window title and navigate the window to any received remote target.
  */
 /*global ADSAFE, window, ActiveXObject, XMLHttpRequest */
-/*jslint bitwise: true, eqeqeq: true, immed: true, newcap: true,
-         plusplus: true, strict: true, undef: true */
+/*jslint white: false, nomen: false, regexp: false, bitwise: true, eqeqeq: true,
+         immed: true, newcap: true, plusplus: true, strict: true, undef: true */
 "use strict";
 ADSAFE.lib('web', function (lib) {
 
@@ -499,20 +499,22 @@ ADSAFE.lib('web', function (lib) {
          */
         href: function (elements, target) {
             var n = 0;
+            var _nodes = elements.___nodes___;
             if (null === target) {
-                elements.___nodes___.filter(function (node) {
-                    node.removeAttribute('href');
+                for (var i = 0; i !== _nodes.length; i += 1) {
+                    _nodes[+i].removeAttribute('href');
                     n += 1;
-                });
+                }
             } else {
                 var href = unsealURLref(target);
                 if (null !== href && allowedNavigationScheme(href)) {
-                    elements.___nodes___.filter(function (node) {
-                        if ('A' === node.tagName.toUpperCase()) {
-                            node.setAttribute('href', href);
+                    for (var j = 0; j !== _nodes.length; j += 1) {
+                        var _node = _nodes[+j];
+                        if ('A' === _node.tagName.toUpperCase()) {
+                            _node.setAttribute('href', href);
                             n += 1;
                         }
-                    });
+                    }
                 }
             }
             return n;
@@ -526,15 +528,17 @@ ADSAFE.lib('web', function (lib) {
          */
         src: function (elements, target) {
             var n = 0;
+            var _nodes = elements.___nodes___;
             if (null === target) {
-                elements.___nodes___.filter(function (_node) {
-                    _node.removeAttribute('src');
+                for (var i = 0; i !== _nodes.length; i += 1) {
+                    _nodes[+i].removeAttribute('src');
                     n += 1;
-                });
+                }
             } else {
                 var src = unsealURLref(target);
                 if (null !== src && allowedNavigationScheme(src)) {
-                    elements.___nodes___.filter(function (_node) {
+                    for (var j = 0; j !== _nodes.length; j += 1) {
+                        var _node = _nodes[+j];
                         switch (_node.tagName.toUpperCase()) {
                         case 'IMG':
                         case 'INPUT':
@@ -542,7 +546,7 @@ ADSAFE.lib('web', function (lib) {
                             n += 1;
                             break;
                         }
-                    });
+                    }
                 }
             }
             return n;
