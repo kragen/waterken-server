@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-21
+ * web_send.js version: 2009-05-22
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -59,16 +59,17 @@ ADSAFE.lib('web', function (lib) {
     /**
      * Constructs a remote reference.
      * @param href  absolute URLref for target resource
+     * @param attrs optional attributes of the returned promise
      */
-    function sealURLref(href) {
+    function sealURLref(href, attrs) {
         if ('string' !== typeof href) { throw new Error(); }
 
         var cache = null;
         var resolved = false;
-        var m = function (op, arg1, arg2, arg3) {
+        function proxy(op, arg1, arg2, arg3) {
             if (undefined === op) {
                 unsealedURLref = href;
-                return resolved ? cache() : m;
+                return resolved ? cache() : proxy;
             }
             if ('WHEN' === op) {
                 if (!cache) {
@@ -80,7 +81,7 @@ ADSAFE.lib('web', function (lib) {
                         if (notYetPumpkin === x) {
                             // poll for the resolved value of the promise
                             ADSAFE.later(function () {
-                                send(m, href, 'GET', retry);
+                                send(proxy, href, 'GET', retry);
                             }, b);
                             var c = Math.min(a + b, 60 * 60 * 1000);
                             a = b;
@@ -92,15 +93,15 @@ ADSAFE.lib('web', function (lib) {
                             resolved = true;
                         }
                     };
-                    send(m, href, 'GET', retry);
+                    send(proxy, href, 'GET', retry);
                 }
                 // process when blocks in the same order as other requests
-                send(cache, href, op, null, null, [ arg1, arg2 ]);
+                send(cache, href, 'WHEN', null, null, [ arg1, arg2 ]);
             } else {
-                send(m, href, op, function (r) {
+                send(proxy, href, op, function (r) {
                     if (notYetPumpkin === r) {
                         // resend on the resolved value of the promise
-                        m('WHEN', function (x) {
+                        proxy('WHEN', function (x) {
                             (('function' === typeof x) ? x : lib.Q.ref(x))(
                                 op, arg1, arg2, arg3);
                         }, function (reason) {
@@ -111,8 +112,15 @@ ADSAFE.lib('web', function (lib) {
                     }
                 }, arg2, arg3);
             }
-        };
-        return m;
+        }
+        if (attrs) {
+            for (var k in attrs) { if (includes(attrs, k)) {
+                if ('@' !== k) {
+                    proxy[k] = attrs[k];
+                }
+            } }
+        }
+        return proxy;
     }
 
     /**
@@ -235,13 +243,7 @@ ADSAFE.lib('web', function (lib) {
             JSON.parse(http.responseText, function (key, value) {
                 if (includes(value, '!')) { return lib.Q.reject(value['!']); }
                 if (includes(value, '@')) {
-                    var r = sealURLref(resolveURI(base, value['@']));
-                    for (var k in value) { if (includes(value, k)) {
-                        if ('@' !== k) {
-                            r[k] = value[k];
-                        }
-                    } }
-                    return r;
+                    return sealURLref(resolveURI(base, value['@']), value);
                 }
                 if (includes(value, '=')) { return value['=']; }
                 return value;
