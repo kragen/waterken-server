@@ -207,11 +207,13 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
     }
     function renderBody(value) {
         var node = render(value);
+        lib.web.title(node.getClass());
         dom.q('#EXAMPLE_ANY').style('display', 'block').
             append(dom.tag('h1').append(dom.text(node.getClass()))).
             append(node);
     }
     function renderDrumFactory(factory) {
+        lib.web.title('Bang Tutorial');
         dom.q('#EXAMPLE_BANG').style('display', 'block');
         var drum = lib.Q.post(factory, 'makeDrum', []);
         dom.q('#EXAMPLE_BANG0').append(render(lib.Q.get(drum, 'hits')));
@@ -231,6 +233,7 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
         });
     }
     function renderSeries(series) {
+        lib.web.title('Consumer Producer');
         dom.q('#EXAMPLE_SERIES').style('display', 'block');
         dom.q('#EXAMPLE_SERIESLIST').append(render(lib.Q.get(series, 'front')));
         var consumed = dom.q('#EXAMPLE_SERIESCONSUMED');
