@@ -141,8 +141,8 @@ ADSAFE.lib('Q', function () {
     function defer() {
         var value;
         var pending = [];
-        function tail(op, arg1, arg2, arg3) {
-            if (undefined === op) { return pending ? tail : value(); }
+        function promise(op, arg1, arg2, arg3) {
+            if (undefined === op) { return pending ? promise : value(); }
             if (pending) {
                 pending.push({ op: op, arg1: arg1, arg2: arg2, arg3: arg3 });
             } else {
@@ -150,7 +150,7 @@ ADSAFE.lib('Q', function () {
             }
         }
         return {
-            promise: tail,
+            promise: promise,
             resolve: function (p) {
                 if (!pending) { return; }
 
