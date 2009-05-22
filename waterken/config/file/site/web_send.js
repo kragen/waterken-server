@@ -560,7 +560,7 @@ ADSAFE.lib('web', function (lib) {
             var _nodes = field.___nodes___;
             if (1 !== _nodes.length) { return; }
             var _node = _nodes[0];
-            if (!/^INPUT$/i.test(_node.tagName)) { return; }
+            if (!(/^INPUT$/i).test(_node.tagName)) { return; }
             if ('password' !== _node.type) { return; }
             var href = _node.value;
             if (!/^[a-zA-Z][\w\-\.\+]*:/.test(href)) { return null; }
@@ -576,7 +576,7 @@ ADSAFE.lib('web', function (lib) {
          * Sets the document title.
          * @param text  new title text
          */
-        setTitle: function (text) { window.document.title = text; },
+        title: function (text) { window.document.title = text; },
 
         // Non-ADsafe API
 
