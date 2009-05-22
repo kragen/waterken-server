@@ -2,17 +2,18 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * ref_send.js version: 2009-05-21
+ * ref_send.js version: 2009-05-22
  */
 "use strict";
 ADSAFE.lib('Q', function () {
 
     function reject(reason) {
-        return function (op, arg1, arg2, arg3) {
+        function rejected(op, arg1, arg2, arg3) {
             if (undefined === op) { return { '!' : reason }; }
             if ('WHEN' === op) { return arg2 ? arg2(reason) : reject(reason); }
             return arg1 ? arg1(reject(reason)) : reject(reason);
-        };
+        }
+        return rejected;
     }
 
     function ref(value) {
@@ -22,7 +23,7 @@ ADSAFE.lib('Q', function () {
         if ('number' === typeof value && !isFinite(value)) {
             return reject({ $: [ 'NaN' ] });
         }
-        return function (op, arg1, arg2, arg3) {
+        function fulfilled(op, arg1, arg2, arg3) {
             if (undefined === op) { return value; }
 
             var r;
@@ -64,7 +65,8 @@ ADSAFE.lib('Q', function () {
                 r = reject({});
             }
             return arg1 ? arg1(r) : r;
-        };
+        }
+        return fulfilled;
     }
 
     var enqueue = (function () {
@@ -139,14 +141,14 @@ ADSAFE.lib('Q', function () {
     function defer() {
         var value;
         var pending = [];
-        var tail = function (op, arg1, arg2, arg3) {
+        function tail(op, arg1, arg2, arg3) {
             if (undefined === op) { return pending ? tail : value(); }
             if (pending) {
                 pending.push({ op: op, arg1: arg1, arg2: arg2, arg3: arg3 });
             } else {
                 forward(value, op, arg1, arg2, arg3);
             }
-        };
+        }
         return {
             promise: tail,
             resolve: function (p) {
