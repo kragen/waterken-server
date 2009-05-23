@@ -405,7 +405,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
     }
     
-    static private <P,R> R
+    static protected <P,R> R
     sample(final Promise<P> promise, final Do<P,R> observer,
            final Log log, final String message) throws Exception {
         final P a;
