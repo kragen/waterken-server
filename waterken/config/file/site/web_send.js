@@ -258,8 +258,13 @@ ADSAFE.lib('web', function (lib) {
         case 205:
             return {};
         case 303:
+            if (isJSON) { return value; }
             var see = http.getResponseHeader('Location');
-            return (isJSON || !see) ? value : sealURLref(resolveURI(base, see));
+            return see ? sealURLref(resolveURI(base, see)) : lib.Q.reject({
+                $: [ 'org.ref_send.promise.Failure', 'NaO' ],
+                status: http.status,
+                phrase: http.statusText
+            });
         case 404:
             return notYetPumpkin;
         default:
