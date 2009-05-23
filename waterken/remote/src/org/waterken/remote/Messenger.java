@@ -14,7 +14,7 @@ Messenger {
     
     /**
      * Settles a remote promise.
-     * @param href      target URL string
+     * @param href      relative URL string for message target
      * @param proxy     local proxy object
      * @param observer  promise observer
      */
@@ -23,7 +23,7 @@ Messenger {
     
     /**
      * Invokes a remote object.
-     * @param href      target URL string
+     * @param href      relative URL string for message target
      * @param proxy     local proxy object
      * @param method    method to invoke
      * @param arg       each argument

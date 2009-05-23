@@ -19,12 +19,10 @@ import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Local;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Vat;
-import org.ref_send.type.Typedef;
 import org.waterken.db.Creator;
 import org.waterken.db.Database;
 import org.waterken.db.Effect;
@@ -129,29 +127,14 @@ HTTP extends Eventual implements Serializable {
         // org.waterken.remote.Messenger interface
 
         public void
-        when(final String href, final Remote proxy,
-             final Do<Object,?> observer) {
-            if (isPromise(URI.fragment("", href))) {
-                peer(href).when(href, proxy, observer);
-            } else {
-                // TODO: do this via the peer object to keep order
-                final Class<?> P = Typedef.raw(Local.parameter(observer));
-                _.when(P, HTTP.inline(Eventual.cast(P, proxy)), observer);
-            }
+        when(final String href,final Remote proxy, final Do<Object,?> observer){
+            peer(href).when(href, proxy, observer);
         }
         
         public Object
         invoke(final String href, final Object proxy,
                final Method method, final Object... arg) {
-            if (isPromise(URI.fragment("", href))) {
-                // re-dispatch invocation on resolved value of web-key
-                final ConstArray<?> argv =
-                    ConstArray.array(null == arg ? new Object[0] : arg);
-                final Do<Object,Object> invoke = Local.curry(method, argv);
-                return _.when(proxy, invoke);
-            } else {
-                return peer(href).invoke(href, proxy, method, arg);
-            }
+            return peer(href).invoke(href, proxy, method, arg);
         }
         
         // org.waterken.remote.http.Exports.HTTP interface
@@ -184,7 +167,7 @@ HTTP extends Eventual implements Serializable {
          */
         public Importer
         connect() {
-            final Importer next=Remote.connect(_, _.local, this, _.here);
+            final Importer next = Remote.connect(_, _.local, this, _.here);
             class ImporterX extends Struct implements Importer, Serializable {
                 static private final long serialVersionUID = 1L;
 
@@ -199,8 +182,6 @@ HTTP extends Eventual implements Serializable {
             }
             return new ImporterX();
         }
-        
-        static private final Class<?> Fulfilled = Eventual.ref(0).getClass();
 
         /**
          * Constructs a reference exporter.
@@ -212,9 +193,7 @@ HTTP extends Eventual implements Serializable {
 
                 public String
                 run(final @inert Object object) {
-                    final Promise<?> p = Eventual.ref(object);
-                    return href(_.root.export(object, false),
-                                !Fulfilled.isInstance(p) || isPBC(near(p)));
+                    return href(_.root.export(object, false));
                 }
             }
             return Remote.export(_.local, new ExporterX());
@@ -292,9 +271,13 @@ HTTP extends Eventual implements Serializable {
             r.append(query);
         }
         final String fragment = URI.fragment("", href);
-        if (!"".equals(fragment)) {
-            r.append(0 == r.length() ? '?' : '&');
-            r.append(fragment);
+        if (!"".equals(fragment) && !fragment.startsWith("=")) {
+            final int end = fragment.indexOf("&=");
+            final String args = -1==end ? fragment : fragment.substring(0, end);
+            if (!"".equals(args)) {
+                r.append(0 == r.length() ? '?' : '&');
+                r.append(args);
+            }
         }
         return URI.resolve(href, r.toString());
     }
@@ -312,12 +295,9 @@ HTTP extends Eventual implements Serializable {
     /**
      * Constructs a web-key.
      * @param subject   target object key
-     * @param isPromise Is the target object a promise?
      */
     static protected String
-    href(final String subject, final boolean isPromise) {
-        return "./#"+(isPromise ? "o=&" : "")+"s="+URLEncoding.encode(subject);
-    }
+    href(final String subject) { return "./#s=" + URLEncoding.encode(subject); }
 
     /**
      * Extracts the subject key from a web-key.
@@ -334,14 +314,6 @@ HTTP extends Eventual implements Serializable {
      */
     static protected String
     predicate(final String q) { return Query.arg(null, q, "q"); }
-    
-    /**
-     * Is the given web-key a promise web-key?
-     * @param q web-key argument string
-     * @return <code>true</code> if a promise, else <code>false</code>
-     */
-    static protected boolean
-    isPromise(final String q) { return null != Query.arg(null, q, "o"); }
     
     /**
      * Extracts the session key.
@@ -479,5 +451,15 @@ HTTP extends Eventual implements Serializable {
             }
         }
         return new ChangeBase();
+    }
+    
+    static protected void
+    sample(final Object value, final Do<Object,?> observer,
+           final Log log, final String message) {
+        try {
+            Eventual.sample(Eventual.inline(value), observer, log, message);
+        } catch (final Exception e) {
+            log.problem(e);
+        }
     }
 }
