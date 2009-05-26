@@ -186,9 +186,9 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                 r = dom.tag('span');
             } else if (ADSAFE.isArray(value)) {
                 r = dom.tag('ol');
-                value.filter(function (element) {
-                    r.append(dom.tag('li').append(render(element)));
-                });
+                for (var i = 0; i !== value.length; i += 1) {
+                    r.append(dom.tag('li').append(render(value[+i])));
+                }
             } else {
                 r = dom.tag('div');
                 for (name in value) { if (value.hasOwnProperty(name)) {
@@ -257,8 +257,12 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
         });
     }
     function isa(value, type) {
-        return value && value.$ &&
-               value.$.filter(function (x) { return x === type; }).length;
+        if (!value) { return false; }
+        if (!ADSAFE.isArray(value.$)) { return false; }
+        for (var i = 0; i !== value.$.length; i += 1) {
+            if (value.$[+i] === type) { return true; }
+        }
+        return false;
     }
     var resource = lib.web.getLocation();
     lib.Q.when(resource, function (representation) {
