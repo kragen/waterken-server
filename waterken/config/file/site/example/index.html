@@ -6,6 +6,10 @@
 <title></title>
 <link rel="icon" type="image/gif" href="/site/icon.gif?o=">
 <link rel="StyleSheet" type="text/css" href="/site/style.css?o=">
+<style type="text/css">
+.input, .prompt { color: blue }
+.output { color: green }
+</style>
 <script type="text/javascript" src="/site/json2.js?o="></script>
 <script type="text/javascript" src="/site/adsafe.js?o="></script>
 </head>
@@ -30,12 +34,8 @@
 <div id="EXAMPLE_">
 <!-- Normally, you'd put your widget's initial HTML content here. -->
 <!-- For example... -->
-<div id="EXAMPLE_ANY" style="display: none"></div>
-<div id="EXAMPLE_BANG" style="display: none">
-<style type="text/css">
-.input, .prompt { color: blue }
-.output { color: green }
-</style>
+<div id="EXAMPLE_ANY" style="display: none;"></div>
+<div id="EXAMPLE_BANG" style="display: none;">
 <p>Using this page, you can try out the
 <a href="/site/ref_send.js?o=2009-05-24">ref_send promise API</a> in the
 <a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a> console.
@@ -57,7 +57,7 @@ the bottom of the window:</p>
 // GET request sent above will already have been received and
 // processed by the time I hit the 'Enter' key.</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="EXAMPLE_BANG0"></span>
+<span class="output" id="EXAMPLE_BANGZERO"></span>
 <span class="comment">
 // Send a POST request to increment the counter...</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ 1 ])</span>
@@ -65,7 +65,7 @@ the bottom of the window:</p>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
 <span class="output">promise()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="EXAMPLE_BANG1"></span>
+<span class="output" id="EXAMPLE_BANGONE"></span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ 2 ])</span>
 <span class="output">promise()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
@@ -89,22 +89,22 @@ the bottom of the window:</p>
 // the POST request that increases the counter.</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(lib.Q.post(drum, 'bang', [ 3 ]), 'hits')</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="EXAMPLE_BANG6"></span>
+<span class="output" id="EXAMPLE_BANGSIX"></span>
 <span class="comment">
 // Promises can also be used as arguments...</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ hits ])</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
 <span class="output">promise()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
-<span class="output" id="EXAMPLE_BANG12"></span>
+<span class="output" id="EXAMPLE_BANGTWELVE"></span>
 </pre>
 </div>
-<div id="EXAMPLE_SERIES" style="display: none">
+<div id="EXAMPLE_SERIES" style="display: none;">
 <p>This object implements a FIFO queue. Pop a value from the queue by clicking
 the 'consume' button. Put something into the queue by entering some text in the
 text field and hitting the 'enter' key. Try consuming more than you've produced
 and then catch up.</p>
-<p><input type="button" id="EXAMPLE_SERIESCONSUME" value="Consume"/> a
+<p><input type="button" autocomplete="off" id="EXAMPLE_SERIESCONSUME" value="Consume"/> a
 value:</p>
 <div id="EXAMPLE_SERIESCONSUMED"></div>
 <p>Produce a value:
@@ -191,7 +191,7 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                 }
             } else {
                 r = dom.tag('div');
-                for (name in value) { if (value.hasOwnProperty(name)) {
+                for (var name in value) { if (value.hasOwnProperty(name)) {
                     if ('$' === name) {
                         $ = $.concat(value.$);
                     } else {
@@ -217,9 +217,9 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
         lib.web.title('Bang Tutorial');
         dom.q('#EXAMPLE_BANG').style('display', 'block');
         var drum = lib.Q.post(factory, 'makeDrum', []);
-        dom.q('#EXAMPLE_BANG0').append(render(lib.Q.get(drum, 'hits')));
+        dom.q('#EXAMPLE_BANGZERO').append(render(lib.Q.get(drum, 'hits')));
         lib.Q.post(drum, 'bang', [ 1 ]);
-        dom.q('#EXAMPLE_BANG1').append(render(lib.Q.get(drum, 'hits')));
+        dom.q('#EXAMPLE_BANGONE').append(render(lib.Q.get(drum, 'hits')));
         lib.Q.post(drum, 'bang', [ 2 ]);
         lib.Q.when(lib.Q.get(drum, 'hits'), function (value) {
             ADSAFE.log('hits = ' + value);
@@ -227,10 +227,10 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
             ADSAFE.log('request failed');
         });
         var hits = lib.Q.get(lib.Q.post(drum, 'bang', [ 3 ]), 'hits');
-        dom.q('#EXAMPLE_BANG6').append(render(hits));
+        dom.q('#EXAMPLE_BANGSIX').append(render(hits));
         lib.Q.when(hits, function () {
             lib.Q.post(drum, 'bang', [ lib.Q.get(drum, 'hits') ]);
-            dom.q('#EXAMPLE_BANG12').append(render(lib.Q.get(drum, 'hits')));
+            dom.q('#EXAMPLE_BANGTWELVE').append(render(lib.Q.get(drum,'hits')));
         });
     }
     function renderSeries(series) {
