@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-24
+ * web_send.js version: 2009-05-26
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -59,9 +59,9 @@ ADSAFE.lib('web', function (lib) {
     /**
      * Constructs a remote reference.
      * @param href  absolute URLref for target resource
-     * @param attrs optional attributes of the returned promise
+     * @param props optional properties of the returned promise
      */
-    function sealURLref(href, attrs) {
+    function sealURLref(href, props) {
         if ('string' !== typeof href) { throw new Error(); }
 
         var cache = null;
@@ -105,18 +105,18 @@ ADSAFE.lib('web', function (lib) {
                             (('function' === typeof x) ? x : lib.Q.ref(x))(
                                 op, arg1, arg2, arg3);
                         }, function (reason) {
-                            arg1(lib.Q.reject(reason));
+                            if (arg1) { arg1(lib.Q.reject(reason)); }
                         });
                     } else {
-                        arg1(r);
+                        if (arg1) { arg1(r); }
                     }
                 }, arg2, arg3);
             }
         }
-        if (attrs) {
-            for (var k in attrs) { if (includes(attrs, k)) {
+        if (props) {
+            for (var k in props) { if (includes(props, k)) {
                 if ('@' !== k) {
-                    proxy[k] = attrs[k];
+                    proxy[k] = props[k];
                 }
             } }
         }
