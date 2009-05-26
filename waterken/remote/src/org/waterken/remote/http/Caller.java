@@ -183,6 +183,8 @@ Caller extends Struct implements Messenger, Serializable {
 
             public void
             fulfill(final String request, final Message<Response> response) {
+                final Type R = Typedef.bound(method.getGenericReturnType(),
+                                             proxy.getClass());
                 final Object r;
                 if ("404".equals(response.head.status)) {
                     // re-dispatch invocation on resolved value of web-key
@@ -190,8 +192,6 @@ Caller extends Struct implements Messenger, Serializable {
                     final Do<Object,Object> invoke = Local.curry(method, argv);
                     r = _.when(proxy, invoke);
                 } else {
-                    final Type R = Typedef.bound(method.getGenericReturnType(),
-                                                 proxy.getClass());
                     r = receive(
                         HTTP.post(URI.resolve(here, href), name, null, 0, 0),
                         response, R);
@@ -199,7 +199,10 @@ Caller extends Struct implements Messenger, Serializable {
                         _.log.got(request + "-return", null, null);
                     }
                 }
-                if (null != resolver) { resolver.run(r); }
+                if (null != resolver &&
+                        !(null == r && (void.class == R || Void.class == R))) {
+                    resolver.run(r);
+                }
             }
             
             public void
