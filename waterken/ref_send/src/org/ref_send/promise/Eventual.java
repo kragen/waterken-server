@@ -555,16 +555,12 @@ Eventual implements Receiver<Promise<?>>, Serializable {
                     log.problem(e);
                     throw e;
                 }
-            } else if (ignored) {
-                if (value instanceof Rejected) {
-                    final Exception e = ((Rejected<?>)value).reason;
-                    if (null!=e && NullPointerException.class != e.getClass()) {
-                        log.got(here + "#w" + message, null, null);
-                        log.sentIf(here+"#w"+message, here+"#p"+condition);
-                        log.problem(e);
-                        throw e;
-                    }
-                }
+            } else if (ignored && value instanceof Rejected) {
+                final Exception e = ((Rejected<?>)value).reason;
+                log.got(here + "#w" + message, null, null);
+                log.sentIf(here + "#w" + message, here + "#p" + condition);
+                log.problem(e);
+                throw e;
             }
             return null;
         }
