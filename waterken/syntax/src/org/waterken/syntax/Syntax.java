@@ -3,9 +3,12 @@
 package org.waterken.syntax;
 
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Type;
 
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
+import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
@@ -45,5 +48,43 @@ Syntax extends Struct implements Powerless, Record, Serializable {
         this.ext = ext;
         this.serializer = serializer;
         this.deserializer = deserializer;
+    }
+    
+    /**
+     * Finds a corresponding {@link deserializer}.
+     * @param type  type to construct
+     * @return constructor, or <code>null</code> if none
+     */
+    static public Constructor<?>
+    deserializer(final Class<?> type) {
+        for (Class<?> i = type; null != i; i = i.getSuperclass()) {
+            for (final Constructor<?> c : Reflection.constructors(i)) {
+                if (c.isAnnotationPresent(deserializer.class)) { return c; }
+            }
+            if (Throwable.class.isAssignableFrom(i)) {
+                try { 
+                    return Reflection.constructor(i);
+                } catch (final NoSuchMethodException e) {}
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Gets the default value of a specified type.
+     * @param required  required type
+     * @return default value
+     */
+    static public Object
+    defaultValue(final Type required) {
+        return boolean.class == required ? Boolean.FALSE :
+               char.class    == required ? Character.valueOf('\0') :
+               byte.class    == required ? Byte.valueOf((byte)0) :
+               short.class   == required ? Short.valueOf((short)0) :
+               int.class     == required ? Integer.valueOf(0) :
+               long.class    == required ? Long.valueOf(0) :
+               float.class   == required ? Float.valueOf(0.0f) :
+               double.class  == required ? Double.valueOf(0.0) :
+               (Object)null;
     }
 }

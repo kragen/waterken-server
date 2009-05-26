@@ -66,8 +66,7 @@ Caller extends Struct implements Messenger, Serializable {
 
             public Message<Request>
             render(final String x, final long w, final int m) throws Exception {
-                final String absolute = URI.resolve(here, href);
-                final String requestURI = HTTP.get(absolute, null);
+                final String requestURI = HTTP.get(URI.resolve(here,href),null);
                 return new Message<Request>(new Request(
                     "HTTP/1.1", "GET", URI.request(requestURI),
                     PowerlessArray.array(
@@ -215,27 +214,24 @@ Caller extends Struct implements Messenger, Serializable {
     private Object
     receive(final String base, final Message<Response> m, final Type R) {
         try {
-            String contentType = m.head.getContentType();
-            if (null == contentType) {
-                contentType = FileType.unknown.name;
-            } else {
-                final int end = contentType.indexOf(';');
-                if (-1 != end) {
-                    contentType = contentType.substring(0, end);
-                }
-            }
-            final boolean isJSON = Header.equivalent(FileType.json.name,
-                                                     contentType);
-            final Object r = isJSON ? new JSONDeserializer().deserialize(base,
-                connect, R, codebase, m.body.asInputStream()) : m.body;
             if ("200".equals(m.head.status) || "201".equals(m.head.status) ||
                 "202".equals(m.head.status) || "203".equals(m.head.status)) {
-                return r;
+                String contentType = m.head.getContentType();
+                if (null == contentType) {
+                    contentType = FileType.json.name;
+                } else {
+                    final int end = contentType.indexOf(';');
+                    if (-1 != end) {
+                        contentType = contentType.substring(0, end);
+                    }
+                }
+                return Header.equivalent(FileType.json.name, contentType) ?
+                    new JSONDeserializer().deserialize(base, connect, R,
+                            codebase, m.body.asInputStream()) : m.body;
             } 
             if ("204".equals(m.head.status) ||
                 "205".equals(m.head.status)) { return true; }
             if ("303".equals(m.head.status)) {
-                if (isJSON) { return r; }
                 for (final Header h : m.head.headers) {
                     if (Header.equivalent("Location", h.name)) {
                         return connect.run(h.value, base, R);

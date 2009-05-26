@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-22
+ * web_send.js version: 2009-05-24
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -175,10 +175,15 @@ ADSAFE.lib('web', function (lib) {
                     } }
                     return r;
                 }
-                if ('function' === typeof value) { return undefined; }
+
+                if ('function' === typeof value && 'rejected' === value.name) {
+                    return {
+                        '!' : value('WHEN', null, function (e) { return e; })
+                    };
+                }
             }
             if ('number' === typeof value && !isFinite(value)) {
-                value = { '!' : { $: [ 'NaN' ] } };
+                return { '!' : { $: [ 'NaN' ] } };
             }
             if (includes(value, '@')) { throw new Error('forged reference'); }
             return value;
@@ -257,14 +262,6 @@ ADSAFE.lib('web', function (lib) {
         case 204:
         case 205:
             return {};
-        case 303:
-            if (isJSON) { return value; }
-            var see = http.getResponseHeader('Location');
-            return see ? sealURLref(resolveURI(base, see)) : lib.Q.reject({
-                $: [ 'org.ref_send.promise.Failure', 'NaO' ],
-                status: http.status,
-                phrase: http.statusText
-            });
         case 404:
             return notYetPumpkin;
         default:

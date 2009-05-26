@@ -21,7 +21,9 @@ import org.joe_e.charset.UTF8;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
+import org.ref_send.scope.Layout;
 import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.Exporter;
@@ -106,6 +108,13 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
 
     static private final TypeVariable<?> R = Typedef.var(Promise.class, "T");
     static private final TypeVariable<?> T = Typedef.var(Iterable.class, "T");
+    static private final Class<?> Rejected =
+        Eventual.reject(new Exception()).getClass();
+
+    /**
+     * encoding of a rejected promise
+     */
+    static private final Layout JSONerror=new Layout(PowerlessArray.array("!"));
     
     static private void
     serialize(final Exporter export, final Type implicit,
@@ -121,19 +130,19 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             try {
                 out.writeLong((Long)value);
             } catch (final ArithmeticException e) {
-                serialize(export, implicit, JSON.Rejected.make(e), out);
+                serialize(export, implicit, JSONerror.make(e), out);
             }
         } else if (Double.class == actual) {
             try {
                 out.writeDouble((Double)value);
             } catch (final ArithmeticException e) {
-                serialize(export, implicit, JSON.Rejected.make(e), out);
+                serialize(export, implicit, JSONerror.make(e), out);
             }
         } else if (Float.class == actual) {
             try {
                 out.writeFloat((Float)value);
             } catch (final ArithmeticException e) {
-                serialize(export, implicit, JSON.Rejected.make(e), out);
+                serialize(export, implicit, JSONerror.make(e), out);
             }
         } else if (Byte.class == actual) {
             out.writeInt((Byte)value);
@@ -151,7 +160,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 serialize(export, implicit, num.longValue(), out);
             } else {
                 serialize(export, implicit,
-                          JSON.Rejected.make(new ArithmeticException()), out);
+                          JSONerror.make(new ArithmeticException()), out);
             }
         } else if (BigDecimal.class == actual) {
             serialize(export, implicit, ((BigDecimal)value).doubleValue(), out);
@@ -210,18 +219,30 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             }
             oout.finish();
         } else {
-            final Type promised = Typedef.value(R, implicit);
-            final Type expected = null != promised ? promised : implicit;
-            final PowerlessArray<String> types =
-                JSON.upto(actual, Typedef.raw(expected));
-            if (0 == types.length()) {
-                out.writeLink(export.run(value));
+            final Promise<?> pValue = Eventual.ref(value);
+            if (Rejected == pValue.getClass()) {
+                Exception reason;
+                try {
+                    pValue.call();
+                    throw new AssertionError();
+                } catch (final Exception e) {
+                    reason = e;
+                }
+                serialize(export, implicit, JSONerror.make(reason), out);
             } else {
-                final JSONWriter.ObjectWriter oout = out.startObject();
-                serialize(export, PowerlessArray.class,
-                          types, oout.startMember("$"));
-                oout.startMember("@").writeString(export.run(value));
-                oout.finish();
+                final Type promised = Typedef.value(R, implicit);
+                final Type expected = null != promised ? promised : implicit;
+                final PowerlessArray<String> types =
+                    JSON.upto(actual, Typedef.raw(expected));
+                if (0 == types.length()) {
+                    out.writeLink(export.run(value));
+                } else {
+                    final JSONWriter.ObjectWriter oout = out.startObject();
+                    serialize(export, PowerlessArray.class,
+                              types, oout.startMember("$"));
+                    oout.startMember("@").writeString(export.run(value));
+                    oout.finish();
+                }
             }
         }
     }

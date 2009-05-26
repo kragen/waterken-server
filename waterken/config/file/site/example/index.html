@@ -37,7 +37,7 @@
 .output { color: green }
 </style>
 <p>Using this page, you can try out the
-<a href="/site/ref_send.js?o=2009-05-21">ref_send promise API</a> in the
+<a href="/site/ref_send.js?o=2009-05-24">ref_send promise API</a> in the
 <a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a> console.
 For example, select the "Console" tab in Firebug and then enter the following
 commands at the "<kbd><span class="prompt">&gt;&gt;&gt;</span></kbd>" prompt at
@@ -49,9 +49,9 @@ the bottom of the window:</p>
 // can be incremented. We'll create a new Drum by invoking the factory
 // method.</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">drum = lib.Q.post(lib.web.getLocation(), 'makeDrum', [])</span>
-<span class="output">function()</span>
+<span class="output">promise()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
-<span class="output">function()</span>
+<span class="output">promise()</span>
 <span class="comment">
 // Since I'm just typing in an interactive shell, the response to the
 // GET request sent above will already have been received and
@@ -61,15 +61,15 @@ the bottom of the window:</p>
 <span class="comment">
 // Send a POST request to increment the counter...</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ 1 ])</span>
-<span class="output">function()</span>
+<span class="output">promise()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
-<span class="output">function()</span>
+<span class="output">promise()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
 <span class="output" id="EXAMPLE_BANG1"></span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ 2 ])</span>
-<span class="output">function()</span>
+<span class="output">promise()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
-<span class="output">function()</span>
+<span class="output">promise()</span>
 <span class="comment">
 // If we weren't typing in an interactive shell, we might want to setup
 // a callback to be invoked after a promise is resolved. We can do this
@@ -82,7 +82,7 @@ the bottom of the window:</p>
     }, function (reason) {
         ADSAFE.log('request failed');
     })</span>
-<span class="output">function()</span>
+<span class="output">promise()</span>
 <span class="comment">
 // A promise can also be used to queue up future messages. Below, the
 // GET request to query the counter is sent on the promise returned by
@@ -94,7 +94,7 @@ the bottom of the window:</p>
 // Promises can also be used as arguments...</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.post(drum, 'bang', [ hits ])</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">hits = lib.Q.get(drum, 'hits')</span>
-<span class="output">function()</span>
+<span class="output">promise()</span>
 <span class="prompt">&gt;&gt;&gt;</span> <span class="input">lib.Q.near(hits)</span>
 <span class="output" id="EXAMPLE_BANG12"></span>
 </pre>
@@ -116,8 +116,8 @@ value:</p>
 "use strict";
 ADSAFE.id('EXAMPLE_');
 </script>
-<script type="text/javascript" src="/site/ref_send.js?o=2009-05-21"></script>
-<script type="text/javascript" src="/site/web_send.js?o=2009-05-21"></script>
+<script type="text/javascript" src="/site/ref_send.js?o=2009-05-24"></script>
+<script type="text/javascript" src="/site/web_send.js?o=2009-05-24"></script>
 <script type="text/javascript">
 "use strict";
 ADSAFE.go('EXAMPLE_', function (dom, lib) {
@@ -152,10 +152,11 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                 if (referent.$) {
                     $ = $.concat(referent.$);
                 }
-                $.push('Promise');
+                if (referent.name) { $.push(referent.name); }
                 r = dom.tag('span');
                 var a = dom.tag('a');
                 if (lib.web.href(a, referent)) {
+                    if (referent.$) { a.klass(referent.$.join(' ')); }
                     r.append(a.append(dom.text('...')));
                 } else {
                     r.append(dom.text('...'));
@@ -163,13 +164,17 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                 lib.Q.when(value, function (fulfilled) {
                     if (referent !== fulfilled) {
                         if ('function' === typeof fulfilled) {
-                            lib.web.href(a, fulfilled);
+                            if (lib.web.href(a, fulfilled)) {
+                                if (fulfilled.$) {
+                                    a.klass(fulfilled.$.join(' '));
+                                }
+                            }
                         } else {
-                            r.empty().append(render(fulfilled));
+                            r.empty().append(render(fulfilled, [ 'value' ]));
                         }
                     }
                 }, function (reason) {
-                    r.empty().append(render(lib.Q.reject(reason)));
+                    r.empty().append(render(reason, [ 'reason' ]));
                 });
             } else {
                 r = render(referent, $);
@@ -189,10 +194,6 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                 for (name in value) { if (value.hasOwnProperty(name)) {
                     if ('$' === name) {
                         $ = $.concat(value.$);
-                    } else if ('!' === name) {
-                        $.push('Rejected');
-                        r.append(render(ADSAFE.get(value, name), [ 'reason' ]));
-                        r.append(dom.text(' '));
                     } else {
                         r.append(render(ADSAFE.get(value, name), [ name ]));
                         r.append(dom.text(' '));
@@ -259,19 +260,19 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
         return value && value.$ &&
                value.$.filter(function (x) { return x === type; }).length;
     }
-    var target = lib.web.getLocation();
-    lib.Q.when(target, function (value) {
-        if (isa(value, 'org.waterken.bang.DrumFactory')) {
-            renderDrumFactory(target);
-        } else if (isa(value, 'org.waterken.serial.Series')) {
-            renderSeries(target);
-        } else if (isa(value, 'org.waterken.serial.SeriesFactory')) {
-            renderSeriesFactory(target);
+    var resource = lib.web.getLocation();
+    lib.Q.when(resource, function (representation) {
+        if (isa(representation, 'org.waterken.bang.DrumFactory')) {
+            renderDrumFactory(resource);
+        } else if (isa(representation, 'org.waterken.serial.Series')) {
+            renderSeries(resource);
+        } else if (isa(representation, 'org.waterken.serial.SeriesFactory')) {
+            renderSeriesFactory(resource);
         } else {
-            renderBody(target);
+            renderBody(resource);
         }
     }, function (reason) {
-        renderBody(lib.Q.reject(reason));
+        renderBody(resource);
     });
 });
 </script>

@@ -6,9 +6,9 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 
 import org.joe_e.array.ConstArray;
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
-import org.waterken.syntax.json.JSON;
 
 /**
  * The server-side state associated with a messaging session.
@@ -37,7 +37,7 @@ ServerSideSession implements Serializable {
         try {
             return op.call();
         } catch (final Exception e) {
-            return JSON.Rejected.make(e);
+            return Eventual.reject(e);
         }
     }
     

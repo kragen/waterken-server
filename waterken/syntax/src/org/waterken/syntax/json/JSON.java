@@ -10,19 +10,13 @@ import org.joe_e.Struct;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Promise;
-import org.ref_send.scope.Layout;
 
 /**
  * Java &lt;=&gt; JSON naming conventions.
  */
-public final class
+/* package */ final class
 JSON {
     private JSON() {}
-
-    /**
-     * encoding of a rejected promise
-     */
-    static public final Layout Rejected = new Layout(PowerlessArray.array("!"));
     
     /**
      * Enumerate an inheritance chain from [ bottom, top ).

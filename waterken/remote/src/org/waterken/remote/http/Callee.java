@@ -21,7 +21,7 @@ import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.io.FileType;
 import org.waterken.syntax.BadSyntax;
-import org.waterken.syntax.json.JSON;
+import org.waterken.syntax.Deserializer;
 import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.uri.Header;
@@ -64,7 +64,7 @@ Callee extends Struct implements Serializable {
                 return serialize(m.head.method, "404", "not yet",
                                  Server.ephemeral, Exception.class, e);
             } catch (final Exception e) {
-                value = JSON.Rejected.make(e);
+                value = Eventual.reject(e);
             }
             final Response failed = m.head.allow("\"\"");
             if (null != failed) { return new Message<Response>(failed, null); }
@@ -100,7 +100,7 @@ Callee extends Struct implements Serializable {
                 final Object r = Reflection.invoke(property, target);
                 value = Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
             } catch (final Exception e) {
-                value = JSON.Rejected.make(e);
+                value = Eventual.reject(e);
             }
             final boolean constant = "getClass".equals(property.getName());
             final int maxAge = constant ? Server.forever : Server.ephemeral; 
@@ -126,19 +126,35 @@ Callee extends Struct implements Serializable {
             }                                   // method invocation
             final Response failed = m.head.allow(null);
             if (null != failed) { return new Message<Response>(failed, null); }
+            String contentType = m.head.getContentType();
+            if (null == contentType) {
+                contentType = FileType.json.name;
+            } else {
+                final int end = contentType.indexOf(';');
+                if (-1 != end) {
+                    contentType = contentType.substring(0, end);
+                }
+            }
+            final Deserializer deserializer =
+                Header.equivalent(FileType.json.name, contentType) ||
+                Header.equivalent("text/plain",       contentType) ?
+                    new JSONDeserializer() : null;
             final Object value = exports.execute(query, lambda,
-                                                 new Promise<Object>(){
+                                                 new Promise<Object>() {
                 public Object
                 call() throws Exception {
                     /*
                      * SECURITY CLAIM: deserialize inside the once block to
                      * ensure application code cannot detect request replay by
                      * causing failed deserialization
-                     */ 
+                     */
                     final ConstArray<?> argv;
                     try {
-                        argv = deserialize(m, ConstArray.array(
-                                lambda.getGenericParameterTypes()));
+                        argv = null == deserializer ? ConstArray.array(m.body) : 
+                            deserializer.deserializeTuple(exports.getHere(),
+                                exports.connect(), ConstArray.array(
+                                    lambda.getGenericParameterTypes()),
+                                exports.getCodebase(), m.body.asInputStream());
                     } catch (final BadSyntax e) {
                         /*
                          * strip out the parsing information to avoid leaking
@@ -180,8 +196,7 @@ Callee extends Struct implements Serializable {
             content = (ByteArray)value;
         } else {
             contentType = FileType.json.name;
-            content = new JSONSerializer().serialize(
-                    exports.export(), type, value);
+            content=new JSONSerializer().serialize(exports.export(),type,value);
         }
         if ("GET".equals(method) || "HEAD".equals(method)) {
             return new Message<Response>(new Response(
@@ -200,17 +215,6 @@ Callee extends Struct implements Serializable {
                 new Header("Content-Type", contentType),
                 new Header("Content-Length", "" + content.length())
             )), content);
-    }
-    
-    private ConstArray<?>
-    deserialize(final Message<Request> m,
-                final ConstArray<Type> parameters) throws Exception {
-        if (Header.equivalent(FileType.unknown.name, m.head.getContentType())) {
-            return ConstArray.array(m.body);
-        }
-        return new JSONDeserializer().deserializeTuple(exports.getHere(),
-            exports.connect(), parameters, exports.getCodebase(),
-            m.body.asInputStream());
     }
 
     /**

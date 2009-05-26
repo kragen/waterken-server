@@ -26,7 +26,6 @@ import org.joe_e.array.LongArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.array.ShortArray;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
@@ -35,6 +34,7 @@ import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.BadSyntax;
 import org.waterken.syntax.Importer;
+import org.waterken.syntax.Syntax;
 
 /**
  * Deserializes a JSON text stream.
@@ -263,7 +263,7 @@ JSONParser {
                     try {
                         final Class<?> t = JSON.load(code, (String)typename);
                         if (null == type) { type = t; }
-                        make = construct(t);
+                        make = Syntax.deserializer(t);
                         if (null != make) { break; }
                     } catch (final ClassCastException e) {
                     } catch (final ClassNotFoundException e) {}
@@ -280,7 +280,7 @@ JSONParser {
         final Type expected = null != promised ? promised : required;
         final Class<?> concrete = null!=actual ? actual : Typedef.raw(expected);
         if (null == make && null == actual) {
-            make = construct(concrete);
+            make = Syntax.deserializer(concrete);
         }
         final String[] namev;
         final Type[] paramv;
@@ -376,27 +376,12 @@ JSONParser {
             for (int i = donev.length; 0 != i--;) {
                 if (!donev[i]) {
                     donev[i] = true;
-                    argv[i] = defaultValue(paramv[i]);
+                    argv[i] = Syntax.defaultValue(paramv[i]);
                 }
             }
             r = Reflection.construct(make, argv);
         }
         return null != promised ? ref(r) : r;
-    }
-    
-    static private Constructor<?>
-    construct(final Class<?> type) {
-        for (Class<?> i = type; null != i; i = i.getSuperclass()) {
-            try {
-                for (final Constructor<?> c : Reflection.constructors(i)) {
-                    if (c.isAnnotationPresent(deserializer.class)) { return c; }
-                }
-                if (Throwable.class.isAssignableFrom(i)) {
-                    return Reflection.constructor(i);
-                }
-            } catch (final NoSuchMethodException e) {}
-        }
-        return null;
     }
     
     static private int
@@ -410,28 +395,6 @@ JSONParser {
     string(final String token) throws Exception {
         if (!token.startsWith("\"")) { throw new Exception(); }
         return token.substring(1, token.length() - 1);
-    }
-    
-    /**
-     * Gets the default value of a specified type.
-     * @param required  expected type
-     * @return default value
-     */
-    static private Object
-    defaultValue(final Type required) {
-        final Type promised = Typedef.value(R, required);
-        final Type expected = null != promised ? promised : required;
-        final Object value =
-            boolean.class == expected ? Boolean.FALSE
-            : char.class == expected ? Character.valueOf('\0')
-            : byte.class == expected ? Byte.valueOf((byte)0)
-            : short.class == expected ? Short.valueOf((short)0)
-            : int.class == expected ? Integer.valueOf(0)
-            : long.class == expected ? Long.valueOf(0)
-            : float.class == expected ? Float.valueOf(0.0f)
-            : double.class == expected ? Double.valueOf(0.0)
-            : (Object)null;
-        return null != promised ? ref(value) : value;
     }
     
     /*

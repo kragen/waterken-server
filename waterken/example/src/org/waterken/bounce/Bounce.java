@@ -39,7 +39,6 @@ Bounce {
     static public Wall
     make(final Eventual _) {
         final Receiver<?> normal = _;
-        final Receiver<?> rejected = Eventual.cast(Receiver.class, null);
         final Channel<Boolean> d = _.defer();
         final Promise<Boolean> p = ref(false);
         class WallX extends Struct implements Wall, Serializable {
@@ -68,8 +67,7 @@ Bounce {
                     "a \" \\ / </ < > \b \f \n \r \t \u0085",
                     new ConstArray<Receiver<?>>().
                         with(normal).
-                        with(null).
-                        with(rejected),
+                        with(null),
                     new ConstArray<Promise<?>>().
                         with(d.promise).
                         with(p),
@@ -78,7 +76,6 @@ Bounce {
                             with(PowerlessArray.array(true)),
                         10,
                         BigInteger.TEN,
-                        new BigInteger(Long.toString(1L << 53)),
                         new BigDecimal("3.14")
                     )));
             }

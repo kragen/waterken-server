@@ -1,5 +1,5 @@
 // adsafe.js
-// 2009-05-13
+// 2009-05-22
 
 //    Public Domain.
 
@@ -69,9 +69,7 @@ ADSAFE = (function () {
 // ADSAFE.put methods will not allow access to these properties.
 
         banned = {
-            apply           : true,
             'arguments'     : true,
-            call            : true,
             callee          : true,
             caller          : true,
             constructor     : true,
@@ -193,14 +191,12 @@ ADSAFE = (function () {
 
     function mozilla(name) {
         var method = Array.prototype[name];
-        if (typeof method === 'function') {
-            Array.prototype[name] = function () {
-                if (this === this.window) {
-                    return error();
-                }
-                return method.apply(this, arguments);
-            };
-        }
+        Array.prototype[name] = function () {
+            if (this === this.window) {
+                return error();
+            }
+            return method.apply(this, arguments);
+        };
     }
 
     mozilla('concat');
@@ -216,18 +212,6 @@ ADSAFE = (function () {
     mozilla('sort');
 
 // Add a filter method to Array.
-
-    if (typeof Array.prototype.filter !== 'function') {
-        Array.prototype.filter = function (func) {
-            var result = [], i, length = this.length;
-            for (i = 0; i < length; i += 1) {
-                if (func(this[i])) {
-                    result.push(this[i]);
-                }
-            }
-            return result;
-        };
-    }
 
 //  The reject function enforces the restriction on get and put.
 //  It allows access only to objects and arrays. It does not allow use of
@@ -588,7 +572,12 @@ ADSAFE = (function () {
 // For the other selectors, make an array of nodes that are filtered by
 // the pecker function.
 
-                    result = nodes.filter(func);
+                    result = [];
+                    for (j = 0; j < nodes.length; j += 1) {
+                        if (func(nodes[j])) {
+                            result.push(nodes[j]);
+                        }
+                    }
                 }
             }
             nodes = result;
@@ -1558,7 +1547,7 @@ ADSAFE = (function () {
     return {
 
         create: typeof Object.create === 'function' ? Object.create : function (o) {
-            F.prototype = o;
+            F.prototype = typeof o === 'object' && o ? o : Object.prototype;
             return new F();
         },
 
@@ -1646,7 +1635,7 @@ ADSAFE = (function () {
 
 //  ADSAFE.invoke invokes a method on an object. It takes an object,
 //  a method name, and an array of arguments, or a function and an array of
-//  arguments.
+//  arguments. THIS WILL BE REMOVED. USE THE APPLY METHOD INSTEAD.
 
         invoke: function (a, b, c) {
             return typeof a === 'function' ?
