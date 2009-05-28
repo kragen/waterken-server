@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-05-26
+ * web_send.js version: 2009-05-28
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -324,6 +324,16 @@ ADSAFE.lib('web', function (lib) {
         var initialized = false;    // session initialization request queued?
         var connection = null;      // current connection
 
+        function popRequest(msg) {
+            if (msg !== pending.shift()) { throw new Error(); }
+            w += 1;
+            if (0 === pending.length) {
+                connection = null;
+            } else {
+                ADSAFE.later(connection);
+            }
+        }
+
         function makeConnection(timeout) {
             if (undefined === timeout) {
                 timeout = 15 * 1000;
@@ -341,20 +351,20 @@ ADSAFE.lib('web', function (lib) {
 
                 var msg = pending[0];
                 if ('WHEN' === msg.op) {
-                    pending.shift();
-                    if (0 === pending.length) {
-                        connection = null;
-                    } else {
-                        ADSAFE.later(m);
-                    }
-
+                    popRequest(msg);
                     msg.target('WHEN', msg.argv[0], msg.argv[1]);
                     return;
                 }
 
-                var requestURI = makeRequestURI(
-                    msg.href, msg.q, msg.idempotent ? null : x, w);
-                http.open(msg.op, /^[^#]*/.exec(requestURI)[0], true);
+                var requestURI = makeRequestURI(msg.href, msg.q,
+                                                msg.idempotent ? null : x, w);
+                try {
+                    http.open(msg.op, /^[^#]*/.exec(requestURI)[0], true);
+                } catch (reason) {
+                    popRequest(msg);
+                    if (msg.resolve) { msg.resolve(lib.Q.reject(reason)); }
+                    return;
+                }
                 http.onreadystatechange = function () {
                     if (3 === http.readyState || 4 === http.readyState) {
                         heartbeat = (new Date()).getTime();
@@ -366,14 +376,8 @@ ADSAFE.lib('web', function (lib) {
                         if (http.status < 200 || http.status >= 500) { return; }
                     } catch (e) { return; }
 
-                    if (msg !== pending.shift()) { throw new Error(); }
-                    w += 1;
-                    if (0 === pending.length) {
-                        connection = null;
-                    } else {
-                        ADSAFE.later(m);
-                    }
 
+                    popRequest(msg);
                     if (msg.resolve) {
                         msg.resolve(deserialize(requestURI, http));
                     }
