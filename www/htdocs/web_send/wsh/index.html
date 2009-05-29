@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>web_send wsh: Windows Script Host as JSON shell</title>
+<link rel="StyleSheet" type="text/css" href="../../site/style.css">
+<link rel="icon" type="image/gif" href="../../site/icon.gif">
+<link rel="alternate" type="application/atom+xml" title="Atom (news summaries)" href="../../recent.xml">
+</head>
+<body>
+<div class="navigation heading">
+<a href="../../"><img alt="home" src="../site/icon.gif" width="16" height="16"></a>
+&rarr; <a class="heading" href="../">web_send</a>
+&rarr; <a class="heading" href="./">wsh</a>
+</div>
+<div class="main">
+<a href="https://waterken.svn.sourceforge.net/svnroot/waterken/server/trunk/waterken/config/file/site/">SVN URL</a>
+
+<h1><a name="title" href="#title">Windows Script Host as JSON shell</a></h1>
+<p>When hosted by your server, the <a href="../">web_send</a> library turns
+your <a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a>
+console into a command line for your server-side application. The same code can
+also be run by the Windows Script Host, a standard part of all Windows releases
+since Windows 98. Doing so has two big advantages:</p>
+<ul>
+<li>no files need to be uploaded to your web server</li>
+<li>you are not restricted by the Same Origin Policy</li>
+</ul>
+<p>As a result, you have a command line for all JSON resources on the Web. The
+world is at your fingertips!</p>
+
+<h2><a name="install" href="#install">Installation</a></h2>
+<p>All of the required files are in the <a href="../#files">same subversion
+repository used for web_send</a>. Just double-click the <code>jsh.lnk</code>
+file to launch the shell.</p>
+
+<h2><a name="using" href="#using">Using the shell</a></h2>
+<p>Launching the shell opens a rather plain looking DOS command shell with a
+'<code>? </code>' prompt in the top left corner. You can enter any JavaScript
+at this prompt to be <code>eval()</code>'d. The computed value is encoded as a
+JSON string and echoed back, prefixed by '<code># </code>'. Both the <code><a
+href="../#Q">lib.Q</a></code> and <code><a href="../#web">lib.web</a></code>
+libraries have been loaded and are in the global scope, along with
+<code>ADSAFE</code> and <code>JSON</code>; so you can enter commands just as
+you do in the Firebug console. For example:</p>
+<pre>
+? 1 + 1
+# 2
+
+? var factory = lib.web._ref(null,
+&gt;     'https://vsci.hpl.hp.com/-/p5qj76/#s=htaot76zrj4562')
+? var drum = lib.Q.post(factory, 'makeDrum', [])
+? var hits = lib.Q.get(drum, 'hits')
+? hits
+# 0
+
+? lib.Q.post(drum, 'bang', [ 1 ])
+? hits = lib.Q.get(drum, 'hits')
+? hits
+# 1
+</pre>
+
+<h3><a name="multiline" href="#multiline">Multi-line expressions</a></h3>
+<p>To enter a multi-line JavaScript expression, just follow the <a
+href="http://jslint.com/">JSLint</a> coding style. In particular, the shell
+assumes that any line that ends with an open bracket, binary operator, or
+semi-colon will be followed by another line. For example:</p>
+<pre>
+? lib.Q.post(drum, 'bang', [ 2 ])
+? hits = lib.Q.get(drum, 'hits')
+? lib.Q.when(hits, function (value) {
+&gt;     ADSAFE.log('hits = ' + value);
+&gt; }, function (reason) {
+&gt;     ADSAFE.log('failed: ' + reason);
+&gt; })
+? # hits = 3
+
+</pre>
+<p>The '<code>&gt; </code>' prompt indicates that the shell expects a
+continuation of the previous line.</p>
+
+<h3><a name="nonJSON" href="#nonJSON">Non-JSON resources</a></h3>
+<p>You can also <code>GET</code> non-JSON resources. For example:</p>
+<pre>
+? var page = lib.web._ref(null,
+&gt;     'http://waterken.sourceforge.net/site/style.css')
+? var css = lib.Q.get(page)
+? css
+# "h1 { text-align: center }\nh1 a, h2 a, h3 a, h4 a, &hellip;
+
+</pre>
+<p>The above code also demonstrates freedom from the Same Origin Policy.</p>
+
+</div>
+<p class="footer comment">
+<a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
+<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/wsh/index.html?view=log">2009-05-29</a>
+</p>
+</body>
+</html>
