@@ -129,7 +129,7 @@ _include_('json2.js');
                 value = value();
                 var href = lib.web._url(value);
                 if (null !== href) {
-                    var r = { '@' : href };
+                    var r = {};
                     for (var k in value) {
                         if (Object.hasOwnProperty.call(value, k)) {
                             if ('@' !== k) {
@@ -137,6 +137,7 @@ _include_('json2.js');
                             }
                         }
                     }
+                    r['@'] = href;
                     return r;
                 }
 

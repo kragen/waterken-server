@@ -167,12 +167,13 @@ ADSAFE.lib('web', function (lib) {
                 unsealedURLref = null;
 
                 if (null !== href) {
-                    var r = { '@' : relateURI(base, href) };
+                    var r = {};
                     for (var k in value) { if (includes(value, k)) {
                         if ('@' !== k) {
                             r[k] = value[k];
                         }
                     } }
+                    r['@'] = relateURI(base, href);
                     return r;
                 }
 
