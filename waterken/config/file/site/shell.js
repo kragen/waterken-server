@@ -160,43 +160,42 @@ _include_('json2.js');
 
     }
     while (true) {
-
-        // get another expression from the user
         WScript.StdOut.Write('; ');
+
+        /*
+         * Cscript has a single thread, no event queue and only blocking I/O.
+         * Network callbacks only seem to fire during a Sleep(), so we'll take
+         * a second to poll for events and pump the task queue.  Hopefully the
+         * user is still contemplating the return from the previous expression
+         * or is happily typing away at the console.
+         */
+        (function () {
+            var latency = 1000; // ms to delay before processing user input
+            while (true) {
+                // empty the task queue
+                while (_todo_.length) { _todo_.shift()(); }
+
+                if (0 >= latency) { break; }
+
+                // allow any pending network events to fire
+                WScript.Sleep(100);
+                latency -= 100;
+
+                // check for expired timeouts
+                var now = (new Date()).getTime();
+                while (_timeouts_.length && _timeouts_[0].timestamp <= now) {
+                    _timeouts_.shift().task();
+                }
+            }
+        }());
+
+        /*
+         * Get another expression from the user. A multi-line expression is
+         * created by terminating incomplete lines with an open bracket, binary
+         * operator, comma or semi-colon.  Trailing whitespace is tolerated.
+         */
         var _code_ = '';
         while (true) {
-
-            /*
-             * Cscript has a single thread, no event queue and only blocking
-             * I/O. Network callbacks only seem to fire during a Sleep().
-             * Hopefully the user is happily typing away at the console while
-             * we're polling for events and pumping the task queue.
-             */
-            (function () {
-                var latency = 1000; // ms to delay before processing user input
-                while (true) {
-                    // empty the task queue
-                    while (_todo_.length) { _todo_.shift()(); }
-
-                    if (0 >= latency) { break; }
-
-                    // allow any pending network events to fire
-                    WScript.Sleep(100);
-                    latency -= 100;
-
-                    // check for expired timeouts
-                    var now = (new Date()).getTime();
-                    while (_timeouts_.length && _timeouts_[0].timestamp <= now){
-                        _timeouts_.shift().task();
-                    }
-                }
-            }());
-
-            /*
-             * A multi-line expression is created by terminating incomplete
-             * lines with an open bracket, binary operator or semi-colon.
-             * Trailing whitespace is tolerated.
-             */
             _code_ += WScript.StdIn.ReadLine();
             if (!/[({\[,;.?:|&\^+\-*%\/=]\s*$/.test(_code_)) { break; }
             WScript.StdOut.Write('  ');
