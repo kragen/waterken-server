@@ -37,57 +37,65 @@ file to launch the shell.</p>
 
 <h2><a name="using" href="#using">Using the shell</a></h2>
 <p>Launching the shell opens a rather plain looking DOS command shell with a
-'<code>? </code>' prompt in the top left corner. At this prompt, you can enter
-any JavaScript to be <code>eval()</code>'d. The computed value is encoded as a
-JSON string and echoed back, prefixed by '<code># </code>'. Both the <code><a
+'<code>; </code>' prompt in the top left corner. At this prompt, you can enter
+any JavaScript to be <code>eval()</code>'d. The computed value is output as a
+JSON string, prefixed by '<code>// </code>'. Both the <code><a
 href="../#Q">lib.Q</a></code> and <code><a href="../#web">lib.web</a></code>
 libraries have been loaded and are in the global scope, along with
 <code>ADSAFE</code> and <code>JSON</code>; so you can enter commands just as
 you do in the Firebug console. For example:</p>
 <pre>
-? 1 + 1
-# 2
+; 1 + 1
+// 2
 
-? var factory = lib.web._ref(null,
-&gt;     'https://vsci.hpl.hp.com/-/p5qj76/#s=htaot76zrj4562')
-? var drum = lib.Q.post(factory, 'makeDrum', [])
-? var hits = lib.Q.get(drum, 'hits')
-? hits
-# 0
+; var factory = lib.web._ref(null,
+      'https://vsci.hpl.hp.com/-/p5qj76/#s=htaot76zrj4562')
+; var drum = lib.Q.post(factory, 'makeDrum', [])
+; var hits = lib.Q.get(drum, 'hits')
+; hits
+// 0
 
-? lib.Q.post(drum, 'bang', [ 1 ])
-? hits = lib.Q.get(drum, 'hits')
-? hits
-# 1
+; lib.Q.post(drum, 'bang', [ 1 ])
+; hits = lib.Q.get(drum, 'hits')
+; hits
+// 1
 </pre>
 
 <h3><a name="multiline" href="#multiline">Multi-line expressions</a></h3>
 <p>To enter a multi-line JavaScript expression, just follow the <a
 href="http://jslint.com/">JSLint</a> coding style. In particular, the shell
-assumes that any line that ends with an open bracket, binary operator, or
-semi-colon will be followed by another line. For example:</p>
+assumes that any line that ends with an open bracket, binary operator, comma,
+or semi-colon will be followed by another line. For example:</p>
 <pre>
-? lib.Q.post(drum, 'bang', [ 2 ])
-? hits = lib.Q.get(drum, 'hits')
-? lib.Q.when(hits, function (value) {
-&gt;     ADSAFE.log('hits = ' + value);
-&gt; }, function (reason) {
-&gt;     ADSAFE.log('failed: ' + reason);
-&gt; })
-? # hits = 3
+; lib.Q.post(drum, 'bang', [ 1 ])
+; hits = lib.Q.get(drum, 'hits')
+; hits
+// 1
+
+; lib.Q.post(drum, 'bang', [ 2 ])
+; hits = lib.Q.get(drum, 'hits')
+; lib.Q.when(hits, function (value) {
+      ADSAFE.log('hits = ' + value);
+  }, function (reason) {
+      ADSAFE.log('failed: ' + reason);
+  })
+;
+// hits = 3
 
 </pre>
-<p>The '<code>&gt; </code>' prompt indicates that the shell expects a
-continuation of the previous line.</p>
+<p>If the shell expects a continuation of the previous line, it outputs a two
+space indent; otherwise, it outputs the '<code>; </code>' prompt. Together with
+the '<code>// </code>' prefix for output, these conventions mean you can copy
+and paste the entire screen to replay a scripting session.</p>
 
 <h3><a name="nonJSON" href="#nonJSON">Non-JSON resources</a></h3>
 <p>You can also <code>GET</code> non-JSON resources. For example:</p>
 <pre>
-? var page = lib.web._ref(null,
-&gt;     'http://waterken.sourceforge.net/site/style.css')
-? var css = lib.Q.get(page)
-? css
-# "h1 { text-align: center }\nh1 a, h2 a, h3 a, h4 a, &hellip;
+; var page = lib.web._ref(null,
+     'http://waterken.sourceforge.net/site/style.css')
+; var css = lib.Q.get(page)
+; css
+// "h1 { text-align: center }\nh1 a, h2 a, h3 a, h4 a, &hellip;
 
 </pre>
 <p>The above code also demonstrates your freedom from the Same Origin
