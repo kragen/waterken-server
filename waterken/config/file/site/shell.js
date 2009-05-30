@@ -5,8 +5,8 @@
  * shell.js version: 2009-05-29
  */
 /*global WScript, ActiveXObject */
-/*jslint white: false, nomen: false, bitwise: true, eqeqeq: true, immed: true,
-         newcap: true, plusplus: true, regexp: true, undef: true*/
+/*jslint white: false, nomen: false, strict: false, bitwise: true, eqeqeq: true,
+         immed: true, newcap: true, plusplus: true, regexp: true, undef: true*/
 
 /**
  * ADsafe global object accessible to libraries and shell code
@@ -50,6 +50,14 @@ _include_('json2.js');
             (typeof name !== 'number' &&
                 (typeof name !== 'string' || name.charAt(0) === '_'));
     }
+    function _comment_(text) {
+        var lines= String(text).split(/\r\n|\n|\r|\u0085|\u000C|\u2028|\u2029/);
+        for (var i = 0; i !== lines.length; i += 1) {
+            WScript.StdOut.Write('// ');
+            WScript.StdOut.WriteLine(lines[+i]);
+        }
+        WScript.StdOut.WriteLine();
+    }
     ADSAFE = {
 
         lib: function (name, loader) {
@@ -58,14 +66,8 @@ _include_('json2.js');
         },
 
         log: function (s) {
-            if (undefined === s) { return; }
-
-            var ls = String(s).split(/\r\n|\n|\r|\u0085|\u000C|\u2028|\u2029/);
-            for (var i = 0; i !== ls.length; i += 1) {
-                WScript.StdOut.Write('# ');
-                WScript.StdOut.WriteLine(ls[+i]);
-            }
             WScript.StdOut.WriteLine();
+            _comment_(s);
         },
 
         later: function (task, timeout) {
@@ -122,7 +124,7 @@ _include_('json2.js');
     var lib = _lib_;    // ADsafe libraries accessible to shell code
     _lib_ = null;       // done loading libraries
     function _echo_(x) {
-        ADSAFE.log(JSON.stringify(x, function (key, value) {
+        var text = JSON.stringify(x, function (key, value) {
             if ('function' === typeof value) {
                 value = value();
                 var href = lib.web._url(value);
@@ -152,12 +154,15 @@ _include_('json2.js');
                 throw new Error('forged reference');
             }
             return value;
-        }));
+        }, ' ');
+        if (undefined === text) { return; }
+        _comment_(text);
+
     }
     while (true) {
 
         // get another expression from the user
-        WScript.StdOut.Write('? ');
+        WScript.StdOut.Write('; ');
         var _code_ = '';
         while (true) {
 
@@ -194,7 +199,7 @@ _include_('json2.js');
              */
             _code_ += WScript.StdIn.ReadLine();
             if (!/[({\[,;.?:|&\^+\-*%\/=]\s*$/.test(_code_)) { break; }
-            WScript.StdOut.Write('> ');
+            WScript.StdOut.Write('  ');
         }
         var _value_;
         try {
