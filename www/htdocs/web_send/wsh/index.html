@@ -83,7 +83,11 @@ space indent; otherwise, it outputs the '<code>; </code>' prompt. Together with
 the '<code>// </code>' prefix for output, these conventions mean you can copy
 and paste the entire screen to replay a scripting session.</p>
 
-<h2><a name="googleAJAX" href="#googleAJAX">Example: Google AJAX Search API</a></h2>
+<h2><a name="examples" href="#examples">Examples</a></h2>
+<p>Now that you're free from the Same Origin Policy, try out what the Web has
+to offer.</p>
+
+<h3><a name="googleAJAX" href="#googleAJAX">Google AJAX Search API</a></h3>
 <p>Google offers a JSON-enabled <a
 href="http://code.google.com/apis/ajaxsearch/documentation/#fonje">public
 search API</a>. Using this service from a web_send shell is a breeze. For
@@ -99,8 +103,27 @@ example:</p>
 // "http://en.wikipedia.org/wiki/Paris_Hilton"
 
 </pre>
-<p>The above code also demonstrates your freedom from the Same Origin
-Policy.</p>
+
+<h3><a name="YQL" href="#YQL">Yahoo! Query Language</a></h3>
+<p>Yahoo offers a JSON-enabled <a href="http://developer.yahoo.com/yql/">query
+engine for structured data</a> on the Web. A wide array of data sources can be
+accessed via the YQL service. For example:</p>
+<pre>
+; var yql = lib.web._ref(null,
+      'http://query.yahooapis.com/v1/public/yql', { format: 'json' })
+; var sf = lib.Q.get(yql,
+      'select * from geo.places where text="san francisco, ca"')
+; var x = lib.Q.when(sf, function (value) {
+      return value.query.results.place.centroid;
+  })
+; x
+// {
+//  "latitude": "37.77916",
+//  "longitude": "-122.420067"
+// }
+</pre>
+<p>These queries can sometimes take a little longer, so you may have to check
+the value of '<code>x</code>' a few times before the promise resolves.</p>
 
 </div>
 <p class="footer comment">
