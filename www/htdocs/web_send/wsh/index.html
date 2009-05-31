@@ -125,8 +125,25 @@ accessed via the YQL service. For example:</p>
 <p>These queries can sometimes take a little longer, so you may have to check
 the value of '<code>x</code>' a few times before the promise resolves.</p>
 
+<h3><a name="twitter" href="#twitter">Twitter</a></h3>
+<p>Twitter provides JSON-enabled <a href="http://apiwiki.twitter.com/">access
+to user comments</a>. For example:</p>
+<pre>
+; var twitter = lib.web._ref(null,
+      'http://search.twitter.com/search.json')
+; var prez = lib.Q.get(twitter, 'from:BarackObama')
+; var lastWord = lib.Q.when(prez, function (value) {
+      return value.results[0].text;
+  })
+; lastWord
+// "Join Organizing for America to fight for real health care reform.
+Host or at tend a Health Care Organizing Kickoff: http://bit.ly/cSMlF
+#OFA"
+</pre>
+<p>This one can take a while to resolve (when it comes back at all ;).</p>
+
 <h3><a name="flickr" href="#flickr">Flickr</a></h3>
-<p>Flickr also offers a JSON-enabled <a
+<p>Flickr offers a JSON-enabled <a
 href="http://www.flickr.com/services/">services API</a>. Unfortunately, an <a
 href="http://www.flickr.com/services/api/keys/apply/">API key</a> is required
 for even the simplest of queries. The key will be granted in real time though.
