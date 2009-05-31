@@ -83,14 +83,20 @@ space indent; otherwise, it outputs the '<code>; </code>' prompt. Together with
 the '<code>// </code>' prefix for output, these conventions mean you can copy
 and paste the entire screen to replay a scripting session.</p>
 
-<h3><a name="nonJSON" href="#nonJSON">Non-JSON resources</a></h3>
-<p>You can also <code>GET</code> non-JSON resources. For example:</p>
+<h2><a name="googleAJAX" href="#googleAJAX">Example: Google AJAX Search API</a></h2>
+<p>Google offers a JSON-enabled <a
+href="http://code.google.com/apis/ajaxsearch/documentation/#fonje">public
+search API</a>. Using this service from a web_send shell is a breeze. For
+example:</p>
 <pre>
-; var page = lib.web._ref(null,
-     'http://waterken.sourceforge.net/site/style.css')
-; var css = lib.Q.get(page)
-; css
-// "h1 { text-align: center }\nh1 a, h2 a, h3 a, h4 a, &hellip;
+; var search = lib.web._ref(null,
+     'http://ajax.googleapis.com/ajax/services/search/web?v=1.0')
+; var results = lib.Q.get(search, 'Paris Hilton')
+; var feelingLucky = lib.Q.when(results, function (value) {
+      return value.responseData.results[0].url;
+  })
+; feelingLucky
+// "http://en.wikipedia.org/wiki/Paris_Hilton"
 
 </pre>
 <p>The above code also demonstrates your freedom from the Same Origin
