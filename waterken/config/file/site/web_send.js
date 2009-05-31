@@ -243,30 +243,26 @@ ADSAFE.lib('web', function (lib) {
      * @param http  HTTP response
      */
     function deserialize(base, http) {
-        var isJSON = (/^application\/json(?=;|$)/i).test(
-                            http.getResponseHeader('Content-Type'));
-        var value = isJSON ?
-            JSON.parse(http.responseText, function (key, value) {
+        switch (http.status) {
+        case 200:
+        case 201:
+        case 202:
+        case 203:
+            return JSON.parse(http.responseText, function (key, value) {
                 if (includes(value, '!')) { return lib.Q.reject(value['!']); }
                 if (includes(value, '@')) {
                     return sealURLref(resolveURI(base, value['@']), value);
                 }
                 if (includes(value, '=')) { return value['=']; }
                 return value;
-            }) : http.responseText;
-        switch (http.status) {
-        case 200:
-        case 201:
-        case 202:
-        case 203:
-            return value;
+            });
         case 204:
         case 205:
             return {};
         case 404:
             return notYetPumpkin;
         default:
-            return lib.Q.reject(isJSON ? value : {
+            return lib.Q.reject({
                 $: [ 'org.ref_send.promise.Failure', 'NaO' ],
                 status: http.status,
                 phrase: http.statusText
