@@ -125,6 +125,27 @@ accessed via the YQL service. For example:</p>
 <p>These queries can sometimes take a little longer, so you may have to check
 the value of '<code>x</code>' a few times before the promise resolves.</p>
 
+<h3><a name="flickr" href="#flickr">Flickr</a></h3>
+<p>Flickr also offers a JSON-enabled <a
+href="http://www.flickr.com/services/">services API</a>. For example:</p>
+<pre>
+; var flickrKey = // your flickr API key here
+; var flickr = lib.web._ref(null,
+      'http://www.flickr.com/services/rest/')
+; var lingLing = lib.web._ref(flickr, '', {
+      api_key: flickrKey,
+      format: 'json',
+      nojsoncallback: 1,
+      method: 'flickr.panda.getPhotos',
+      panda_name: 'ling ling' })
+; var luckyTitle = lib.Q.when(lingLing, function (value) {
+      return value.photos.photo[0].title;
+  })
+; luckyTitle
+// "jam"
+
+</pre>
+
 </div>
 <p class="footer comment">
 <a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
