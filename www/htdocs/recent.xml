@@ -4,7 +4,7 @@
       xml:base="http://waterken.sourceforge.net/">
 
 <id>http://waterken.sourceforge.net/recent</id>
-<updated>2009-06-01T00:00:00Z</updated>
+<updated>2009-06-01T00:01:00Z</updated>
 <title>Waterken News</title>
 <subtitle>Capability security on the Web</subtitle>
 <link href="recent.html"/>
@@ -19,7 +19,7 @@
 <entry>
 <id>http://waterken.sourceforge.net/recent#11</id>
 <published>2009-06-01T00:00:00Z</published>
-<updated>2009-06-01T00:00:00Z</updated>
+<updated>2009-06-01T00:01:00Z</updated>
 <title>web_send wsh: JSON shell free from Same Origin Policy</title>
 <link href="http://waterken.sourceforge.net/web_send/wsh/"/>
 <content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
@@ -29,8 +29,8 @@ console into a command line for your server-side application. The same code can
 also be run by the Windows Script Host, a standard part of all Windows releases
 since Windows 98. Doing so has two big advantages:</p>
 <ul>
-<li>no files need to be uploaded to your web server</li>
-<li>you are not restricted by the Same Origin Policy</li>
+<li>no files need to be uploaded to your web server,</li>
+<li>you are not restricted by the Same Origin Policy.</li>
 </ul>
 <p>As a result, you have a command line for all JSON resources on the Web. The
 world is at your fingertips!</p>
