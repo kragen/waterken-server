@@ -1,5 +1,5 @@
 {
-  "$" : [ "org.waterken.io.MIME" ],
+  "class" : [ "org.waterken.io.MIME" ],
   "known" : [
     { "ext" : ".html",  "name" : "text/html", "z" : true },
     { "ext" : ".swf",   "name" : "application/x-shockwave-flash" },

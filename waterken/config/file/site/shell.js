@@ -149,7 +149,7 @@ _include_('json2.js');
                 }
             }
             if ('number' === typeof value && !isFinite(value)) {
-                return { '!' : { $: [ 'NaN' ] } };
+                return { '!' : { 'class': [ 'NaN' ] } };
             }
             if (value && Object.hasOwnProperty.call(value, '@')) {
                 throw new Error('forged reference');

@@ -37,7 +37,7 @@
 <div id="EXAMPLE_ANY" style="display: none;"></div>
 <div id="EXAMPLE_BANG" style="display: none;">
 <p>Using this page, you can try out the
-<a href="/site/ref_send.js?o=2009-05-24">ref_send promise API</a> in the
+<a href="/site/ref_send.js?o=2009-06-01">ref_send promise API</a> in the
 <a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a> console.
 For example, select the "Console" tab in Firebug and then enter the following
 commands at the "<kbd><span class="prompt">&gt;&gt;&gt;</span></kbd>" prompt at
@@ -116,8 +116,8 @@ value:</p>
 "use strict";
 ADSAFE.id('EXAMPLE_');
 </script>
-<script type="text/javascript" src="/site/ref_send.js?o=2009-05-24"></script>
-<script type="text/javascript" src="/site/web_send.js?o=2009-05-24"></script>
+<script type="text/javascript" src="/site/ref_send.js?o=2009-06-01"></script>
+<script type="text/javascript" src="/site/web_send.js?o=2009-06-01"></script>
 <script type="text/javascript">
 "use strict";
 ADSAFE.go('EXAMPLE_', function (dom, lib) {
@@ -128,19 +128,27 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
 
     // Normally, you'd put your code here, instead of writing in the console.
     // For example, ...
-    function render(value, $) {
-        if (undefined === $) {
-            $ = [];
+
+    /**
+     * Does an object define a given key?
+     */
+    function includes(map, key) {
+        return map && Object.hasOwnProperty.call(map, key);
+    }
+
+    function render(value, classes) {
+        if (undefined === classes) {
+            classes = [];
         }
         var r;
         switch (typeof value) {
         case 'boolean':
-            $.push('boolean');
-            $.push(value ? 'true' : 'false');
+            classes.push('boolean');
+            classes.push(value ? 'true' : 'false');
             r = dom.tag('span');
             break;
         case 'number':
-            $.push('number');
+            classes.push('number');
             r = dom.tag('span').append(dom.text(String(value)));
             break;
         case 'string':
@@ -149,14 +157,16 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
         case 'function':
             var referent = lib.Q.near(value);
             if ('function' === typeof referent) {
-                if (referent.$) {
-                    $ = $.concat(referent.$);
+                if (includes(referent, 'class')) {
+                    classes = classes.concat(referent['class']);
                 }
-                if (referent.name) { $.push(referent.name); }
+                if (referent.name) { classes.push(referent.name); }
                 r = dom.tag('span');
                 var a = dom.tag('a');
                 if (lib.web.href(a, referent)) {
-                    if (referent.$) { a.klass(referent.$.join(' ')); }
+                    if (includes(referent, 'class')) {
+                        a.klass(referent['class'].join(' '));
+                    }
                     r.append(a.append(dom.text('...')));
                 } else {
                     r.append(dom.text('...'));
@@ -165,8 +175,8 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                     if (referent !== fulfilled) {
                         if ('function' === typeof fulfilled) {
                             if (lib.web.href(a, fulfilled)) {
-                                if (fulfilled.$) {
-                                    a.klass(fulfilled.$.join(' '));
+                                if (includes(fulfilled, 'class')) {
+                                    a.klass(fulfilled['class'].join(' '));
                                 }
                             }
                         } else {
@@ -177,12 +187,12 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                     r.empty().append(render(reason, [ 'reason' ]));
                 });
             } else {
-                r = render(referent, $);
+                r = render(referent, classes);
             }
             break;
         default:
             if (undefined === value || null === value) {
-                $.push('void');
+                classes.push('void');
                 r = dom.tag('span');
             } else if (ADSAFE.isArray(value)) {
                 r = dom.tag('ol');
@@ -191,9 +201,9 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                 }
             } else {
                 r = dom.tag('div');
-                for (var name in value) { if (value.hasOwnProperty(name)) {
-                    if ('$' === name) {
-                        $ = $.concat(value.$);
+                for (var name in value) { if (includes(value, name)) {
+                    if ('class' === name) {
+                        classes = classes.concat(value['class']);
                     } else {
                         r.append(render(ADSAFE.get(value, name), [ name ]));
                         r.append(dom.text(' '));
@@ -201,8 +211,8 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
                 } }
             }
         }
-        if (0 !== $.length) {
-            r.klass($.join(' '));
+        if (0 !== classes.length) {
+            r.klass(classes.join(' '));
         }
         return r;
     }
@@ -258,9 +268,9 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
     }
     function isa(value, type) {
         if (!value) { return false; }
-        if (!ADSAFE.isArray(value.$)) { return false; }
-        for (var i = 0; i !== value.$.length; i += 1) {
-            if (value.$[+i] === type) { return true; }
+        if (!ADSAFE.isArray(value['class'])) { return false; }
+        for (var i = 0; i !== value['class'].length; i += 1) {
+            if (value['class'][+i] === type) { return true; }
         }
         return false;
     }

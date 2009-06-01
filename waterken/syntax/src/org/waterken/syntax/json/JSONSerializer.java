@@ -201,7 +201,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 JSON.upto(actual, Typedef.raw(expected));
             if (0 != types.length()) {
                 serialize(export, PowerlessArray.class,
-                          types, oout.startMember("$"));
+                          types, oout.startMember("class"));
             }
             for (final Field f : Reflection.fields(actual)) {
                 if (!Modifier.isStatic(f.getModifiers()) &&
@@ -239,7 +239,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 } else {
                     final JSONWriter.ObjectWriter oout = out.startObject();
                     serialize(export, PowerlessArray.class,
-                              types, oout.startMember("$"));
+                              types, oout.startMember("class"));
                     oout.startMember("@").writeString(export.run(value));
                     oout.finish();
                 }

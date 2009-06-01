@@ -75,7 +75,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                 }
                 bootstrap.serve(new Request(head.version, head.method,
                         "/site/" + URLEncoding.encode(project) + "/" +
-                        URLEncoding.encode(Path.name(URI.path(head.uri)))+"?o=",
+                            URLEncoding.encode(Path.name(URI.path(head.uri))),
                         head.headers), body, client);
                 return;
             }

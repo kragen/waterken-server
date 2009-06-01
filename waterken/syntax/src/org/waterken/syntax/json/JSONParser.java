@@ -253,7 +253,7 @@ JSONParser {
               Constructor<?> make = null;
         final PowerlessArray.Builder<String> names = PowerlessArray.builder(1);
         final ConstArray.Builder<Object> values = ConstArray.builder(1);
-        if ("\"$\"".equals(lexer.getHead())) {
+        if ("\"class\"".equals(lexer.getHead())) {
             if (!":".equals(lexer.next())) { throw new Exception(); }
             lexer.next();
             Class<?> type = null;
@@ -270,7 +270,7 @@ JSONParser {
                 }
             }
             actual = type;
-            names.append("$");
+            names.append("class");
             values.append(value);
             if (",".equals(lexer.getHead())) { lexer.next(); }
         } else {
