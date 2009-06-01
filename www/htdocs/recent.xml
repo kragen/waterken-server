@@ -53,7 +53,7 @@ it acts like a command line for your web server; a great help during
 development of server-side code. The same API is also convenient for creating
 an AJAX user interface to JSON resources; so code born on the interactive
 command line migrates smoothly into application code. This tutorial also links
-to a <a href="bang/?o=2009-05-11">live web page</a> where you can try out the
+to a <a href="bang/?o=2009-06-01">live web page</a> where you can try out the
 library against a simple server-side counter object.</p>
 </div></content>
 </entry>
@@ -160,7 +160,7 @@ Places API for bookmarks in Firefox 3.</p>
 <content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>Phil Windley blogs about
 <a href="http://www2008.org/program/program-DevTrack.html#seven">my WWW 2008
-presentation</a> of the <a href="bang/?o=2009-05-11">ref_send library for
+presentation</a> of the <a href="bang/?o=2009-06-01">ref_send library for
 Javascript</a>.</p>
 </div></content>
 </entry>
