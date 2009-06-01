@@ -21,7 +21,7 @@
 <published>2009-06-01T00:00:00Z</published>
 <updated>2009-06-01T00:00:00Z</updated>
 <title>web_send wsh: JSON shell free from Same Origin Policy</title>
-<link href="http://waterken.sourceforge.net/web_send/"/>
+<link href="http://waterken.sourceforge.net/web_send/wsh/"/>
 <content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>When hosted by your server, the <a href="web_send/">web_send</a> library turns
 your <a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a>
