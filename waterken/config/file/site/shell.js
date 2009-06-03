@@ -2,7 +2,7 @@
  * Copyright 2009 Tyler Close under the terms of the MIT X license found at
  * http://www.opensource.org/licenses/mit-license.html
  *
- * shell.js version: 2009-05-29
+ * shell.js version: 2009-06-03
  */
 /*global WScript, ActiveXObject */
 /*jslint white: false, nomen: false, strict: false, bitwise: true, eqeqeq: true,
@@ -124,38 +124,43 @@ _include_('json2.js');
     var lib = _lib_;    // ADsafe libraries accessible to shell code
     _lib_ = null;       // done loading libraries
     function _echo_(x) {
-        var text = JSON.stringify(x, function (key, value) {
-            if ('function' === typeof value) {
-                value = value();
-                var href = lib.web._url(value);
-                if (null !== href) {
-                    var r = {};
-                    for (var k in value) {
-                        if (Object.hasOwnProperty.call(value, k)) {
-                            if ('@' !== k) {
-                                r[k] = value[k];
+        var text;
+        try {
+            text = JSON.stringify(x, function (key, value) {
+                if ('function' === typeof value) {
+                    value = value();
+                    var href = lib.web._url(value);
+                    if (null !== href) {
+                        var r = {};
+                        for (var k in value) {
+                            if (Object.hasOwnProperty.call(value, k)) {
+                                if ('@' !== k) {
+                                    r[k] = value[k];
+                                }
                             }
                         }
+                        r['@'] = href;
+                        return r;
                     }
-                    r['@'] = href;
-                    return r;
-                }
 
-                if ('function' === typeof value &&
-                        Object.hasOwnProperty.call(value, 'reason')) {
-                    return {
-                        '!' : value('WHEN', null, function (e) { return e; })
-                    };
+                    if ('function' === typeof value &&
+                            Object.hasOwnProperty.call(value, 'reason')) {
+                        return {
+                            '!' : value('WHEN', null, function (e) {return e;})
+                        };
+                    }
                 }
-            }
-            if ('number' === typeof value && !isFinite(value)) {
-                return { '!' : { 'class': [ 'NaN' ] } };
-            }
-            if (value && Object.hasOwnProperty.call(value, '@')) {
-                throw new Error('forged reference');
-            }
-            return value;
-        }, ' ');
+                if ('number' === typeof value && !isFinite(value)) {
+                    return { '!' : { 'class': [ 'NaN' ] } };
+                }
+                if (value && Object.hasOwnProperty.call(value, '@')) {
+                    throw new Error('forged reference');
+                }
+                return value;
+            }, ' ');
+        } catch (e) {
+            text = JSON.stringify(e, null, ' ');
+        }
         if (undefined === text) { return; }
         _comment_(text);
 
