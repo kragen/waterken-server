@@ -57,7 +57,7 @@ Logic {
                 public Void
                 fulfill(final Object value) {
                     if (0 == --todo[0]) {
-                        resolver.run(true);
+                        resolver.apply(true);
                     } else {
                         resolver.progress();
                     }

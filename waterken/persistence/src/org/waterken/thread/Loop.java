@@ -90,7 +90,7 @@ Loop<T extends Promise<?>> {
             }
             
             public void
-            run(final X task) {
+            apply(final X task) {
                 if (null == task) { throw new NullPointerException(); }
                 
                 synchronized (lock) {

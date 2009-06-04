@@ -39,12 +39,12 @@ EventSender {
 
             public @Override void
             comment(final String text) {
-                stderr.run(new Comment(mark.run(), tracer.traceHere(), text));
+                stderr.apply(new Comment(mark.run(), tracer.traceHere(), text));
             }
             
             public @Override void
             problem(final Exception reason) {
-                stderr.run(new Problem(mark.run(),tracer.traceException(reason),
+                stderr.apply(new Problem(mark.run(),tracer.traceException(reason),
                                        tracer.readException(reason), reason));
             }
 
@@ -56,47 +56,47 @@ EventSender {
                                                    method.getParameterTypes());
                     } catch (final NoSuchMethodException e) {}
                 }
-                stderr.run(new Got(mark.run(),
+                stderr.apply(new Got(mark.run(),
                     null!=method ? tracer.traceMember(method) : null, message));
             }
 
             public @Override void
             sent(final String message) {
-                stderr.run(new Sent(mark.run(), tracer.traceHere(), message));
+                stderr.apply(new Sent(mark.run(), tracer.traceHere(), message));
             }
 
             public @Override void
             returned(final String message) {
-                stderr.run(new Returned(mark.run(), null, message));
+                stderr.apply(new Returned(mark.run(), null, message));
             }
 
             protected @Override void
             sentIf(final String message, final String condition) {
-                stderr.run(new SentIf(mark.run(), tracer.traceHere(),
+                stderr.apply(new SentIf(mark.run(), tracer.traceHere(),
                                       message, condition));
             }
 
             protected @Override void
             resolved(final String condition) {
-                stderr.run(new Resolved(mark.run(), tracer.traceHere(),
+                stderr.apply(new Resolved(mark.run(), tracer.traceHere(),
                                         condition));
             }
 
             protected @Override void
             fulfilled(final String condition) {
-                stderr.run(new Fulfilled(mark.run(), tracer.traceHere(),
+                stderr.apply(new Fulfilled(mark.run(), tracer.traceHere(),
                                          condition));
             }
             
             protected @Override void
             rejected(final String condition, final Exception reason) {
-                stderr.run(new Rejected(mark.run(), tracer.traceHere(),
+                stderr.apply(new Rejected(mark.run(), tracer.traceHere(),
                                         condition, reason));
             }
             
             protected @Override void
             progressed(final String condition) {
-                stderr.run(new Progressed(mark.run(), tracer.traceHere(),
+                stderr.apply(new Progressed(mark.run(), tracer.traceHere(),
                                         condition));
             }
         }

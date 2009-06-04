@@ -20,7 +20,7 @@ Resolver<T> extends Receiver<T> {
      * </pre>
      * @param referent  resolved value of the corresponding promise
      */
-    void run(T referent);
+    void apply(T referent);
 
     /**
      * Put the corresponding promise in the rejected state.

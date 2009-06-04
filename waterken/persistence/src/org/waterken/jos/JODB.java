@@ -115,8 +115,8 @@ JODB<S> extends Database<S> {
             static private final long serialVersionUID = 1L;
             
             public void
-            run(final Object ignored) {
-                effect.run(new Effect<S>() {
+            apply(final Object ignored) {
+                effect.apply(new Effect<S>() {
                     public void
                     run(final Database<S> origin) throws InterruptedException {
                         while (true) {
@@ -151,7 +151,7 @@ JODB<S> extends Database<S> {
         public Immutable
         run(final Root root) throws Exception {
             final Receiver<?> wake = root.fetch(null, Database.wake);
-            if (null != wake) { wake.run(null); }
+            if (null != wake) { wake.apply(null); }
             return new Token();
         }
     }
@@ -172,7 +172,7 @@ JODB<S> extends Database<S> {
                     // execute the transaction body
                     if (!m.isQuery) {
                         final Receiver<?> flip = root.fetch(null, JODB.flip);
-                        if (null != flip) { flip.run(null); }
+                        if (null != flip) { flip.apply(null); }
                     }
                     r = Eventual.ref(body.run(root));
                 } catch (final Exception e) {
@@ -199,14 +199,14 @@ JODB<S> extends Database<S> {
             // output the log events for the committed transaction
             if (null != stderr) {
                 while (!m.events.isEmpty()) {
-                    stderr.run(m.events.removeFirst());
+                    stderr.apply(m.events.removeFirst());
                 }
             }
             
             // schedule any services
             if (null != service) {
                 while (!m.services.isEmpty()) {
-                    service.run(m.services.removeFirst());
+                    service.apply(m.services.removeFirst());
                 }
             }
             return r;
@@ -532,7 +532,7 @@ JODB<S> extends Database<S> {
     };
     final Receiver<Effect<S>> effect = new Receiver<Effect<S>>() {
         public void
-        run(final Effect<S> task) {
+        apply(final Effect<S> task) {
             tx.services.add(new Service() {
                 public Void
                 call() throws Exception {
@@ -579,7 +579,7 @@ JODB<S> extends Database<S> {
                 final JODB<S> sub = new JODB<S>(null, null,
                     null == stderr ? new Receiver<Event>() {
                         public void
-                        run(final Event value) {}
+                        apply(final Event value) {}
                 } : stderr, subStore);
                 final String subProject;
                 if (null != project) {
@@ -616,7 +616,7 @@ JODB<S> extends Database<S> {
     };
     final Receiver<Event> txerr = new Receiver<Event>() {
         public void
-        run(final Event event) { tx.events.add(event); }
+        apply(final Event event) { tx.events.add(event); }
     };
     final Log nop = new Log();
 

@@ -231,7 +231,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                                 versions = prior;
                                 
                                 if (!mergeScheduled && null != background) {
-                                    background.run(new Promise<Void>() {
+                                    background.apply(new Promise<Void>() {
                                         public Void
                                         call() throws IOException {
                                             merge();
@@ -309,7 +309,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                         break;
                     } catch (final IOException e) {
                         if (!pending.isDirectory()) { throw e; }
-                        sleep.run(100L);
+                        sleep.apply(100L);
                     }
                 }
                 renameAll(committed, dir);

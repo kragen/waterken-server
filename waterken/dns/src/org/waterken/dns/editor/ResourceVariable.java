@@ -33,7 +33,7 @@ ResourceVariable implements Receiver<ByteArray>, Serializable {
     get() { return value; }
 
     public void
-    run(ByteArray rr) {
+    apply(ByteArray rr) {
         if (Resource.IN != Resource.clazz(rr)) { throw new UnsupportedClass(); }
         switch (Resource.type(rr)) {
         case Resource.A:

@@ -165,6 +165,6 @@ List<T> implements Iterable<T>, Serializable {
         static private final long serialVersionUID = 1L;
 
         public void
-        run(final T value) { append(value); }
+        apply(final T value) { append(value); }
     }
 }

@@ -160,7 +160,7 @@ ClientSide implements Server {
                         b = c;
                         b = Math.min(b, maxSleep);
                     }
-                    sleep.run(b);
+                    sleep.apply(b);
                 }
             }
             mostRecent = null;
@@ -171,7 +171,7 @@ ClientSide implements Server {
         retry() {
             in = null;
             out = null;
-            sender.run(retry);
+            sender.apply(retry);
             retry = null;
             try { socket.close(); } catch (final Exception e) {}
             socket = null;
@@ -196,7 +196,7 @@ ClientSide implements Server {
         public void
         receive(final Response head, final InputStream body) throws Exception {
             client.receive(head, body); // don't pop if there is an I/O error
-            sender.run(pop);
+            sender.apply(pop);
         }
     }
     class Receive implements Inbound {
@@ -224,10 +224,10 @@ ClientSide implements Server {
                 }
             } catch (final Exception e) {
                 if (e instanceof Nap) {
-                    sender.run(new Outbound() {
+                    sender.apply(new Outbound() {
                         public Void
                         call() throws Exception {
-                            sleep.run(maxSleep);
+                            sleep.apply(maxSleep);
                             return null;
                         }
                     });
@@ -249,7 +249,7 @@ ClientSide implements Server {
         
         public Void
         call() throws Exception {
-            receiver.run(new Receive(on, x));
+            receiver.apply(new Receive(on, x));
             if (null == x.head) {
                 // nothing to send since request failed to render
             } else if (null != on.out) {
@@ -273,15 +273,15 @@ ClientSide implements Server {
         public Void
         call() {
             current = new Connection(mostRecent, this);
-            sender.run(current);
-            sender.run(new Outbound() {
+            sender.apply(current);
+            sender.apply(new Outbound() {
                 public Void
                 call() {
                     mostRecent = current.socket.getRemoteSocketAddress();
                     return null;
                 }
             });
-            for (final Exchange x : pending) {sender.run(new Send(current, x));}
+            for (final Exchange x : pending) {sender.apply(new Send(current, x));}
             return null;
         }
         
@@ -298,11 +298,11 @@ ClientSide implements Server {
                     return null;
                 }
             });
-            sender.run(new Outbound() {
+            sender.apply(new Outbound() {
                 public Void
                 call() {
                     pending.addLast(x);
-                    sender.run(new Send(current, x));
+                    sender.apply(new Send(current, x));
                     return null;
                 }
             });
@@ -314,7 +314,7 @@ ClientSide implements Server {
     void
     start() {
         entry = new Retry();
-        sender.run(entry);
+        sender.apply(entry);
     }
     
     /**

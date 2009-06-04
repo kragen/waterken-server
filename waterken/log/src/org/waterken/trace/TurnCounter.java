@@ -55,7 +55,7 @@ TurnCounter extends Struct implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public void
-            run(final Object ignored) {
+            apply(final Object ignored) {
                 m.turns += 1;
                 m.anchors = 0;
             }

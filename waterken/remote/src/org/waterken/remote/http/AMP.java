@@ -88,7 +88,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
             final Message<Request> m = new Message<Request>(head, null == body
                 ? null : Stream.snapshot(length >= 0 ? length : 512,
                                          Limited.input(maxEntitySize, body)));
-            vat.service.run(new Service() {
+            vat.service.apply(new Service() {
                 public Void
                 call() throws Exception {
                     if (!client.isStillWaiting()) {
@@ -130,7 +130,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
     static private <T> Receiver<T>
     poster(final String href, final Server proxy) { return new Receiver<T>() {
         public void
-        run(final Object value) {
+        apply(final Object value) {
             try {
                 final String target = HTTP.post(href, "run", null, 0, 0);
                 final Message<Request> q = Caller.serialize("", null, target,

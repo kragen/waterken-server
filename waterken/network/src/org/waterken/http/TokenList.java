@@ -117,7 +117,7 @@ TokenList {
                 endValue = i;
             }
             final String value = list.substring(beginValue, endValue);
-            if (null != out) { out.run(new Header(name, value)); }
+            if (null != out) { out.apply(new Header(name, value)); }
         }
         return i;
     }

@@ -70,7 +70,7 @@ Pipeline implements Serializable {
     }
 
     protected void
-    resend() { effect.run(restart(peer, pending.getSize(), acknowledged + 1)); }
+    resend() { effect.apply(restart(peer, pending.getSize(), acknowledged + 1)); }
     
     /**
      * Enqueue an operation.
@@ -99,7 +99,7 @@ Pipeline implements Serializable {
         if (operation instanceof QueryOperation) {
             queries += 1;
         }
-        if (0 == halts) { effect.run(restart(peer, 1, mid)); }
+        if (0 == halts) { effect.apply(restart(peer, 1, mid)); }
         return guid;
     }
     
@@ -131,7 +131,7 @@ Pipeline implements Serializable {
                         halts -= 1;
                         activeWindow += 1;
                         activeIndex = -1;
-                        effect.run(restart(peer, max, skipTo));
+                        effect.apply(restart(peer, max, skipTo));
                         break;
                     }
                     if (x instanceof QueryOperation) { break; }
@@ -188,7 +188,7 @@ Pipeline implements Serializable {
                         try {
                             final Message<Request> q =
                                 x.render(m.key, window, index);
-                            effect.run(new Effect<Server>() {
+                            effect.apply(new Effect<Server>() {
                                 public void
                                 run(final Database<Server> vat)throws Exception{
                                     vat.session.serve(q.head,
@@ -199,7 +199,7 @@ Pipeline implements Serializable {
                         } catch (final Exception reason) {
                             final String authority = URI.authority(peer);
                             final String location=Authority.location(authority);
-                            effect.run(new Effect<Server>() {
+                            effect.apply(new Effect<Server>() {
                                 public void
                                 run(final Database<Server> vat)throws Exception{
                                     vat.session.serve(
@@ -225,7 +225,7 @@ Pipeline implements Serializable {
           ) { return new Client() {
         public void
         receive(final Response head, final InputStream body) throws Exception {
-            vat.service.run(new Service() {
+            vat.service.apply(new Service() {
                 public Void
                 call() throws Exception {
                     vat.enter(Transaction.update, new Transaction<Immutable>() {
@@ -264,7 +264,7 @@ Pipeline implements Serializable {
                 r = new Message<Response>(head, null);
             }
             final Message<Response> response = r;
-            vat.service.run(new Service() {
+            vat.service.apply(new Service() {
                 public Void
                 call() throws Exception {
                     vat.enter(Transaction.update, new Transaction<Immutable>() {

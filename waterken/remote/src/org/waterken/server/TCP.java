@@ -82,7 +82,7 @@ TCP implements Runnable {
             if (!a.equals(lastKnownAddress)) {
                 System.out.println(name + ": updating DNS to: " +
                                    a.getHostAddress() + "...");
-                updateDNS.run(Resource.rr(
+                updateDNS.apply(Resource.rr(
                         Resource.A, Resource.IN, 60, a.getAddress()));
                 lastKnownAddress = a;
             }

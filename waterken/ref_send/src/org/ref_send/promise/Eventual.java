@@ -220,7 +220,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
      * </p>
      */
     public final void
-    run(final Promise<?> task) {
+    apply(final Promise<?> task) {
         if (null == task) { return; }
         
         final long id = ++tasks;
@@ -235,7 +235,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
                 return null;
             }
         }
-        enqueue.run(new TaskX());
+        enqueue.apply(new TaskX());
         log.sent(here + "#t" + id);
     }
 
@@ -386,7 +386,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
                     return null;
                 }
             }
-            _.enqueue.run(new Sample());
+            _.enqueue.apply(new Sample());
             _.log.sent(_.here + "#t" + id);
         }
     }
@@ -542,7 +542,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
             }
             
             if (null != next) {
-                enqueue.run(new Forward<T>(false, condition, value, next));
+                enqueue.apply(new Forward<T>(false, condition, value, next));
                 try {
                     if (Local.trusted(local, value)) {
                         log.got(here + "#w" + message, null, null);
@@ -592,7 +592,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
                  * new when block running task.
                  */
                 back = allocWhen(condition);
-                enqueue.run(new Forward<T>(false, condition, get(), back));
+                enqueue.apply(new Forward<T>(false, condition, get(), back));
                 observe(observer);
             }
         }
@@ -655,7 +655,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
         }
         
         public void
-        run(final T referent) { resolve(ref(referent)); }
+        apply(final T referent) { resolve(ref(referent)); }
 
         public void
         reject(final Exception reason) { resolve(new Rejected<T>(reason)); }
@@ -673,7 +673,7 @@ Eventual implements Receiver<Promise<?>>, Serializable {
             } else {
                 log.resolved(here + "#p" + condition);
             }
-            enqueue.run(new Forward<T>(true, condition, p, front));
+            enqueue.apply(new Forward<T>(true, condition, p, front));
             try { state.call().mark(p); } catch (final Exception e) {}
         }
 

@@ -155,7 +155,7 @@ Caller extends Struct implements Messenger, Serializable {
                             Typedef.bound(method.getGenericReturnType(),
                                           proxy.getClass()));
                 }
-                if (null != resolver) { resolver.run(r); }
+                if (null != resolver) { resolver.apply(r); }
             }
             
             public void
@@ -201,7 +201,7 @@ Caller extends Struct implements Messenger, Serializable {
                 }
                 if (null != resolver &&
                         !(null == r && (void.class == R || Void.class == R))) {
-                    resolver.run(r);
+                    resolver.apply(r);
                 }
             }
             

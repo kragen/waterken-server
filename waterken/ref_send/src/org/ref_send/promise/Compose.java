@@ -38,7 +38,7 @@ Compose<P,R> extends Do<P,Void> implements Serializable {
             resolver.reject(e);
             return null;
         }
-        resolver.run(r);
+        resolver.apply(r);
         return null;
     }
 
@@ -51,7 +51,7 @@ Compose<P,R> extends Do<P,Void> implements Serializable {
             resolver.reject(e);
             return null;
         }
-        resolver.run(r);
+        resolver.apply(r);
         return null;
     }
 }

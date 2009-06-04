@@ -109,8 +109,8 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             static private final long serialVersionUID = 1L;
 
             public void
-            run(final Promise<?> task) {
-                if (tasks.isEmpty()) { effect.run(runTask()); }
+            apply(final Promise<?> task) {
+                if (tasks.isEmpty()) { effect.apply(runTask()); }
                 tasks.append(task);
             }
         }
@@ -124,8 +124,8 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             static private final long serialVersionUID = 1L;
             
             public void
-            run(final Object ignored) {
-                if (!tasks.isEmpty()) { effect.run(runTask()); }
+            apply(final Object ignored) {
+                if (!tasks.isEmpty()) { effect.apply(runTask()); }
                 for (final Pipeline x : outbound.getPending()) { x.resend(); }
             }
         }
@@ -146,7 +146,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
                         if (!tasks.isEmpty()) {
                             final Receiver<Effect<Server>> effect =
                                 local.fetch(null, Database.effect);
-                            effect.run(runTask());
+                            effect.apply(runTask());
                         }
                         task.call();
                         return new Token();

@@ -79,7 +79,7 @@ Serial {
                  * which is now the new last element.
                  */
                 final Channel<Element<T>> x = _.defer();
-                back.run(Link.link(value, cast(Element.class, x.promise)));
+                back.apply(Link.link(value, cast(Element.class, x.promise)));
                 back = x.resolver;
             }
 
