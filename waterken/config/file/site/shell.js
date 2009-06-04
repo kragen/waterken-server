@@ -2,7 +2,7 @@
  * Copyright 2009 Tyler Close under the terms of the MIT X license found at
  * http://www.opensource.org/licenses/mit-license.html
  *
- * shell.js version: 2009-06-03
+ * shell.js version: 2009-06-04
  */
 /*global WScript, ActiveXObject */
 /*jslint white: false, nomen: false, strict: false, bitwise: true, eqeqeq: true,
@@ -159,7 +159,7 @@ _include_('json2.js');
                 return value;
             }, ' ');
         } catch (e) {
-            text = JSON.stringify(e, null, ' ');
+            text = JSON.stringify({ '!' : e }, null, ' ');
         }
         if (undefined === text) { return; }
         _comment_(text);
@@ -179,7 +179,13 @@ _include_('json2.js');
             var latency = 1000; // ms to delay before processing user input
             while (true) {
                 // empty the task queue
-                while (_todo_.length) { _todo_.shift()(); }
+                while (_todo_.length) {
+                    try {
+                        _todo_.shift()();
+                    } catch (e) {
+                        ADSAFE.log(JSON.stringify({ '!' : e }, null, ' '));
+                    }
+                }
 
                 if (0 >= latency) { break; }
 
@@ -190,7 +196,7 @@ _include_('json2.js');
                 // check for expired timeouts
                 var now = (new Date()).getTime();
                 while (_timeouts_.length && _timeouts_[0].timestamp <= now) {
-                    _timeouts_.shift().task();
+                    _todo_.push(_timeouts_.shift().task);
                 }
             }
         }());
