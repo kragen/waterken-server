@@ -1,5 +1,5 @@
 // adsafe.js
-// 2009-05-31
+// 2009-05-22
 
 //    Public Domain.
 
@@ -18,7 +18,7 @@
 // USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
 // NOT CONTROL.
 
-var window;
+/*global ADSAFE, window */
 
 /*jslint browser: true, nomen: false */
 
@@ -60,7 +60,7 @@ var window;
 
 "use strict";
 
-var ADSAFE = (function () {
+ADSAFE = (function () {
 
     var adsafe_id,      // The id of the current widget
         adsafe_lib,     // The script libraries loaded by the current widget
