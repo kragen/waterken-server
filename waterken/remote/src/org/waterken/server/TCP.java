@@ -16,13 +16,15 @@ import org.ref_send.promise.Receiver;
 import org.waterken.dns.Resource;
 import org.waterken.net.TCPDaemon;
 import org.waterken.thread.Loop;
+import org.waterken.uri.Header;
 
 /**
  * A TCP daemon.
  */
-final class
+/* package */ final class
 TCP implements Runnable {
     
+    private final String service;
     private final TCPDaemon daemon;
     private final String hostname;
     private final ServerSocket port;
@@ -30,8 +32,9 @@ TCP implements Runnable {
     
     private       InetAddress lastKnownAddress = null;
     
-    TCP(final TCPDaemon daemon, final String hostname,
+    TCP(final String service, final TCPDaemon daemon, final String hostname,
         final ServerSocket port, final Receiver<ByteArray> updateDNS) {
+        this.service = service;
         this.daemon = daemon;
         this.hostname = hostname;
         this.port = port;
@@ -40,11 +43,10 @@ TCP implements Runnable {
 
     public void
     run() {
-        final String service = Thread.currentThread().getName();
         System.out.println(service + ": " + "running at <" +
                            port.getLocalSocketAddress() + ">...");
         
-        if (null != updateDNS) { updateHostAddress(service); }
+        updateHostAddress();
         while (true) {
             try {
                 final Socket socket = port.accept();
@@ -67,7 +69,7 @@ TCP implements Runnable {
                     }
                 });
             } catch (final SocketTimeoutException e) {
-                if (null != updateDNS) { updateHostAddress(service); }
+                updateHostAddress();
             } catch (final Throwable e) {
                 System.err.println(service + ":");
                 e.printStackTrace(System.err);
@@ -76,18 +78,21 @@ TCP implements Runnable {
     }
     
     private void
-    updateHostAddress(final String name) {
+    updateHostAddress() {
+        if (null == updateDNS ||
+            Header.equivalent(hostname, "localhost")) { return; }
+        
         try {
             final InetAddress a = dynip();
             if (!a.equals(lastKnownAddress)) {
-                System.out.println(name + ": updating DNS to: " +
+                System.out.println(service + ": updating DNS to: " +
                                    a.getHostAddress() + "...");
                 updateDNS.apply(Resource.rr(
                         Resource.A, Resource.IN, 60, a.getAddress()));
                 lastKnownAddress = a;
             }
         } catch (final Throwable e) {
-            System.err.println(name + ":");
+            System.err.println(service + ":");
             e.printStackTrace(System.err);
         }
     }

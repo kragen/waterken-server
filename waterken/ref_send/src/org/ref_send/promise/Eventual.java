@@ -1036,14 +1036,14 @@ Eventual implements Receiver<Promise<?>>, Serializable {
                     break;
                 }
             }
-            ConstArray<Object> argv = ConstArray.array();
-            if (make.getParameterTypes().length != optional.length) {
-                argv = argv.with(this);
+            final Class<?>[] paramv = make.getParameterTypes();
+            final ConstArray.Builder<Object> argv =
+                ConstArray.builder(paramv.length);
+            if (0 != paramv.length && Eventual.class == paramv[0]) {
+                argv.append(this);
             }
-            for (final Object x : optional) {
-                argv = argv.with(x);
-            }
-            invoke = new Invoke<Class<?>>(make, argv);
+            for (final Object x : optional) { argv.append(x); }
+            invoke = new Invoke<Class<?>>(make, argv.snapshot());
         } catch (final Exception e) { throw new Error(e); }
         final Receiver<?> destruct = cast(Receiver.class, null);
         return new Vat((R)when(maker, invoke), destruct);

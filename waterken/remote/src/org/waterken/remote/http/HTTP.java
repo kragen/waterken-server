@@ -2,8 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import static java.lang.reflect.Modifier.isStatic;
-
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -328,110 +326,6 @@ HTTP extends Eventual implements Serializable {
     
     static private int
     message(final String q) { return Integer.parseInt(Query.arg("0", q, "m")); }
-    
-    /**
-     * Is the given object pass-by-construction?
-     * @param object  candidate object
-     * @return <code>true</code> if pass-by-construction,
-     *         else <code>false</code>
-     */
-    static protected boolean
-    isPBC(final Object object) {
-        final Class<?> type = null != object ? object.getClass() : Void.class;
-        return String.class == type ||
-            Integer.class == type ||
-            Boolean.class == type ||
-            Long.class == type ||
-            Byte.class == type ||
-            Short.class == type ||
-            Character.class == type ||
-            Double.class == type ||
-            Float.class == type ||
-            Void.class == type ||
-            java.math.BigInteger.class == type ||
-            java.math.BigDecimal.class == type ||
-            org.ref_send.scope.Scope.class == type ||
-            org.ref_send.Record.class.isAssignableFrom(type) ||
-            Throwable.class.isAssignableFrom(type) ||
-            org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
-            org.ref_send.promise.Promise.class.isAssignableFrom(type);
-    }
-    
-    /**
-     * Gets the corresponding property name.
-     * <p>
-     * This method implements the standard Java beans naming conventions.
-     * </p>
-     * @param method    candidate method
-     * @return name, or null if the method is not a property accessor
-     */
-    static protected String
-    property(final Method method) {
-        final String name = method.getName();
-        String r =
-            name.startsWith("get") &&
-            (name.length() == "get".length() ||
-             Character.isUpperCase(name.charAt("get".length()))) &&
-            method.getParameterTypes().length == 0
-                ? name.substring("get".length())
-            : (name.startsWith("is") &&
-               (name.length() != "is".length() ||
-                Character.isUpperCase(name.charAt("is".length()))) &&
-               method.getParameterTypes().length == 0
-                ? name.substring("is".length())
-            : null);
-        if (null != r && 0 != r.length() &&
-                (1 == r.length() || !Character.isUpperCase(r.charAt(1)))) {
-            r = Character.toLowerCase(r.charAt(0)) + r.substring(1);
-        }
-        return r;
-    }
-    
-    /**
-     * Finds a named property accessor.
-     * @param target    invocation target
-     * @param name      property name
-     * @return corresponding method, or <code>null</code> if not found
-     */
-    static public Method
-    dispatchGET(final Object target, final String name) {
-        final Class<?> type = null != target ? target.getClass() : Void.class;
-        final boolean c = Class.class == type;
-        Method r = null;
-        for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
-            final int flags = m.getModifiers();
-            if (c == isStatic(flags) && !m.isSynthetic() && !m.isBridge()) {
-                if (name.equals(property(m))) {
-                    if (null != r) { return null; }
-                    r = m;
-                }
-            }
-        }
-        return r;
-    }
-
-    /**
-     * Finds a named method.
-     * @param target    invocation target
-     * @param name      method name
-     * @return corresponding method, or <code>null</code> if not found
-     */
-    static public Method
-    dispatchPOST(final Object target, final String name) {
-        final Class<?> type = null != target ? target.getClass() : Void.class;
-        final boolean c = Class.class == type;
-        Method r = null;
-        for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
-            final int flags = m.getModifiers();
-            if (c == isStatic(flags) && !m.isSynthetic() && !m.isBridge()) {
-                if (name.equals(m.getName()) && null == property(m)) {
-                    if (null != r) { return null; }
-                    r = m;
-                }
-            }
-        }
-        return r;
-    }
     
     /**
      * Changes the base URI.

@@ -65,17 +65,16 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         final ConstArray<Type> signature =
             ConstArray.array(make.getGenericParameterTypes());
         final Object[] argv = new Object[signature.length()];
+        int nextArg = 0;
         ConstArray<Type> parameters = signature;
         if (0 != parameters.length() && Eventual.class == parameters.get(0)) {
             parameters = parameters.without(0);
-            argv[0] = exports._;
+            argv[nextArg++] = exports._;
         }
         final ConstArray<?> optional = new JSONDeserializer().deserializeTuple(
             base, exports.connect(), parameters, exports.getCodebase(),
             body.asInputStream());
-        for (int i = optional.length(), j = argv.length; 0 != i;) {
-            argv[--j] = optional.get(--i);
-        }
+        for (final Object arg : optional) { argv[nextArg++] = arg; }
         final Object top = Reflection.invoke(make, null, argv);
         root.assign(Database.top, top);
         final Exporter export =
@@ -87,7 +86,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     create(final Database<Server> parent, final String project,
            final String base, final String label,
            final Class<?> maker, final Object... argv) throws Exception {
-        final Method make = HTTP.dispatchPOST(maker, "make");
+        final Method make = Dispatch.post(maker, "make").declaration;
         final ByteArray body = new JSONSerializer().serializeTuple(null,
             ConstArray.array(make.getGenericParameterTypes()),
             ConstArray.array(argv)); 

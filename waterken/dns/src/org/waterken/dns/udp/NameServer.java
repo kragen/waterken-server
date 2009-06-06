@@ -19,7 +19,9 @@ import org.waterken.db.DatabaseManager;
 import org.waterken.db.Root;
 import org.waterken.db.Transaction;
 import org.waterken.dns.Resource;
+import org.waterken.menu.Copy;
 import org.waterken.menu.Menu;
+import org.waterken.menu.Snapshot;
 import org.waterken.store.DoesNotExist;
 import org.waterken.udp.UDPDaemon;
 import org.waterken.uri.Header;
@@ -32,20 +34,21 @@ NameServer extends UDPDaemon {
     static private final long serialVersionUID = 1L;
 
     private final File master;
-    private final DatabaseManager<?> dbs;
+    private final DatabaseManager<?> dbm;
     
     /**
      * Constructs an instance.
      * @param port      {@link #port}
      * @param master    root persistence folder
+     * @param dbm       database manager
      */
     public @deserializer
     NameServer(@name("port") final int port,
                @name("master") final File master,
-               @name("dbs") final DatabaseManager<?> dbs) {
+               @name("dbm") final DatabaseManager<?> dbm) {
         super(port);
         this.master = master;
-        this.dbs = dbs;
+        this.dbm = dbm;
     }
     
     // org.waterken.udp.Daemon interface
@@ -115,12 +118,18 @@ NameServer extends UDPDaemon {
         // see if we've got any answers
         final PowerlessArray<ByteArray> answers;
         try {
-            answers= dbs.connect(file(master, Header.toLowerCase(qname))).enter(
+            answers= dbm.connect(file(master, Header.toLowerCase(qname))).enter(
                 Transaction.query, new Transaction<PowerlessArray<ByteArray>>(){
                 public PowerlessArray<ByteArray>
                 run(final Root root) throws Exception {
                     final Menu<ByteArray> top = root.fetch(null, Database.top);
-                    return (PowerlessArray<ByteArray>)near(top.getSnapshot());
+                    final Snapshot<ByteArray> current = near(top.getSnapshot());
+                    final PowerlessArray.Builder<ByteArray> r =
+                        PowerlessArray.builder(current.entries.length());
+                    for (final Copy<ByteArray> entry : current.entries) {
+                        r.append(entry.value);
+                    }
+                    return r.snapshot();
                 }
             }).call();
         } catch (final Exception e) {
@@ -137,9 +146,11 @@ NameServer extends UDPDaemon {
         for (final ByteArray a : answers) {
             if ((255 == qtype || qtype == Resource.type(a)) &&
                 (255 == qclass || qclass == Resource.clazz(a))) {
-                final int length = Resource.length(a);
-                if (10 + length != a.length()) { continue; }    // malformed
-                if (response.length() + 12 + length > 512) {
+                
+                // check that record fits and is valid length
+                if (Resource.headerLength + Resource.length(a) != a.length() ||
+                    response.length() + 2 + a.length() > 512) {
+                    
                     truncated = true;
                     continue;
                 }

@@ -8,11 +8,12 @@ import java.io.Serializable;
 
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
-import org.joe_e.array.PowerlessArray;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.waterken.dns.Resource;
+import org.waterken.menu.Copy;
 import org.waterken.menu.Menu;
+import org.waterken.menu.Snapshot;
 import org.waterken.menu.TooMany;
 
 /**
@@ -31,29 +32,43 @@ HostMaker {
      * Constructs a {@link Resource} {@link Menu}.
      */
     static public Menu<ByteArray>
-    make() {
-        class MenuX implements Menu<ByteArray>, Serializable {
+    make(final String title) {
+        class Host implements Menu<ByteArray>, Serializable {
             static private final long serialVersionUID = 1L;
 
             private ConstArray<ResourceVariable> vars =
                 ConstArray.array(new ResourceVariable[] {});
 
-            public Promise<PowerlessArray<ByteArray>>
+            public Promise<Snapshot<ByteArray>>
             getSnapshot() {
-                final PowerlessArray.Builder<ByteArray> r =
-                    PowerlessArray.builder(vars.length());
-                for (final ResourceVariable x : vars) { r.append(x.get()); }
-                return ref(r.snapshot());
+                final ConstArray.Builder<Copy<ByteArray>> r =
+                    ConstArray.builder(vars.length());
+                for (final ResourceVariable x : vars) {
+                    r.append(new Copy<ByteArray>(x.get(), x));
+                }
+                return ref(new Snapshot<ByteArray>(title, r.snapshot()));
             }
 
             public Receiver<ByteArray>
             grow() {
                 if (vars.length() == maxEntries) { throw new TooMany(); }
-                final ResourceVariable r = new ResourceVariable();
-                vars = vars.with(r);
-                return r;
+                
+                final ResourceVariable var = new ResourceVariable();
+                var.apply(Resource.localhost);
+                vars = vars.with(var);
+                return var;
+            }
+            
+            public void
+            remove(final Receiver<ByteArray> entry) {
+                for (int i = vars.length(); 0 != i--;) {
+                    if (vars.get(i).equals(entry)) {
+                        vars = vars.without(i);
+                        break;
+                    }
+                }
             }
         }
-        return new MenuX();
+        return new Host();
     }
 }

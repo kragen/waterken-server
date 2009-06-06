@@ -29,7 +29,7 @@ Mux<S> extends Struct implements Server, Serializable {
     
     private final String prefix;
     private final File root;
-    private final DatabaseManager<S> dbs;
+    private final DatabaseManager<S> dbm;
     private final Remoting<S> remoting;
     private final Server next;
     
@@ -37,19 +37,19 @@ Mux<S> extends Struct implements Server, Serializable {
      * Constructs an instance.
      * @param prefix    URI sub-hierarchy for persistent databases
      * @param root      root persistence folder
-     * @param dbs       open vat pool
+     * @param dbm       open vat pool
      * @param remoting  remoting protocol
      * @param next      default server
      */
     public @deserializer
     Mux(@name("prefix") final String prefix,
         @name("root") final File root,
-        @name("dbs") final DatabaseManager<S> dbs,
+        @name("dbm") final DatabaseManager<S> dbm,
         @name("remoting") final Remoting<S> remoting,
         @name("next") final Server next) {
         this.prefix = prefix;
         this.root = root;
-        this.dbs = dbs;
+        this.dbm = dbm;
         this.remoting = remoting;
         this.next = next;
     }
@@ -65,7 +65,7 @@ Mux<S> extends Struct implements Server, Serializable {
             final String vatPath = path.substring(prefix.length());
             try {
                 final File folder = descend(root, vatPath);
-                server = remoting.remote(next, dbs.connect(folder));
+                server = remoting.remote(next, dbm.connect(folder));
             } catch (final InvalidFilenameException e) {
                 client.receive(Response.gone(), null);
                 return;

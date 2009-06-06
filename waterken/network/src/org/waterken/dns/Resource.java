@@ -27,6 +27,22 @@ Resource extends Struct implements Powerless, Record, Serializable {
     static public final short IN = 1;
     
     /**
+     * minimum recommended {@link #ttl}
+     */
+    static public final int minTTL = 60;
+    
+    /**
+     * localhost {@link #A} resource
+     */
+    static public final ByteArray localhost =
+        rr(A, IN, minTTL, new byte[] { 127,0,0,1 });
+    
+    /**
+     * number of bytes preceding the {@link #data}
+     */
+    static public final int headerLength = 2 + 2 + 4 + 2;
+    
+    /**
      * Constructs a resource.
      * @param type  {@link #type}
      * @param clazz {@link #clazz}
@@ -35,6 +51,8 @@ Resource extends Struct implements Powerless, Record, Serializable {
      */
     static public ByteArray
     rr(final short type, final short clazz, final int ttl, final byte... data) {
+        if (data.length >= (1 << 16)) { throw new RuntimeException(); }
+        
         final ByteArray.Builder r = ByteArray.builder(2+2+4+2+data.length);
         r.append((byte)(type >>> 8));
         r.append((byte)(type      ));
@@ -54,28 +72,39 @@ Resource extends Struct implements Powerless, Record, Serializable {
      * RR type code, such as {@link #A}
      */
     static public short
-    type(final ByteArray x) {return (short)(x.getByte(0) << 8 | x.getByte(1));}
+    type(final ByteArray x) {
+        return (short)((0xFF & x.getByte(0)) << 8 |
+                       (0xFF & x.getByte(1))       );
+    }
     
     /**
      * class of {@link #data}, such as {@link #IN}
      */
     static public short
-    clazz(final ByteArray x) {return (short)(x.getByte(2) << 8 | x.getByte(3));}
+    clazz(final ByteArray x) {
+        return (short)((0xFF & x.getByte(2)) << 8 |
+                       (0xFF & x.getByte(3))       );
+    }
     
     /**
      * unsigned time-to-live in seconds
      */
     static public int
     ttl(final ByteArray x) {
-        return x.getByte(4) << 24 | x.getByte(5) << 16 |
-               x.getByte(6) <<  8 | x.getByte(7)       ;
+        return (0xFF & x.getByte(4)) << 24 |
+               (0xFF & x.getByte(5)) << 16 |
+               (0xFF & x.getByte(6)) <<  8 |
+               (0xFF & x.getByte(7))       ;
     }
     
     /**
      * {@linkplain #data resource description} length
      */
-    static public short
-    length(final ByteArray x){return (short)(x.getByte(8) << 8 | x.getByte(9));}
+    static public int
+    length(final ByteArray x){
+        return (0xFF & x.getByte(8)) << 8 |
+               (0xFF & x.getByte(9))      ;
+    }
     
     /**
      * resource description

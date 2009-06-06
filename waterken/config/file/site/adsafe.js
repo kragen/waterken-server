@@ -1,5 +1,5 @@
 // adsafe.js
-// 2009-05-22
+// 2009-06-05
 
 //    Public Domain.
 
@@ -18,7 +18,7 @@
 // USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
 // NOT CONTROL.
 
-/*global ADSAFE, window */
+/*global window*/
 
 /*jslint browser: true, nomen: false */
 
@@ -60,7 +60,7 @@
 
 "use strict";
 
-ADSAFE = (function () {
+var ADSAFE = (function () {
 
     var adsafe_id,      // The id of the current widget
         adsafe_lib,     // The script libraries loaded by the current widget
@@ -1587,16 +1587,14 @@ ADSAFE = (function () {
 //  document.getElementById function.
 
             scripts = root.getElementsByTagName('script');
-            for (i = 0; i < scripts.length; i += 1) {
-                if (scripts[i]) {
-                    root.removeChild(scripts[i]);
-                } else {
-                    if (i === 0) {
-                        return error();
-                    }
-                    break;
-                }
+            i = scripts.length - 1;
+            if (i < 0) {
+                return error();
             }
+            do {
+                root.removeChild(scripts[i]);
+                i -= 1;
+            } while (i >= 0);
             root = make_root(root, id);
             dom = root[0];
 

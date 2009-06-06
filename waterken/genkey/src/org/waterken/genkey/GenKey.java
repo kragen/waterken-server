@@ -37,23 +37,25 @@ import org.waterken.remote.http.HTTP;
 import org.waterken.remote.http.VatInitializer;
 import org.waterken.server.Settings;
 import org.waterken.syntax.Exporter;
+import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 
 /**
  * A self-signed certificate generator.
  */
-final class
+/* package */ final class
 GenKey {
     private GenKey() {}
     
     static private final String defaultSuffix = ".yurl.net";
     static private final String defaultRegistrar =
-        "http://localhost:8080/-/dns/#s=yq76ja5dzgbzvz";
+        "http://localhost:8080/-/dns/#s=ggepyamcwnvhix";
     
     /**
      * The argument string is:
      * <ol>
      *  <li>cryptography strength expressed as hash length in bits</li>
+     *  <li>hash algorithm name</li>
      *  <li>hostname suffix</li>
      *  <li>redirectory URL</li>
      * </ol>
@@ -62,7 +64,9 @@ GenKey {
     static public void
     main(final String[] args) throws Exception {
         final int strength = 0 < args.length ? Integer.parseInt(args[0]) : 80;
-        final String suffix = 1 < args.length ? args[1] : defaultSuffix;
+        final String alg = 1 < args.length ? args[1] : "SHA-256";
+        final String suffix = 2 < args.length ? args[2] : defaultSuffix;
+        final String registrar = 3 < args.length ? args[3] : defaultRegistrar;
         final int keysize =
             80 >= strength
                 ? 1024
@@ -77,7 +81,7 @@ GenKey {
         final KeyPairGenerator g = KeyPairGenerator.getInstance("RSA");
         g.initialize(keysize);
         final KeyPair p = g.generateKeyPair();
-        final String hostname = "y-"+fingerprint(strength,p.getPublic())+suffix;
+        final String hostname= fingerprint(strength,alg,p.getPublic()) + suffix;
         System.out.println("for hostname: " + hostname);
                 
         final Certificate cert = certify(hostname, p);
@@ -85,17 +89,15 @@ GenKey {
         store(p.getPrivate(), cert);
         
         System.out.println("Registering the hostname...");
-        register(hostname, 2 < args.length ? args[2] : defaultRegistrar);
+        register(hostname, registrar);
     }
     
     static private String
-    fingerprint(final int strength,
+    fingerprint(final int strength, final String alg,
                 final PublicKey key) throws NoSuchAlgorithmException {
-        final MessageDigest SHA1 = MessageDigest.getInstance("SHA-1");
-        final byte[] hash = SHA1.digest(key.getEncoded());
-        final byte[] guid = new byte[strength / Byte.SIZE];
-        System.arraycopy(hash, 0, guid, 0, guid.length);
-        return Base32.encode(guid);
+        return Header.toLowerCase(alg) + "-" + Base32.encode(
+            MessageDigest.getInstance(alg).digest(key.getEncoded())).
+                substring(0, strength / 5 + (0 != strength % 5 ? 1 : 0));
     }
     
     static private Certificate
@@ -259,12 +261,12 @@ GenKey {
             fulfill(final Vat<Menu<ByteArray>> master) throws Exception{
                 Settings.config.init("registration", master, export);
 
-                class StoreUpdater extends Do<Receiver<?>,Void>
+                class StoreUpdater extends Do<Receiver<ByteArray>,Void>
                                    implements Serializable {
                     static private final long serialVersionUID = 1L;
 
                     public Void
-                    fulfill(final Receiver<?> a) throws Exception {
+                    fulfill(final Receiver<ByteArray> a) throws Exception {
                         Settings.config.init("updateDNS", a, export);
 
                         final HTTPD https = Settings.config.read("https");

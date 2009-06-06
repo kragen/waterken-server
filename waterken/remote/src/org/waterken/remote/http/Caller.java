@@ -108,7 +108,7 @@ Caller extends Struct implements Messenger, Serializable {
     invoke(final String href, final Object proxy,
            final Method method, final Object... arg) {
         final Channel<Object> r = _.defer();
-        final String property = HTTP.property(method);
+        final String property = Dispatch.property(method);
         if (null != property) {
             get(href, property, proxy, method, r.resolver);
         } else {

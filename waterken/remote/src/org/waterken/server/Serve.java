@@ -75,7 +75,8 @@ Serve {
 	                        createServerSocket(daemon.port, daemon.backlog)
 	                : new ServerSocket(daemon.port, daemon.backlog,
 	                				   Loopback.addr);
-	                task = new TCP(daemon, daemon.SSL ? hostname : "localhost",
+	                task = new TCP(service, daemon,
+	                               daemon.SSL ? hostname : "localhost",
 	                               listen, updateDNS_);
 	            } else if (config instanceof UDPDaemon) {
 	                final UDPDaemon daemon = (UDPDaemon)config;
@@ -99,7 +100,7 @@ Serve {
         // ping all the persistent vats to restart any pending tasks
         System.out.println(Thread.currentThread().getName() +
                            ": restarting all vats...");
-        final DatabaseManager<Server> vats = Settings.config.read("dbs");
+        final DatabaseManager<Server> vats = Settings.config.read("dbm");
         final File root = Settings.config.read("vatRootFolder");
         ping(vats, root);
         System.out.println(Thread.currentThread().getName() +

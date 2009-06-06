@@ -19,6 +19,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -47,13 +48,11 @@ import org.waterken.uri.Location;
 /**
  * SSL implementation
  */
-final class
+/* package */ final class
 SSL {
-
-    private
-    SSL() {}
+    private SSL() {}
     
-    static Locator
+    static protected Locator
     client(final int standardPort,
            final Credentials credentials, final PrintStream log) {
         class ClientX implements Locator, Serializable {
@@ -216,7 +215,7 @@ SSL {
         // verify peer name and requested hostname match
         final SSLSession session = socket.getSession();
         final String cn = CN(session.getPeerPrincipal().getName());
-        if (matches(hostname, cn)) { return; }
+        if (null != cn && matches(hostname, cn)) { return; }
         final X509Certificate ee =
             (X509Certificate)session.getPeerCertificates()[0];
         final Collection<List<?>> alts = ee.getSubjectAlternativeNames();
@@ -244,7 +243,7 @@ SSL {
      * @param file          key file
      * @param passphrase    key file passphrase
      */
-    static Credentials
+    static protected Credentials
     keystore(final String protocol, final File file, final String passphrase) {
         class KeystoreX implements Credentials, Serializable {
             static private final long serialVersionUID = 1L;
@@ -320,7 +319,7 @@ SSL {
         return new KeystoreX();
     }
     
-    static private final CertificateException notY = new CertificateException();
+    static private final String ySuffix = ".yurl.net";
     
     /**
      * Constructs a trust manager that implements the y-property.
@@ -352,6 +351,7 @@ SSL {
             private boolean
             checkY(final X509Certificate[] chain,
                    final String authType) throws CertificateException {
+                
                 // determine whether or not the cert uses the y-property
                 // a cert using the y-property MUST ONLY specify a CN property
                 final X509Certificate cert = chain[0];
@@ -359,51 +359,35 @@ SSL {
                 if (!dn.startsWith("CN=")) { return false; }
                 final String cn = dn.substring("CN=".length());
                 final String hostname = Header.toLowerCase(cn);
-                if (!hostname.startsWith("y-")) { return false; }
-                if (!hostname.endsWith(".yurl.net")) { return false; }
-                final String fingerprint = hostname.substring("y-".length(),
-                        hostname.length() - ".yurl.net".length());
-
-                // TODO: figure out how this API works with longer cert chains
-                if (1 != chain.length) { throw notY; }
+                if (!hostname.endsWith(ySuffix)) { return false; }
                 
                 // certificate is not valid for any other name
-                if (null != cert.getSubjectAlternativeNames()) { throw notY; }
+                if (null != cert.getSubjectAlternativeNames()) {
+                    throw new CertificateException();
+                }
                 
                 // the caller's role is unspecified, so check the basic
                 // certificate validity properties just in case
+                // TODO: figure out how this API works with longer cert chains
+                if (1 != chain.length) { throw new CertificateException(); }
                 try {
                     cert.verify(cert.getPublicKey());
-                } catch (final Exception e) { throw notY; }
+                } catch (final CertificateException e) { throw e;
+                } catch (final Exception e) {throw new CertificateException(e);}
                 cert.checkValidity();
 
                 // check that the fingerprint matches the given public key
-                final byte[] guid;
-                switch (fingerprint.length()) {
-                case 16:    // 80 bit hash
-                    guid = new byte[10];
-                    break;
-                case 23:    // 112 bit hash
-                    guid = new byte[14];
-                    break;
-                case 26:    // 128 bit hash
-                    guid = new byte[16];
-                    break;
-                default:    // not a hash
-                    throw notY;
-                }
+                final int startHash = hostname.lastIndexOf('-',
+                        hostname.length() - 1 - ySuffix.length()) + 1;
+                final String hash = hostname.substring(startHash,
+                        hostname.length() - ySuffix.length());
                 final MessageDigest alg;
-                final String algname = cert.getSigAlgName();
-                if ("SHA1withRSA".equals(algname)) {
-                    try {
-                        alg = MessageDigest.getInstance("SHA-1");
-                    } catch (final Exception e) { throw notY; }
-                } else {
-                    throw notY;
-                }
-                System.arraycopy(alg.digest(cert.getPublicKey().getEncoded()),
-                                 0, guid, 0, guid.length);
-                if (!fingerprint.equals(Base32.encode(guid))) { throw notY; }
+                try {
+                    alg = MessageDigest.getInstance(hostname.substring(0,
+                            startHash - 1).toUpperCase(Locale.ENGLISH));
+                } catch (final Exception e) {throw new CertificateException();}
+                if (!Base32.encode(alg.digest(cert.getPublicKey().getEncoded())
+                        ).startsWith(hash)) {throw new CertificateException();}
                 return true;
             }
         };

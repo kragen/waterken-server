@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.menu;
 
-import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 
@@ -16,10 +15,18 @@ Menu<T> {
     /**
      * Gets a snapshot of the current variable values.
      */
-    Promise<? extends ConstArray<T>> getSnapshot();
+    Promise<Snapshot<T>> getSnapshot();
     
     /**
-     * Generates a new entry.
+     * Appends a new entry.
+     * @param initial   initial value
+     * @return corresponding writer
      */
     Receiver<T> grow();
+    
+    /**
+     * Removes an entry.
+     * @param entry     entry to remove 
+     */
+    void remove(final Receiver<T> entry);
 }

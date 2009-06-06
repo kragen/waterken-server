@@ -2,7 +2,7 @@
  * Copyright 2007-2009 Tyler Close under the terms of the MIT X license found
  * at http://www.opensource.org/licenses/mit-license.html
  *
- * web_send.js version: 2009-06-01
+ * web_send.js version: 2009-06-06
  *
  * This library doesn't actually pass the ADsafe verifier, but rather is
  * designed to provide a controlled interface to the network, that can be
@@ -497,63 +497,59 @@ ADSAFE.lib('web', function (lib) {
 
         /**
          * Sets the 'href' attribute.
-         * @param elements  bunch of elements to modify
+         * @param element   element to modify
          * @param target    remote reference
-         * @return number of elements modified
+         * @return the element, or the ':rest' of the bunch if not modified
          */
-        href: function (elements, target) {
-            var n = 0;
-            var _nodes = elements.___nodes___;
-            if (null === target) {
-                for (var i = 0; i !== _nodes.length; i += 1) {
-                    _nodes[+i].removeAttribute('href');
-                    n += 1;
-                }
-            } else {
-                var href = unsealURLref(target);
-                if (null !== href && allowedNavigationScheme(href)) {
-                    for (var j = 0; j !== _nodes.length; j += 1) {
-                        var _node = _nodes[+j];
+        href: function (element, target) {
+            if (element.count()) {
+                if (null === target) {
+                    element.___nodes___[0].removeAttribute('href');
+                } else {
+                    var href = unsealURLref(target);
+                    if (null !== href && allowedNavigationScheme(href)) {
+                        var _node = element.___nodes___[0];
                         if ('A' === _node.tagName.toUpperCase()) {
                             _node.setAttribute('href', href);
-                            n += 1;
+                        } else {
+                            element = element.q(':rest');
                         }
+                    } else {
+                        element = element.q(':rest');
                     }
                 }
             }
-            return n;
+            return element;
         },
 
         /**
          * Sets the 'src' attribute.
-         * @param elements  bunch of elements to modify
+         * @param element   element to modify
          * @param target    remote reference
-         * @return number of elements modified
+         * @return the element, or the ':rest' of the bunch if not modified
          */
-        src: function (elements, target) {
-            var n = 0;
-            var _nodes = elements.___nodes___;
-            if (null === target) {
-                for (var i = 0; i !== _nodes.length; i += 1) {
-                    _nodes[+i].removeAttribute('src');
-                    n += 1;
-                }
-            } else {
-                var src = unsealURLref(target);
-                if (null !== src && allowedNavigationScheme(src)) {
-                    for (var j = 0; j !== _nodes.length; j += 1) {
-                        var _node = _nodes[+j];
+        src: function (element, target) {
+            if (element.count()) {
+                if (null === target) {
+                    element.___nodes___[0].removeAttribute('src');
+                } else {
+                    var src = unsealURLref(target);
+                    if (null !== src && allowedNavigationScheme(src)) {
+                        var _node = element.___nodes___[0];
                         switch (_node.tagName.toUpperCase()) {
                         case 'IMG':
                         case 'INPUT':
                             _node.setAttribute('src', makeRequestURI(src));
-                            n += 1;
                             break;
+                        default:
+                            element = element.q(':rest');
                         }
+                    } else {
+                        element = element.q(':rest');
                     }
                 }
             }
-            return n;
+            return element;
         },
 
         /**

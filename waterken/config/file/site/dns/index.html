@@ -11,22 +11,268 @@
 </head>
 <body>
 <noscript><p>This page requires a Javascript enabled web browser.</p></noscript>
-
-<div id="WIDGET_">
 <script type="text/javascript">
-"use strict";
-ADSAFE.id('WIDGET_');
+// reload the document if the fragment changes
+(function () {
+    var originalFragment = window.location.hash;
+    var checker = function () {
+        if (originalFragment !== window.location.hash) {
+            // TODO: do original fragment navigation
+            window.location.reload();
+        } else {
+            setTimeout(checker, 100);
+        }
+    };
+    setTimeout(checker, 100);
+}());
 </script>
-<script type="text/javascript" src="/site/ref_send.js?o="></script>
-<script type="text/javascript" src="/site/web_send.js?o="></script>
+
+<div id="DNS_">
+<div id="DNS_ANY" style="display: none;"></div>
+<div id="DNS_REGISTRAR" style="display: none;">
+<h1 id="DNS_REGISTRARTITLE"></h1>
+<h2>Claim your hostname</h2>
+<p>Fill in the allowed portion of the hostname and press enter:</p>
+<p id="DNS_REGISTRARCLAIM"></p>
+<h2>Create a sub-zone</h2>
+<p id="DNS_REGISTRARRESTRICT"></p>
+</div>
+<div id="DNS_MENU" style="display: none;"></div>
 <script type="text/javascript">
 "use strict";
-ADSAFE.go('WIDGET_', function (dom, lib) {
-    // Promote the widget context...
-    window.dom = dom;           // not ADsafe
-    window.lib = lib;           // not ADsafe
-    // , so that it can be used from the console.
-    // Normally, you'd put your code here, instead of writing in the console.
+ADSAFE.id('DNS_');
+</script>
+<script type="text/javascript" src="/site/ref_send.js?o=2009-06-01"></script>
+<script type="text/javascript" src="/site/web_send.js?o=2009-06-04"></script>
+<script type="text/javascript">
+"use strict";
+ADSAFE.go('DNS_', function (dom, lib) {
+
+    /**
+     * Does an object define a given key?
+     */
+    function includes(map, key) {
+        return map && Object.hasOwnProperty.call(map, key);
+    }
+
+    function render(value, classes) {
+        if (undefined === classes) {
+            classes = [];
+        }
+        var r;
+        switch (typeof value) {
+        case 'boolean':
+            classes.push('boolean');
+            classes.push(value ? 'true' : 'false');
+            r = dom.tag('span');
+            break;
+        case 'number':
+            classes.push('number');
+            r = dom.tag('span').append(dom.text(String(value)));
+            break;
+        case 'string':
+            r = dom.tag('span').append(dom.text(value));
+            break;
+        case 'function':
+            var referent = lib.Q.near(value);
+            if ('function' === typeof referent) {
+                if (includes(referent, 'class')) {
+                    classes = classes.concat(referent['class']);
+                }
+                if (referent.name) { classes.push(referent.name); }
+                r = dom.tag('span');
+                var a = dom.tag('a');
+                if (lib.web.href(a, referent).count()) {
+                    if (includes(referent, 'class')) {
+                        a.klass(referent['class'].join(' '));
+                    }
+                    r.append(a.append(dom.text('...')));
+                } else {
+                    r.append(dom.text('...'));
+                }
+                lib.Q.when(value, function (fulfilled) {
+                    if (referent !== fulfilled) {
+                        if ('function' === typeof fulfilled) {
+                            if (lib.web.href(a, fulfilled).count()) {
+                                if (includes(fulfilled, 'class')) {
+                                    a.klass(fulfilled['class'].join(' '));
+                                }
+                            }
+                        } else {
+                            r.empty().append(render(fulfilled, [ 'value' ]));
+                        }
+                    }
+                }, function (reason) {
+                    r.empty().append(render(reason, [ 'reason' ]));
+                });
+            } else {
+                r = render(referent, classes);
+            }
+            break;
+        default:
+            if (undefined === value || null === value) {
+                classes.push('void');
+                r = dom.tag('span');
+            } else if (ADSAFE.isArray(value)) {
+                r = dom.tag('ol');
+                for (var i = 0; i !== value.length; i += 1) {
+                    r.append(dom.tag('li').append(render(value[+i])));
+                }
+            } else {
+                r = dom.tag('div');
+                for (var name in value) { if (includes(value, name)) {
+                    if ('class' === name) {
+                        classes = classes.concat(value['class']);
+                    } else {
+                        r.append(render(ADSAFE.get(value, name), [ name ]));
+                        r.append(dom.text(' '));
+                    }
+                } }
+            }
+        }
+        if (0 !== classes.length) {
+            r.klass(classes.join(' '));
+        }
+        return r;
+    }
+    function renderBody(value) {
+        var node = render(value);
+        lib.web.title(node.getClass());
+        dom.q('#DNS_ANY').
+            append(dom.tag('h1').append(dom.text(node.getClass()))).
+            append(node).
+            style('display', 'block');
+    }
+    function renderRegistrar(registrar) {
+        lib.Q.when(lib.Q.get(registrar, 'zone'), function (value) {
+            var title = 'DNS zone: ' + value.prefix + '*' + value.suffix;
+            lib.web.title(title);
+            dom.q('#DNS_REGISTRARTITLE').append(dom.text(title));
+
+            dom.q('#DNS_REGISTRARCLAIM').
+                append(dom.tag('span').append(dom.text(value.prefix))).
+                append(dom.tag('input', 'text').on('enterkey', function (e) {
+                    var hostname = value.prefix +
+                                   e.target.getValue() + value.suffix;
+                    var host = lib.Q.post(registrar, 'claim', [ hostname ]);
+                    lib.Q.when(host, function (value) {
+                        lib.Q.when(value.top, function (value) {
+                            lib.web.navigate(value);
+                        }, function (reason) {
+                            dom.q('#DNS_REGISTRARCLAIM').append(dom.tag('p').
+                                klass('rejected').
+                                append(dom.text('"')).
+                                append(dom.tag('code').
+                                    append(dom.text(hostname))).
+                                append(dom.text('" not available')));
+                        });
+                    }, function (reason) {
+                        dom.q('#DNS_REGISTRARCLAIM').
+                            append(lib.Q.reject(reason));
+                    });
+                })).
+                append(dom.tag('span').append(dom.text(value.suffix)));
+
+            var suffix = dom.tag('input', 'text').value(value.suffix);
+            var prefix = dom.tag('input', 'text').value(value.prefix);
+            var restrict = function () {
+                var zone = lib.Q.post(registrar, 'restrict',
+                    [ suffix.getValue(), prefix.getValue() ]);
+                lib.Q.when(zone, function (value) {
+                    lib.web.navigate(value);
+                }, function (reason) {
+                    dom.q('#DNS_REGISTRARRESTRICT').
+                        append(lib.Q.reject(reason));
+                });
+            };
+            suffix.on('enterkey', restrict);
+            prefix.on('enterkey', restrict);
+            dom.q('#DNS_REGISTRARRESTRICT').
+                append(prefix).
+                append(dom.text('*')).
+                append(suffix);
+
+            dom.q('#DNS_REGISTRAR').style('display', 'block');
+        });
+    }
+    function renderMenu(menu) {
+        function makeRemover(writer) {
+            return function () {
+                lib.Q.post(menu, 'remove', [ writer ]);
+                renderMenu(menu);
+            };
+        }
+        lib.Q.when(lib.Q.get(menu, 'snapshot'), function (value) {
+            lib.web.title(value.title);
+            var entries = dom.tag('table').append(dom.tag('tr').
+                append(dom.tag('th').append(
+                    dom.tag('input', 'button').value('add').
+                        on('click', function () {
+                            lib.Q.post(menu, 'grow', []);
+                            renderMenu(menu);
+                        }))).
+                append(dom.tag('th').append(dom.text('details'))).
+                append(dom.tag('th').append(dom.text('updater'))));
+            if (ADSAFE.isArray(value.entries)) {
+                for (var i = 0; i !== value.entries.length; i += 1) {
+                    var entry = value.entries[+i];
+                    var details;
+                    if (ADSAFE.isArray(entry.value) &&
+                            14 === entry.value.length &&
+                            0 === entry.value[0] && 1 === entry.value[1] &&
+                            0 === entry.value[2] && 1 === entry.value[3]) {
+                        var ip = '';
+                        for (var j = 10; j !== 14; j += 1) {
+                            if (10 !== j) {
+                                ip += '.';
+                            }
+                            var o = entry.value[+j];
+                            if (o < 0) {
+                                o += 256;
+                            }
+                            ip += o;
+                        }
+                        details = dom.tag('span').klass('IPv4').
+                                    append(dom.text(ip));
+                    } else {
+                        details = dom.tag('em').append(dom.text('unknown'));
+                    }
+                    entries.append(dom.tag('tr').
+                        append(dom.tag('td').append(
+                            dom.tag('input', 'button').value('remove').
+                                on('click', makeRemover(entry.write)))).
+                        append(dom.tag('td').append(details)).
+                        append(dom.tag('td').append(lib.web.href(dom.tag('a').
+                            append(dom.text('...')), entry.write))));
+                }
+            }
+            dom.q('#DNS_MENU').
+                empty().
+                append(dom.tag('h1').append(dom.text(value.title))).
+                append(entries).
+                style('display', 'block');
+        });
+    }
+    function isa(value, type) {
+        if (!value) { return false; }
+        if (!ADSAFE.isArray(value['class'])) { return false; }
+        for (var i = 0; i !== value['class'].length; i += 1) {
+            if (value['class'][+i] === type) { return true; }
+        }
+        return false;
+    }
+    var resource = lib.web.getLocation();
+    lib.Q.when(resource, function (representation) {
+        if (isa(representation, 'org.waterken.dns.editor.Registrar')) {
+            renderRegistrar(resource);
+        } else if (isa(representation, 'org.waterken.menu.Menu')) {
+            renderMenu(resource);
+        } else {
+            renderBody(resource);
+        }
+    }, function (reason) {
+        renderBody(resource);
+    });
 });
 </script>
 </div>

@@ -68,7 +68,7 @@ Dump implements Server, Serializable {
         final String query = URI.query("", head.uri);
         final String s = Query.arg(null, query, "s");
         final String q = Query.arg(null, query, "q");
-        if (!key.equals(s) || !"run".equals(q)) {
+        if (!key.equals(s) || !"apply".equals(q)) {
             client.receive(Response.notFound(), null);
             return;
         }

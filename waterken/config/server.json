@@ -2,7 +2,7 @@
   "class" : [ "org.waterken.remote.mux.Mux" ],
   "prefix" : { "@" : "vatURIPathPrefix" },
   "root" : { "@" : "vatRootFolder" },
-  "dbs" : { "@" : "dbs" },
+  "dbm" : { "@" : "dbm" },
   "remoting" : {
     "class" : [ "org.waterken.remote.http.AMP" ]
   },

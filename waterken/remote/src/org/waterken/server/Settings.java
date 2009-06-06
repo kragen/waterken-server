@@ -58,7 +58,7 @@ Settings {
         final Receiver<Event> stderr;
         try { stderr = config.read("stderr");
         } catch (final Exception e) { throw new Error(e); }
-        config.override("dbs", new JODBManager<Server>(
+        config.override("dbm", new JODBManager<Server>(
             new RollingN2V(new Sleep()), new Proxy(), stderr));
     }
     
@@ -68,9 +68,9 @@ Settings {
      */
     static public Database<Server>
     db(final String path) throws Exception {
-        final DatabaseManager<Server> dbs = config.read("dbs");
+        final DatabaseManager<Server> dbm = config.read("dbm");
         final File root = config.read("vatRootFolder");
-        return dbs.connect(Mux.descend(root, path));
+        return dbm.connect(Mux.descend(root, path));
     }
     
     /**

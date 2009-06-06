@@ -3,8 +3,6 @@
 package org.waterken.remote.http;
 
 import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
@@ -79,17 +77,15 @@ Callee extends Struct implements Serializable {
             // to preserve message order, only access members on a fulfilled ref
             if (!Fulfilled.isInstance(subject)) { throw new Unresolved(); }
             target = subject.call();
-            // prevent access to local implementation details
-            if (HTTP.isPBC(target)) { throw new Unresolved(); }
         } catch (final Exception e) {
             return serialize(m.head.method, "404", "never", Server.forever,
                              Exception.class, e);
         }
 
         if ("GET".equals(m.head.method) || "HEAD".equals(m.head.method)) {
-            final Method property = bubble(HTTP.dispatchGET(target, p));
+            final Dispatch property = Dispatch.get(target, p);
             if (null == property) {             // no such property
-                final boolean post = null!=bubble(HTTP.dispatchPOST(target, p));
+                final boolean post = null != Dispatch.post(target, p);
                 return new Message<Response>(Response.notAllowed(
                     post ? new String[] { "TRACE", "OPTIONS", "POST" } : 
                            new String[] { "TRACE", "OPTIONS"         }), null);
@@ -97,18 +93,17 @@ Callee extends Struct implements Serializable {
             Object value;                       // property access
             try {
                 // AUDIT: call to untrusted application code
-                final Object r = Reflection.invoke(property, target);
+                final Object r = Reflection.invoke(property.declaration,target);
                 value = Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
             } catch (final Exception e) {
                 value = Eventual.reject(e);
             }
-            final boolean constant = "getClass".equals(property.getName());
-            final int maxAge = constant ? Server.forever : Server.ephemeral; 
-            final String etag = constant ? null : exports.getTransactionTag();
+            final String etag = exports.getTransactionTag();
             final Response failed = m.head.allow(etag);
             if (null != failed) { return new Message<Response>(failed, null); }
-            Message<Response> r = serialize(m.head.method, "200", "OK", maxAge,
-                                        property.getGenericReturnType(), value);
+            Message<Response> r = serialize(
+                    m.head.method, "200", "OK", Server.ephemeral,
+                    property.implementation.getGenericReturnType(), value);
             if (null != etag) {
                 r = new Message<Response>(r.head.with("ETag", etag), r.body);
             }
@@ -116,10 +111,9 @@ Callee extends Struct implements Serializable {
         }
         
         if ("POST".equals(m.head.method)) {
-            final Method lambda = HTTP.dispatchPOST(target, p);
-            final Method declaration = bubble(lambda);
-            if (null == declaration) {          // no such method
-                final boolean get = null != bubble(HTTP.dispatchGET(target, p));
+            final Dispatch lambda = Dispatch.post(target, p);
+            if (null == lambda) {           // no such method
+                final boolean get = null != Dispatch.get(target, p);
                 return new Message<Response>(Response.notAllowed(
                     get ? new String[] { "TRACE", "OPTIONS", "GET" } : 
                           new String[] { "TRACE", "OPTIONS"        }), null);
@@ -139,7 +133,7 @@ Callee extends Struct implements Serializable {
                 Header.equivalent(FileType.json.name, contentType) ||
                 Header.equivalent("text/plain",       contentType) ?
                     new JSONDeserializer() : null;
-            final Object value = exports.execute(query, lambda,
+            final Object value = exports.execute(query, lambda.implementation,
                                                  new Promise<Object>() {
                 public Object
                 call() throws Exception {
@@ -152,8 +146,8 @@ Callee extends Struct implements Serializable {
                     try {
                         argv = null == deserializer ? ConstArray.array(m.body) : 
                             deserializer.deserializeTuple(exports.getHere(),
-                                exports.connect(), ConstArray.array(
-                                    lambda.getGenericParameterTypes()),
+                                exports.connect(), ConstArray.array(lambda.
+                                    implementation.getGenericParameterTypes()),
                                 exports.getCodebase(), m.body.asInputStream());
                     } catch (final BadSyntax e) {
                         /*
@@ -164,17 +158,17 @@ Callee extends Struct implements Serializable {
                     }
 
                     // AUDIT: call to untrusted application code
-                    final Object r = Reflection.invoke(declaration, target,
-                            argv.toArray(new Object[argv.length()]));
+                    final Object r = Reflection.invoke(lambda.declaration,
+                        target, argv.toArray(new Object[argv.length()]));
                     return Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
                 }
             });
             return serialize(m.head.method, "200", "OK", Server.ephemeral,
-                             declaration.getGenericReturnType(), value);
+                             lambda.declaration.getGenericReturnType(), value);
         }
         
-        final boolean get = null != bubble(HTTP.dispatchGET(target, p));
-        final boolean post = null != bubble(HTTP.dispatchPOST(target, p));
+        final boolean get = null != Dispatch.get(target, p);
+        final boolean post = null != Dispatch.post(target, p);
         final String[] allow =
             get && post ? new String[] { "TRACE", "OPTIONS", "GET", "POST" } : 
             get         ? new String[] { "TRACE", "OPTIONS", "GET"         } :
@@ -215,33 +209,5 @@ Callee extends Struct implements Serializable {
                 new Header("Content-Type", contentType),
                 new Header("Content-Length", "" + content.length())
             )), content);
-    }
-
-    /**
-     * Finds the first invokable declaration of a public method.
-     */
-    static private Method
-    bubble(final Method method) {
-        if (null == method) { return null; }
-        final Class<?> declarer = method.getDeclaringClass();
-        if (Object.class == declarer || Struct.class == declarer) {return null;}
-        if (Modifier.isPublic(declarer.getModifiers())) { return method; }
-        if (Modifier.isStatic(method.getModifiers())) { return null; }
-        final String name = method.getName();
-        final Class<?>[] param = method.getParameterTypes();
-        for (final Class<?> i : declarer.getInterfaces()) {
-            try {
-                final Method r = bubble(Reflection.method(i, name, param));
-                if (null != r) { return r; }
-            } catch (final NoSuchMethodException e) {}
-        }
-        final Class<?> parent = declarer.getSuperclass();
-        if (null != parent) {
-            try {
-                final Method r = bubble(Reflection.method(parent, name, param));
-                if (null != r) { return r; }
-            } catch (final NoSuchMethodException e) {}
-        }
-        return null;
     }
 }
