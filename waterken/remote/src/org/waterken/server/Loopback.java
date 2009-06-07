@@ -51,8 +51,7 @@ Loopback {
                    final SocketAddress mostRecent) throws IOException {
                 final String location = Authority.location(authority);
                 
-                log.println(Thread.currentThread().getName() +
-                            ": connecting to <" + location + ">...");
+                log.println("connecting to <" + location + ">...");
                 
                 final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
