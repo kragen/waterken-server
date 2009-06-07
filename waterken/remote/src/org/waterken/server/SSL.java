@@ -73,14 +73,10 @@ SSL {
             locate(final String authority,
                    final SocketAddress x) throws IOException{
                 if (null == factory) {
-                    if (null != credentials) {
-                        try {
-                            factory=credentials.getContext().getSocketFactory();
-                        } catch (final GeneralSecurityException e) {
-                            throw (IOException)new IOException().initCause(e);  
-                        }
-                    } else {
-                        factory=(SSLSocketFactory)SSLSocketFactory.getDefault();
+                    try {
+                        factory = credentials.getContext().getSocketFactory();
+                    } catch (final GeneralSecurityException e) {
+                        throw (IOException)new IOException().initCause(e);  
                     }
                 }
                 
@@ -239,7 +235,7 @@ SSL {
 
     /**
      * Opens an SSL keystore.
-     * @param protocol      standard name of the protocol
+     * @param protocol      TLS protocol identifier
      * @param file          key file
      * @param passphrase    key file passphrase
      */
@@ -269,11 +265,15 @@ SSL {
                 if (null == context) {
 
                     // load the key store
-                    final KeyStore keys =
-                        KeyStore.getInstance(KeyStore.getDefaultType());
-                    final InputStream in = Filesystem.read(file);
-                    keys.load(in, passphrase.toCharArray());
-                    in.close();
+                    final KeyStore keys;
+                    if (file.isFile()) {
+                        keys = KeyStore.getInstance(KeyStore.getDefaultType());
+                        final InputStream in = Filesystem.read(file);
+                        keys.load(in, passphrase.toCharArray());
+                        in.close();
+                    } else {
+                        keys = null;
+                    }
 
                     // extract the keys and certs
                     final KeyManagerFactory kmf = KeyManagerFactory.getInstance(

@@ -49,7 +49,8 @@ GenKey {
     
     static private final String defaultSuffix = ".yurl.net";
     static private final String defaultRegistrar =
-        "http://localhost:8080/-/dns/#s=ggepyamcwnvhix";
+        "https://sha-256-w4tp67lcenwhmxdxdb75pmikgd.yurl.net" +
+        "/-/dns/#s=4eug7rn53hzrhz";
     
     /**
      * The argument string is:
@@ -236,7 +237,7 @@ GenKey {
              final String redirectoryURL) throws Exception {
         final String top = VatInitializer.create(
             Settings.db(""), "dns", "http://localhost/", null,
-            org.waterken.genkey.maker.Maker.class);
+            org.waterken.dns.editor.HostMaker.class);
         Settings.db(URI.path(top)).enter(Transaction.update,
                                          new Transaction<Immutable>() {
             public Immutable
