@@ -9,6 +9,7 @@ a { text-decoration: none }
 a:hover { color: blue; text-decoration: underline }
 img { border: none }
 sup { font-size: small }
+.rejected { color: red }
 .highlight { background-color: yellow }
 .comment { color: gray; font-style: italic }
 .figure {
