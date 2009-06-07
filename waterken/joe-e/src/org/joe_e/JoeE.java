@@ -63,7 +63,7 @@ public class JoeE {
     /**
      * This field holds the ErrorHandler to be invoked when 
      * <code>abort()</code> is called.
-     * Trusted infrastructure (non­­-Joe-E) code may change the abort behavior 
+     * Trusted infrastructure (non-Joe-E) code may change the abort behavior 
      * by using unsafe reflection to modify the value of this field.
      */
     static private ErrorHandler handler = new SystemExit();
