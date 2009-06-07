@@ -6,6 +6,9 @@
 <title></title>
 <link rel="icon" type="image/gif" href="/site/icon.gif?o=">
 <link rel="StyleSheet" type="text/css" href="/site/style.css?o=">
+<style type="text/css">
+.octet { max-width: 3em }
+</style>
 <script type="text/javascript" src="/site/json2.js?o="></script>
 <script type="text/javascript" src="/site/adsafe.js?o="></script>
 </head>
@@ -202,6 +205,38 @@ ADSAFE.go('DNS_', function (dom, lib) {
                 renderMenu(menu);
             };
         }
+        function makeIPv4Editor(entry) {
+            var editor = dom.tag('span').klass('IPv4');
+            var blocks = [];
+            for (var i = 10; i !== 14; i += 1) {
+                if (10 !== i) {
+                    editor.append(dom.text('.'));
+                }
+                var o = entry.value[+i];
+                if (o < 0) {
+                    o += 256;
+                }
+                var block = dom.tag('input', 'text').
+                    klass('octet').value(String(o));
+                blocks.push(block);
+                editor.append(block);
+            }
+            var update = function () {
+                for (var i = 0; i !== 4; i += 1) {
+                    var o = parseInt(blocks[i].getValue(), 10);
+                    if (o > 127) {
+                        o -= 256;
+                    }
+                    entry.value[10 + i] = o;
+                }
+                lib.Q.post(entry.write, 'apply', [ entry.value ]);
+                renderMenu(menu);
+            };
+            for (var i = 0; i !== 4; i += 1) {
+                blocks[i].on('enterkey', update);
+            }
+            return editor;
+        }
         lib.Q.when(lib.Q.get(menu, 'snapshot'), function (value) {
             lib.web.title(value.title);
             var entries = dom.tag('table').append(dom.tag('tr').
@@ -221,19 +256,7 @@ ADSAFE.go('DNS_', function (dom, lib) {
                             14 === entry.value.length &&
                             0 === entry.value[0] && 1 === entry.value[1] &&
                             0 === entry.value[2] && 1 === entry.value[3]) {
-                        var ip = '';
-                        for (var j = 10; j !== 14; j += 1) {
-                            if (10 !== j) {
-                                ip += '.';
-                            }
-                            var o = entry.value[+j];
-                            if (o < 0) {
-                                o += 256;
-                            }
-                            ip += o;
-                        }
-                        details = dom.tag('span').klass('IPv4').
-                                    append(dom.text(ip));
+                        details = makeIPv4Editor(entry);
                     } else {
                         details = dom.tag('em').append(dom.text('unknown'));
                     }
