@@ -4,7 +4,7 @@
       xml:base="http://waterken.sourceforge.net/">
 
 <id>http://waterken.sourceforge.net/recent</id>
-<updated>2009-06-01T00:01:00Z</updated>
+<updated>2009-06-10T00:01:00Z</updated>
 <title>Waterken News</title>
 <subtitle>Capability security on the Web</subtitle>
 <link href="recent.html"/>
@@ -17,14 +17,48 @@
 </author>
 
 <entry>
+<id>http://waterken.sourceforge.net/recent#12</id>
+<published>2009-06-10T00:00:00Z</published>
+<updated>2009-06-10T00:01:00Z</updated>
+<title>Origin isn't</title>
+<link href="http://lists.w3.org/Archives/Public/public-webapps/2009AprJun/0889.html"/>
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
+<p>For some time now, a W3C Working Group has been working on access-control
+for <a href="http://www.w3.org/TR/access-control/">cross-origin
+XMLHttpRequest</a>. Since the requests are cross-origin, all the use-cases
+necessarily involve at least three distinct parties: the user's web browser,
+the site hosting the resource and the site making the request. As we know from
+"<a href="aclsdont/">ACLs don't</a>", it is impossible to express a correct
+solution to this problem using only the ACL model. Nevertheless, the WG is
+pursing an ACL model solution based on the <a
+href="http://tools.ietf.org/html/draft-abarth-origin-00">Origin proposal</a>.
+The Origin proposal is essentially a degenerate form of stack introspection,
+where only two of the stack frames are inspected. An HTTP cookie identifies the
+principal associated with the top stack frame, and an Origin header is added by
+the web browser to identify a principal from one of the preceding stack frames.
+In the linked to email thread, we discuss how this solution fails when the
+stack is deeper than two levels. Not yet understanding the impossibility of
+their predicament, the WG is looking at moving to full stack introspection.
+Remaining CSRF vulnerabilities in full stack introspection are discussed in
+"ACLs don't".</p>
+<p>Participants in the WG sometimes have a narrow view of what sites will want
+to use cross-origin requests for, so it can be a little tricky to devise
+compelling examples to demonstrate the Confused Deputy vulnerabilities in their
+proposal. Otherwise, this WG's work will provide an ongoing source of security
+vulnerabilities, so long as they keep trying to use the ACL model. Proposals to
+at least provide support for non-ACL solutions have thus far been rebuffed.</p>
+</div></content>
+</entry>
+
+<entry>
 <id>http://waterken.sourceforge.net/recent#11</id>
 <published>2009-06-01T00:00:00Z</published>
 <updated>2009-06-01T00:01:00Z</updated>
 <title>web_send wsh: JSON shell free from Same Origin Policy</title>
 <link href="http://waterken.sourceforge.net/web_send/wsh/"/>
 <content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
-<p>When hosted by your server, the <a href="web_send/">web_send</a> library turns
-your <a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a>
+<p>When hosted by your server, the <a href="web_send/">web_send</a> library
+turns your <a href="https://addons.mozilla.org/firefox/addon/1843">Firebug</a>
 console into a command line for your server-side application. The same code can
 also be run by the Windows Script Host, a standard part of all Windows releases
 since Windows 98. Doing so has two big advantages:</p>
