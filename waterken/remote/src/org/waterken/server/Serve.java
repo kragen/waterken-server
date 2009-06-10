@@ -56,8 +56,7 @@ Serve {
     static private void
     start(final String... services) throws Exception {
         final Credentials credentials = Proxy.credentials;
-        final String hostname =
-            null != credentials ? credentials.getHostname() : "localhost";
+        final String hostname = credentials.getHostname();
 
         // summarize the configuration information
         Settings.summarize(hostname, System.out);

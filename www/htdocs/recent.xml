@@ -45,8 +45,8 @@ Remaining CSRF vulnerabilities in full stack introspection are discussed in
 to use cross-origin requests for, so it can be a little tricky to devise
 compelling examples to demonstrate the Confused Deputy vulnerabilities in their
 proposal. Otherwise, this WG's work will provide an ongoing source of security
-vulnerabilities, so long as they keep trying to use the ACL model. Proposals to
-at least provide support for non-ACL solutions have thus far been rebuffed.</p>
+vulnerabilities, so long as they continue using the ACL model. Proposals to at
+least provide support for non-ACL solutions have thus far been rebuffed.</p>
 </div></content>
 </entry>
 

@@ -5,6 +5,7 @@ package org.waterken.server;
 import org.waterken.net.http.HTTPD;
 import org.waterken.project.Project;
 import org.waterken.remote.http.VatInitializer;
+import org.waterken.uri.Header;
 import org.waterken.uri.Hostname;
 
 /**
@@ -52,19 +53,18 @@ Spawn {
 
         // determine the local address
         final String here;
-        final Credentials credentials = Proxy.credentials;
-        if (null != credentials) {
-            final String host = credentials.getHostname();
+        final String host = Proxy.credentials.getHostname();
+        if (Header.equivalent("localhost", host)) {
+        	final HTTPD http = Settings.config.read("http");
+            final int portN = http.port;
+            final String port = 80 == portN ? "" : ":" + portN;
+            here = "http://localhost" + port + "/" + vatURIPathPrefix;
+        } else {
             Hostname.vet(host);
             final HTTPD https = Settings.config.read("https");
             final int portN = https.port;
             final String port = 443 == portN ? "" : ":" + portN;
             here = "https://" + host + port + "/" + vatURIPathPrefix;
-        } else {
-        	final HTTPD http = Settings.config.read("http");
-            final int portN = http.port;
-            final String port = 80 == portN ? "" : ":" + portN;
-            here = "http://localhost" + port + "/" + vatURIPathPrefix;
         }
         
         // create the database

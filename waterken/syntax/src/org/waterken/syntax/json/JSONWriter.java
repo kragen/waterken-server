@@ -49,7 +49,7 @@ import java.io.Writer;
  * writeString() twice in succession will throw a {@link NullPointerException}.
  * </p>
  */
-public /* final */ class
+public final class
 JSONWriter {
     static private final String newLine = "\r\n";
     static private final String tab = "  ";
@@ -131,7 +131,7 @@ JSONWriter {
         private final String inset;         // indentation for each member
         private final Writer out;
         private       String prefix;        // current member separator prefix
-        private       ValueWriter member;   // most recent member started, or
+        private       JSONWriter member;    // most recent member started, or
                                             // null if object is finished
 
         protected
@@ -139,7 +139,7 @@ JSONWriter {
             inset = indent + tab;
             this.out = out;
             prefix = newLine;
-            member = new ValueWriter(inset, null);
+            member = new JSONWriter(false, inset, null);
         }
 
         public void
@@ -158,8 +158,8 @@ JSONWriter {
         startMember(final String name) throws IOException {
             if (!member.isWritten()) { throw new NullPointerException(); }
 
-            member = new ValueWriter(inset, out); // prevent calls until after
-                                                  // new member is complete
+            member = new JSONWriter(false, inset, out); // prevent calls until
+                                                        // member is completed
             out.write(prefix);
             out.write(inset);
             writeStringTo(name, out);
@@ -201,7 +201,7 @@ JSONWriter {
         private final String inset;         // indentation for each element
         private final Writer out;
         private       String prefix;        // current element separator prefix
-        private       ValueWriter element;  // most recent element started, or
+        private       JSONWriter element;   // most recent element started, or
                                             // null if array is finished
 
         protected
@@ -209,7 +209,7 @@ JSONWriter {
             inset = indent + tab;
             this.out = out;
             prefix = " ";
-            element = new ValueWriter(inset, null);
+            element = new JSONWriter(false, inset, null);
         }
 
         public void
@@ -226,8 +226,8 @@ JSONWriter {
         startElement() throws IOException {
             if (!element.isWritten()) { throw new NullPointerException(); }
 
-            element = new ValueWriter(inset, out); // prevent calls until after
-                                                   // new element is complete
+            element = new JSONWriter(false, inset, out); // prevent calls until
+                                                         // element is completed
             out.write(prefix);
             prefix = comma;
             return element;
@@ -246,30 +246,17 @@ JSONWriter {
 
     public void
     writeNull() throws IOException {
-        final Writer out = output.claim();
-        out.write("{ \"=\" : null }");
-        if (top) { out.write(newLine); }
-        written.mark();
+        writePrimitive("null");
     }
 
     public void
     writeBoolean(final boolean value) throws IOException {
-        final Writer out = output.claim();
-        out.write("{ \"=\" : ");
-        out.write(value ? "true" : "false");
-        out.write(" }");
-        if (top) { out.write(newLine); }
-        written.mark();
+        writePrimitive(value ? "true" : "false");
     }
 
     public void
     writeInt(final int value) throws IOException {
-        final Writer out = output.claim();
-        out.write("{ \"=\" : ");
-        out.write(Integer.toString(value));
-        out.write(" }");
-        if (top) { out.write(newLine); }
-        written.mark();
+        writePrimitive(Integer.toString(value));
     }
     
     /**
@@ -282,12 +269,7 @@ JSONWriter {
         if (value > maxMagnitude) { throw new ArithmeticException(); }
         if (value < -maxMagnitude) { throw new ArithmeticException(); }
 
-        final Writer out = output.claim();
-        out.write("{ \"=\" : ");
-        out.write(Long.toString(value));
-        out.write(" }");
-        if (top) { out.write(newLine); }
-        written.mark();
+        writePrimitive(Long.toString(value));
     }
 
     public void
@@ -295,98 +277,43 @@ JSONWriter {
         if (Float.isNaN(value)) { throw new ArithmeticException(); }
         if (Float.isInfinite(value)) { throw new ArithmeticException(); }
         
-        final Writer out = output.claim();
-        out.write("{ \"=\" : ");
-        out.write(Float.toString(value));
-        out.write(" }");
-        if (top) { out.write(newLine); }
-        written.mark();
+        writePrimitive(Float.toString(value));
     }
 
     public void
-    writeDouble(final double value) throws ArithmeticException, IOException{
+    writeDouble(final double value) throws ArithmeticException, IOException {
         if (Double.isNaN(value)) { throw new ArithmeticException(); }
         if (Double.isInfinite(value)) { throw new ArithmeticException(); }
         
+        writePrimitive(Double.toString(value));
+    }
+    
+    private void
+    writePrimitive(final String value) throws IOException {
         final Writer out = output.claim();
-        out.write("{ \"=\" : ");
-        out.write(Double.toString(value));
-        out.write(" }");
-        if (top) { out.write(newLine); }
+        if (top) {
+            out.write("{ \"=\" : ");
+            out.write(value);
+            out.write(" }");
+            out.write(newLine);
+        } else {
+            out.write(value);
+        }
         written.mark();
     }
 
     public void
     writeString(final String value) throws IOException {
         final Writer out = output.claim();
-        out.write("{ \"=\" : ");
-        writeStringTo(value, out);
-        out.write(" }");
-        if (top) { out.write(newLine); }
+        if (top) {
+            out.write("{ \"=\" : ");
+            writeStringTo(value, out);
+            out.write(" }");
+            out.write(newLine);
+        } else {
+            writeStringTo(value, out);
+        }
         written.mark();
-    }
-    
-    /**
-     * A JSON <em>value</em> writer.
-     */
-    static private final class
-    ValueWriter extends JSONWriter {
-        
-        protected
-        ValueWriter(final String indent, final Writer out) {
-            super(false, indent, out);
-        }
-
-        public @Override void
-        writeNull() throws IOException {
-            super.output.claim().write("null");
-            super.written.mark();
-        }
-
-        public @Override void
-        writeBoolean(final boolean value) throws IOException {
-            super.output.claim().write(value ? "true" : "false");
-            super.written.mark();
-        }
-
-        public @Override void
-        writeInt(final int value) throws IOException {
-            super.output.claim().write(Integer.toString(value));
-            super.written.mark();
-        }
-
-        public @Override void
-        writeLong(final long value) throws ArithmeticException, IOException {
-            if (value > maxMagnitude) { throw new ArithmeticException(); }
-            if (value < -maxMagnitude) { throw new ArithmeticException(); }
-
-            super.output.claim().write(Long.toString(value));
-            super.written.mark();
-        }
-
-        public @Override void
-        writeFloat(final float value) throws ArithmeticException, IOException {
-            if (Float.isNaN(value)) { throw new ArithmeticException(); }
-            if (Float.isInfinite(value)) { throw new ArithmeticException(); }
-            
-            super.output.claim().write(Float.toString(value));
-            super.written.mark();
-        }
-
-        public @Override void
-        writeDouble(final double value) throws ArithmeticException, IOException{
-            if (Double.isNaN(value)) { throw new ArithmeticException(); }
-            if (Double.isInfinite(value)) { throw new ArithmeticException(); }
-            
-            super.output.claim().write(Double.toString(value));
-            super.written.mark();
-        }
-
-        public @Override void
-        writeString(final String value) throws IOException {
-            writeStringTo(value, super.output.claim());
-            super.written.mark();
-        }
     }
 
     static private void
