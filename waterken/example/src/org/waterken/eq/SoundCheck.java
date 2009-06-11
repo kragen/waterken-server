@@ -9,6 +9,7 @@ import static org.ref_send.test.Logic.join;
 import java.io.Serializable;
 
 import org.ref_send.list.List;
+import org.ref_send.promise.Channel;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
@@ -27,7 +28,8 @@ SoundCheck {
      */
     static public Promise<?>
     make(final Eventual _) throws Exception {
-        return join(_, testNormal(_, _),
+        final Channel<?> x = _.defer();
+        return join(_, testNormal(_, x.resolver),
                       testNull(_, null),
                       testDouble(_),
                       testFloat(_));

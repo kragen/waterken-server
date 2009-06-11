@@ -38,7 +38,7 @@ RegistrarMaker {
             
             public Promise<Vat<Menu<ByteArray>>>
             claim(final String hostname) throws RuntimeException {
-                if (!hostname.endsWith(suffix))   { throw new InvalidLabel();}
+                if (!hostname.endsWith(suffix))   { throw new InvalidLabel(); }
                 if (!hostname.startsWith(prefix)) { throw new InvalidLabel(); }
                 
                 final Vat<Menu<ByteArray>> r =

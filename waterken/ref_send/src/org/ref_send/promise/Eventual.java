@@ -134,7 +134,7 @@ import org.ref_send.type.Typedef;
  *      Unified Approach to Access Control and Concurrency Control"</a>
  */
 public class
-Eventual implements Receiver<Promise<?>>, Serializable {
+Eventual implements Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -194,50 +194,6 @@ Eventual implements Receiver<Promise<?>>, Serializable {
     }
 
     // org.ref_send.promise.Receiver interface
-
-    /**
-     * number of tasks {@link #run enqueued}
-     * <p>
-     * This variable is only incremented and should never be allowed to wrap.
-     * </p>
-     */
-    private long tasks;
-    
-    static private final Method call;
-    static {
-        try {
-            call = Reflection.method(Promise.class, "call");
-        } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
-    }
-    
-    /**
-     * Schedules a task for execution in a future turn.
-     * <p>
-     * The implementation preserves the <i>F</i>irst <i>I</i>n <i>F</i>irst
-     * <i>O</i>ut ordering of tasks, meaning the tasks will be
-     * {@linkplain Promise#call executed} in the same order as they were
-     * enqueued.
-     * </p>
-     */
-    public final void
-    apply(final Promise<?> task) {
-        if (null == task) { return; }
-        
-        final long id = ++tasks;
-        if (0 == id) { throw new AssertionError(); }
-        class TaskX extends Struct implements Promise<Void>, Serializable {
-            static private final long serialVersionUID = 1L;
-
-            public Void
-            call() throws Exception {
-                log.got(here + "#t" + id, task.getClass(), call);
-                try { task.call(); } catch (final Exception e) {log.problem(e);}
-                return null;
-            }
-        }
-        enqueue.apply(new TaskX());
-        log.sent(here + "#t" + id);
-    }
 
     // org.ref_send.promise.Eventual interface
 
@@ -340,6 +296,14 @@ Eventual implements Receiver<Promise<?>>, Serializable {
             ? (Local<T>)untrusted
         : new Enqueue<T>(this, untrusted);
     }
+
+    /**
+     * number of tasks {@link #run enqueued}
+     * <p>
+     * This variable is only incremented and should never be allowed to wrap.
+     * </p>
+     */
+    private long tasks;
 
     static private final class
     Enqueue<T> extends Local<T> {

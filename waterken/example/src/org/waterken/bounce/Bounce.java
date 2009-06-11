@@ -38,8 +38,8 @@ Bounce {
      */
     static public Wall
     make(final Eventual _) {
-        final Receiver<?> normal = _;
         final Channel<Boolean> d = _.defer();
+        final Receiver<?> normal = d.resolver;
         final Promise<Boolean> p = ref(false);
         class WallX extends Struct implements Wall, Serializable {
             static private final long serialVersionUID = 1L;
