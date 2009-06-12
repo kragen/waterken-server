@@ -30,14 +30,14 @@ necessarily involve at least three distinct parties: the user's web browser,
 the site hosting the resource and the site making the request. As we know from
 "<a href="aclsdont/">ACLs don't</a>", it is impossible to express a correct
 solution to this problem using only the ACL model. Nevertheless, the WG is
-pursing an ACL model solution based on the <a
+pursuing an ACL model solution based on the <a
 href="http://tools.ietf.org/html/draft-abarth-origin-00">Origin proposal</a>.
 The Origin proposal is essentially a degenerate form of stack introspection,
 where only two of the stack frames are inspected. An HTTP cookie identifies the
 principal associated with the top stack frame, and an Origin header is added by
 the web browser to identify a principal from one of the preceding stack frames.
 In the linked to email thread, we discuss how this solution fails when the
-stack is deeper than two levels. Not yet understanding the impossibility of
+stack is deeper than two levels. Not yet understanding the impossibility in
 their predicament, the WG is looking at moving to full stack introspection.
 Remaining CSRF vulnerabilities in full stack introspection are discussed in
 "ACLs don't".</p>
