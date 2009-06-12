@@ -143,7 +143,7 @@ Eventual implements Serializable {
     protected final Token local;
 
     /**
-     * raw {@link #run event loop}
+     * raw event loop
      */
     private   final Receiver<Promise<?>> enqueue;
     
@@ -168,7 +168,7 @@ Eventual implements Serializable {
     /**
      * Constructs an instance.
      * @param local     {@link Local} permission
-     * @param enqueue   raw {@link #run event loop}
+     * @param enqueue   raw event loop
      * @param here      URI for the event loop
      * @param log       {@link #log}
      * @param destruct  {@link #destruct}
@@ -185,7 +185,7 @@ Eventual implements Serializable {
 
     /**
      * Constructs an instance.
-     * @param enqueue   raw {@link #run event loop}
+     * @param enqueue   raw event loop
      */
     public
     Eventual(final Receiver<Promise<?>> enqueue) {
@@ -201,12 +201,12 @@ Eventual implements Serializable {
      * Registers an observer on a promise.
      * <p>
      * The <code>observer</code> will be notified of the <code>promise</code>'s
-     * state at most once, in a future {@linkplain #run event loop} turn. If
-     * there is no referent, the <code>observer</code>'s
-     * {@link Do#reject reject} method will be called with the reason;
-     * otherwise, the {@link Do#fulfill fulfill} method will be called with
-     * either an immediate reference for a local referent, or an
-     * {@linkplain #cast eventual reference} for a remote referent. For example:
+     * state at most once, in a future event loop turn. If there is no referent,
+     * the <code>observer</code>'s {@link Do#reject reject} method will be
+     * called with the reason; otherwise, the {@link Do#fulfill fulfill} method
+     * will be called with either an immediate reference for a local referent,
+     * or an {@linkplain #cast eventual reference} for a remote referent. For
+     * example:
      * </p>
      * <pre>
      * import static org.ref_send.promise.Resolved.ref;
@@ -298,7 +298,7 @@ Eventual implements Serializable {
     }
 
     /**
-     * number of tasks {@link #run enqueued}
+     * number of tasks enqueued
      * <p>
      * This variable is only incremented and should never be allowed to wrap.
      * </p>
@@ -659,17 +659,17 @@ Eventual implements Serializable {
      * The return from this method is a ( {@linkplain Promise promise},
      * {@linkplain Resolver resolver} ) pair. The promise is initially in the
      * unresolved state and can only be resolved by the resolver once. If the
-     * promise is {@linkplain Resolver#run fulfilled}, the promise will forever
-     * refer to the provided referent. If the promise, is
-     * {@linkplain Resolver#reject rejected}, the promise will forever be in
-     * the rejected state, with the provided reason. If the promise is
+     * promise is {@linkplain Resolver#apply fulfilled}, the promise will
+     * forever refer to the provided referent. If the promise, is
+     * {@linkplain Resolver#reject rejected}, the promise will forever be in the
+     * rejected state, with the provided reason. If the promise is
      * {@linkplain Resolver#resolve resolved}, the promise will forever be in
      * the same state as the provided promise. After this initial state
-     * transition, all subsequent invocations of either
-     * {@link Resolver#run fulfill}, {@link Resolver#reject reject} or
-     * {@link Resolver#resolve resolve} are silently ignored. Any
-     * {@linkplain Do observer} {@linkplain #when registered} on the promise
-     * will only be notified after the promise is resolved.
+     * transition, all subsequent invocations of either {@link Resolver#apply
+     * fulfill}, {@link Resolver#reject reject} or {@link Resolver#resolve
+     * resolve} are silently ignored. Any {@linkplain Do observer}
+     * {@linkplain #when registered} on the promise will only be notified after
+     * the promise is resolved.
      * </p>
      * @param <T> referent type
      * @return ( {@linkplain Promise promise}, {@linkplain Resolver resolver} )
