@@ -96,7 +96,7 @@
  * <a href="http://json.org/">JSON</a> data:</p>
  * <pre>
  * [ {
- *   "$": [ "org.example.membership.LoyaltyCard" ],
+ *   "class": [ "org.example.membership.LoyaltyCard" ],
  *   "name": "Tyler Close",
  *   "year": 2008,
  *   "premium": true
@@ -156,7 +156,7 @@
  * <p>An instance of the above class would produce JSON like:</p>
  * <pre>
  * [ {
- *   "$": [ "org.example.membership.MailingLoyaltyCard", "org.example.membership.LoyaltyCard" ],
+ *   "class": [ "org.example.membership.MailingLoyaltyCard", "org.example.membership.LoyaltyCard" ],
  *   "name": "Tyler Close",
  *   "year": 2008,
  *   "premium": true,
@@ -169,14 +169,14 @@
  *   "preferences": [ "2-day-shipping", "monthly" ]
  *   } ]
  * </pre>
- * <p>The value of the <code>"$"</code> member is an array listing the name of
- * every type implemented by the object, ordered from most specific to least. If
- * the most specific type of an object is implied by the referring object, the
- * type declaration is omitted. For example, the object referred to by the
- * <code>"mailto"</code> member is not annotated with a <code>"$"</code> member,
- * since the type <code>org.example.membership.Address</code> is implied by the
- * referring object's type
- * <code>"org.example.membership.MailingLoyaltyCard"</code>.</p>
+ * <p>The value of the <code>"class"</code> member is an array listing the
+ * name of every type implemented by the object, ordered from most specific to
+ * least. If the most specific type of an object is implied by the referring
+ * object, the type declaration is omitted. For example, the object referred
+ * to by the <code>"mailto"</code> member is not annotated with a
+ * <code>"class"</code> member, since the type
+ * <code>org.example.membership.Address</code> is implied by the referring
+ * object's type <code>"org.example.membership.MailingLoyaltyCard"</code>.</p>
  * <p>By making effective use of {@link org.ref_send.Record} objects, you can
  * create distributed applications in the document-oriented messaging style. In
  * such applications, clients and servers coordinate primarily based on the
