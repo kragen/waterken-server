@@ -152,10 +152,10 @@ Pipeline implements Serializable {
     restart(final String peer, final int max, final long skipTo
            ) { return new Effect<Server>() {
         public void
-        run(final Database<Server> vat) throws Exception {
+        apply(final Database<Server> vat) throws Exception {
             vat.enter(Transaction.query, new Transaction<Immutable>() {
                 public Immutable
-                run(final Root root) throws Exception {
+                apply(final Root root) throws Exception {
                     final Receiver<Effect<Server>> effect =
                         root.fetch(null, Database.effect);
                     final Outbound outbound =
@@ -190,7 +190,7 @@ Pipeline implements Serializable {
                                 x.render(m.key, window, index);
                             effect.apply(new Effect<Server>() {
                                 public void
-                                run(final Database<Server> vat)throws Exception{
+                                apply(Database<Server> vat) throws Exception {
                                     vat.session.serve(q.head,
                                       null!=q.body?q.body.asInputStream():null,
                                       fulfill(vat, peer, guid, mid));
@@ -201,7 +201,7 @@ Pipeline implements Serializable {
                             final String location=Authority.location(authority);
                             effect.apply(new Effect<Server>() {
                                 public void
-                                run(final Database<Server> vat)throws Exception{
+                                apply(Database<Server> vat) throws Exception {
                                     vat.session.serve(
                                         new Request("HTTP/1.1", "OPTIONS",
                                             URI.request(peer),
@@ -230,7 +230,7 @@ Pipeline implements Serializable {
                 call() throws Exception {
                     vat.enter(Transaction.update, new Transaction<Immutable>() {
                         public Immutable
-                        run(final Root local) throws Exception {
+                        apply(final Root local) throws Exception {
                             final Outbound outbound =
                                 local.fetch(null, VatInitializer.outbound);
                             outbound.find(peer).dequeue(mid).
@@ -269,7 +269,7 @@ Pipeline implements Serializable {
                 call() throws Exception {
                     vat.enter(Transaction.update, new Transaction<Immutable>() {
                         public Immutable
-                        run(final Root local) throws Exception {
+                        apply(final Root local) throws Exception {
                             final Outbound outbound =
                                 local.fetch(null, VatInitializer.outbound);
                             outbound.find(peer).dequeue(mid).

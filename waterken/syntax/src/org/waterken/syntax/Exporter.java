@@ -15,5 +15,5 @@ Exporter {
      * @param target    reference to export
      * @return exported URL
      */
-    String run(@inert Object target);
+    String apply(@inert Object target);
 }

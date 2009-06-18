@@ -241,11 +241,11 @@ GenKey {
         Settings.db(URI.path(top)).enter(Transaction.update,
                                          new Transaction<Immutable>() {
             public Immutable
-            run(final Root local) throws Exception {
+            apply(final Root local) throws Exception {
                 final HTTP.Exports exports =
                     local.fetch(null, VatInitializer.exports);
                 claim(exports._, exports.export(), hostname, (Registrar)exports.
-                        connect().run(redirectoryURL, null, Registrar.class));
+                        connect().apply(redirectoryURL, null, Registrar.class));
                 return new Token();
             }
         }).call();

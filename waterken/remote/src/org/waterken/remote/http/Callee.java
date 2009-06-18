@@ -41,7 +41,7 @@ Callee extends Struct implements Serializable {
     static private final Class<?> Fulfilled = Eventual.ref(0).getClass();
 
     protected Message<Response>
-    run(final String query, final Message<Request> m) throws Exception {
+    apply(final String query, final Message<Request> m) throws Exception {
         
         // further dispatch the request based on the accessed member
         final String p = HTTP.predicate(query);

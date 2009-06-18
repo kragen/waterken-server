@@ -46,7 +46,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     }
     
     public PowerlessArray<String>
-    run(final Root root) throws Exception {
+    apply(final Root root) throws Exception {
         final Log log = root.fetch(null, Database.log);
         final Receiver<Effect<Server>> effect=root.fetch(null,Database.effect);
         
@@ -79,7 +79,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         root.assign(Database.top, top);
         final Exporter export =
             HTTP.changeBase(exports.getHere(), exports.export(), base);
-        return PowerlessArray.array(mid, export.run(top), export.run(destruct));
+        return PowerlessArray.array(mid, export.apply(top), export.apply(destruct));
     }
     
     static public String
@@ -93,9 +93,9 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         return parent.enter(Transaction.update,
                             new Transaction<PowerlessArray<String>>() {
             public PowerlessArray<String>
-            run(final Root local) throws Exception {
+            apply(final Root local) throws Exception {
                 final Creator creator = local.fetch(null, Database.creator);
-                return creator.run(project, base, label,
+                return creator.apply(project, base, label,
                                    new VatInitializer(make, null, body)).call();
             }
         }).call().get(1);
@@ -135,10 +135,10 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     runTask() {
         return new Effect<Server>() {
             public void
-            run(final Database<Server> vat) throws Exception {
+            apply(final Database<Server> vat) throws Exception {
                 vat.enter(Transaction.update, new Transaction<Immutable>() {
                     public Immutable
-                    run(final Root local) throws Exception {
+                    apply(final Root local) throws Exception {
                         final List<Promise<?>> tasks =
                             local.fetch(null, VatInitializer.tasks);
                         final Promise<?> task = tasks.pop();

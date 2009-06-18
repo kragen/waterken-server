@@ -27,5 +27,5 @@ Transaction<R extends Immutable> extends Immutable {
      * @return any return
      * @throws Exception    any problem
      */
-    R run(Root root) throws Exception;
+    R apply(Root root) throws Exception;
 }

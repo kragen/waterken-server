@@ -118,7 +118,7 @@ JODB<S> extends Database<S> {
             apply(final Object ignored) {
                 effect.apply(new Effect<S>() {
                     public void
-                    run(final Database<S> origin) throws InterruptedException {
+                    apply(final Database<S> origin) throws InterruptedException{
                         while (true) {
                             try {
                                 ((JODB<?>)origin).store.clean();
@@ -149,7 +149,7 @@ JODB<S> extends Database<S> {
     static private final class
     Wake implements Transaction<Immutable> {
         public Immutable
-        run(final Root root) throws Exception {
+        apply(final Root root) throws Exception {
             final Receiver<?> wake = root.fetch(null, Database.wake);
             if (null != wake) { wake.apply(null); }
             return new Token();
@@ -174,7 +174,7 @@ JODB<S> extends Database<S> {
                         final Receiver<?> flip = root.fetch(null, JODB.flip);
                         if (null != flip) { flip.apply(null); }
                     }
-                    r = Eventual.ref(body.run(root));
+                    r = Eventual.ref(body.apply(root));
                 } catch (final Exception e) {
                     r = Eventual.reject(e);
                 }
@@ -536,7 +536,7 @@ JODB<S> extends Database<S> {
             tx.services.add(new Service() {
                 public Void
                 call() throws Exception {
-                    task.run(JODB.this);
+                    task.apply(JODB.this);
                     return null;
                 }
             });
@@ -544,7 +544,7 @@ JODB<S> extends Database<S> {
     };
     final Creator creator = new Creator() {
         public <X extends Immutable> Promise<X>
-        run(final String project, final String base, String name,
+        apply(final String project, final String base, String name,
             final Transaction<X> setup) throws InvalidFilenameException,
                                                ProhibitedModification {
             if (tx.isQuery) {
@@ -593,7 +593,7 @@ JODB<S> extends Database<S> {
                 sub.awake.mark(true);
                 return sub.enter(Transaction.update, new Transaction<X>() {
                     public X
-                    run(final Root local) throws Exception {
+                    apply(final Root local) throws Exception {
                         local.assign(Database.project, subProject);
                         local.assign(Database.here, here);
                         local.assign(secret, secretBits);
@@ -608,7 +608,7 @@ JODB<S> extends Database<S> {
                                      makeDestructor(effect));
                         sub.create(Database.log,
                                 EventSender.make(sub.txerr, turn.mark, tracer));
-                        return setup.run(local);
+                        return setup.apply(local);
                     }
                 });
             } catch (final Exception e) { throw new Error(e); }

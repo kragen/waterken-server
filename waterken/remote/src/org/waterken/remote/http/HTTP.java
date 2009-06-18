@@ -83,13 +83,13 @@ HTTP extends Eventual implements Serializable {
             final ByteArray body = new JSONSerializer().serializeTuple(
                 http.export(),ConstArray.array(make.getGenericParameterTypes()),
                 ConstArray.array(argv)); 
-            final PowerlessArray<String> rd = creator.run(null, here, label,
+            final PowerlessArray<String> rd = creator.apply(null, here, label,
                 new VatInitializer(make, here, body)).call();
             log.sent(rd.get(0));
             final Importer connect = http.connect();
             return new Vat(
-                (R)connect.run(rd.get(1), here, R),
-                (Receiver<?>)connect.run(rd.get(2), here, Receiver.class)
+                (R)connect.apply(rd.get(1), here, R),
+                (Receiver<?>)connect.apply(rd.get(2), here, Receiver.class)
             );
         } catch (final Exception e) {
             try {
@@ -170,12 +170,12 @@ HTTP extends Eventual implements Serializable {
                 static private final long serialVersionUID = 1L;
 
                 public Object
-                run(final String href, final String base,
+                apply(final String href, final String base,
                                        final Type type) throws Exception {
                     final String URL=null!=base ? URI.resolve(base,href) : href;
                     return Header.equivalent(URI.resolve(URL, "."), _.here) ?
                             reference(URI.fragment("", URL)) :
-                        next.run(URL, null, type);
+                        next.apply(URL, null, type);
                 }
             }
             return new ImporterX();
@@ -190,7 +190,7 @@ HTTP extends Eventual implements Serializable {
                 static private final long serialVersionUID = 1L;
 
                 public String
-                run(final @inert Object object) {
+                apply(final @inert Object object) {
                     return href(_.root.export(object, false));
                 }
             }
@@ -339,8 +339,8 @@ HTTP extends Eventual implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public String
-            run(final @inert Object target) {
-                final String absolute = URI.resolve(here, export.run(target));
+            apply(final @inert Object target) {
+                final String absolute = URI.resolve(here, export.apply(target));
                 return null != there ? URI.relate(there, absolute) : absolute;
             }
         }

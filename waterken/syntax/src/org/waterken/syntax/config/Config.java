@@ -167,16 +167,16 @@ Config {
      */
     public @SuppressWarnings("unchecked") <T> T
     read(final String name, final Type type) throws Exception {
-        return (T)sub(root, baseURI).run(name, baseURI, type);
+        return (T)sub(root, baseURI).apply(name, baseURI, type);
     }
     
     private Importer
     sub(final File root, final String baseURI) { return new Importer() {
         public Object
-        run(final String href, final String base,
+        apply(final String href, final String base,
                                final Type type) throws Exception {
             if (!baseURI.equals(base) || -1 != href.indexOf(':')) {
-                return connect.run(href, base, type);
+                return connect.apply(href, base, type);
             }
             
             // check the cache

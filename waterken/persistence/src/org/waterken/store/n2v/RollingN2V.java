@@ -52,7 +52,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
     // org.waterken.store.StoreMaker interface
     
     public Store
-    run(final Receiver<Promise<?>> background,
+    apply(final Receiver<Promise<?>> background,
         final File parent, final File dir) {
         final File pending = Filesystem.file(dir, ".pending");
         final File committed = Filesystem.file(dir, ".committed");
@@ -204,7 +204,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                         final File child = Filesystem.file(pending, filename);
                         mkdir(child);
                         writeNew(Filesystem.file(pending, was)).close();
-                        return run(null, pending, child);
+                        return apply(null, pending, child);
                     }
                     
                     public void

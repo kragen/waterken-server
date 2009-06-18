@@ -64,7 +64,7 @@ TurnCounter extends Struct implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public Anchor
-            run() { return new Anchor(new Turn(loop, m.turns), m.anchors++); }
+            apply() { return new Anchor(new Turn(loop, m.turns), m.anchors++); }
         }
         return new TurnCounter(loop, new Flip(), new Mark());
     }

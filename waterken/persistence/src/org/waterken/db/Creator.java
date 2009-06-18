@@ -23,7 +23,7 @@ Creator {
      * @throws ProhibitedModification   in an {@link Database#extend} transaction
      */
     <R extends Immutable> Promise<R>
-    run(String project, String base, String name,
-        Transaction<R> setup) throws InvalidFilenameException,
-                                     ProhibitedModification;
+    apply(String project, String base, String name,
+          Transaction<R> setup) throws InvalidFilenameException,
+                                       ProhibitedModification;
 }

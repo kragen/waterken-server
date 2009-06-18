@@ -46,7 +46,7 @@ JODBManager<S> implements DatabaseManager<S> {
             JODB<S> r = live.fetch(null, dir);
             if (null != r) { return r; }
             final Loop<Service> service = Loop.make("[" + dir.getPath() + "]");            
-            r = new JODB<S>(session, service.foreground, stderr, layout.run(
+            r = new JODB<S>(session, service.foreground, stderr, layout.apply(
                     service.background, dir.getParentFile(), dir));
             live.put(dir, r);
             return r;

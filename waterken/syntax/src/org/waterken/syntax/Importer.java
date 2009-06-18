@@ -18,5 +18,5 @@ Importer {
      * @return corresponding reference
      * @throws Exception    any problem connecting to the identified reference
      */
-    Object run(String href, String base, Type type) throws Exception;
+    Object apply(String href, String base, Type type) throws Exception;
 }

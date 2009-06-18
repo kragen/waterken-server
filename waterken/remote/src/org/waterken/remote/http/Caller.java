@@ -83,7 +83,7 @@ Caller extends Struct implements Messenger, Serializable {
                 final Object x = receive(HTTP.get(absolute, null),
                                          response, Local.parameter(observer));
                 if (Eventual.ref(x) instanceof Remote &&
-                        !absolute.equals(URI.resolve(here, export.run(x)))) {
+                        !absolute.equals(URI.resolve(here, export.apply(x)))) {
                     _.log.got(request, null, null);
                     _.when(x, observer);
                     return;
@@ -237,7 +237,7 @@ Caller extends Struct implements Messenger, Serializable {
             if ("303".equals(m.head.status)) {
                 for (final Header h : m.head.headers) {
                     if (Header.equivalent("Location", h.name)) {
-                        return connect.run(h.value, base, R);
+                        return connect.apply(h.value, base, R);
                     }
                 }
             } 

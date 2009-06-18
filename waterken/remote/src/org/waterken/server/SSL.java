@@ -96,11 +96,11 @@ SSL {
                         this.connect = connect;
                     }
                     
-                    public void
+                    public @Override void
                     run() {
                         Socket authenticated = null;
                         try {
-                            final Socket r = connect.run();
+                            final Socket r = connect.apply();
                             try {
                                 authenticate(hostname, (SSLSocket)r);
                                 authenticated = r;
@@ -145,15 +145,13 @@ SSL {
         return new ClientX();
     }
     
-    interface Connect {
-        Socket run() throws Exception;
-    }
+    interface Connect { Socket apply() throws Exception; }
     
     static private Connect
     proxy(final SSLSocketFactory factory,final String hostname, final int port){
         return new Connect() {
             public Socket
-            run() throws Exception {
+            apply() throws Exception {
                 final Socket proxy = new Socket(
                     System.getProperty("proxyHost"),
                     Integer.parseInt(System.getProperty("proxyPort")));
@@ -189,7 +187,7 @@ SSL {
            final InetAddress addr, final int port) {
         return new Connect() {
             public Socket
-            run() throws Exception { return factory.createSocket(addr, port); }
+            apply() throws Exception { return factory.createSocket(addr, port); }
         };
     }
     

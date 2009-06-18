@@ -235,12 +235,12 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 final PowerlessArray<String> types =
                     JSON.upto(actual, Typedef.raw(expected));
                 if (0 == types.length()) {
-                    out.writeLink(export.run(value));
+                    out.writeLink(export.apply(value));
                 } else {
                     final JSONWriter.ObjectWriter oout = out.startObject();
                     serialize(export, PowerlessArray.class,
                               types, oout.startMember("class"));
-                    oout.startMember("@").writeString(export.run(value));
+                    oout.startMember("@").writeString(export.apply(value));
                     oout.finish();
                 }
             }

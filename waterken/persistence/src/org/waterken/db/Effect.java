@@ -15,6 +15,5 @@ Effect<S> extends Immutable {
      * @param origin    vat that produced this side-effect
      * @throws Exception    any problem
      */
-    void
-    run(Database<S> origin) throws Exception;    
+    void apply(Database<S> origin) throws Exception;    
 }

@@ -64,7 +64,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                     project = vat.enter(Transaction.query,
                             new Transaction<PowerlessArray<String>>() {
                         public PowerlessArray<String>
-                        run(final Root root) throws Exception {
+                        apply(final Root root) throws Exception {
                             final String r = root.fetch(null, Database.project);
                             return PowerlessArray.array(r);
                         }
@@ -104,10 +104,10 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                                       "TRACE".equals(head.method),
                                       new Transaction<Message<Response>>() {
                             public Message<Response>
-                            run(final Root root) throws Exception {
+                            apply(final Root root) throws Exception {
                                 final HTTP.Exports exports =
                                     root.fetch(null, VatInitializer.exports);
-                                return new Callee(exports).run(q, m);
+                                return new Callee(exports).apply(q, m);
                             }
                         }).call();
                     } catch (final DoesNotExist e) {
@@ -147,7 +147,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
     static public Importer
     connect(final Server proxy) { return new Importer() {
         public Object
-        run(final String href, final String base, final Type type) {
+        apply(final String href, final String base, final Type type) {
             return poster(null != base ? URI.resolve(base, href) : href, proxy);
         }
     }; }

@@ -13,5 +13,5 @@ Marker {
     /**
      * Generates an event anchor.
      */
-    Anchor run();
+    Anchor apply();
 }

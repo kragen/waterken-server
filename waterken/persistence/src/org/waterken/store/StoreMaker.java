@@ -24,5 +24,5 @@ StoreMaker {
      * @param parent        parent folder, for {@linkplain Store#clean cleaning}
      * @param dir           folder of existing state
      */
-    Store run(Receiver<Promise<?>> background, File parent, File dir);
+    Store apply(Receiver<Promise<?>> background, File parent, File dir);
 }

@@ -61,7 +61,7 @@ Remote extends Local<Object> {
             static private final long serialVersionUID = 1L;
             
             public Object
-            run(final String href, final String base, final Type type) {
+            apply(final String href, final String base, final Type type) {
                 final String url = null!=base ? URI.resolve(base, href) : href;
                 return Eventual.cast(Typedef.raw(type),
                     new Remote(_, local, messenger, URI.relate(here, url)));
@@ -81,14 +81,14 @@ Remote extends Local<Object> {
             static private final long serialVersionUID = 1L;
             
             public String
-            run(final @inert Object target) {
+            apply(final @inert Object target) {
                 final @inert Object handler = target instanceof Proxy
                     ? Proxies.getHandler((Proxy)target) : target;
                 if (handler instanceof Remote) {
                     final @inert Remote x = (Remote)handler;
                     if (Local.trusted(local, x)) { return x.href; }
                 }
-                return next.run(target);
+                return next.apply(target);
             }
         }
         return new ExporterX();
