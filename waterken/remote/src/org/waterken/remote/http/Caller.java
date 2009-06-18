@@ -228,9 +228,9 @@ Caller extends Struct implements Messenger, Serializable {
                         contentType = contentType.substring(0, end);
                     }
                 }
-                return Header.equivalent(FileType.json.name, contentType) ?
-                    new JSONDeserializer().deserialize(base, connect, R,
-                            codebase, m.body.asInputStream()) : m.body;
+                return Header.equivalent(FileType.unknown.name, contentType) ?
+                    m.body : new JSONDeserializer().deserialize(
+                        base, connect, R, codebase, m.body.asInputStream());
             } 
             if ("204".equals(m.head.status) ||
                 "205".equals(m.head.status)) { return true; }
