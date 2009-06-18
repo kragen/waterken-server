@@ -13,9 +13,7 @@ import org.ref_send.promise.Promise;
  */
 public final class
 Bang {
-    
-    private
-    Bang() {}
+    private Bang() {}
     
     /**
      * Constructs a {@link Drum}.

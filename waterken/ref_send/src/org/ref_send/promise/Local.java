@@ -91,8 +91,12 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
                 return Reflection.invoke(method, this, args);
             }
         }
-        return _.when(proxy.getClass(), this,
-            new Invoke<T>(method, null==args ? null : ConstArray.array(args)));
+        try {
+            final Class<?> R = Typedef.raw(Typedef.bound(
+                    method.getGenericReturnType(), proxy.getClass()));
+            return Eventual.cast(R, _.when(R, this, new Invoke<T>(method,
+                    null == args ? null : ConstArray.array(args))));
+        } catch (final Exception e) { throw new Error(e); }
     }
 
     // org.ref_send.promise.Promise interface

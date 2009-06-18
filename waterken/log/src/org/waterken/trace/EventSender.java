@@ -3,6 +3,7 @@
 package org.waterken.trace;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import org.joe_e.reflect.Reflection;
 import org.ref_send.log.Comment;
@@ -44,13 +45,15 @@ EventSender {
             
             public @Override void
             problem(final Exception reason) {
-                stderr.apply(new Problem(mark.run(),tracer.traceException(reason),
-                                       tracer.readException(reason), reason));
+                stderr.apply(new Problem(mark.run(),
+                                         tracer.traceException(reason),
+                                         tracer.readException(reason), reason));
             }
 
             public @Override void
             got(final String message, final Class<?> concrete, Method method) {
-                if (null != concrete) {
+                if (null != concrete && null != method &&
+                        !Modifier.isStatic(method.getModifiers())){
                     try {
                         method = Reflection.method(concrete, method.getName(),
                                                    method.getParameterTypes());

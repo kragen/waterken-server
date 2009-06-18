@@ -44,13 +44,13 @@ SoundCheck {
         check(p.equals(p));
         check(ref(x).equals(p));
         check(x.equals(p.call()));
-        class EQ extends Do<T,Promise<?>> implements Serializable {
+        class EQ extends Do<T,Boolean> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Promise<?>
+            public Boolean
             fulfill(final T arg) throws Exception {
                 check(x.equals(arg));
-                return ref(true);
+                return true;
             }
         }
         final Promise<?> a = _.when(p, new EQ());
@@ -80,15 +80,15 @@ SoundCheck {
             p.call();
             check(false);
         } catch (final NullPointerException e) {}
-        class NE extends Do<T,Promise<Boolean>> implements Serializable {
+        class NE extends Do<T,Boolean> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Promise<Boolean>
+            public Boolean
             fulfill(final T arg) throws Exception { throw new Exception(); }
             
-            public Promise<Boolean>
+            public Boolean
             reject(final Exception reason) throws Exception {
-                if (reason instanceof NullPointerException) {return ref(true);}
+                if (reason instanceof NullPointerException) { return true; }
                 throw reason;
             }
         }
@@ -115,15 +115,15 @@ SoundCheck {
             p.call();
             check(false);
         } catch (final ArithmeticException e) {}
-        class ENaN extends Do<T,Promise<Boolean>> implements Serializable {
+        class ENaN extends Do<T,Boolean> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Promise<Boolean>
+            public Boolean
             fulfill(final T arg) throws Exception { throw new Exception(); }
             
-            public Promise<Boolean>
+            public Boolean
             reject(final Exception reason) throws Exception {
-                if (reason instanceof ArithmeticException) { return ref(true); }
+                if (reason instanceof ArithmeticException) { return true; }
                 throw reason;
             }
         }
@@ -144,13 +144,13 @@ SoundCheck {
         check(pMin.equals(pMin));
         check(ref(Double.MIN_VALUE).equals(pMin));
         check(Double.MIN_VALUE == pMin.call());
-        class EQ extends Do<Double,Promise<Boolean>> implements Serializable {
+        class EQ extends Do<Double,Boolean> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Promise<Boolean>
+            public Boolean
             fulfill(final Double arg) throws Exception {
                 check(Double.MIN_VALUE == arg);
-                return ref(true);
+                return true;
             }
         }
         final Promise<?> a = _.when(pMin, new EQ());
@@ -173,13 +173,13 @@ SoundCheck {
         check(pMin.equals(pMin));
         check(ref(Float.MIN_VALUE).equals(pMin));
         check(Float.MIN_VALUE == pMin.call());
-        class EQ extends Do<Float,Promise<Boolean>> implements Serializable {
+        class EQ extends Do<Float,Boolean> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Promise<Boolean>
+            public Boolean
             fulfill(final Float arg) throws Exception {
                 check(Float.MIN_VALUE == arg);
-                return ref(true);
+                return true;
             }
         }
         final Promise<?> a = _.when(pMin, new EQ());

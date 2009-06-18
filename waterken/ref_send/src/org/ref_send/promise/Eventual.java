@@ -193,8 +193,6 @@ Eventual implements Serializable {
                 new Rejected<Receiver<?>>(new NullPointerException())));
     }
 
-    // org.ref_send.promise.Receiver interface
-
     // org.ref_send.promise.Eventual interface
 
     /**
@@ -213,23 +211,45 @@ Eventual implements Serializable {
      * &hellip;
      * final Promise&lt;Account&gt; mine = &hellip;
      * final Promise&lt;Integer&gt; balance =
-     *     _.when(mine, new Do&lt;Account,Promise&lt;Integer&gt;&gt;() {
-     *         public Promise&lt;Integer&gt;
-     *         fulfill(final Account x) { return ref(x.getBalance()); }
+     *     _.when(mine, new Do&lt;Account,Integer&gt;() {
+     *         public Integer
+     *         fulfill(final Account x) { return x.getBalance(); }
      *     });
      * </pre>
      * <p>
      * A <code>null</code> <code>promise</code> argument is treated like a
      * rejected promise with a reason of {@link NullPointerException}.
      * </p>
-     * <p>Multiple observers registered on the same promise will be notified in
-     * the same order as they were registered.</p>
+     * <p>
+     * Multiple observers registered on the same promise will be notified in
+     * the same order as they were registered.
+     * </p>
      * <p>
      * This method will not throw an {@link Exception}. Neither the
      * <code>promise</code>, nor the <code>observer</code>, argument will be
      * given the opportunity to execute in the current event loop turn.
      * </p>
-     * @param <P> referent type
+     * @param <P> <code>observer</code>'s parameter type
+     * @param <R> <code>observer</code>'s return type
+     * @param promise   observed promise
+     * @param observer  observer, MUST NOT be <code>null</code>
+     * @return promise for the observer's return value
+     * @throws Error    invalid <code>observer</code> argument  
+     */
+    public final <P,R extends Serializable> Promise<R>
+    when(final Promise<P> promise, final Do<P,R> observer) {
+        try {
+            return when(Promise.class, promise, observer);
+        } catch (final Exception e) { throw new Error(e); }
+    }
+
+    /**
+     * Registers an observer on a promise.
+     * <p>
+     * The implementation behavior is the same as that documented for the
+     * promise based {@link #when(Promise, Do) when} statement.
+     * </p>
+     * @param <P> <code>observer</code>'s parameter type
      * @param <R> <code>observer</code>'s return type, MUST be {@link Void}, an
      *            {@linkplain Proxies#isImplementable allowed} proxy type, or
      *            assignable from {@link Promise} 
@@ -242,7 +262,10 @@ Eventual implements Serializable {
      */
     public final <P,R> R
     when(final Promise<P> promise, final Do<P,R> observer) {
-        return when(Object.class, promise, observer);
+        try {
+            final Class<?> R = Typedef.raw(Local.output(Object.class,observer));
+            return cast(R, when(R, promise, observer));
+        } catch (final Exception e) { throw new Error(e); }
     }
     
     /**
@@ -251,7 +274,26 @@ Eventual implements Serializable {
      * The implementation behavior is the same as that documented for the
      * promise based {@link #when(Promise, Do) when} statement.
      * </p>
-     * @param <P> referent type
+     * @param <P> <code>observer</code>'s parameter type
+     * @param <R> <code>observer</code>'s return type
+     * @param reference observed reference
+     * @param observer  observer, MUST NOT be <code>null</code>
+     * @return promise for the observer's return value
+     */
+    public final <P,R extends Serializable> Promise<R>
+    when(final P reference, final Do<P,R> observer) {
+        try {
+            return when(Promise.class, ref(reference), observer);
+        } catch (final Exception e) { throw new Error(e); }
+    }
+    
+    /**
+     * Registers an observer on an {@linkplain #cast eventual reference}.
+     * <p>
+     * The implementation behavior is the same as that documented for the
+     * promise based {@link #when(Promise, Do) when} statement.
+     * </p>
+     * @param <P> <code>observer</code>'s parameter type
      * @param <R> <code>observer</code>'s return type
      * @param reference observed reference
      * @param observer  observer, MUST NOT be <code>null</code>
@@ -261,40 +303,36 @@ Eventual implements Serializable {
      */
     public final <P,R> R
     when(final P reference, final Do<P,R> observer) {
-        return when(null != reference ? reference.getClass() : Object.class,
-                    ref(reference), observer);
-    }
-    
-    protected final <P,R> R
-    when(final Class<?> P, final Promise<P> p, final Do<P,R> observer) {
         try {
-            final R r;
-            final Do<P,?> forwarder;
-            final Class<?> R = Typedef.raw(Local.output(P, observer));
-            if (void.class == R || Void.class == R) {
-                r = null;
-                forwarder = observer;
-            } else {
-                final Channel<R> x = defer();
-                r = cast(R, x.promise);
-                forwarder = new Compose<P,R>(observer, x.resolver);
-            }
-            trust(p instanceof Fulfilled ? ((Fulfilled<P>)p).getState() : p).
-                when(forwarder);
-            return r;
+            final Class<?> R = Typedef.raw(Local.output(null != reference ?
+                    reference.getClass() : Object.class, observer));
+            return cast(R, when(R, ref(reference), observer));
         } catch (final Exception e) { throw new Error(e); }
     }
     
-    static protected <T> Promise<T>
-    inline(final T referent) { return new Inline<T>(referent); }
+    /* package */ final <P,R> Promise<R>
+    when(final Class<?> R, final Promise<P> p, final Do<P,R> observer) {
+        final Promise<R> r;
+        final Do<P,?> forwarder;
+        if (void.class == R || Void.class == R) {
+            r = null;
+            forwarder = observer;
+        } else {
+            final Channel<R> x = defer();
+            r = x.promise;
+            forwarder = new Compose<P,R>(observer, x.resolver);
+        }
+        trust(p).when(forwarder);
+        return r;
+    }
 
     private final <T> Local<T>
     trust(final Promise<T> untrusted) {
-        return null == untrusted
-            ? new Enqueue<T>(this, new Rejected<T>(new NullPointerException()))
-        : Local.trusted(local, untrusted)
-            ? (Local<T>)untrusted
-        : new Enqueue<T>(this, untrusted);
+        return null == untrusted ?
+            new Enqueue<T>(this, new Rejected<T>(new NullPointerException())) :
+        Local.trusted(local, untrusted) ?
+            (Local<T>)untrusted :
+        new Enqueue<T>(this, untrusted);
     }
 
     /**
@@ -385,11 +423,11 @@ Eventual implements Serializable {
         }
         final Method m;
         final Class<?> c; {
-            final Do<?,?> inner = observer instanceof Compose
-                ? ((Compose<?,?>)observer).block : observer;
+            final Do<?,?> inner = observer instanceof Compose ?
+                    ((Compose<?,?>)observer).block : observer;
             if (inner instanceof Invoke) {
                 m = ((Invoke<?>)inner).method;
-                c = Modifier.isStatic(m.getModifiers()) ? null : a.getClass();
+                c = a.getClass();
             } else {
                 m = fulfill; 
                 c = inner.getClass();
@@ -1012,6 +1050,9 @@ Eventual implements Serializable {
         final Receiver<?> destruct = cast(Receiver.class, null);
         return new Vat((R)when(maker, invoke), destruct);
     }
+    
+    static protected <T> Promise<T>
+    inline(final T referent) { return new Inline<T>(referent); }
 
     // Debugging assistance
 
@@ -1051,66 +1092,4 @@ Eventual implements Serializable {
     static public <R extends Serializable> void
     cast(final Class<R> type,
          final Promise<?> promise) { throw new AssertionError();}
-
-    /**
-     * Causes a compile error for code that attempts to return a concrete type
-     * from a when block.
-     * <p>
-     * If you encounter a compile error because your code is linking to this
-     * method, change your when block return type to a promise. For example,
-     * </p>
-     * <pre>
-     * final Promise&lt;Account&gt; pa = &hellip;
-     * final Integer balance = _.when(pa, new Do&lt;Account,Integer&gt;() {
-     *     public Integer
-     *     fulfill(final Account a) { return a.getBalance(); }
-     * });
-     * </pre>
-     * <p>becomes:</p>
-     * <pre>
-     * final Promise&lt;Account&gt; pa = &hellip;
-     * final Promise&lt;Integer&gt; balance =
-     *  _.when(pa, new Do&lt;Account,Promise&lt;Integer&gt;&gt;() {
-     *     public Promise&lt;Integer&gt;
-     *     fulfill(final Account a) { return ref(a.getBalance()); }
-     * });
-     * </pre>
-     * @param promise   ignored
-     * @param observer  ignored
-     * @throws AssertionError   always thrown
-     */
-    public final <P,R extends Serializable> void
-    when(final Promise<P> promise,
-         final Do<P,R> observer) throws Exception {throw new AssertionError();}
-    
-    /**
-     * Causes a compile error for code that attempts to return a concrete type
-     * from a when block.
-     * <p>
-     * If you encounter a compile error because your code is linking to this
-     * method, change your when block return type to a promise. For example,
-     * </p>
-     * <pre>
-     * final Account a = &hellip;
-     * final Integer initial = _.when(a, new Do&lt;Account,Integer&gt;() {
-     *     public Integer
-     *     fulfill(final Account a) { return a.getBalance(); }
-     * });
-     * </pre>
-     * <p>becomes:</p>
-     * <pre>
-     * final Account a = &hellip;
-     * final Promise&lt;Integer&gt; initial =
-     *  _.when(a, new Do&lt;Account,Promise&lt;Integer&gt;&gt;() {
-     *     public Promise&lt;Integer&gt;
-     *     fulfill(final Account a) { return ref(a.getBalance()); }
-     * });
-     * </pre>
-     * @param reference ignored
-     * @param observer  ignored
-     * @throws AssertionError   always thrown
-     */
-    public final <P,R extends Serializable> void
-    when(final P reference,
-         final Do<P,R> observer) throws Exception {throw new AssertionError();}
 }
