@@ -68,7 +68,7 @@ import org.ref_send.type.Typedef;
  *  setBalance(final int newBalance) {
  *      balance = newBalance;
  *      for (final Receiver&lt;Integer&gt; observer : observers) {
- *          observer.run(newBalance);
+ *          observer.apply(newBalance);
  *      }
  *  }
  * }
@@ -79,7 +79,7 @@ import org.ref_send.type.Typedef;
  * invariants or because the request is malformed. Unfortunately, throwing an
  * exception may terminate not just the current plan, but also any other
  * currently executing plans. For example, if one of the observers throws a
- * {@link RuntimeException} from its <code>run()</code> implementation, the
+ * {@link RuntimeException} from its <code>apply()</code> implementation, the
  * remaining observers are not notified of the new account balance. These other
  * observers may then continue operating using stale data about the account
  * balance.</p>
@@ -90,7 +90,7 @@ import org.ref_send.type.Typedef;
  * resumes its own plan where it left off. Unfortunately, the called method
  * may have changed the application state in such a way that resuming the
  * original plan no longer makes sense.  For example, if one of the observers
- * invokes <code>setBalance()</code> in its <code>run()</code> implementation,
+ * invokes <code>setBalance()</code> in its <code>apply()</code> implementation,
  * the remaining observers will first be notified of the balance after the
  * update, and then be notified of the balance before the update. Again, these
  * other observers may then continue operating using stale data about the
@@ -102,9 +102,9 @@ import org.ref_send.type.Typedef;
  * accept a new observer; however, this constraint is temporarily not met when
  * the observer list is being iterated over. An observer could catch the
  * <code>Account</code> in this transitional state by invoking
- * <code>observe()</code> in its <code>run()</code> implementation. As a result,
- * a {@link java.util.ConcurrentModificationException} will be thrown when
- * iteration over the observer list resumes. Again, this exception prevents
+ * <code>observe()</code> in its <code>apply()</code> implementation. As a
+ * result, a {@link java.util.ConcurrentModificationException} will be thrown
+ * when iteration over the observer list resumes. Again, this exception prevents
  * notification of the remaining observers.</p>
  * <h3>Plan isolation</h3>
  * <p>The above plan interference problems are only possible because execution
@@ -160,7 +160,7 @@ Eventual implements Serializable {
     /**
      * destruct the vat
      * <p>
-     * call like: <code>destruct.run(null)</code>
+     * call like: <code>destruct.apply(null)</code>
      * </p>
      */
     public    final Receiver<?> destruct;
@@ -766,7 +766,7 @@ Eventual implements Serializable {
      *          balance = newBalance;
      *          for (final Receiver&lt;Integer&gt; observer_ : observer_s) {
      *              // Schedule future execution of notification.
-     *              observer_.run(newBalance);
+     *              observer_.apply(newBalance);
      *          }
      *     }
      * }
@@ -1064,9 +1064,9 @@ Eventual implements Serializable {
      * method, insert an explicit cast to the
      * {@linkplain Proxies#isImplementable allowed} proxy type. For example,
      * </p>
-     * <kbd>_._(this).run(null);</kbd>
+     * <kbd>_._(this).apply(null);</kbd>
      * <p>becomes:</p>
-     * <kbd>_._((Receiver&lt;?&gt;)this).run(null);</kbd>
+     * <kbd>_._((Receiver&lt;?&gt;)this).apply(null);</kbd>
      * @param x ignored
      * @throws AssertionError   always thrown
      */
