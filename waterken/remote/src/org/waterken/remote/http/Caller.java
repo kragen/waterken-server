@@ -186,23 +186,21 @@ Caller extends Struct implements Messenger, Serializable {
                 final Type R = Typedef.bound(method.getGenericReturnType(),
                                              proxy.getClass());
                 final Object r;
+                final boolean got;
                 if ("404".equals(response.head.status)) {
                     // re-dispatch invocation on resolved value of web-key
                     _.log.got(request, null, null);
                     final Do<Object,Object> invoke = Local.curry(method, argv);
                     r = _.when(proxy, invoke);
+                    got = true;
                 } else {
                     r = receive(
                         HTTP.post(URI.resolve(here, href), name, null, 0, 0),
                         response, R);
-                    if (null != r || (void.class != R && Void.class != R)) {
-                        _.log.got(request + "-return", null, null);
-                    }
+                    got = null != r || (void.class != R && Void.class != R); 
+                    if (got) { _.log.got(request + "-return", null, null); }
                 }
-                if (null != resolver &&
-                        !(null == r && (void.class == R || Void.class == R))) {
-                    resolver.apply(r);
-                }
+                if (null != resolver && got) { resolver.apply(r); }
             }
             
             public void
