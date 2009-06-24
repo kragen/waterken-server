@@ -31,7 +31,9 @@ Inline<T> implements Promise<T>, Selfless, Serializable {
     
     public boolean
     equals(final Object x) {
-        return x instanceof Inline && referent.equals(((Inline<?>)x).referent);
+        return x instanceof Inline && (null == referent ?
+                null == ((Inline<?>)x).referent :
+            referent.equals(((Inline<?>)x).referent));
     }
     
     public int

@@ -234,12 +234,11 @@ Eventual implements Serializable {
      * @param promise   observed promise
      * @param observer  observer, MUST NOT be <code>null</code>
      * @return promise for the observer's return value
-     * @throws Error    invalid <code>observer</code> argument  
      */
     public final <P,R extends Serializable> Promise<R>
     when(final Promise<P> promise, final Do<P,R> observer) {
         try {
-            return when(Promise.class, promise, observer);
+            return when(Object.class, promise, observer);
         } catch (final Exception e) { throw new Error(e); }
     }
 
@@ -250,21 +249,35 @@ Eventual implements Serializable {
      * promise based {@link #when(Promise, Do) when} statement.
      * </p>
      * @param <P> <code>observer</code>'s parameter type
-     * @param <R> <code>observer</code>'s return type, MUST be {@link Void}, an
-     *            {@linkplain Proxies#isImplementable allowed} proxy type, or
-     *            assignable from {@link Promise} 
+     * @param <R> <code>observer</code>'s return type
      * @param promise   observed promise
      * @param observer  observer, MUST NOT be <code>null</code>
      * @return promise, or {@linkplain #cast eventual reference}, for the
      *         <code>observer</code>'s return, or <code>null</code> if the
      *         <code>observer</code>'s return type is <code>Void</code>
-     * @throws Error    invalid <code>observer</code> argument  
      */
     public final <P,R> R
     when(final Promise<P> promise, final Do<P,R> observer) {
         try {
             final Class<?> R = Typedef.raw(Local.output(Object.class,observer));
             return cast(R, when(R, promise, observer));
+        } catch (final Exception e) { throw new Error(e); }
+    }
+
+    /**
+     * Registers an observer on a promise.
+     * <p>
+     * The implementation behavior is the same as that documented for the
+     * promise based {@link #when(Promise, Do) when} statement.
+     * </p>
+     * @param <P> <code>observer</code>'s parameter type
+     * @param promise   observed promise
+     * @param observer  observer, MUST NOT be <code>null</code>
+     */
+    public final <P> void
+    when(final Promise<P> promise, final Do<P,Void> observer) {
+        try {
+            when(Void.class, promise, observer);
         } catch (final Exception e) { throw new Error(e); }
     }
     
@@ -283,7 +296,7 @@ Eventual implements Serializable {
     public final <P,R extends Serializable> Promise<R>
     when(final P reference, final Do<P,R> observer) {
         try {
-            return when(Promise.class, ref(reference), observer);
+            return when(Object.class, ref(reference), observer);
         } catch (final Exception e) { throw new Error(e); }
     }
     
@@ -307,6 +320,23 @@ Eventual implements Serializable {
             final Class<?> R = Typedef.raw(Local.output(null != reference ?
                     reference.getClass() : Object.class, observer));
             return cast(R, when(R, ref(reference), observer));
+        } catch (final Exception e) { throw new Error(e); }
+    }
+
+    /**
+     * Registers an observer on an {@linkplain #cast eventual reference}.
+     * <p>
+     * The implementation behavior is the same as that documented for the
+     * promise based {@link #when(Promise, Do) when} statement.
+     * </p>
+     * @param <P> <code>observer</code>'s parameter type
+     * @param reference observed reference
+     * @param observer  observer, MUST NOT be <code>null</code>
+     */
+    public final <P> void
+    when(final P reference, final Do<P,Void> observer) {
+        try {
+            when(Void.class, ref(reference), observer);
         } catch (final Exception e) { throw new Error(e); }
     }
     
@@ -657,19 +687,19 @@ Eventual implements Serializable {
         }
         
         public void
-        apply(final T referent) { resolve(ref(referent)); }
+        apply(final T r) { resolve(null == r ? null : ref(r)); }
 
         public void
         reject(final Exception reason) { resolve(new Rejected<T>(reason)); }
         
         public void
         resolve(Promise<T> p) {
-            if (null == p) {
-                p = new Rejected<T>(new NullPointerException());
-            }
             if (p instanceof Fulfilled) {
                 p = ((Fulfilled<T>)p).getState(); 
                 log.fulfilled(here + "#p" + condition);
+            } else if (null == p) {
+                p = new Inline<T>(null);
+                log.rejected(here + "#p" + condition, null);
             } else if (p instanceof Rejected) {
                 log.rejected(here + "#p" + condition, ((Rejected<T>)p).reason);
             } else {
@@ -845,7 +875,7 @@ Eventual implements Serializable {
                 Double.NaN :
             null == promise ?
                 cast(type, new Rejected<T>(new NullPointerException())) :
-            type.isAssignableFrom(Promise.class) ?
+            type.isInstance(promise) ?
                 promise :
             Selfless.class == type ?
                 proxy((InvocationHandler)promise, Selfless.class) :
