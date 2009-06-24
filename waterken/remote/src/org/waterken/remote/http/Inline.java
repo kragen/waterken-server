@@ -4,14 +4,14 @@ package org.waterken.remote.http;
 
 import java.io.Serializable;
 
-import org.joe_e.Selfless;
+import org.joe_e.Struct;
 import org.ref_send.promise.Promise;
 
 /**
  * A fulfilled remote reference.
  */
 /* package */ final class
-Inline<T> implements Promise<T>, Selfless, Serializable {
+Inline<T> extends Struct implements Promise<T>, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -27,18 +27,6 @@ Inline<T> implements Promise<T>, Selfless, Serializable {
     Inline(final T referent) {
         this.referent = referent;
     }
-    
-    // java.lang.Object interface
-    
-    public boolean
-    equals(final Object x) {
-        return x instanceof Inline && (null == referent ?
-                null == ((Inline<?>)x).referent :
-            referent.equals(((Inline<?>)x).referent));
-    }
-    
-    public int
-    hashCode() { return 0xFA571A2E; }
 
     // org.ref_send.promise.Promise interface
 
