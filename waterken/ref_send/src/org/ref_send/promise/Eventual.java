@@ -706,7 +706,10 @@ Eventual implements Serializable {
                 log.resolved(here + "#p" + condition);
             }
             enqueue.apply(new Forward<T>(true, condition, p, front));
-            try { state.call().mark(p); } catch (final Exception e) {}
+            try {
+                final State<T> cell = state.call();
+                if (null != cell) { cell.mark(p); }
+            } catch (final Exception e) {}
         }
 
         public void
