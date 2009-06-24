@@ -83,12 +83,11 @@ Caller extends Struct implements Messenger, Serializable {
                 final Object x = receive(HTTP.get(absolute, null),
                                          response, Local.parameter(observer));
                 if (Eventual.ref(x) instanceof Remote &&
-                        !absolute.equals(URI.resolve(here, export.apply(x)))) {
-                    _.log.got(request, null, null);
-                    _.when(x, observer);
-                    return;
+                        absolute.equals(URI.resolve(here, export.apply(x)))) {
+                    resolve(request, new Inline<Object>(x));
+                } else {
+                    resolve(request, x);
                 }
-                resolve(request, x);
             }
             
             public void
@@ -98,7 +97,8 @@ Caller extends Struct implements Messenger, Serializable {
             
             private void
             resolve(final String request, final Object value) {
-                HTTP.sample(value, observer, _.log, request);
+                _.log.got(request, null, null);
+                _.when(value, observer);
             }
         }
         _.log.sent(msgs.enqueue(new When()));

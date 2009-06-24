@@ -346,14 +346,4 @@ HTTP extends Eventual implements Serializable {
         }
         return new ChangeBase();
     }
-    
-    static protected void
-    sample(final Object value, final Do<Object,?> observer,
-           final Log log, final String message) {
-        try {
-            Eventual.sample(Eventual.inline(value), observer, log, message);
-        } catch (final Exception e) {
-            log.problem(e);
-        }
-    }
 }

@@ -178,7 +178,7 @@ JSONParser {
             }
         }
         lexer.next();   // pop the keyword from the stream
-        return null != promised ? ref(value) : value;
+        return null != value && null != promised ? ref(value) : value;
     }
     
     private Object
@@ -359,14 +359,15 @@ JSONParser {
         final int remote = find("@", undeclared);
         if (-1 != remote) {
             final String href = (String)values.snapshot().get(remote);
-            final Object r= connect.apply(href,base,null!=actual?actual:required);
-            return null != promised ? ref(r) : r;
+            final Object r =
+                connect.apply(href, base, null != actual ? actual : required);
+            return null != r && null != promised ? ref(r) : r;
         }
         
         final int replacement = find("=", undeclared);
         if (-1 != replacement) {
             final Object r = values.snapshot().get(replacement);
-            return null != promised ? ref(r) : r;
+            return null != r && null != promised ? ref(r) : r;
         }
         
         final Object r;

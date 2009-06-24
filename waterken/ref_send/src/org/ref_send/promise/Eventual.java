@@ -437,7 +437,7 @@ Eventual implements Serializable {
         } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
     }
     
-    static protected <P,R> R
+    static private <P,R> R
     sample(final Promise<P> promise, final Do<P,R> observer,
            final Log log, final String message) throws Exception {
         final P a;
@@ -1083,9 +1083,6 @@ Eventual implements Serializable {
         final Receiver<?> destruct = cast(Receiver.class, null);
         return new Vat((R)when(maker, invoke), destruct);
     }
-    
-    static protected <T> Promise<T>
-    inline(final T referent) { return new Inline<T>(referent); }
 
     // Debugging assistance
 
