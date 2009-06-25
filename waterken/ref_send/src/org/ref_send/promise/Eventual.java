@@ -1055,7 +1055,7 @@ Eventual implements Serializable {
      * @return sub-vat permissions, including a promise for the object returned
      *         by the <code>maker</code>
      */
-    public @SuppressWarnings("unchecked") <R> Vat<R>
+    public <R> Vat<R>
     spawn(final String label, final Class<?> maker, final Object... optional) {
         /**
          * The default implementation just calls the make method in a separate
@@ -1081,7 +1081,8 @@ Eventual implements Serializable {
             invoke = new Invoke<Class<?>>(make, argv.snapshot());
         } catch (final Exception e) { throw new Error(e); }
         final Receiver<?> destruct = cast(Receiver.class, null);
-        return new Vat((R)when(maker, invoke), destruct);
+        final @SuppressWarnings("unchecked") R top = (R)when(maker, invoke); 
+        return new Vat<R>(top, destruct);
     }
 
     // Debugging assistance
