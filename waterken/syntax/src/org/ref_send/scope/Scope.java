@@ -5,7 +5,6 @@ package org.ref_send.scope;
 import java.io.Serializable;
 
 import org.joe_e.Selfless;
-import org.joe_e.inert;
 import org.joe_e.array.ConstArray;
 
 /**
@@ -57,18 +56,4 @@ Scope implements Selfless, Serializable {
      */
     public int
     hashCode() { return 0x4EF5C09E + meta.hashCode() + values.hashCode(); }
-    
-    // org.ref_send.scope.Scope interface
-    
-    /**
-     * Gets the named value.
-     * @param <R>   expected type of value
-     * @param name  member name
-     * @return member value, or <code>null</code> if unspecified
-     */
-    public @SuppressWarnings("unchecked") @inert <R> R
-    get(final String name) {
-        final int i = meta.find(name);
-        return -1 != i ? (R)values.get(i) : null;
-    }
 }
