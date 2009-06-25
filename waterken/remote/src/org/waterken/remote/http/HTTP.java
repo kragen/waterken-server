@@ -64,7 +64,7 @@ HTTP extends Eventual implements Serializable {
     
     // org.ref_send.promise.Eventual interface
 
-    public @Override @SuppressWarnings("unchecked") <R> Vat<R>
+    public @Override <R> Vat<R>
     spawn(final String label, final Class<?> maker, final Object... argv) {
         Method make = null;
         try {
@@ -87,15 +87,17 @@ HTTP extends Eventual implements Serializable {
                 new VatInitializer(make, here, body)).call();
             log.sent(rd.get(0));
             final Importer connect = http.connect();
-            return new Vat(
-                (R)connect.apply(rd.get(1), here, R),
+            final @SuppressWarnings("unchecked") R top =
+                (R)connect.apply(rd.get(1), here, R);
+            return new Vat<R>(top,
                 (Receiver<?>)connect.apply(rd.get(2), here, Receiver.class)
             );
         } catch (final Exception e) {
             try {
+                final Promise<R> top =
+                    reject(e instanceof BadSyntax ? (Exception)e.getCause() :e); 
                 final Receiver<?> destruct = cast(Receiver.class, null);
-                return new Vat(cast(R, reject(e instanceof BadSyntax
-                        ? (Exception)e.getCause() : e)), destruct);
+                return new Vat<R>(cast(R, top), destruct);
             } catch (final Exception ee) { throw new Error(ee); }
         }
     }
