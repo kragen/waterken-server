@@ -281,7 +281,7 @@ ClientSide implements Server {
                     return null;
                 }
             });
-            for (final Exchange x : pending) {sender.apply(new Send(current, x));}
+            for (final Exchange x : pending){sender.apply(new Send(current,x));}
             return null;
         }
         
