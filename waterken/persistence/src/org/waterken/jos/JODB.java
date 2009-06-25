@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.ObjectStreamConstants;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -707,15 +708,16 @@ JODB<S> extends Database<S> {
             final String f = i.next();
             i.remove();
             final Object o = new SymbolicLink(null);
-            
-            final Mac mac = allocMac(root);
-            final Slicer out =
-                new Slicer(true, o, root, new MacOutputStream(mac, null));
-            out.writeObject(o);
-            out.flush();
-            out.close();
-            final ByteArray version = ByteArray.array(mac.doFinal());
-            freeMac(mac);
+            final ByteArray version; {
+                final Mac mac = allocMac(root);
+                final ObjectOutputStream out =
+                    new ObjectOutputStream(new MacOutputStream(mac, null));
+                out.writeObject(o);
+                out.flush();
+                out.close();
+                version = ByteArray.array(mac.doFinal());
+                freeMac(mac);
+            }
             if (null != f2b.put(f, new Bucket(
                 new CacheReference<String,Object>(f,o,wiped),false,version,true,
                     PowerlessArray.array(new String[0])))) {
