@@ -26,15 +26,11 @@ public final class UTF8 {
      */
     static public byte[] encode(final String text) {
         final ByteBuffer bytes = charset.encode(text);
-        final int off = bytes.arrayOffset();
         final int len = bytes.limit();
         final byte[] v = bytes.array();
-        final byte[] r;
-        if (0 == off && len == v.length) {
-            r = v;
-        } else {
-            System.arraycopy(v, off, r = new byte[len], 0, len);
-        }
+        if (len == v.length) { return v; }
+        final byte[] r = new byte[len];
+        System.arraycopy(v, bytes.arrayOffset(), r, 0, len);
         return r;
     }
     
