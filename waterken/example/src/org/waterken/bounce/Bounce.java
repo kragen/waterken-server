@@ -39,7 +39,7 @@ Bounce {
     static public Wall
     make(final Eventual _) {
         final Channel<Boolean> d = _.defer();
-        final Receiver<?> normal = d.resolver;
+        final Receiver<Boolean> normal = d.resolver;
         final Promise<Boolean> p = ref(false);
         class WallX extends Struct implements Wall, Serializable {
             static private final long serialVersionUID = 1L;
@@ -65,15 +65,10 @@ Bounce {
                     IntArray.array(0, Integer.MAX_VALUE, Integer.MIN_VALUE),
                     LongArray.array(0L, (1L << 53) - 1, -((1L << 53) - 1)),
                     "a \" \\ / </ < > \b \f \n \r \t \u0085",
-                    new ConstArray<Receiver<?>>().
-                        with(normal).
-                        with(null),
-                    new ConstArray<Promise<?>>().
-                        with(d.promise).
-                        with(p),
+                    ConstArray.array(normal, null),
+                    ConstArray.array(d.promise, p),
                     ConstArray.array(
-                        new ImmutableArray<PowerlessArray<Boolean>>().
-                            with(PowerlessArray.array(true)),
+                        ImmutableArray.array(PowerlessArray.array(true)),
                         10,
                         BigInteger.TEN,
                         new BigDecimal("3.14")

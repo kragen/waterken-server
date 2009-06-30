@@ -27,25 +27,88 @@ public class ImmutableArray<E> extends ConstArray<E> implements Immutable {
 	ImmutableArray(Object[] arr) {
 		super(arr);
 	}
-	
-	public
-	ImmutableArray() { this(new Object[0]); }
     
     /**
-     * Constuct a <code>ImmutableArray</code>.
+     * Construct a <code>ImmutableArray</code>.
      * @param values    each value
      * @throws ClassCastException if the runtime component type of 
      *     <code>values</code> is not immutable in the overlay type system
      */
-    static public <E> ImmutableArray<E> array(final E... values) {
+    static public <T> ImmutableArray<T> array(final T... values) {
         final Class<?> e = values.getClass().getComponentType();
         if (!JoeE.isSubtypeOf(e, Immutable.class)) {
             throw new ClassCastException(Reflection.getName(e) +
                                          " is not Immutable");
         }
-        return new ImmutableArray<E>(values.clone());
+        return new ImmutableArray<T>(values.clone());
     }
     
+    /* 
+     * See the comment in ConstArray for why the following methods exist.
+     */
+
+    /**
+     * Construct an empty <code>ConstArray</code>.
+     */
+    static public <T> ImmutableArray<T> array() {
+        return new ImmutableArray<T>(new Object[]{});
+    }  
+    
+    /**
+     * Checks an array to see that all elements are immutable; if so wraps
+     * it WITHOUT a defensive copy
+     */
+    static private <T> ImmutableArray<T> array2(final Object... values) {
+        for (Object v: values) {
+            Class<?> vType = v.getClass();
+            if (!JoeE.isSubtypeOf(vType, Immutable.class)) {
+                throw new ClassCastException(Reflection.getName(vType) +
+                                             " is not Immutable");
+            }
+        }
+        return new ImmutableArray<T>(values);
+    }
+
+    /**
+     * Construct a <code>ConstArray</code> with one element.
+     * @param value    the value
+     */
+    static public <T> ImmutableArray<T> array(final T value) {
+        return array2(value);
+    }
+
+    /**
+     * Construct a <code>ConstArray</code> with two elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     */
+    static public <T> ImmutableArray<T> array(final T value1, final T value2) {
+        return array2(value1, value2);
+    }
+
+    /**
+     * Construct an <code>ImmutableArray</code> with three elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     */
+    static public <T> ImmutableArray<T> array(final T value1, final T value2, 
+                                          final T value3) {
+        return array2(value1, value2, value3);
+    }
+
+    /**
+     * Construct an <code>ImmutableArray</code> with four elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     * @param value4    the fourth value
+     */
+    static public <T> ImmutableArray<T> array(final T value1, final T value2, 
+                                          final T value3, final T value4) {
+        return array2(value1, value2, value3, value4);
+    }
+        
     /**
      * Return a new <code>PowerlessArray</code> that contains the same elements
      * as this one but with a new element added to the end.

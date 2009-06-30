@@ -35,6 +35,58 @@ public final class CharArray extends PowerlessArray<Character> {
         return new CharArray(chars.clone());
     }
     
+    /*
+     * The following are necessary because otherwise calls with <=4 arguments
+     * are resolved to the superclass PowerlessArray
+     */
+    
+    /**
+     * Construct an empty <code>CharArray</code>
+     */
+    @SuppressWarnings("unchecked")  // the warning here seems completely bogus
+    static public CharArray array() {
+        return new CharArray(new char[]{});
+    }
+
+    /**
+     * Construct a <code>CharArray</code> with one element.
+     * @param value    the value
+     */    
+    static public CharArray array(char value) {
+        return new CharArray(new char[]{value});
+    }
+    
+    /**
+     * Construct a <code>CharArray</code> with two elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     */     
+    static public CharArray array(char value1, char value2) {
+        return new CharArray(new char[]{value1, value2});
+    }
+    
+    /**
+     * Construct a <code>CharArray</code> with three elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     */     
+    static public CharArray array(char value1, char value2, char value3) {
+        return new CharArray(new char[]{value1, value2, value3});
+    }
+    
+    /**
+     * Construct a <code>CharArray</code> with four elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     * @param value4    the fourth value
+     */    
+    static public CharArray array(char value1, char value2, char value3,
+                                  char value4) {
+        return new CharArray(new char[]{value1, value2, value3, value4});
+    }
+    
     // java.io.Serializable interface
     
     /*

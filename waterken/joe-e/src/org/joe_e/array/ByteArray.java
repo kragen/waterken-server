@@ -31,12 +31,65 @@ public final class ByteArray extends PowerlessArray<Byte> {
     }
     
     /**
-     * Constructs a <code>ByteArray</code>.
+     * Construct a <code>ByteArray</code>.
      * @param bytes each <code>byte</code>
      */
     static public ByteArray array(final byte... bytes) {
         return new ByteArray(bytes.clone());
     }
+    
+    /*
+     * The following are necessary because otherwise calls with <=4 arguments
+     * are resolved to the superclass PowerlessArray
+     */
+    
+    /**
+     * Construct an empty <code>ByteArray</code>
+     */
+    @SuppressWarnings("unchecked")  // the warning here seems completely bogus
+    static public ByteArray array() {
+        return new ByteArray(new byte[]{});
+    }
+
+    /**
+     * Construct a <code>ByteArray</code> with one element.
+     * @param value    the value
+     */    
+    static public ByteArray array(byte value) {
+        return new ByteArray(new byte[]{value});
+    }
+    
+    /**
+     * Construct a <code>ByteArray</code> with two elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     */     
+    static public ByteArray array(byte value1, byte value2) {
+        return new ByteArray(new byte[]{value1, value2});
+    }
+    
+    /**
+     * Construct a <code>ByteArray</code> with three elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     */     
+    static public ByteArray array(byte value1, byte value2, byte value3) {
+        return new ByteArray(new byte[]{value1, value2, value3});
+    }
+    
+    /**
+     * Construct a <code>ByteArray</code> with four elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     * @param value4    the fourth value
+     */    
+    static public ByteArray array(byte value1, byte value2, byte value3, 
+                                  byte value4) {
+        return new ByteArray(new byte[]{value1, value2, value3, value4});
+    }
+    
     
     // java.io.Serializable interface
     
@@ -207,13 +260,6 @@ public final class ByteArray extends PowerlessArray<Byte> {
    public InputStream asInputStream() {
        return new ByteArrayInputStream(bytes);
    }
-   
-   /**
-    * Views this array as an input stream.
-    */
-  public InputStream asInputStream(final int offset, final int length) {
-      return new ByteArrayInputStream(bytes, offset, length);
-  }
    
    /**
     * Return a new <code>ByteArray</code> that contains the same elements

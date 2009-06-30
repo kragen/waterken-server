@@ -35,6 +35,58 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
         return new BooleanArray(booleans.clone());
     }
     
+    /*
+     * The following are necessary because otherwise calls with <=4 arguments
+     * are resolved to the superclass PowerlessArray
+     */
+    
+    /**
+     * Construct an empty <code>BooleanArray</code>
+     */
+    @SuppressWarnings("unchecked")  // the warning here seems completely bogus
+    static public BooleanArray array() {
+        return new BooleanArray(new boolean[]{});
+    }
+
+    /**
+     * Construct a <code>BooleanArray</code> with one element.
+     * @param value    the value
+     */    
+    static public BooleanArray array(boolean value) {
+        return new BooleanArray(new boolean[]{value});
+    }
+    
+    /**
+     * Construct a <code>BooleanArray</code> with two elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     */     
+    static public BooleanArray array(boolean value1, boolean value2) {
+        return new BooleanArray(new boolean[]{value1, value2});
+    }
+    
+    /**
+     * Construct a <code>BooleanArray</code> with three elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     */     
+    static public BooleanArray array(boolean value1, boolean value2, boolean value3) {
+        return new BooleanArray(new boolean[]{value1, value2, value3});
+    }
+    
+    /**
+     * Construct a <code>BooleanArray</code> with four elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     * @param value4    the fourth value
+     */    
+    static public BooleanArray array(boolean value1, boolean value2, boolean value3,
+                                  boolean value4) {
+        return new BooleanArray(new boolean[]{value1, value2, value3, value4});
+    }
+    
     // java.io.Serializable interface
     
     /*

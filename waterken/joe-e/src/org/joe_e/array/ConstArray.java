@@ -43,17 +43,72 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
         this.arr = arr;
     }
     
-    public
-    ConstArray() { this(new Object[0]); }
-    
     /**
-     * Constuct a <code>ConstArray</code>.
+     * Construct a <code>ConstArray</code>.
      * @param values    each value
      */
     static public <T> ConstArray<T> array(final T... values) {
         return new ConstArray<T>(values.clone());
     }
+   
     
+    /*
+     * The following methods exist as a workaround to avoid warnings being
+     * issued for creating ConstArrays with parameterized types as their
+     * component type (e.g. ConstArray<ConstArray<String>>).
+     * While it is possible for Java to infer that an individual argument is
+     * of such a type, it does not infer arrays of them due to the
+     * unsoundness introduced via covariance.  These methods also avoid an
+     * extra array copy varargs require since they take a mutable array.
+     */   
+
+    /**
+     * Construct an empty <code>ConstArray</code>.
+     */
+    static public <T> ConstArray<T> array() {
+        return new ConstArray<T>(new Object[]{});
+    }
+
+    /**
+     * Construct a <code>ConstArray</code> with one element.
+     * @param value    the value
+     */
+    static public <T> ConstArray<T> array(final T value) {
+        return new ConstArray<T>(new Object[]{value});
+    }
+
+    /**
+     * Construct a <code>ConstArray</code> with two elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     */
+    static public <T> ConstArray<T> array(final T value1, final T value2) {
+        return new ConstArray<T>(new Object[]{value1, value2});
+    }
+
+    /**
+     * Construct a <code>ConstArray</code> with three elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     */
+    static public <T> ConstArray<T> array(final T value1, final T value2, 
+                                          final T value3) {
+        return new ConstArray<T>(new Object[]{value1, value2, value3});
+    }
+
+    /**
+     * Construct a <code>ConstArray</code> with four elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     * @param value4    the fourth value
+     */
+    static public <T> ConstArray<T> array(final T value1, final T value2, 
+                                          final T value3, final T value4) {
+        return new ConstArray<T>(new Object[]{value1, value2, value3, value4});
+    }
+        
     // java.io.Serializable interface
     
     /*

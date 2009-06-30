@@ -25,8 +25,17 @@ public final class UTF8 {
      * @return The UTF-8 bytes.
      */
     static public byte[] encode(final String text) {
-        return charset.encode(text).array();
-        // TODO: this is broken
+        final ByteBuffer bytes = charset.encode(text);
+        final int off = bytes.arrayOffset();
+        final int len = bytes.limit();
+        final byte[] v = bytes.array();
+        final byte[] r;
+        if (0 == off && len == v.length) {
+            r = v;
+        } else {
+            System.arraycopy(v, off, r = new byte[len], 0, len);
+        }
+        return r;
     }
     
     /**

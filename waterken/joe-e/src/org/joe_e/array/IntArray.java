@@ -35,6 +35,58 @@ public final class IntArray extends PowerlessArray<Integer> {
         return new IntArray(ints.clone());
     }
     
+    /*
+     * The following are necessary because otherwise calls with <=4 arguments
+     * are resolved to the superclass PowerlessArray
+     */
+    
+    /**
+     * Construct an empty <code>IntArray</code>
+     */
+    @SuppressWarnings("unchecked")  // the warning here seems completely bogus
+    static public IntArray array() {
+        return new IntArray(new int[]{});
+    }
+
+    /**
+     * Construct a <code>IntArray</code> with one element.
+     * @param value    the value
+     */    
+    static public IntArray array(int value) {
+        return new IntArray(new int[]{value});
+    }
+    
+    /**
+     * Construct a <code>IntArray</code> with two elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     */     
+    static public IntArray array(int value1, int value2) {
+        return new IntArray(new int[]{value1, value2});
+    }
+    
+    /**
+     * Construct a <code>IntArray</code> with three elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     */     
+    static public IntArray array(int value1, int value2, int value3) {
+        return new IntArray(new int[]{value1, value2, value3});
+    }
+    
+    /**
+     * Construct a <code>IntArray</code> with four elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     * @param value4    the fourth value
+     */    
+    static public IntArray array(int value1, int value2, int value3,
+                                  int value4) {
+        return new IntArray(new int[]{value1, value2, value3, value4});
+    }
+    
     // java.io.Serializable interface
     
     /*

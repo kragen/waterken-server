@@ -75,7 +75,7 @@ AllTypes extends Struct implements Record, Serializable {
     /**
      * pass-by-reference
      */
-    public final ConstArray<Receiver<?>> r;
+    public final ConstArray<? extends Receiver<?>> r;
     
     /**
      * promise
@@ -111,7 +111,7 @@ AllTypes extends Struct implements Record, Serializable {
              @name("i") final IntArray i,
              @name("l") final LongArray l,
              @name("t") final String t,
-             @name("r") final ConstArray<Receiver<?>> r,
+             @name("r") final ConstArray<? extends Receiver<?>> r,
              @name("p") final ConstArray<? extends Promise<?>> p,
              @name("a") final Object a) {
         this.b = b;

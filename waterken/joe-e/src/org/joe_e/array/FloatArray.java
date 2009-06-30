@@ -35,6 +35,58 @@ public final class FloatArray extends PowerlessArray<Float> {
         return new FloatArray(floats.clone());
     }
     
+    /*
+     * The following are necessary because otherwise calls with <=4 arguments
+     * are resolved to the superclass PowerlessArray
+     */
+    
+    /**
+     * Construct an empty <code>FloatArray</code>
+     */
+    @SuppressWarnings("unchecked")  // the warning here seems completely bogus
+    static public FloatArray array() {
+        return new FloatArray(new float[]{});
+    }
+
+    /**
+     * Construct a <code>FloatArray</code> with one element.
+     * @param value    the value
+     */    
+    static public FloatArray array(float value) {
+        return new FloatArray(new float[]{value});
+    }
+    
+    /**
+     * Construct a <code>FloatArray</code> with two elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     */     
+    static public FloatArray array(float value1, float value2) {
+        return new FloatArray(new float[]{value1, value2});
+    }
+    
+    /**
+     * Construct a <code>FloatArray</code> with three elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     */     
+    static public FloatArray array(float value1, float value2, float value3) {
+        return new FloatArray(new float[]{value1, value2, value3});
+    }
+    
+    /**
+     * Construct a <code>FloatArray</code> with four elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     * @param value4    the fourth value
+     */    
+    static public FloatArray array(float value1, float value2, float value3,
+                                  float value4) {
+        return new FloatArray(new float[]{value1, value2, value3, value4});
+    }
+    
     // java.io.Serializable interface
     
     /*

@@ -35,6 +35,58 @@ public final class ShortArray extends PowerlessArray<Short> {
         return new ShortArray(shorts.clone());
     }
     
+    /*
+     * The following are necessary because otherwise calls with <=4 arguments
+     * are resolved to the superclass PowerlessArray
+     */
+    
+    /**
+     * Construct an empty <code>ShortArray</code>
+     */
+    @SuppressWarnings("unchecked")  // the warning here seems completely bogus
+    static public ShortArray array() {
+        return new ShortArray(new short[]{});
+    }
+
+    /**
+     * Construct a <code>ShortArray</code> with one element.
+     * @param value    the value
+     */    
+    static public ShortArray array(short value) {
+        return new ShortArray(new short[]{value});
+    }
+    
+    /**
+     * Construct a <code>ShortArray</code> with two elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     */     
+    static public ShortArray array(short value1, short value2) {
+        return new ShortArray(new short[]{value1, value2});
+    }
+    
+    /**
+     * Construct a <code>ShortArray</code> with three elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     */     
+    static public ShortArray array(short value1, short value2, short value3) {
+        return new ShortArray(new short[]{value1, value2, value3});
+    }
+    
+    /**
+     * Construct a <code>ShortArray</code> with four elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     * @param value4    the fourth value
+     */    
+    static public ShortArray array(short value1, short value2, short value3,
+                                  short value4) {
+        return new ShortArray(new short[]{value1, value2, value3, value4});
+    }
+    
     // java.io.Serializable interface
     
     /*

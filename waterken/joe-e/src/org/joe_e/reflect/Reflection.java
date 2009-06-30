@@ -103,16 +103,16 @@ public final class Reflection {
      * @return described constructor
      * @throws NoSuchMethodException    no matching constructor found
      */
-    static public Constructor<?>
-    constructor(final Class<?> type, final Class<?>... args)
+    static public <T> Constructor<T> constructor(final Class<T> type, final Class<?>... args)
                                         throws NoSuchMethodException {
-        final Constructor<?> c = type.getConstructor(args);
+        final Constructor<T> c = type.getConstructor(args);
         if (!safe(c)) {
             throw new NoSuchMethodException();
         }
         return c;
     }
 
+    
     /**
      * Gets all declared public constructors.
      * <p>
@@ -121,8 +121,15 @@ public final class Reflection {
      * @param type class to search
      * @return all public constructors
      */
-    static public PowerlessArray<Constructor<?>>
-    constructors(final Class<?> type) {
+//    static public <T> PowerlessArray<Constructor<T>> 
+//                                        constructors(final Class<T> type) {
+//  Although more expressive, this form is not used as it would preclude doing
+//  anything with the result without casting it to just PowerlessArray<?> or
+//  suppressing an unchecked cast warning at the point of use.
+
+    static public PowerlessArray<Constructor<?>> 
+                                        constructors(final Class<?> type) {
+    
         Constructor<?>[] cs = type.getConstructors();
 
         // Filter the members.
@@ -152,6 +159,7 @@ public final class Reflection {
 
         return PowerlessArray.array(cs);
     }
+    
 
     /**
      * Gets a public method.
@@ -328,8 +336,7 @@ public final class Reflection {
      *    <code>IllegalArgumentException</code>, usually due to mismatched types   
      * @throws Exception    an exception thrown by the invoked constructor
      */
-    static public Object
-    construct(final Constructor<?> ctor, final Object... args)
+    static public <T> T construct(final Constructor<T> ctor, final Object... args)
                                         throws Exception {
         if (!Modifier.isPublic(ctor.getDeclaringClass().getModifiers())) {
             throw new IllegalAccessException();

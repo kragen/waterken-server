@@ -35,6 +35,58 @@ public final class DoubleArray extends PowerlessArray<Double> {
         return new DoubleArray(doubles.clone());
     }
     
+    /*
+     * The following are necessary because otherwise calls with <=4 arguments
+     * are resolved to the superclass PowerlessArray
+     */
+    
+    /**
+     * Construct an empty <code>DoubleArray</code>
+     */
+    @SuppressWarnings("unchecked")  // the warning here seems completely bogus
+    static public DoubleArray array() {
+        return new DoubleArray(new double[]{});
+    }
+
+    /**
+     * Construct a <code>DoubleArray</code> with one element.
+     * @param value    the value
+     */    
+    static public DoubleArray array(double value) {
+        return new DoubleArray(new double[]{value});
+    }
+    
+    /**
+     * Construct a <code>DoubleArray</code> with two elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     */     
+    static public DoubleArray array(double value1, double value2) {
+        return new DoubleArray(new double[]{value1, value2});
+    }
+    
+    /**
+     * Construct a <code>DoubleArray</code> with three elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     */     
+    static public DoubleArray array(double value1, double value2, double value3) {
+        return new DoubleArray(new double[]{value1, value2, value3});
+    }
+    
+    /**
+     * Construct a <code>DoubleArray</code> with four elements.
+     * @param value1    the first value
+     * @param value2    the second value
+     * @param value3    the third value
+     * @param value4    the fourth value
+     */    
+    static public DoubleArray array(double value1, double value2, double value3,
+                                  double value4) {
+        return new DoubleArray(new double[]{value1, value2, value3, value4});
+    }
+    
     // java.io.Serializable interface
     
     /*
