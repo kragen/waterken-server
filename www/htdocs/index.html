@@ -37,10 +37,10 @@ ref_send API provides orthogonal persistence and across-the-network transport of
 asynchronous invocations. Each invocation is sent as an HTTP request: either a
 <code>POST</code> for an update, or a <code>GET</code> for a query. The request
 URL fully identifies the invocation target and any arguments are carried in the
-request body, encoded in <a href="http://json.org/">JSON</a>. A JavaScript
-implementation of the ref_send API facilitates interaction with server-side
-objects from within the browser.  For an example interaction, see the <a
-href="bang/?o=2009-06-01">Bang Tutorial</a>.</p>
+request body, encoded in <a href="http://json.org/">JSON</a>. A <a
+href="web_send/">JavaScript implementation of the ref_send API</a> facilitates
+interaction with server-side objects from within the browser.  For an example
+interaction, see the <a href="bang/?o=2009-06-01">Bang Tutorial</a>.</p>
 <p>The Waterken server supports use of capability-based security to control the
 actions of both server-side objects and remote clients. The ref_send API is
 designed for use by code that passes the <a href="http://joe-e.org/">Joe-E</a>
