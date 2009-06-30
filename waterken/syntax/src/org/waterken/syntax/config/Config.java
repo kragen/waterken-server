@@ -35,7 +35,7 @@ import org.waterken.syntax.json.JSONSerializer;
  *         { "=" : 8088 }
  *     - home.json
  *         {
- *             "$" : [ "org.example.hypertext.Anchor" ],
+ *             "class" : [ "org.example.hypertext.Anchor" ],
  *             "icon" : "home.png",
  *             "href" : "http://waterken.sourceforge.net/",
  *             "tooltip" : "Home page"
