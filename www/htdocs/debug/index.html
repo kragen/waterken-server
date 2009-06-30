@@ -41,7 +41,7 @@ For example, the contents of this file should look like:</p>
 </pre>
 <h4><a name="sendLog" href="#sendLog">Configure event transmission</a></h4>
 <p>For each server transmitting log events, add a file named
-<code>stderr.json</code> to its
+<code>log.json</code> to its
 <code><a href="../deploy/#config">config/</a></code> folder. This file
 specifies the web-key used in sending log events. For example,</p>
 <pre>
@@ -50,8 +50,19 @@ specifies the web-key used in sending log events. For example,</p>
 <p>The above example sends log events to the previously configured log store on
 the local machine. The received events are stored in the file
 <code>config/log/live.log</code>. This file uses JSON syntax, but the closing
-'<code>]</code>' is missing. Manually add the closing bracket before using the file with any JSON parsing software.</p>
-<h3><a name="log_format" href="#log_format">Log format</a></h3>
+'<code>]</code>' is missing. Manually add the closing bracket before using the
+file with any JSON parsing software.</p>
+<p>You may also wish to output <a href="#comment">log comments</a> to the
+console. If so, use the following content for <code>log.json</code>:</p>
+<pre>
+{
+  "class" : [ "org.waterken.trace.Verbose" ],
+  "out" : { "@" : "stdout" },
+  "next" : { "@" : "http://localhost:8080/log/#s=mySecretKey" }
+}
+</pre>
+<h3><a name="log_format"
+href="#log_format">Log format</a></h3>
 <p>The format of each log event is defined by a class in the
 <code><a href="../javadoc/org/ref_send/log/package-summary.html">org.ref_send.log</a></code>
 package. For example, each eventual invocation generates an event like:</p>
@@ -79,6 +90,7 @@ package. For example, each eventual invocation generates an event like:</p>
     }
   }
 </pre>
+<h4><a name="comment" href="#comment">Comments</a></h4>
 <p>You can insert your own comments into the log by invoking
 <code><a href="../javadoc/org/ref_send/promise/Log.html#comment(java.lang.String)">comment()</a></code>
 on the <code><a href="../javadoc/org/ref_send/promise/Eventual.html#log">log</a></code>

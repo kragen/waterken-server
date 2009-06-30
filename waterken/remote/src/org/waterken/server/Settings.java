@@ -24,9 +24,7 @@ import org.waterken.thread.Sleep;
  */
 public final class
 Settings {
-
-    private
-    Settings() {}
+    private Settings() {}
 
     // initialize bootstrap configuration from system properties
     static private   final File configFolder;
@@ -54,12 +52,15 @@ Settings {
                    AMP.connect(new Proxy()), null);
     static {
         config.override("fileMetadata", new FilesystemClock());
+        config.override("stdin", System.in);
+        config.override("stdout", System.out);
+        config.override("stderr", System.err);
         
-        final Receiver<Event> stderr;
-        try { stderr = config.read("stderr");
+        final Receiver<Event> log;
+        try { log = config.read("log");
         } catch (final Exception e) { throw new Error(e); }
         config.override("dbm", new JODBManager<Server>(
-            new RollingN2V(new Sleep()), new Proxy(), stderr));
+            new RollingN2V(new Sleep()), new Proxy(), log));
     }
     
     /**
