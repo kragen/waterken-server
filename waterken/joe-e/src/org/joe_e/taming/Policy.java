@@ -38,353 +38,712 @@ public class Policy {
     }
 
     static {
+        // Type java.io.BufferedInputStream
+        methods.add("java.io.BufferedInputStream.markSupported()");
+        methods.add("java.io.BufferedInputStream.read(byte[], int, int)");
+        methods.add("java.io.BufferedInputStream.skip(long)");
+        methods.add("java.io.BufferedInputStream.mark(int)");
+        methods.add("java.io.BufferedInputStream.read()");
+        methods.add("java.io.BufferedInputStream.close()");
+        methods.add("java.io.BufferedInputStream.available()");
+        methods.add("java.io.BufferedInputStream.reset()");
+
         // Type java.io.BufferedOutputStream
         fields.add("java.io.BufferedOutputStream.count");
         fields.add("java.io.BufferedOutputStream.buf");
         constructors.add("java.io.BufferedOutputStream(OutputStream, int)");
         methods.add("java.io.BufferedOutputStream.write(byte[], int, int)");
-        methods.add("java.io.BufferedOutputStream.flush()");
         methods.add("java.io.BufferedOutputStream.write(int)");
+        methods.add("java.io.BufferedOutputStream.flush()");
 
         // Type java.io.BufferedReader
         constructors.add("java.io.BufferedReader(Reader, int)");
-        methods.add("java.io.BufferedReader.ready()");
         methods.add("java.io.BufferedReader.read()");
-        methods.add("java.io.BufferedReader.readLine()");
-        methods.add("java.io.BufferedReader.read(char[], int, int)");
-        methods.add("java.io.BufferedReader.skip(long)");
-        methods.add("java.io.BufferedReader.close()");
-        methods.add("java.io.BufferedReader.markSupported()");
         methods.add("java.io.BufferedReader.reset()");
+        methods.add("java.io.BufferedReader.markSupported()");
+        methods.add("java.io.BufferedReader.close()");
+        methods.add("java.io.BufferedReader.readLine()");
+        methods.add("java.io.BufferedReader.skip(long)");
+        methods.add("java.io.BufferedReader.ready()");
+        methods.add("java.io.BufferedReader.read(char[], int, int)");
         methods.add("java.io.BufferedReader.mark(int)");
 
+        // Type java.io.BufferedWriter
+        methods.add("java.io.BufferedWriter.write(String, int, int)");
+        methods.add("java.io.BufferedWriter.write(int)");
+        methods.add("java.io.BufferedWriter.flush()");
+        methods.add("java.io.BufferedWriter.write(char[], int, int)");
+        methods.add("java.io.BufferedWriter.close()");
+
+        // Type java.io.ByteArrayInputStream
+        methods.add("java.io.ByteArrayInputStream.close()");
+        methods.add("java.io.ByteArrayInputStream.mark(int)");
+        methods.add("java.io.ByteArrayInputStream.markSupported()");
+        methods.add("java.io.ByteArrayInputStream.reset()");
+        methods.add("java.io.ByteArrayInputStream.read(byte[], int, int)");
+        methods.add("java.io.ByteArrayInputStream.available()");
+        methods.add("java.io.ByteArrayInputStream.read()");
+        methods.add("java.io.ByteArrayInputStream.skip(long)");
+
+        // Type java.io.ByteArrayOutputStream
+        methods.add("java.io.ByteArrayOutputStream.write(int)");
+        methods.add("java.io.ByteArrayOutputStream.write(byte[], int, int)");
+        methods.add("java.io.ByteArrayOutputStream.close()");
+
+        // Type java.io.CharArrayReader
+        methods.add("java.io.CharArrayReader.close()");
+        methods.add("java.io.CharArrayReader.read(char[], int, int)");
+        methods.add("java.io.CharArrayReader.read()");
+        methods.add("java.io.CharArrayReader.ready()");
+        methods.add("java.io.CharArrayReader.skip(long)");
+        methods.add("java.io.CharArrayReader.reset()");
+        methods.add("java.io.CharArrayReader.mark(int)");
+        methods.add("java.io.CharArrayReader.markSupported()");
+
+        // Type java.io.CharArrayWriter
+        methods.add("java.io.CharArrayWriter.close()");
+        methods.add("java.io.CharArrayWriter.write(String, int, int)");
+        methods.add("java.io.CharArrayWriter.append(CharSequence, int, int)");
+        methods.add("java.io.CharArrayWriter.flush()");
+        methods.add("java.io.CharArrayWriter.append(char)");
+        methods.add("java.io.CharArrayWriter.append(CharSequence)");
+        methods.add("java.io.CharArrayWriter.write(int)");
+        methods.add("java.io.CharArrayWriter.write(char[], int, int)");
+
+        // Type java.io.CharConversionException
+        honoraries.put("java.io.CharConversionException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+
+        // Type java.io.Closeable
+
+        // Type java.io.DataInput
+
+        // Type java.io.DataInputStream
+        methods.add("java.io.DataInputStream.read(byte[])");
+        methods.add("java.io.DataInputStream.read(byte[], int, int)");
+
+        // Type java.io.DataOutput
+
+        // Type java.io.DataOutputStream
+        methods.add("java.io.DataOutputStream.write(int)");
+        methods.add("java.io.DataOutputStream.flush()");
+        methods.add("java.io.DataOutputStream.write(byte[], int, int)");
+
         // Type java.io.EOFException
-        honoraries.put("java.io.EOFException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.io.EOFException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.io.EOFException(String)");
         constructors.add("java.io.EOFException()");
+
+        // Type java.io.Externalizable
 
         // Type java.io.File
         methods.add("java.io.File.equals(Object)");
 
+        // Type java.io.FileDescriptor
+
+        // Type java.io.FileFilter
+
+        // Type java.io.FileInputStream
+        methods.add("java.io.FileInputStream.skip(long)");
+        methods.add("java.io.FileInputStream.close()");
+        methods.add("java.io.FileInputStream.read()");
+        methods.add("java.io.FileInputStream.available()");
+        methods.add("java.io.FileInputStream.read(byte[], int, int)");
+        methods.add("java.io.FileInputStream.read(byte[])");
+
         // Type java.io.FileNotFoundException
-        honoraries.put("java.io.FileNotFoundException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.io.FileNotFoundException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.io.FileNotFoundException(String)");
         constructors.add("java.io.FileNotFoundException()");
 
+        // Type java.io.FileOutputStream
+        methods.add("java.io.FileOutputStream.write(byte[], int, int)");
+        methods.add("java.io.FileOutputStream.close()");
+        methods.add("java.io.FileOutputStream.write(byte[])");
+        methods.add("java.io.FileOutputStream.write(int)");
+
+        // Type java.io.FilePermission
+        methods.add("java.io.FilePermission.equals(Object)");
+
+        // Type java.io.FileReader
+
+        // Type java.io.FileWriter
+
+        // Type java.io.FilenameFilter
+
+        // Type java.io.FilterInputStream
+        methods.add("java.io.FilterInputStream.markSupported()");
+        methods.add("java.io.FilterInputStream.available()");
+        methods.add("java.io.FilterInputStream.read()");
+        methods.add("java.io.FilterInputStream.mark(int)");
+        methods.add("java.io.FilterInputStream.close()");
+        methods.add("java.io.FilterInputStream.reset()");
+        methods.add("java.io.FilterInputStream.read(byte[], int, int)");
+        methods.add("java.io.FilterInputStream.skip(long)");
+        methods.add("java.io.FilterInputStream.read(byte[])");
+
+        // Type java.io.FilterOutputStream
+        methods.add("java.io.FilterOutputStream.write(byte[])");
+        methods.add("java.io.FilterOutputStream.write(byte[], int, int)");
+        methods.add("java.io.FilterOutputStream.close()");
+        methods.add("java.io.FilterOutputStream.write(int)");
+        methods.add("java.io.FilterOutputStream.flush()");
+
+        // Type java.io.FilterReader
+        methods.add("java.io.FilterReader.read()");
+        methods.add("java.io.FilterReader.skip(long)");
+        methods.add("java.io.FilterReader.ready()");
+        methods.add("java.io.FilterReader.reset()");
+        methods.add("java.io.FilterReader.mark(int)");
+        methods.add("java.io.FilterReader.markSupported()");
+        methods.add("java.io.FilterReader.close()");
+        methods.add("java.io.FilterReader.read(char[], int, int)");
+
+        // Type java.io.FilterWriter
+        methods.add("java.io.FilterWriter.close()");
+        methods.add("java.io.FilterWriter.write(char[], int, int)");
+        methods.add("java.io.FilterWriter.write(int)");
+        methods.add("java.io.FilterWriter.write(String, int, int)");
+        methods.add("java.io.FilterWriter.flush()");
+
+        // Type java.io.Flushable
+
         // Type java.io.IOException
-        honoraries.put("java.io.IOException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.io.IOException()");
+        honoraries.put("java.io.IOException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.io.IOException(String)");
+        constructors.add("java.io.IOException()");
 
         // Type java.io.InputStream
         constructors.add("java.io.InputStream()");
-        methods.add("java.io.InputStream.available()");
-        methods.add("java.io.InputStream.reset()");
-        methods.add("java.io.InputStream.read(byte[], int, int)");
-        methods.add("java.io.InputStream.read(byte[])");
-        methods.add("java.io.InputStream.close()");
-        methods.add("java.io.InputStream.read()");
-        methods.add("java.io.InputStream.skip(long)");
-        methods.add("java.io.InputStream.markSupported()");
         methods.add("java.io.InputStream.mark(int)");
+        methods.add("java.io.InputStream.skip(long)");
+        methods.add("java.io.InputStream.available()");
+        methods.add("java.io.InputStream.read()");
+        methods.add("java.io.InputStream.read(byte[])");
+        methods.add("java.io.InputStream.markSupported()");
+        methods.add("java.io.InputStream.close()");
+        methods.add("java.io.InputStream.read(byte[], int, int)");
+        methods.add("java.io.InputStream.reset()");
+
+        // Type java.io.InputStreamReader
+        methods.add("java.io.InputStreamReader.read(char[], int, int)");
+        methods.add("java.io.InputStreamReader.close()");
+        methods.add("java.io.InputStreamReader.read()");
+        methods.add("java.io.InputStreamReader.ready()");
+
+        // Type java.io.InterruptedIOException
+        honoraries.put("java.io.InterruptedIOException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+
+        // Type java.io.InvalidClassException
+        honoraries.put("java.io.InvalidClassException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+
+        // Type java.io.InvalidObjectException
+        honoraries.put("java.io.InvalidObjectException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+
+        // Type java.io.LineNumberInputStream
+        methods.add("java.io.LineNumberInputStream.read(byte[], int, int)");
+        methods.add("java.io.LineNumberInputStream.mark(int)");
+        methods.add("java.io.LineNumberInputStream.reset()");
+        methods.add("java.io.LineNumberInputStream.available()");
+        methods.add("java.io.LineNumberInputStream.skip(long)");
+        methods.add("java.io.LineNumberInputStream.read()");
+
+        // Type java.io.LineNumberReader
+        methods.add("java.io.LineNumberReader.skip(long)");
+        methods.add("java.io.LineNumberReader.reset()");
+        methods.add("java.io.LineNumberReader.readLine()");
+        methods.add("java.io.LineNumberReader.read()");
+        methods.add("java.io.LineNumberReader.read(char[], int, int)");
+        methods.add("java.io.LineNumberReader.mark(int)");
+
+        // Type java.io.NotActiveException
+        honoraries.put("java.io.NotActiveException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+
+        // Type java.io.NotSerializableException
+        honoraries.put("java.io.NotSerializableException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+
+        // Type java.io.ObjectInput
+
+        // Type java.io.ObjectInputStream
+        methods.add("java.io.ObjectInputStream.close()");
+        methods.add("java.io.ObjectInputStream.available()");
+        methods.add("java.io.ObjectInputStream.read(byte[], int, int)");
+        methods.add("java.io.ObjectInputStream.read()");
+
+        // Type java.io.ObjectInputStream$GetField
+
+        // Type java.io.ObjectInputValidation
+
+        // Type java.io.ObjectOutput
+
+        // Type java.io.ObjectOutputStream
+        methods.add("java.io.ObjectOutputStream.write(byte[], int, int)");
+        methods.add("java.io.ObjectOutputStream.close()");
+        methods.add("java.io.ObjectOutputStream.flush()");
+        methods.add("java.io.ObjectOutputStream.write(int)");
+        methods.add("java.io.ObjectOutputStream.write(byte[])");
+
+        // Type java.io.ObjectOutputStream$PutField
+
+        // Type java.io.ObjectStreamClass
+
+        // Type java.io.ObjectStreamConstants
+
+        // Type java.io.ObjectStreamException
+        honoraries.put("java.io.ObjectStreamException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+
+        // Type java.io.ObjectStreamField
+
+        // Type java.io.OptionalDataException
+        honoraries.put("java.io.OptionalDataException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.io.OutputStream
         constructors.add("java.io.OutputStream()");
-        methods.add("java.io.OutputStream.write(byte[])");
-        methods.add("java.io.OutputStream.write(byte[], int, int)");
-        methods.add("java.io.OutputStream.flush()");
-        methods.add("java.io.OutputStream.write(int)");
         methods.add("java.io.OutputStream.close()");
+        methods.add("java.io.OutputStream.flush()");
+        methods.add("java.io.OutputStream.write(byte[], int, int)");
+        methods.add("java.io.OutputStream.write(int)");
+        methods.add("java.io.OutputStream.write(byte[])");
+
+        // Type java.io.OutputStreamWriter
+        methods.add("java.io.OutputStreamWriter.write(int)");
+        methods.add("java.io.OutputStreamWriter.write(char[], int, int)");
+        methods.add("java.io.OutputStreamWriter.write(String, int, int)");
+        methods.add("java.io.OutputStreamWriter.close()");
+        methods.add("java.io.OutputStreamWriter.flush()");
+
+        // Type java.io.PipedInputStream
+        methods.add("java.io.PipedInputStream.read()");
+        methods.add("java.io.PipedInputStream.close()");
+        methods.add("java.io.PipedInputStream.available()");
+        methods.add("java.io.PipedInputStream.read(byte[], int, int)");
+
+        // Type java.io.PipedOutputStream
+        methods.add("java.io.PipedOutputStream.write(int)");
+        methods.add("java.io.PipedOutputStream.close()");
+        methods.add("java.io.PipedOutputStream.flush()");
+        methods.add("java.io.PipedOutputStream.write(byte[], int, int)");
+
+        // Type java.io.PipedReader
+        methods.add("java.io.PipedReader.read(char[], int, int)");
+        methods.add("java.io.PipedReader.ready()");
+        methods.add("java.io.PipedReader.close()");
+        methods.add("java.io.PipedReader.read()");
+
+        // Type java.io.PipedWriter
+        methods.add("java.io.PipedWriter.flush()");
+        methods.add("java.io.PipedWriter.write(char[], int, int)");
+        methods.add("java.io.PipedWriter.close()");
+        methods.add("java.io.PipedWriter.write(int)");
+
+        // Type java.io.PrintStream
+        methods.add("java.io.PrintStream.flush()");
+        methods.add("java.io.PrintStream.close()");
+        methods.add("java.io.PrintStream.write(int)");
+        methods.add("java.io.PrintStream.write(byte[], int, int)");
+
+        // Type java.io.PrintWriter
+        methods.add("java.io.PrintWriter.write(int)");
+        methods.add("java.io.PrintWriter.close()");
+        methods.add("java.io.PrintWriter.flush()");
+        methods.add("java.io.PrintWriter.append(CharSequence)");
+        methods.add("java.io.PrintWriter.write(String, int, int)");
+        methods.add("java.io.PrintWriter.append(CharSequence, int, int)");
+        methods.add("java.io.PrintWriter.write(String)");
+        methods.add("java.io.PrintWriter.write(char[])");
+        methods.add("java.io.PrintWriter.write(char[], int, int)");
+        methods.add("java.io.PrintWriter.append(char)");
+
+        // Type java.io.PushbackInputStream
+        methods.add("java.io.PushbackInputStream.reset()");
+        methods.add("java.io.PushbackInputStream.read(byte[], int, int)");
+        methods.add("java.io.PushbackInputStream.markSupported()");
+        methods.add("java.io.PushbackInputStream.mark(int)");
+        methods.add("java.io.PushbackInputStream.read()");
+        methods.add("java.io.PushbackInputStream.available()");
+        methods.add("java.io.PushbackInputStream.close()");
+        methods.add("java.io.PushbackInputStream.skip(long)");
+
+        // Type java.io.PushbackReader
+        methods.add("java.io.PushbackReader.skip(long)");
+        methods.add("java.io.PushbackReader.reset()");
+        methods.add("java.io.PushbackReader.ready()");
+        methods.add("java.io.PushbackReader.close()");
+        methods.add("java.io.PushbackReader.read()");
+        methods.add("java.io.PushbackReader.mark(int)");
+        methods.add("java.io.PushbackReader.read(char[], int, int)");
+        methods.add("java.io.PushbackReader.markSupported()");
+
+        // Type java.io.RandomAccessFile
 
         // Type java.io.Reader
         constructors.add("java.io.Reader(Object)");
         constructors.add("java.io.Reader()");
+        methods.add("java.io.Reader.read(char[])");
+        methods.add("java.io.Reader.markSupported()");
+        methods.add("java.io.Reader.mark(int)");
         methods.add("java.io.Reader.reset()");
+        methods.add("java.io.Reader.skip(long)");
         methods.add("java.io.Reader.read()");
         methods.add("java.io.Reader.close()");
-        methods.add("java.io.Reader.read(char[])");
+        methods.add("java.io.Reader.read(char[], int, int)");
         methods.add("java.io.Reader.read(CharBuffer)");
         methods.add("java.io.Reader.ready()");
-        methods.add("java.io.Reader.mark(int)");
-        methods.add("java.io.Reader.skip(long)");
-        methods.add("java.io.Reader.read(char[], int, int)");
-        methods.add("java.io.Reader.markSupported()");
+
+        // Type java.io.SequenceInputStream
+        methods.add("java.io.SequenceInputStream.read(byte[], int, int)");
+        methods.add("java.io.SequenceInputStream.read()");
+        methods.add("java.io.SequenceInputStream.close()");
+        methods.add("java.io.SequenceInputStream.available()");
 
         // Type java.io.Serializable
+
+        // Type java.io.SerializablePermission
+
+        // Type java.io.StreamCorruptedException
+        honoraries.put("java.io.StreamCorruptedException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+
+        // Type java.io.StreamTokenizer
+
+        // Type java.io.StringBufferInputStream
+        methods.add("java.io.StringBufferInputStream.read(byte[], int, int)");
+        methods.add("java.io.StringBufferInputStream.available()");
+        methods.add("java.io.StringBufferInputStream.reset()");
+        methods.add("java.io.StringBufferInputStream.skip(long)");
+        methods.add("java.io.StringBufferInputStream.read()");
+
+        // Type java.io.StringReader
+        methods.add("java.io.StringReader.reset()");
+        methods.add("java.io.StringReader.close()");
+        methods.add("java.io.StringReader.read(char[], int, int)");
+        methods.add("java.io.StringReader.markSupported()");
+        methods.add("java.io.StringReader.read()");
+        methods.add("java.io.StringReader.ready()");
+        methods.add("java.io.StringReader.skip(long)");
+        methods.add("java.io.StringReader.mark(int)");
+
+        // Type java.io.StringWriter
+        methods.add("java.io.StringWriter.flush()");
+        methods.add("java.io.StringWriter.close()");
+        methods.add("java.io.StringWriter.append(char)");
+        methods.add("java.io.StringWriter.write(String)");
+        methods.add("java.io.StringWriter.append(CharSequence, int, int)");
+        methods.add("java.io.StringWriter.write(int)");
+        methods.add("java.io.StringWriter.write(char[], int, int)");
+        methods.add("java.io.StringWriter.append(CharSequence)");
+        methods.add("java.io.StringWriter.write(String, int, int)");
+
+        // Type java.io.SyncFailedException
+        honoraries.put("java.io.SyncFailedException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+
+        // Type java.io.UTFDataFormatException
+        honoraries.put("java.io.UTFDataFormatException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+
+        // Type java.io.UnsupportedEncodingException
+        honoraries.put("java.io.UnsupportedEncodingException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+
+        // Type java.io.WriteAbortedException
+        honoraries.put("java.io.WriteAbortedException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+        methods.add("java.io.WriteAbortedException.getCause()");
 
         // Type java.io.Writer
         constructors.add("java.io.Writer()");
         constructors.add("java.io.Writer(Object)");
+        methods.add("java.io.Writer.write(char[], int, int)");
+        methods.add("java.io.Writer.write(char[])");
+        methods.add("java.io.Writer.write(String)");
+        methods.add("java.io.Writer.close()");
+        methods.add("java.io.Writer.write(int)");
         methods.add("java.io.Writer.flush()");
         methods.add("java.io.Writer.append(char)");
-        methods.add("java.io.Writer.append(CharSequence)");
-        methods.add("java.io.Writer.write(String)");
-        methods.add("java.io.Writer.write(int)");
-        methods.add("java.io.Writer.write(char[])");
         methods.add("java.io.Writer.write(String, int, int)");
-        methods.add("java.io.Writer.write(char[], int, int)");
         methods.add("java.io.Writer.append(CharSequence, int, int)");
-        methods.add("java.io.Writer.close()");
+        methods.add("java.io.Writer.append(CharSequence)");
 
         // Type java.lang.AbstractMethodError
-        honoraries.put("java.lang.AbstractMethodError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.AbstractMethodError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.AbstractStringBuilder
-        methods.add("java.lang.AbstractStringBuilder.getChars(int, int, char[], int)");
+        methods.add("java.lang.AbstractStringBuilder.codePointCount(int, int)");
         methods.add("java.lang.AbstractStringBuilder.setCharAt(int, char)");
-        methods.add("java.lang.AbstractStringBuilder.setLength(int)");
-        methods.add("java.lang.AbstractStringBuilder.trimToSize()");
-        methods.add("java.lang.AbstractStringBuilder.codePointBefore(int)");
-        methods.add("java.lang.AbstractStringBuilder.substring(int)");
+        methods.add("java.lang.AbstractStringBuilder.ensureCapacity(int)");
+        methods.add("java.lang.AbstractStringBuilder.charAt(int)");
         methods.add("java.lang.AbstractStringBuilder.subSequence(int, int)");
         methods.add("java.lang.AbstractStringBuilder.codePointAt(int)");
-        methods.add("java.lang.AbstractStringBuilder.codePointCount(int, int)");
-        methods.add("java.lang.AbstractStringBuilder.charAt(int)");
-        methods.add("java.lang.AbstractStringBuilder.ensureCapacity(int)");
-        methods.add("java.lang.AbstractStringBuilder.offsetByCodePoints(int, int)");
-        methods.add("java.lang.AbstractStringBuilder.substring(int, int)");
         methods.add("java.lang.AbstractStringBuilder.length()");
+        methods.add("java.lang.AbstractStringBuilder.trimToSize()");
+        methods.add("java.lang.AbstractStringBuilder.setLength(int)");
+        methods.add("java.lang.AbstractStringBuilder.substring(int)");
+        methods.add("java.lang.AbstractStringBuilder.getChars(int, int, char[], int)");
+        methods.add("java.lang.AbstractStringBuilder.substring(int, int)");
+        methods.add("java.lang.AbstractStringBuilder.offsetByCodePoints(int, int)");
+        methods.add("java.lang.AbstractStringBuilder.codePointBefore(int)");
 
         // Type java.lang.Appendable
 
         // Type java.lang.ArithmeticException
-        honoraries.put("java.lang.ArithmeticException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.ArithmeticException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.ArithmeticException()");
         constructors.add("java.lang.ArithmeticException(String)");
 
         // Type java.lang.ArrayIndexOutOfBoundsException
-        honoraries.put("java.lang.ArrayIndexOutOfBoundsException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.ArrayIndexOutOfBoundsException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.ArrayStoreException
-        honoraries.put("java.lang.ArrayStoreException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.ArrayStoreException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.AssertionError
-        honoraries.put("java.lang.AssertionError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.AssertionError(float)");
-        constructors.add("java.lang.AssertionError(int)");
-        constructors.add("java.lang.AssertionError(long)");
-        constructors.add("java.lang.AssertionError(boolean)");
-        constructors.add("java.lang.AssertionError(double)");
+        honoraries.put("java.lang.AssertionError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.AssertionError(char)");
         constructors.add("java.lang.AssertionError()");
+        constructors.add("java.lang.AssertionError(int)");
+        constructors.add("java.lang.AssertionError(double)");
+        constructors.add("java.lang.AssertionError(boolean)");
+        constructors.add("java.lang.AssertionError(long)");
+        constructors.add("java.lang.AssertionError(float)");
 
         // Type java.lang.Boolean
-        honoraries.put("java.lang.Boolean", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        fields.add("java.lang.Boolean.FALSE");
+        honoraries.put("java.lang.Boolean", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         fields.add("java.lang.Boolean.TYPE");
+        fields.add("java.lang.Boolean.FALSE");
         fields.add("java.lang.Boolean.TRUE");
-        constructors.add("java.lang.Boolean(String)");
         constructors.add("java.lang.Boolean(boolean)");
-        methods.add("java.lang.Boolean.toString()");
-        methods.add("java.lang.Boolean.compareTo(Boolean)");
-        methods.add("java.lang.Boolean.booleanValue()");
-        methods.add("java.lang.Boolean.hashCode()");
-        methods.add("java.lang.Boolean.toString(boolean)");
-        methods.add("java.lang.Boolean.valueOf(String)");
+        constructors.add("java.lang.Boolean(String)");
         methods.add("java.lang.Boolean.parseBoolean(String)");
+        methods.add("java.lang.Boolean.hashCode()");
         methods.add("java.lang.Boolean.valueOf(boolean)");
+        methods.add("java.lang.Boolean.booleanValue()");
         methods.add("java.lang.Boolean.equals(Object)");
+        methods.add("java.lang.Boolean.compareTo(Boolean)");
+        methods.add("java.lang.Boolean.valueOf(String)");
+        methods.add("java.lang.Boolean.toString(boolean)");
+        methods.add("java.lang.Boolean.toString()");
 
         // Type java.lang.Byte
-        honoraries.put("java.lang.Byte", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        fields.add("java.lang.Byte.MIN_VALUE");
+        honoraries.put("java.lang.Byte", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         fields.add("java.lang.Byte.SIZE");
         fields.add("java.lang.Byte.MAX_VALUE");
         fields.add("java.lang.Byte.TYPE");
-        constructors.add("java.lang.Byte(byte)");
+        fields.add("java.lang.Byte.MIN_VALUE");
         constructors.add("java.lang.Byte(String)");
-        methods.add("java.lang.Byte.byteValue()");
-        methods.add("java.lang.Byte.toString()");
-        methods.add("java.lang.Byte.compareTo(Byte)");
+        constructors.add("java.lang.Byte(byte)");
+        methods.add("java.lang.Byte.valueOf(byte)");
+        methods.add("java.lang.Byte.valueOf(String)");
+        methods.add("java.lang.Byte.hashCode()");
+        methods.add("java.lang.Byte.valueOf(String, int)");
         methods.add("java.lang.Byte.equals(Object)");
         methods.add("java.lang.Byte.parseByte(String)");
-        methods.add("java.lang.Byte.valueOf(String, int)");
-        methods.add("java.lang.Byte.intValue()");
-        methods.add("java.lang.Byte.toString(byte)");
-        methods.add("java.lang.Byte.longValue()");
-        methods.add("java.lang.Byte.hashCode()");
-        methods.add("java.lang.Byte.valueOf(byte)");
-        methods.add("java.lang.Byte.doubleValue()");
-        methods.add("java.lang.Byte.floatValue()");
-        methods.add("java.lang.Byte.valueOf(String)");
         methods.add("java.lang.Byte.shortValue()");
-        methods.add("java.lang.Byte.parseByte(String, int)");
+        methods.add("java.lang.Byte.intValue()");
+        methods.add("java.lang.Byte.toString()");
         methods.add("java.lang.Byte.decode(String)");
+        methods.add("java.lang.Byte.compareTo(Byte)");
+        methods.add("java.lang.Byte.longValue()");
+        methods.add("java.lang.Byte.parseByte(String, int)");
+        methods.add("java.lang.Byte.byteValue()");
+        methods.add("java.lang.Byte.toString(byte)");
+        methods.add("java.lang.Byte.floatValue()");
+        methods.add("java.lang.Byte.doubleValue()");
 
         // Type java.lang.CharSequence
 
         // Type java.lang.Character
-        honoraries.put("java.lang.Character", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        fields.add("java.lang.Character.DIRECTIONALITY_RIGHT_TO_LEFT_OVERRIDE");
-        fields.add("java.lang.Character.MIN_HIGH_SURROGATE");
-        fields.add("java.lang.Character.TITLECASE_LETTER");
-        fields.add("java.lang.Character.OTHER_LETTER");
-        fields.add("java.lang.Character.LETTER_NUMBER");
-        fields.add("java.lang.Character.OTHER_NUMBER");
-        fields.add("java.lang.Character.DECIMAL_DIGIT_NUMBER");
+        honoraries.put("java.lang.Character", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
+        fields.add("java.lang.Character.ENCLOSING_MARK");
+        fields.add("java.lang.Character.COMBINING_SPACING_MARK");
+        fields.add("java.lang.Character.DIRECTIONALITY_WHITESPACE");
+        fields.add("java.lang.Character.CURRENCY_SYMBOL");
         fields.add("java.lang.Character.MAX_SURROGATE");
-        fields.add("java.lang.Character.MODIFIER_SYMBOL");
-        fields.add("java.lang.Character.MIN_SUPPLEMENTARY_CODE_POINT");
-        fields.add("java.lang.Character.DIRECTIONALITY_ARABIC_NUMBER");
-        fields.add("java.lang.Character.DIRECTIONALITY_LEFT_TO_RIGHT_OVERRIDE");
-        fields.add("java.lang.Character.OTHER_PUNCTUATION");
+        fields.add("java.lang.Character.PRIVATE_USE");
+        fields.add("java.lang.Character.TITLECASE_LETTER");
+        fields.add("java.lang.Character.MIN_VALUE");
+        fields.add("java.lang.Character.SPACE_SEPARATOR");
+        fields.add("java.lang.Character.DIRECTIONALITY_COMMON_NUMBER_SEPARATOR");
+        fields.add("java.lang.Character.DIRECTIONALITY_UNDEFINED");
+        fields.add("java.lang.Character.MAX_CODE_POINT");
+        fields.add("java.lang.Character.DIRECTIONALITY_NONSPACING_MARK");
+        fields.add("java.lang.Character.DIRECTIONALITY_LEFT_TO_RIGHT");
         fields.add("java.lang.Character.NON_SPACING_MARK");
+        fields.add("java.lang.Character.UNASSIGNED");
+        fields.add("java.lang.Character.DIRECTIONALITY_RIGHT_TO_LEFT_EMBEDDING");
+        fields.add("java.lang.Character.DASH_PUNCTUATION");
+        fields.add("java.lang.Character.MAX_HIGH_SURROGATE");
+        fields.add("java.lang.Character.LINE_SEPARATOR");
+        fields.add("java.lang.Character.MATH_SYMBOL");
+        fields.add("java.lang.Character.MIN_SURROGATE");
+        fields.add("java.lang.Character.MAX_LOW_SURROGATE");
+        fields.add("java.lang.Character.DIRECTIONALITY_EUROPEAN_NUMBER_TERMINATOR");
+        fields.add("java.lang.Character.MIN_SUPPLEMENTARY_CODE_POINT");
         fields.add("java.lang.Character.DIRECTIONALITY_EUROPEAN_NUMBER");
+        fields.add("java.lang.Character.MIN_RADIX");
+        fields.add("java.lang.Character.LETTER_NUMBER");
+        fields.add("java.lang.Character.UPPERCASE_LETTER");
+        fields.add("java.lang.Character.CONTROL");
         fields.add("java.lang.Character.DIRECTIONALITY_BOUNDARY_NEUTRAL");
-        fields.add("java.lang.Character.INITIAL_QUOTE_PUNCTUATION");
-        fields.add("java.lang.Character.SURROGATE");
+        fields.add("java.lang.Character.DIRECTIONALITY_OTHER_NEUTRALS");
+        fields.add("java.lang.Character.DIRECTIONALITY_LEFT_TO_RIGHT_OVERRIDE");
+        fields.add("java.lang.Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC");
+        fields.add("java.lang.Character.DIRECTIONALITY_EUROPEAN_NUMBER_SEPARATOR");
+        fields.add("java.lang.Character.DIRECTIONALITY_SEGMENT_SEPARATOR");
+        fields.add("java.lang.Character.MAX_VALUE");
+        fields.add("java.lang.Character.CONNECTOR_PUNCTUATION");
+        fields.add("java.lang.Character.END_PUNCTUATION");
+        fields.add("java.lang.Character.FORMAT");
+        fields.add("java.lang.Character.MODIFIER_SYMBOL");
+        fields.add("java.lang.Character.LOWERCASE_LETTER");
         fields.add("java.lang.Character.MIN_LOW_SURROGATE");
         fields.add("java.lang.Character.DIRECTIONALITY_PARAGRAPH_SEPARATOR");
-        fields.add("java.lang.Character.MIN_SURROGATE");
-        fields.add("java.lang.Character.MAX_RADIX");
-        fields.add("java.lang.Character.DIRECTIONALITY_EUROPEAN_NUMBER_TERMINATOR");
-        fields.add("java.lang.Character.MIN_CODE_POINT");
-        fields.add("java.lang.Character.MAX_LOW_SURROGATE");
-        fields.add("java.lang.Character.FINAL_QUOTE_PUNCTUATION");
-        fields.add("java.lang.Character.MIN_RADIX");
-        fields.add("java.lang.Character.CURRENCY_SYMBOL");
-        fields.add("java.lang.Character.DIRECTIONALITY_NONSPACING_MARK");
-        fields.add("java.lang.Character.LOWERCASE_LETTER");
-        fields.add("java.lang.Character.DIRECTIONALITY_SEGMENT_SEPARATOR");
-        fields.add("java.lang.Character.START_PUNCTUATION");
-        fields.add("java.lang.Character.DIRECTIONALITY_POP_DIRECTIONAL_FORMAT");
-        fields.add("java.lang.Character.CONNECTOR_PUNCTUATION");
-        fields.add("java.lang.Character.MAX_CODE_POINT");
-        fields.add("java.lang.Character.UNASSIGNED");
-        fields.add("java.lang.Character.DIRECTIONALITY_OTHER_NEUTRALS");
-        fields.add("java.lang.Character.FORMAT");
-        fields.add("java.lang.Character.LINE_SEPARATOR");
-        fields.add("java.lang.Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC");
-        fields.add("java.lang.Character.COMBINING_SPACING_MARK");
-        fields.add("java.lang.Character.DIRECTIONALITY_EUROPEAN_NUMBER_SEPARATOR");
-        fields.add("java.lang.Character.SPACE_SEPARATOR");
-        fields.add("java.lang.Character.ENCLOSING_MARK");
-        fields.add("java.lang.Character.UPPERCASE_LETTER");
-        fields.add("java.lang.Character.DIRECTIONALITY_UNDEFINED");
-        fields.add("java.lang.Character.MAX_HIGH_SURROGATE");
-        fields.add("java.lang.Character.OTHER_SYMBOL");
-        fields.add("java.lang.Character.DIRECTIONALITY_RIGHT_TO_LEFT_EMBEDDING");
-        fields.add("java.lang.Character.CONTROL");
-        fields.add("java.lang.Character.PARAGRAPH_SEPARATOR");
-        fields.add("java.lang.Character.MIN_VALUE");
-        fields.add("java.lang.Character.END_PUNCTUATION");
-        fields.add("java.lang.Character.MATH_SYMBOL");
-        fields.add("java.lang.Character.SIZE");
+        fields.add("java.lang.Character.OTHER_LETTER");
         fields.add("java.lang.Character.DIRECTIONALITY_RIGHT_TO_LEFT");
-        fields.add("java.lang.Character.DASH_PUNCTUATION");
-        fields.add("java.lang.Character.DIRECTIONALITY_COMMON_NUMBER_SEPARATOR");
-        fields.add("java.lang.Character.DIRECTIONALITY_WHITESPACE");
-        fields.add("java.lang.Character.DIRECTIONALITY_LEFT_TO_RIGHT");
-        fields.add("java.lang.Character.DIRECTIONALITY_LEFT_TO_RIGHT_EMBEDDING");
-        fields.add("java.lang.Character.MAX_VALUE");
+        fields.add("java.lang.Character.DIRECTIONALITY_POP_DIRECTIONAL_FORMAT");
+        fields.add("java.lang.Character.INITIAL_QUOTE_PUNCTUATION");
+        fields.add("java.lang.Character.DECIMAL_DIGIT_NUMBER");
         fields.add("java.lang.Character.TYPE");
-        fields.add("java.lang.Character.PRIVATE_USE");
+        fields.add("java.lang.Character.DIRECTIONALITY_ARABIC_NUMBER");
+        fields.add("java.lang.Character.MIN_CODE_POINT");
+        fields.add("java.lang.Character.PARAGRAPH_SEPARATOR");
+        fields.add("java.lang.Character.MIN_HIGH_SURROGATE");
+        fields.add("java.lang.Character.OTHER_PUNCTUATION");
+        fields.add("java.lang.Character.START_PUNCTUATION");
+        fields.add("java.lang.Character.SIZE");
+        fields.add("java.lang.Character.OTHER_SYMBOL");
+        fields.add("java.lang.Character.OTHER_NUMBER");
+        fields.add("java.lang.Character.SURROGATE");
+        fields.add("java.lang.Character.FINAL_QUOTE_PUNCTUATION");
+        fields.add("java.lang.Character.DIRECTIONALITY_RIGHT_TO_LEFT_OVERRIDE");
         fields.add("java.lang.Character.MODIFIER_LETTER");
+        fields.add("java.lang.Character.DIRECTIONALITY_LEFT_TO_RIGHT_EMBEDDING");
+        fields.add("java.lang.Character.MAX_RADIX");
         constructors.add("java.lang.Character(char)");
-        methods.add("java.lang.Character.toChars(int)");
-        methods.add("java.lang.Character.isDefined(char)");
         methods.add("java.lang.Character.codePointAt(char[], int, int)");
-        methods.add("java.lang.Character.codePointBefore(CharSequence, int)");
-        methods.add("java.lang.Character.valueOf(char)");
-        methods.add("java.lang.Character.isMirrored(char)");
-        methods.add("java.lang.Character.isSpaceChar(char)");
-        methods.add("java.lang.Character.isSpaceChar(int)");
-        methods.add("java.lang.Character.equals(Object)");
-        methods.add("java.lang.Character.isWhitespace(int)");
-        methods.add("java.lang.Character.isWhitespace(char)");
-        methods.add("java.lang.Character.codePointAt(char[], int)");
-        methods.add("java.lang.Character.isMirrored(int)");
-        methods.add("java.lang.Character.offsetByCodePoints(CharSequence, int, int)");
-        methods.add("java.lang.Character.isDefined(int)");
-        methods.add("java.lang.Character.toLowerCase(char)");
-        methods.add("java.lang.Character.isTitleCase(int)");
-        methods.add("java.lang.Character.toChars(int, char[], int)");
-        methods.add("java.lang.Character.toString(char)");
-        methods.add("java.lang.Character.codePointCount(CharSequence, int, int)");
-        methods.add("java.lang.Character.isIdentifierIgnorable(char)");
-        methods.add("java.lang.Character.codePointAt(CharSequence, int)");
-        methods.add("java.lang.Character.codePointBefore(char[], int)");
-        methods.add("java.lang.Character.toLowerCase(int)");
         methods.add("java.lang.Character.isIdentifierIgnorable(int)");
-        methods.add("java.lang.Character.isDigit(char)");
-        methods.add("java.lang.Character.digit(int, int)");
-        methods.add("java.lang.Character.charCount(int)");
-        methods.add("java.lang.Character.isLowSurrogate(char)");
-        methods.add("java.lang.Character.isDigit(int)");
-        methods.add("java.lang.Character.isUnicodeIdentifierPart(char)");
-        methods.add("java.lang.Character.toTitleCase(int)");
-        methods.add("java.lang.Character.isHighSurrogate(char)");
-        methods.add("java.lang.Character.isLetterOrDigit(int)");
-        methods.add("java.lang.Character.isTitleCase(char)");
-        methods.add("java.lang.Character.codePointBefore(char[], int, int)");
-        methods.add("java.lang.Character.isLetterOrDigit(char)");
-        methods.add("java.lang.Character.isValidCodePoint(int)");
-        methods.add("java.lang.Character.compareTo(Character)");
-        methods.add("java.lang.Character.toTitleCase(char)");
-        methods.add("java.lang.Character.offsetByCodePoints(char[], int, int, int, int)");
-        methods.add("java.lang.Character.isLetter(char)");
-        methods.add("java.lang.Character.isUnicodeIdentifierPart(int)");
-        methods.add("java.lang.Character.getType(char)");
-        methods.add("java.lang.Character.hashCode()");
-        methods.add("java.lang.Character.isSurrogatePair(char, char)");
-        methods.add("java.lang.Character.toUpperCase(char)");
-        methods.add("java.lang.Character.codePointCount(char[], int, int)");
-        methods.add("java.lang.Character.isJavaIdentifierPart(char)");
-        methods.add("java.lang.Character.reverseBytes(char)");
-        methods.add("java.lang.Character.forDigit(int, int)");
-        methods.add("java.lang.Character.isLowerCase(int)");
-        methods.add("java.lang.Character.charValue()");
         methods.add("java.lang.Character.isLowerCase(char)");
-        methods.add("java.lang.Character.getDirectionality(int)");
-        methods.add("java.lang.Character.isJavaIdentifierPart(int)");
-        methods.add("java.lang.Character.getType(int)");
-        methods.add("java.lang.Character.digit(char, int)");
-        methods.add("java.lang.Character.isJavaIdentifierStart(char)");
-        methods.add("java.lang.Character.isSpace(char)");
-        methods.add("java.lang.Character.toUpperCase(int)");
-        methods.add("java.lang.Character.getDirectionality(char)");
-        methods.add("java.lang.Character.isSupplementaryCodePoint(int)");
-        methods.add("java.lang.Character.isJavaIdentifierStart(int)");
+        methods.add("java.lang.Character.compareTo(Character)");
         methods.add("java.lang.Character.isLetter(int)");
-        methods.add("java.lang.Character.isUpperCase(int)");
-        methods.add("java.lang.Character.isUnicodeIdentifierStart(char)");
         methods.add("java.lang.Character.isISOControl(char)");
-        methods.add("java.lang.Character.isISOControl(int)");
-        methods.add("java.lang.Character.isUpperCase(char)");
+        methods.add("java.lang.Character.isJavaIdentifierStart(char)");
+        methods.add("java.lang.Character.isJavaIdentifierStart(int)");
+        methods.add("java.lang.Character.isSupplementaryCodePoint(int)");
+        methods.add("java.lang.Character.codePointCount(char[], int, int)");
+        methods.add("java.lang.Character.isUnicodeIdentifierPart(char)");
+        methods.add("java.lang.Character.isSurrogatePair(char, char)");
+        methods.add("java.lang.Character.isLowSurrogate(char)");
         methods.add("java.lang.Character.getNumericValue(char)");
-        methods.add("java.lang.Character.toString()");
-        methods.add("java.lang.Character.toCodePoint(char, char)");
-        methods.add("java.lang.Character.isUnicodeIdentifierStart(int)");
+        methods.add("java.lang.Character.codePointAt(CharSequence, int)");
+        methods.add("java.lang.Character.isTitleCase(char)");
+        methods.add("java.lang.Character.isMirrored(char)");
+        methods.add("java.lang.Character.toString(char)");
+        methods.add("java.lang.Character.offsetByCodePoints(CharSequence, int, int)");
+        methods.add("java.lang.Character.reverseBytes(char)");
+        methods.add("java.lang.Character.getType(char)");
+        methods.add("java.lang.Character.toUpperCase(char)");
+        methods.add("java.lang.Character.charCount(int)");
+        methods.add("java.lang.Character.isISOControl(int)");
+        methods.add("java.lang.Character.isJavaIdentifierPart(int)");
+        methods.add("java.lang.Character.codePointBefore(char[], int)");
+        methods.add("java.lang.Character.isSpaceChar(char)");
+        methods.add("java.lang.Character.isLetter(char)");
+        methods.add("java.lang.Character.valueOf(char)");
         methods.add("java.lang.Character.getNumericValue(int)");
+        methods.add("java.lang.Character.isLetterOrDigit(int)");
+        methods.add("java.lang.Character.toLowerCase(int)");
+        methods.add("java.lang.Character.isDigit(char)");
+        methods.add("java.lang.Character.equals(Object)");
+        methods.add("java.lang.Character.offsetByCodePoints(char[], int, int, int, int)");
+        methods.add("java.lang.Character.toCodePoint(char, char)");
+        methods.add("java.lang.Character.getDirectionality(char)");
+        methods.add("java.lang.Character.isUpperCase(int)");
+        methods.add("java.lang.Character.isDefined(char)");
+        methods.add("java.lang.Character.isUpperCase(char)");
+        methods.add("java.lang.Character.codePointBefore(CharSequence, int)");
+        methods.add("java.lang.Character.toTitleCase(int)");
+        methods.add("java.lang.Character.isUnicodeIdentifierPart(int)");
+        methods.add("java.lang.Character.isTitleCase(int)");
+        methods.add("java.lang.Character.isUnicodeIdentifierStart(int)");
+        methods.add("java.lang.Character.isJavaIdentifierPart(char)");
+        methods.add("java.lang.Character.isValidCodePoint(int)");
+        methods.add("java.lang.Character.toString()");
+        methods.add("java.lang.Character.getDirectionality(int)");
+        methods.add("java.lang.Character.isMirrored(int)");
+        methods.add("java.lang.Character.digit(int, int)");
+        methods.add("java.lang.Character.isWhitespace(char)");
+        methods.add("java.lang.Character.isSpaceChar(int)");
+        methods.add("java.lang.Character.isUnicodeIdentifierStart(char)");
+        methods.add("java.lang.Character.isLetterOrDigit(char)");
+        methods.add("java.lang.Character.isDigit(int)");
+        methods.add("java.lang.Character.forDigit(int, int)");
+        methods.add("java.lang.Character.toChars(int, char[], int)");
+        methods.add("java.lang.Character.codePointCount(CharSequence, int, int)");
+        methods.add("java.lang.Character.toTitleCase(char)");
+        methods.add("java.lang.Character.toChars(int)");
+        methods.add("java.lang.Character.isWhitespace(int)");
+        methods.add("java.lang.Character.isHighSurrogate(char)");
+        methods.add("java.lang.Character.getType(int)");
+        methods.add("java.lang.Character.hashCode()");
+        methods.add("java.lang.Character.isIdentifierIgnorable(char)");
+        methods.add("java.lang.Character.charValue()");
+        methods.add("java.lang.Character.isSpace(char)");
+        methods.add("java.lang.Character.isDefined(int)");
+        methods.add("java.lang.Character.codePointAt(char[], int)");
+        methods.add("java.lang.Character.isLowerCase(int)");
+        methods.add("java.lang.Character.codePointBefore(char[], int, int)");
+        methods.add("java.lang.Character.digit(char, int)");
+        methods.add("java.lang.Character.toUpperCase(int)");
+        methods.add("java.lang.Character.toLowerCase(char)");
 
         // Type java.lang.Character$Subset
         methods.add("java.lang.Character$Subset.equals(Object)");
 
         // Type java.lang.Character$UnicodeBlock
 
+        // Type java.lang.Class
+        honoraries.put("java.lang.Class", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Equatable"});
+        methods.add("java.lang.Class.getSuperclass()");
+        methods.add("java.lang.Class.isMemberClass()");
+        methods.add("java.lang.Class.isInstance(Object)");
+        methods.add("java.lang.Class.isAnonymousClass()");
+        methods.add("java.lang.Class.getInterfaces()");
+        methods.add("java.lang.Class.getEnclosingClass()");
+        methods.add("java.lang.Class.isArray()");
+        methods.add("java.lang.Class.isLocalClass()");
+        methods.add("java.lang.Class.isAssignableFrom(Class<?>)");
+        methods.add("java.lang.Class.getDeclaringClass()");
+        methods.add("java.lang.Class.getGenericInterfaces()");
+        methods.add("java.lang.Class.isInterface()");
+        methods.add("java.lang.Class.cast(Object)");
+        methods.add("java.lang.Class.getGenericSuperclass()");
+        methods.add("java.lang.Class.isAnnotation()");
+        methods.add("java.lang.Class.getTypeParameters()");
+        methods.add("java.lang.Class.isSynthetic()");
+        methods.add("java.lang.Class.isPrimitive()");
+        methods.add("java.lang.Class.asSubclass(Class<U>)");
+        methods.add("java.lang.Class.getModifiers()");
+        methods.add("java.lang.Class.isEnum()");
+        methods.add("java.lang.Class.getPackage()");
+        methods.add("java.lang.Class.getComponentType()");
+
         // Type java.lang.ClassCastException
-        honoraries.put("java.lang.ClassCastException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.ClassCastException()");
+        honoraries.put("java.lang.ClassCastException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.ClassCastException(String)");
+        constructors.add("java.lang.ClassCastException()");
 
         // Type java.lang.ClassCircularityError
-        honoraries.put("java.lang.ClassCircularityError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.ClassCircularityError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.ClassFormatError
-        honoraries.put("java.lang.ClassFormatError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.ClassFormatError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.ClassLoader
 
         // Type java.lang.ClassNotFoundException
-        honoraries.put("java.lang.ClassNotFoundException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.ClassNotFoundException(String)");
+        honoraries.put("java.lang.ClassNotFoundException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.ClassNotFoundException(String, Throwable)");
         constructors.add("java.lang.ClassNotFoundException()");
+        constructors.add("java.lang.ClassNotFoundException(String)");
         methods.add("java.lang.ClassNotFoundException.getCause()");
         methods.add("java.lang.ClassNotFoundException.getException()");
 
         // Type java.lang.CloneNotSupportedException
-        honoraries.put("java.lang.CloneNotSupportedException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.CloneNotSupportedException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.Cloneable
 
@@ -395,281 +754,281 @@ public class Policy {
         // Type java.lang.Deprecated
 
         // Type java.lang.Double
-        honoraries.put("java.lang.Double", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        fields.add("java.lang.Double.POSITIVE_INFINITY");
+        honoraries.put("java.lang.Double", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
+        fields.add("java.lang.Double.SIZE");
         fields.add("java.lang.Double.NaN");
+        fields.add("java.lang.Double.MAX_VALUE");
+        fields.add("java.lang.Double.POSITIVE_INFINITY");
         fields.add("java.lang.Double.MIN_VALUE");
         fields.add("java.lang.Double.TYPE");
         fields.add("java.lang.Double.NEGATIVE_INFINITY");
-        fields.add("java.lang.Double.MAX_VALUE");
-        fields.add("java.lang.Double.SIZE");
-        constructors.add("java.lang.Double(double)");
         constructors.add("java.lang.Double(String)");
-        methods.add("java.lang.Double.isNaN()");
-        methods.add("java.lang.Double.doubleValue()");
-        methods.add("java.lang.Double.doubleToLongBits(double)");
-        methods.add("java.lang.Double.floatValue()");
-        methods.add("java.lang.Double.longValue()");
-        methods.add("java.lang.Double.compare(double, double)");
-        methods.add("java.lang.Double.hashCode()");
-        methods.add("java.lang.Double.toString(double)");
-        methods.add("java.lang.Double.intValue()");
-        methods.add("java.lang.Double.doubleToRawLongBits(double)");
-        methods.add("java.lang.Double.parseDouble(String)");
-        methods.add("java.lang.Double.isInfinite()");
-        methods.add("java.lang.Double.equals(Object)");
-        methods.add("java.lang.Double.toHexString(double)");
-        methods.add("java.lang.Double.longBitsToDouble(long)");
-        methods.add("java.lang.Double.isNaN(double)");
-        methods.add("java.lang.Double.isInfinite(double)");
-        methods.add("java.lang.Double.toString()");
-        methods.add("java.lang.Double.valueOf(String)");
+        constructors.add("java.lang.Double(double)");
         methods.add("java.lang.Double.byteValue()");
-        methods.add("java.lang.Double.shortValue()");
         methods.add("java.lang.Double.compareTo(Double)");
+        methods.add("java.lang.Double.toString()");
         methods.add("java.lang.Double.valueOf(double)");
+        methods.add("java.lang.Double.doubleToLongBits(double)");
+        methods.add("java.lang.Double.isNaN()");
+        methods.add("java.lang.Double.isInfinite(double)");
+        methods.add("java.lang.Double.isInfinite()");
+        methods.add("java.lang.Double.parseDouble(String)");
+        methods.add("java.lang.Double.toString(double)");
+        methods.add("java.lang.Double.longBitsToDouble(long)");
+        methods.add("java.lang.Double.doubleValue()");
+        methods.add("java.lang.Double.isNaN(double)");
+        methods.add("java.lang.Double.toHexString(double)");
+        methods.add("java.lang.Double.hashCode()");
+        methods.add("java.lang.Double.valueOf(String)");
+        methods.add("java.lang.Double.equals(Object)");
+        methods.add("java.lang.Double.intValue()");
+        methods.add("java.lang.Double.shortValue()");
+        methods.add("java.lang.Double.doubleToRawLongBits(double)");
+        methods.add("java.lang.Double.floatValue()");
+        methods.add("java.lang.Double.compare(double, double)");
+        methods.add("java.lang.Double.longValue()");
 
         // Type java.lang.Enum
-        honoraries.put("java.lang.Enum", new String[]{"org.joe_e.Powerless", "org.joe_e.Equatable", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.Enum", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Equatable"});
         methods.add("java.lang.Enum.getDeclaringClass()");
+        methods.add("java.lang.Enum.equals(Object)");
+        methods.add("java.lang.Enum.name()");
         methods.add("java.lang.Enum.compareTo(E)");
         methods.add("java.lang.Enum.clone()");
-        methods.add("java.lang.Enum.name()");
-        methods.add("java.lang.Enum.equals(Object)");
 
         // Type java.lang.EnumConstantNotPresentException
-        honoraries.put("java.lang.EnumConstantNotPresentException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.EnumConstantNotPresentException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.Error
-        honoraries.put("java.lang.Error", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.Error()");
-        constructors.add("java.lang.Error(String)");
-        constructors.add("java.lang.Error(Throwable)");
+        honoraries.put("java.lang.Error", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.Error(String, Throwable)");
+        constructors.add("java.lang.Error(Throwable)");
+        constructors.add("java.lang.Error(String)");
+        constructors.add("java.lang.Error()");
 
         // Type java.lang.Exception
-        honoraries.put("java.lang.Exception", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.Exception(Throwable)");
+        honoraries.put("java.lang.Exception", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
+        constructors.add("java.lang.Exception(String)");
         constructors.add("java.lang.Exception()");
         constructors.add("java.lang.Exception(String, Throwable)");
-        constructors.add("java.lang.Exception(String)");
+        constructors.add("java.lang.Exception(Throwable)");
 
         // Type java.lang.ExceptionInInitializerError
-        honoraries.put("java.lang.ExceptionInInitializerError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.ExceptionInInitializerError(String)");
+        honoraries.put("java.lang.ExceptionInInitializerError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.ExceptionInInitializerError()");
         constructors.add("java.lang.ExceptionInInitializerError(Throwable)");
+        constructors.add("java.lang.ExceptionInInitializerError(String)");
         methods.add("java.lang.ExceptionInInitializerError.getException()");
         methods.add("java.lang.ExceptionInInitializerError.getCause()");
 
         // Type java.lang.Float
-        honoraries.put("java.lang.Float", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        fields.add("java.lang.Float.SIZE");
-        fields.add("java.lang.Float.MAX_VALUE");
+        honoraries.put("java.lang.Float", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
+        fields.add("java.lang.Float.POSITIVE_INFINITY");
         fields.add("java.lang.Float.TYPE");
         fields.add("java.lang.Float.NEGATIVE_INFINITY");
-        fields.add("java.lang.Float.NaN");
+        fields.add("java.lang.Float.MAX_VALUE");
         fields.add("java.lang.Float.MIN_VALUE");
-        fields.add("java.lang.Float.POSITIVE_INFINITY");
-        constructors.add("java.lang.Float(String)");
+        fields.add("java.lang.Float.SIZE");
+        fields.add("java.lang.Float.NaN");
         constructors.add("java.lang.Float(float)");
         constructors.add("java.lang.Float(double)");
-        methods.add("java.lang.Float.doubleValue()");
+        constructors.add("java.lang.Float(String)");
+        methods.add("java.lang.Float.byteValue()");
+        methods.add("java.lang.Float.intBitsToFloat(int)");
+        methods.add("java.lang.Float.toHexString(float)");
+        methods.add("java.lang.Float.equals(Object)");
+        methods.add("java.lang.Float.isInfinite()");
+        methods.add("java.lang.Float.floatToRawIntBits(float)");
+        methods.add("java.lang.Float.hashCode()");
+        methods.add("java.lang.Float.valueOf(String)");
         methods.add("java.lang.Float.floatToIntBits(float)");
         methods.add("java.lang.Float.longValue()");
-        methods.add("java.lang.Float.isNaN()");
-        methods.add("java.lang.Float.parseFloat(String)");
-        methods.add("java.lang.Float.isNaN(float)");
-        methods.add("java.lang.Float.equals(Object)");
-        methods.add("java.lang.Float.compare(float, float)");
-        methods.add("java.lang.Float.isInfinite(float)");
-        methods.add("java.lang.Float.toString()");
         methods.add("java.lang.Float.compareTo(Float)");
-        methods.add("java.lang.Float.valueOf(float)");
-        methods.add("java.lang.Float.intBitsToFloat(int)");
-        methods.add("java.lang.Float.hashCode()");
         methods.add("java.lang.Float.shortValue()");
-        methods.add("java.lang.Float.toHexString(float)");
+        methods.add("java.lang.Float.parseFloat(String)");
+        methods.add("java.lang.Float.isInfinite(float)");
+        methods.add("java.lang.Float.compare(float, float)");
+        methods.add("java.lang.Float.isNaN(float)");
         methods.add("java.lang.Float.intValue()");
+        methods.add("java.lang.Float.toString()");
         methods.add("java.lang.Float.floatValue()");
-        methods.add("java.lang.Float.floatToRawIntBits(float)");
-        methods.add("java.lang.Float.byteValue()");
-        methods.add("java.lang.Float.valueOf(String)");
+        methods.add("java.lang.Float.isNaN()");
         methods.add("java.lang.Float.toString(float)");
-        methods.add("java.lang.Float.isInfinite()");
+        methods.add("java.lang.Float.valueOf(float)");
+        methods.add("java.lang.Float.doubleValue()");
 
         // Type java.lang.IllegalAccessError
-        honoraries.put("java.lang.IllegalAccessError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.IllegalAccessError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.IllegalAccessException
-        honoraries.put("java.lang.IllegalAccessException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.IllegalAccessException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.IllegalArgumentException
-        honoraries.put("java.lang.IllegalArgumentException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.IllegalArgumentException(Throwable)");
-        constructors.add("java.lang.IllegalArgumentException()");
-        constructors.add("java.lang.IllegalArgumentException(String)");
+        honoraries.put("java.lang.IllegalArgumentException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.IllegalArgumentException(String, Throwable)");
+        constructors.add("java.lang.IllegalArgumentException(Throwable)");
+        constructors.add("java.lang.IllegalArgumentException(String)");
+        constructors.add("java.lang.IllegalArgumentException()");
 
         // Type java.lang.IllegalMonitorStateException
-        honoraries.put("java.lang.IllegalMonitorStateException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.IllegalMonitorStateException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.IllegalStateException
-        honoraries.put("java.lang.IllegalStateException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.IllegalStateException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.IllegalThreadStateException
-        honoraries.put("java.lang.IllegalThreadStateException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.IllegalThreadStateException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.IncompatibleClassChangeError
-        honoraries.put("java.lang.IncompatibleClassChangeError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.IncompatibleClassChangeError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.IndexOutOfBoundsException
-        honoraries.put("java.lang.IndexOutOfBoundsException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.IndexOutOfBoundsException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.InheritableThreadLocal
 
         // Type java.lang.InstantiationError
-        honoraries.put("java.lang.InstantiationError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.InstantiationError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.InstantiationException
-        honoraries.put("java.lang.InstantiationException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.InstantiationException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.Integer
-        honoraries.put("java.lang.Integer", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        fields.add("java.lang.Integer.MAX_VALUE");
+        honoraries.put("java.lang.Integer", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         fields.add("java.lang.Integer.SIZE");
-        fields.add("java.lang.Integer.MIN_VALUE");
         fields.add("java.lang.Integer.TYPE");
+        fields.add("java.lang.Integer.MIN_VALUE");
+        fields.add("java.lang.Integer.MAX_VALUE");
         constructors.add("java.lang.Integer(int)");
         constructors.add("java.lang.Integer(String)");
-        methods.add("java.lang.Integer.toHexString(int)");
-        methods.add("java.lang.Integer.parseInt(String)");
-        methods.add("java.lang.Integer.reverse(int)");
         methods.add("java.lang.Integer.parseInt(String, int)");
-        methods.add("java.lang.Integer.valueOf(String, int)");
-        methods.add("java.lang.Integer.equals(Object)");
-        methods.add("java.lang.Integer.rotateLeft(int, int)");
-        methods.add("java.lang.Integer.byteValue()");
-        methods.add("java.lang.Integer.valueOf(int)");
-        methods.add("java.lang.Integer.floatValue()");
-        methods.add("java.lang.Integer.rotateRight(int, int)");
-        methods.add("java.lang.Integer.bitCount(int)");
-        methods.add("java.lang.Integer.toBinaryString(int)");
-        methods.add("java.lang.Integer.toOctalString(int)");
-        methods.add("java.lang.Integer.shortValue()");
-        methods.add("java.lang.Integer.numberOfLeadingZeros(int)");
-        methods.add("java.lang.Integer.intValue()");
         methods.add("java.lang.Integer.toString(int)");
-        methods.add("java.lang.Integer.signum(int)");
-        methods.add("java.lang.Integer.hashCode()");
         methods.add("java.lang.Integer.toString(int, int)");
-        methods.add("java.lang.Integer.numberOfTrailingZeros(int)");
-        methods.add("java.lang.Integer.decode(String)");
-        methods.add("java.lang.Integer.lowestOneBit(int)");
-        methods.add("java.lang.Integer.toString()");
+        methods.add("java.lang.Integer.valueOf(String, int)");
         methods.add("java.lang.Integer.compareTo(Integer)");
-        methods.add("java.lang.Integer.highestOneBit(int)");
-        methods.add("java.lang.Integer.valueOf(String)");
+        methods.add("java.lang.Integer.toHexString(int)");
+        methods.add("java.lang.Integer.toBinaryString(int)");
         methods.add("java.lang.Integer.doubleValue()");
-        methods.add("java.lang.Integer.reverseBytes(int)");
+        methods.add("java.lang.Integer.valueOf(int)");
         methods.add("java.lang.Integer.longValue()");
+        methods.add("java.lang.Integer.reverseBytes(int)");
+        methods.add("java.lang.Integer.shortValue()");
+        methods.add("java.lang.Integer.floatValue()");
+        methods.add("java.lang.Integer.toOctalString(int)");
+        methods.add("java.lang.Integer.equals(Object)");
+        methods.add("java.lang.Integer.bitCount(int)");
+        methods.add("java.lang.Integer.valueOf(String)");
+        methods.add("java.lang.Integer.intValue()");
+        methods.add("java.lang.Integer.lowestOneBit(int)");
+        methods.add("java.lang.Integer.hashCode()");
+        methods.add("java.lang.Integer.highestOneBit(int)");
+        methods.add("java.lang.Integer.numberOfTrailingZeros(int)");
+        methods.add("java.lang.Integer.rotateLeft(int, int)");
+        methods.add("java.lang.Integer.parseInt(String)");
+        methods.add("java.lang.Integer.signum(int)");
+        methods.add("java.lang.Integer.toString()");
+        methods.add("java.lang.Integer.numberOfLeadingZeros(int)");
+        methods.add("java.lang.Integer.reverse(int)");
+        methods.add("java.lang.Integer.byteValue()");
+        methods.add("java.lang.Integer.rotateRight(int, int)");
+        methods.add("java.lang.Integer.decode(String)");
 
         // Type java.lang.InternalError
-        honoraries.put("java.lang.InternalError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.InternalError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.InterruptedException
-        honoraries.put("java.lang.InterruptedException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.InterruptedException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.Iterable
 
         // Type java.lang.LinkageError
-        honoraries.put("java.lang.LinkageError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.LinkageError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.Long
-        honoraries.put("java.lang.Long", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.Long", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         fields.add("java.lang.Long.SIZE");
         fields.add("java.lang.Long.MIN_VALUE");
-        fields.add("java.lang.Long.TYPE");
         fields.add("java.lang.Long.MAX_VALUE");
-        constructors.add("java.lang.Long(long)");
+        fields.add("java.lang.Long.TYPE");
         constructors.add("java.lang.Long(String)");
-        methods.add("java.lang.Long.toBinaryString(long)");
-        methods.add("java.lang.Long.decode(String)");
-        methods.add("java.lang.Long.rotateRight(long, int)");
-        methods.add("java.lang.Long.numberOfTrailingZeros(long)");
-        methods.add("java.lang.Long.parseLong(String, int)");
-        methods.add("java.lang.Long.floatValue()");
-        methods.add("java.lang.Long.longValue()");
-        methods.add("java.lang.Long.doubleValue()");
-        methods.add("java.lang.Long.toString(long)");
+        constructors.add("java.lang.Long(long)");
+        methods.add("java.lang.Long.toOctalString(long)");
+        methods.add("java.lang.Long.reverseBytes(long)");
         methods.add("java.lang.Long.highestOneBit(long)");
+        methods.add("java.lang.Long.intValue()");
+        methods.add("java.lang.Long.hashCode()");
+        methods.add("java.lang.Long.parseLong(String, int)");
+        methods.add("java.lang.Long.compareTo(Long)");
+        methods.add("java.lang.Long.toBinaryString(long)");
+        methods.add("java.lang.Long.toString(long, int)");
+        methods.add("java.lang.Long.longValue()");
+        methods.add("java.lang.Long.decode(String)");
         methods.add("java.lang.Long.rotateLeft(long, int)");
+        methods.add("java.lang.Long.valueOf(long)");
+        methods.add("java.lang.Long.rotateRight(long, int)");
+        methods.add("java.lang.Long.valueOf(String)");
+        methods.add("java.lang.Long.parseLong(String)");
+        methods.add("java.lang.Long.toString()");
+        methods.add("java.lang.Long.floatValue()");
+        methods.add("java.lang.Long.numberOfTrailingZeros(long)");
+        methods.add("java.lang.Long.shortValue()");
+        methods.add("java.lang.Long.lowestOneBit(long)");
+        methods.add("java.lang.Long.toHexString(long)");
+        methods.add("java.lang.Long.toString(long)");
+        methods.add("java.lang.Long.byteValue()");
         methods.add("java.lang.Long.numberOfLeadingZeros(long)");
         methods.add("java.lang.Long.valueOf(String, int)");
-        methods.add("java.lang.Long.toString(long, int)");
-        methods.add("java.lang.Long.reverse(long)");
-        methods.add("java.lang.Long.reverseBytes(long)");
-        methods.add("java.lang.Long.parseLong(String)");
-        methods.add("java.lang.Long.shortValue()");
-        methods.add("java.lang.Long.toString()");
-        methods.add("java.lang.Long.intValue()");
-        methods.add("java.lang.Long.toOctalString(long)");
-        methods.add("java.lang.Long.valueOf(long)");
-        methods.add("java.lang.Long.lowestOneBit(long)");
         methods.add("java.lang.Long.bitCount(long)");
         methods.add("java.lang.Long.equals(Object)");
-        methods.add("java.lang.Long.valueOf(String)");
-        methods.add("java.lang.Long.hashCode()");
-        methods.add("java.lang.Long.compareTo(Long)");
         methods.add("java.lang.Long.signum(long)");
-        methods.add("java.lang.Long.toHexString(long)");
-        methods.add("java.lang.Long.byteValue()");
+        methods.add("java.lang.Long.doubleValue()");
+        methods.add("java.lang.Long.reverse(long)");
 
         // Type java.lang.Math
 
         // Type java.lang.NegativeArraySizeException
-        honoraries.put("java.lang.NegativeArraySizeException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.NegativeArraySizeException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.NoClassDefFoundError
-        honoraries.put("java.lang.NoClassDefFoundError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.NoClassDefFoundError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.NoSuchFieldError
-        honoraries.put("java.lang.NoSuchFieldError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.NoSuchFieldError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.NoSuchFieldException
-        honoraries.put("java.lang.NoSuchFieldException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.NoSuchFieldException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.NoSuchMethodError
-        honoraries.put("java.lang.NoSuchMethodError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.NoSuchMethodError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.NoSuchMethodException
-        honoraries.put("java.lang.NoSuchMethodException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.NoSuchMethodException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.NullPointerException
-        honoraries.put("java.lang.NullPointerException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.NullPointerException(String)");
+        honoraries.put("java.lang.NullPointerException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.NullPointerException()");
+        constructors.add("java.lang.NullPointerException(String)");
 
         // Type java.lang.Number
-        honoraries.put("java.lang.Number", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        methods.add("java.lang.Number.longValue()");
-        methods.add("java.lang.Number.doubleValue()");
-        methods.add("java.lang.Number.byteValue()");
+        honoraries.put("java.lang.Number", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         methods.add("java.lang.Number.shortValue()");
         methods.add("java.lang.Number.floatValue()");
+        methods.add("java.lang.Number.doubleValue()");
+        methods.add("java.lang.Number.byteValue()");
         methods.add("java.lang.Number.intValue()");
+        methods.add("java.lang.Number.longValue()");
 
         // Type java.lang.NumberFormatException
-        honoraries.put("java.lang.NumberFormatException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.NumberFormatException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.Object
         constructors.add("java.lang.Object()");
-        methods.add("java.lang.Object.clone()");
-        methods.add("java.lang.Object.getClass()");
         methods.add("java.lang.Object.equals(Object)");
+        methods.add("java.lang.Object.getClass()");
+        methods.add("java.lang.Object.clone()");
 
         // Type java.lang.OutOfMemoryError
-        honoraries.put("java.lang.OutOfMemoryError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.OutOfMemoryError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.Override
 
@@ -686,48 +1045,48 @@ public class Policy {
         // Type java.lang.Runtime
 
         // Type java.lang.RuntimeException
-        honoraries.put("java.lang.RuntimeException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.RuntimeException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.RuntimeException()");
+        constructors.add("java.lang.RuntimeException(String, Throwable)");
         constructors.add("java.lang.RuntimeException(Throwable)");
         constructors.add("java.lang.RuntimeException(String)");
-        constructors.add("java.lang.RuntimeException(String, Throwable)");
 
         // Type java.lang.RuntimePermission
 
         // Type java.lang.SecurityException
-        honoraries.put("java.lang.SecurityException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.SecurityException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.SecurityManager
 
         // Type java.lang.Short
-        honoraries.put("java.lang.Short", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.Short", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         fields.add("java.lang.Short.MAX_VALUE");
+        fields.add("java.lang.Short.TYPE");
         fields.add("java.lang.Short.SIZE");
         fields.add("java.lang.Short.MIN_VALUE");
-        fields.add("java.lang.Short.TYPE");
         constructors.add("java.lang.Short(String)");
         constructors.add("java.lang.Short(short)");
-        methods.add("java.lang.Short.intValue()");
-        methods.add("java.lang.Short.valueOf(short)");
-        methods.add("java.lang.Short.parseShort(String)");
-        methods.add("java.lang.Short.valueOf(String, int)");
-        methods.add("java.lang.Short.byteValue()");
-        methods.add("java.lang.Short.hashCode()");
-        methods.add("java.lang.Short.floatValue()");
         methods.add("java.lang.Short.valueOf(String)");
-        methods.add("java.lang.Short.compareTo(Short)");
-        methods.add("java.lang.Short.reverseBytes(short)");
-        methods.add("java.lang.Short.toString(short)");
-        methods.add("java.lang.Short.longValue()");
-        methods.add("java.lang.Short.equals(Object)");
-        methods.add("java.lang.Short.parseShort(String, int)");
-        methods.add("java.lang.Short.shortValue()");
-        methods.add("java.lang.Short.decode(String)");
-        methods.add("java.lang.Short.doubleValue()");
         methods.add("java.lang.Short.toString()");
+        methods.add("java.lang.Short.valueOf(String, int)");
+        methods.add("java.lang.Short.longValue()");
+        methods.add("java.lang.Short.compareTo(Short)");
+        methods.add("java.lang.Short.floatValue()");
+        methods.add("java.lang.Short.equals(Object)");
+        methods.add("java.lang.Short.byteValue()");
+        methods.add("java.lang.Short.decode(String)");
+        methods.add("java.lang.Short.shortValue()");
+        methods.add("java.lang.Short.parseShort(String, int)");
+        methods.add("java.lang.Short.toString(short)");
+        methods.add("java.lang.Short.intValue()");
+        methods.add("java.lang.Short.hashCode()");
+        methods.add("java.lang.Short.reverseBytes(short)");
+        methods.add("java.lang.Short.parseShort(String)");
+        methods.add("java.lang.Short.valueOf(short)");
+        methods.add("java.lang.Short.doubleValue()");
 
         // Type java.lang.StackOverflowError
-        honoraries.put("java.lang.StackOverflowError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.StackOverflowError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.StackTraceElement
         methods.add("java.lang.StackTraceElement.equals(Object)");
@@ -735,123 +1094,123 @@ public class Policy {
         // Type java.lang.StrictMath
 
         // Type java.lang.String
-        honoraries.put("java.lang.String", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.String", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         fields.add("java.lang.String.CASE_INSENSITIVE_ORDER");
-        constructors.add("java.lang.String()");
         constructors.add("java.lang.String(char[])");
-        constructors.add("java.lang.String(char[], int, int)");
         constructors.add("java.lang.String(String)");
         constructors.add("java.lang.String(StringBuilder)");
         constructors.add("java.lang.String(StringBuffer)");
+        constructors.add("java.lang.String(char[], int, int)");
+        constructors.add("java.lang.String()");
         methods.add("java.lang.String.valueOf(double)");
-        methods.add("java.lang.String.getChars(int, int, char[], int)");
-        methods.add("java.lang.String.valueOf(char)");
-        methods.add("java.lang.String.toCharArray()");
-        methods.add("java.lang.String.compareToIgnoreCase(String)");
-        methods.add("java.lang.String.substring(int, int)");
-        methods.add("java.lang.String.valueOf(char[], int, int)");
-        methods.add("java.lang.String.substring(int)");
-        methods.add("java.lang.String.valueOf(long)");
-        methods.add("java.lang.String.valueOf(int)");
-        methods.add("java.lang.String.contentEquals(StringBuffer)");
         methods.add("java.lang.String.valueOf(float)");
-        methods.add("java.lang.String.charAt(int)");
-        methods.add("java.lang.String.copyValueOf(char[], int, int)");
         methods.add("java.lang.String.compareTo(String)");
-        methods.add("java.lang.String.concat(String)");
-        methods.add("java.lang.String.equalsIgnoreCase(String)");
-        methods.add("java.lang.String.trim()");
-        methods.add("java.lang.String.copyValueOf(char[])");
-        methods.add("java.lang.String.valueOf(boolean)");
-        methods.add("java.lang.String.lastIndexOf(String)");
-        methods.add("java.lang.String.indexOf(String, int)");
-        methods.add("java.lang.String.codePointAt(int)");
-        methods.add("java.lang.String.split(String, int)");
-        methods.add("java.lang.String.split(String)");
-        methods.add("java.lang.String.regionMatches(int, String, int, int)");
-        methods.add("java.lang.String.subSequence(int, int)");
-        methods.add("java.lang.String.contentEquals(CharSequence)");
-        methods.add("java.lang.String.replace(char, char)");
-        methods.add("java.lang.String.replaceAll(String, String)");
-        methods.add("java.lang.String.endsWith(String)");
-        methods.add("java.lang.String.hashCode()");
-        methods.add("java.lang.String.lastIndexOf(int)");
-        methods.add("java.lang.String.codePointBefore(int)");
-        methods.add("java.lang.String.replaceFirst(String, String)");
-        methods.add("java.lang.String.valueOf(char[])");
-        methods.add("java.lang.String.lastIndexOf(String, int)");
-        methods.add("java.lang.String.matches(String)");
-        methods.add("java.lang.String.contains(CharSequence)");
-        methods.add("java.lang.String.lastIndexOf(int, int)");
-        methods.add("java.lang.String.length()");
-        methods.add("java.lang.String.indexOf(String)");
         methods.add("java.lang.String.equals(Object)");
-        methods.add("java.lang.String.indexOf(int)");
-        methods.add("java.lang.String.regionMatches(boolean, int, String, int, int)");
-        methods.add("java.lang.String.toString()");
+        methods.add("java.lang.String.replace(char, char)");
+        methods.add("java.lang.String.lastIndexOf(String)");
+        methods.add("java.lang.String.substring(int)");
+        methods.add("java.lang.String.codePointAt(int)");
+        methods.add("java.lang.String.matches(String)");
+        methods.add("java.lang.String.regionMatches(int, String, int, int)");
+        methods.add("java.lang.String.valueOf(int)");
         methods.add("java.lang.String.indexOf(int, int)");
-        methods.add("java.lang.String.replace(CharSequence, CharSequence)");
-        methods.add("java.lang.String.startsWith(String)");
-        methods.add("java.lang.String.startsWith(String, int)");
+        methods.add("java.lang.String.toString()");
+        methods.add("java.lang.String.subSequence(int, int)");
+        methods.add("java.lang.String.trim()");
+        methods.add("java.lang.String.toCharArray()");
+        methods.add("java.lang.String.replaceFirst(String, String)");
+        methods.add("java.lang.String.copyValueOf(char[], int, int)");
+        methods.add("java.lang.String.equalsIgnoreCase(String)");
+        methods.add("java.lang.String.lastIndexOf(int, int)");
+        methods.add("java.lang.String.charAt(int)");
         methods.add("java.lang.String.codePointCount(int, int)");
+        methods.add("java.lang.String.valueOf(boolean)");
+        methods.add("java.lang.String.replaceAll(String, String)");
+        methods.add("java.lang.String.valueOf(char[])");
+        methods.add("java.lang.String.split(String, int)");
+        methods.add("java.lang.String.valueOf(char)");
+        methods.add("java.lang.String.codePointBefore(int)");
+        methods.add("java.lang.String.hashCode()");
+        methods.add("java.lang.String.compareToIgnoreCase(String)");
+        methods.add("java.lang.String.valueOf(char[], int, int)");
+        methods.add("java.lang.String.substring(int, int)");
+        methods.add("java.lang.String.lastIndexOf(String, int)");
+        methods.add("java.lang.String.contentEquals(StringBuffer)");
+        methods.add("java.lang.String.indexOf(String)");
+        methods.add("java.lang.String.length()");
+        methods.add("java.lang.String.indexOf(String, int)");
+        methods.add("java.lang.String.copyValueOf(char[])");
+        methods.add("java.lang.String.startsWith(String, int)");
+        methods.add("java.lang.String.contains(CharSequence)");
+        methods.add("java.lang.String.getChars(int, int, char[], int)");
+        methods.add("java.lang.String.lastIndexOf(int)");
+        methods.add("java.lang.String.regionMatches(boolean, int, String, int, int)");
+        methods.add("java.lang.String.split(String)");
+        methods.add("java.lang.String.endsWith(String)");
+        methods.add("java.lang.String.replace(CharSequence, CharSequence)");
+        methods.add("java.lang.String.contentEquals(CharSequence)");
+        methods.add("java.lang.String.startsWith(String)");
+        methods.add("java.lang.String.indexOf(int)");
+        methods.add("java.lang.String.concat(String)");
+        methods.add("java.lang.String.valueOf(long)");
 
         // Type java.lang.StringBuffer
-        methods.add("java.lang.StringBuffer.trimToSize()");
+        methods.add("java.lang.StringBuffer.ensureCapacity(int)");
+        methods.add("java.lang.StringBuffer.setLength(int)");
         methods.add("java.lang.StringBuffer.codePointBefore(int)");
+        methods.add("java.lang.StringBuffer.length()");
+        methods.add("java.lang.StringBuffer.charAt(int)");
+        methods.add("java.lang.StringBuffer.codePointCount(int, int)");
         methods.add("java.lang.StringBuffer.subSequence(int, int)");
         methods.add("java.lang.StringBuffer.offsetByCodePoints(int, int)");
-        methods.add("java.lang.StringBuffer.charAt(int)");
-        methods.add("java.lang.StringBuffer.setLength(int)");
-        methods.add("java.lang.StringBuffer.codePointAt(int)");
-        methods.add("java.lang.StringBuffer.codePointCount(int, int)");
-        methods.add("java.lang.StringBuffer.setCharAt(int, char)");
-        methods.add("java.lang.StringBuffer.substring(int)");
-        methods.add("java.lang.StringBuffer.length()");
-        methods.add("java.lang.StringBuffer.ensureCapacity(int)");
-        methods.add("java.lang.StringBuffer.substring(int, int)");
         methods.add("java.lang.StringBuffer.getChars(int, int, char[], int)");
+        methods.add("java.lang.StringBuffer.setCharAt(int, char)");
+        methods.add("java.lang.StringBuffer.trimToSize()");
+        methods.add("java.lang.StringBuffer.codePointAt(int)");
+        methods.add("java.lang.StringBuffer.substring(int)");
+        methods.add("java.lang.StringBuffer.substring(int, int)");
 
         // Type java.lang.StringBuilder
+        constructors.add("java.lang.StringBuilder()");
         constructors.add("java.lang.StringBuilder(CharSequence)");
         constructors.add("java.lang.StringBuilder(String)");
-        constructors.add("java.lang.StringBuilder()");
         constructors.add("java.lang.StringBuilder(int)");
-        methods.add("java.lang.StringBuilder.append(String)");
-        methods.add("java.lang.StringBuilder.lastIndexOf(String, int)");
-        methods.add("java.lang.StringBuilder.append(boolean)");
-        methods.add("java.lang.StringBuilder.insert(int, CharSequence)");
-        methods.add("java.lang.StringBuilder.append(StringBuffer)");
-        methods.add("java.lang.StringBuilder.append(char[], int, int)");
-        methods.add("java.lang.StringBuilder.append(CharSequence, int, int)");
-        methods.add("java.lang.StringBuilder.delete(int, int)");
-        methods.add("java.lang.StringBuilder.reverse()");
-        methods.add("java.lang.StringBuilder.insert(int, char[])");
-        methods.add("java.lang.StringBuilder.deleteCharAt(int)");
-        methods.add("java.lang.StringBuilder.append(CharSequence)");
-        methods.add("java.lang.StringBuilder.append(char[])");
-        methods.add("java.lang.StringBuilder.indexOf(String, int)");
-        methods.add("java.lang.StringBuilder.insert(int, boolean)");
-        methods.add("java.lang.StringBuilder.append(char)");
-        methods.add("java.lang.StringBuilder.append(double)");
-        methods.add("java.lang.StringBuilder.append(float)");
-        methods.add("java.lang.StringBuilder.insert(int, CharSequence, int, int)");
-        methods.add("java.lang.StringBuilder.insert(int, char[], int, int)");
-        methods.add("java.lang.StringBuilder.toString()");
-        methods.add("java.lang.StringBuilder.insert(int, int)");
-        methods.add("java.lang.StringBuilder.insert(int, long)");
-        methods.add("java.lang.StringBuilder.replace(int, int, String)");
-        methods.add("java.lang.StringBuilder.lastIndexOf(String)");
-        methods.add("java.lang.StringBuilder.append(long)");
-        methods.add("java.lang.StringBuilder.append(int)");
-        methods.add("java.lang.StringBuilder.insert(int, String)");
         methods.add("java.lang.StringBuilder.insert(int, char)");
-        methods.add("java.lang.StringBuilder.indexOf(String)");
-        methods.add("java.lang.StringBuilder.insert(int, double)");
+        methods.add("java.lang.StringBuilder.delete(int, int)");
+        methods.add("java.lang.StringBuilder.append(long)");
+        methods.add("java.lang.StringBuilder.append(CharSequence, int, int)");
+        methods.add("java.lang.StringBuilder.insert(int, boolean)");
         methods.add("java.lang.StringBuilder.insert(int, float)");
+        methods.add("java.lang.StringBuilder.append(String)");
+        methods.add("java.lang.StringBuilder.insert(int, CharSequence, int, int)");
+        methods.add("java.lang.StringBuilder.deleteCharAt(int)");
+        methods.add("java.lang.StringBuilder.insert(int, CharSequence)");
+        methods.add("java.lang.StringBuilder.insert(int, double)");
+        methods.add("java.lang.StringBuilder.append(double)");
+        methods.add("java.lang.StringBuilder.insert(int, String)");
+        methods.add("java.lang.StringBuilder.append(char[])");
+        methods.add("java.lang.StringBuilder.append(StringBuffer)");
+        methods.add("java.lang.StringBuilder.append(int)");
+        methods.add("java.lang.StringBuilder.replace(int, int, String)");
+        methods.add("java.lang.StringBuilder.lastIndexOf(String, int)");
+        methods.add("java.lang.StringBuilder.reverse()");
+        methods.add("java.lang.StringBuilder.insert(int, char[], int, int)");
         methods.add("java.lang.StringBuilder.appendCodePoint(int)");
+        methods.add("java.lang.StringBuilder.append(float)");
+        methods.add("java.lang.StringBuilder.indexOf(String)");
+        methods.add("java.lang.StringBuilder.insert(int, long)");
+        methods.add("java.lang.StringBuilder.append(char[], int, int)");
+        methods.add("java.lang.StringBuilder.insert(int, int)");
+        methods.add("java.lang.StringBuilder.append(boolean)");
+        methods.add("java.lang.StringBuilder.append(char)");
+        methods.add("java.lang.StringBuilder.lastIndexOf(String)");
+        methods.add("java.lang.StringBuilder.indexOf(String, int)");
+        methods.add("java.lang.StringBuilder.toString()");
+        methods.add("java.lang.StringBuilder.insert(int, char[])");
+        methods.add("java.lang.StringBuilder.append(CharSequence)");
 
         // Type java.lang.StringIndexOutOfBoundsException
-        honoraries.put("java.lang.StringIndexOutOfBoundsException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.StringIndexOutOfBoundsException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.SuppressWarnings
 
@@ -861,67 +1220,67 @@ public class Policy {
         // Type java.lang.Thread
 
         // Type java.lang.Thread$State
-        honoraries.put("java.lang.Thread$State", new String[]{"org.joe_e.Powerless", "org.joe_e.Equatable", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.Thread$State", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Equatable"});
 
         // Type java.lang.Thread$UncaughtExceptionHandler
 
         // Type java.lang.ThreadDeath
-        honoraries.put("java.lang.ThreadDeath", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.ThreadDeath", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.ThreadGroup
 
         // Type java.lang.ThreadLocal
 
         // Type java.lang.Throwable
-        honoraries.put("java.lang.Throwable", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.Throwable(Throwable)");
+        honoraries.put("java.lang.Throwable", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.Throwable(String, Throwable)");
-        constructors.add("java.lang.Throwable(String)");
         constructors.add("java.lang.Throwable()");
+        constructors.add("java.lang.Throwable(Throwable)");
+        constructors.add("java.lang.Throwable(String)");
         methods.add("java.lang.Throwable.getCause()");
 
         // Type java.lang.TypeNotPresentException
-        honoraries.put("java.lang.TypeNotPresentException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.TypeNotPresentException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.UnknownError
-        honoraries.put("java.lang.UnknownError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.UnknownError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.UnsatisfiedLinkError
-        honoraries.put("java.lang.UnsatisfiedLinkError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.UnsatisfiedLinkError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.UnsupportedClassVersionError
-        honoraries.put("java.lang.UnsupportedClassVersionError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.UnsupportedClassVersionError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.UnsupportedOperationException
-        honoraries.put("java.lang.UnsupportedOperationException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.UnsupportedOperationException()");
+        honoraries.put("java.lang.UnsupportedOperationException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.UnsupportedOperationException(String)");
-        constructors.add("java.lang.UnsupportedOperationException(String, Throwable)");
         constructors.add("java.lang.UnsupportedOperationException(Throwable)");
+        constructors.add("java.lang.UnsupportedOperationException(String, Throwable)");
+        constructors.add("java.lang.UnsupportedOperationException()");
 
         // Type java.lang.VerifyError
-        honoraries.put("java.lang.VerifyError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.VerifyError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.VirtualMachineError
-        honoraries.put("java.lang.VirtualMachineError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.VirtualMachineError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.Void
 
         // Type java.lang.annotation.Annotation
-        methods.add("java.lang.annotation.Annotation.equals(Object)");
         methods.add("java.lang.annotation.Annotation.annotationType()");
+        methods.add("java.lang.annotation.Annotation.equals(Object)");
 
         // Type java.lang.annotation.Documented
 
         // Type java.lang.annotation.ElementType
-        honoraries.put("java.lang.annotation.ElementType", new String[]{"org.joe_e.Powerless", "org.joe_e.Equatable", "org.joe_e.Immutable"});
-        fields.add("java.lang.annotation.ElementType.LOCAL_VARIABLE");
-        fields.add("java.lang.annotation.ElementType.METHOD");
-        fields.add("java.lang.annotation.ElementType.ANNOTATION_TYPE");
-        fields.add("java.lang.annotation.ElementType.PARAMETER");
-        fields.add("java.lang.annotation.ElementType.TYPE");
+        honoraries.put("java.lang.annotation.ElementType", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Equatable"});
         fields.add("java.lang.annotation.ElementType.CONSTRUCTOR");
+        fields.add("java.lang.annotation.ElementType.TYPE");
+        fields.add("java.lang.annotation.ElementType.PARAMETER");
+        fields.add("java.lang.annotation.ElementType.ANNOTATION_TYPE");
         fields.add("java.lang.annotation.ElementType.PACKAGE");
+        fields.add("java.lang.annotation.ElementType.METHOD");
+        fields.add("java.lang.annotation.ElementType.LOCAL_VARIABLE");
         fields.add("java.lang.annotation.ElementType.FIELD");
         methods.add("java.lang.annotation.ElementType.valueOf(String)");
         methods.add("java.lang.annotation.ElementType.values()");
@@ -931,9 +1290,9 @@ public class Policy {
         // Type java.lang.annotation.Retention
 
         // Type java.lang.annotation.RetentionPolicy
-        honoraries.put("java.lang.annotation.RetentionPolicy", new String[]{"org.joe_e.Powerless", "org.joe_e.Equatable", "org.joe_e.Immutable"});
-        fields.add("java.lang.annotation.RetentionPolicy.CLASS");
+        honoraries.put("java.lang.annotation.RetentionPolicy", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Equatable"});
         fields.add("java.lang.annotation.RetentionPolicy.RUNTIME");
+        fields.add("java.lang.annotation.RetentionPolicy.CLASS");
         fields.add("java.lang.annotation.RetentionPolicy.SOURCE");
         methods.add("java.lang.annotation.RetentionPolicy.values()");
         methods.add("java.lang.annotation.RetentionPolicy.valueOf(String)");
@@ -947,32 +1306,32 @@ public class Policy {
         // Type java.lang.reflect.Array
 
         // Type java.lang.reflect.Constructor
-        honoraries.put("java.lang.reflect.Constructor", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        methods.add("java.lang.reflect.Constructor.getName()");
-        methods.add("java.lang.reflect.Constructor.isVarArgs()");
-        methods.add("java.lang.reflect.Constructor.getParameterTypes()");
+        honoraries.put("java.lang.reflect.Constructor", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         methods.add("java.lang.reflect.Constructor.getTypeParameters()");
         methods.add("java.lang.reflect.Constructor.equals(Object)");
-        methods.add("java.lang.reflect.Constructor.getGenericParameterTypes()");
+        methods.add("java.lang.reflect.Constructor.isVarArgs()");
+        methods.add("java.lang.reflect.Constructor.getParameterTypes()");
         methods.add("java.lang.reflect.Constructor.toString()");
         methods.add("java.lang.reflect.Constructor.toGenericString()");
-        methods.add("java.lang.reflect.Constructor.getModifiers()");
         methods.add("java.lang.reflect.Constructor.isSynthetic()");
+        methods.add("java.lang.reflect.Constructor.getGenericParameterTypes()");
+        methods.add("java.lang.reflect.Constructor.getModifiers()");
+        methods.add("java.lang.reflect.Constructor.getName()");
         methods.add("java.lang.reflect.Constructor.getDeclaringClass()");
 
         // Type java.lang.reflect.Field
-        honoraries.put("java.lang.reflect.Field", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        methods.add("java.lang.reflect.Field.toGenericString()");
-        methods.add("java.lang.reflect.Field.isSynthetic()");
-        methods.add("java.lang.reflect.Field.isEnumConstant()");
-        methods.add("java.lang.reflect.Field.getName()");
-        methods.add("java.lang.reflect.Field.toString()");
-        methods.add("java.lang.reflect.Field.equals(Object)");
-        methods.add("java.lang.reflect.Field.getGenericType()");
-        methods.add("java.lang.reflect.Field.getType()");
-        methods.add("java.lang.reflect.Field.getDeclaringClass()");
-        methods.add("java.lang.reflect.Field.hashCode()");
+        honoraries.put("java.lang.reflect.Field", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         methods.add("java.lang.reflect.Field.getAnnotation(Class<T>)");
+        methods.add("java.lang.reflect.Field.getName()");
+        methods.add("java.lang.reflect.Field.getGenericType()");
+        methods.add("java.lang.reflect.Field.isEnumConstant()");
+        methods.add("java.lang.reflect.Field.getType()");
+        methods.add("java.lang.reflect.Field.equals(Object)");
+        methods.add("java.lang.reflect.Field.toString()");
+        methods.add("java.lang.reflect.Field.getDeclaringClass()");
+        methods.add("java.lang.reflect.Field.isSynthetic()");
+        methods.add("java.lang.reflect.Field.toGenericString()");
+        methods.add("java.lang.reflect.Field.hashCode()");
 
         // Type java.lang.reflect.GenericArrayType
 
@@ -980,72 +1339,72 @@ public class Policy {
         methods.add("java.lang.reflect.GenericDeclaration.getTypeParameters()");
 
         // Type java.lang.reflect.GenericSignatureFormatError
-        honoraries.put("java.lang.reflect.GenericSignatureFormatError", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.reflect.GenericSignatureFormatError", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.reflect.InvocationHandler
 
         // Type java.lang.reflect.InvocationTargetException
-        honoraries.put("java.lang.reflect.InvocationTargetException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.reflect.InvocationTargetException()");
+        honoraries.put("java.lang.reflect.InvocationTargetException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.reflect.InvocationTargetException(Throwable, String)");
         constructors.add("java.lang.reflect.InvocationTargetException(Throwable)");
+        constructors.add("java.lang.reflect.InvocationTargetException()");
         methods.add("java.lang.reflect.InvocationTargetException.getTargetException()");
         methods.add("java.lang.reflect.InvocationTargetException.getCause()");
 
         // Type java.lang.reflect.MalformedParameterizedTypeException
-        honoraries.put("java.lang.reflect.MalformedParameterizedTypeException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.reflect.MalformedParameterizedTypeException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.lang.reflect.Member
 
         // Type java.lang.reflect.Method
-        honoraries.put("java.lang.reflect.Method", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        methods.add("java.lang.reflect.Method.equals(Object)");
+        honoraries.put("java.lang.reflect.Method", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
+        methods.add("java.lang.reflect.Method.isBridge()");
+        methods.add("java.lang.reflect.Method.getModifiers()");
+        methods.add("java.lang.reflect.Method.getGenericReturnType()");
+        methods.add("java.lang.reflect.Method.getParameterTypes()");
+        methods.add("java.lang.reflect.Method.isSynthetic()");
+        methods.add("java.lang.reflect.Method.getTypeParameters()");
+        methods.add("java.lang.reflect.Method.getDeclaringClass()");
         methods.add("java.lang.reflect.Method.getAnnotation(Class<T>)");
         methods.add("java.lang.reflect.Method.getDefaultValue()");
-        methods.add("java.lang.reflect.Method.isSynthetic()");
-        methods.add("java.lang.reflect.Method.getName()");
-        methods.add("java.lang.reflect.Method.getModifiers()");
-        methods.add("java.lang.reflect.Method.getGenericParameterTypes()");
-        methods.add("java.lang.reflect.Method.getReturnType()");
         methods.add("java.lang.reflect.Method.isVarArgs()");
-        methods.add("java.lang.reflect.Method.getTypeParameters()");
-        methods.add("java.lang.reflect.Method.isBridge()");
-        methods.add("java.lang.reflect.Method.getDeclaringClass()");
-        methods.add("java.lang.reflect.Method.getParameterTypes()");
-        methods.add("java.lang.reflect.Method.getGenericReturnType()");
+        methods.add("java.lang.reflect.Method.getName()");
+        methods.add("java.lang.reflect.Method.equals(Object)");
+        methods.add("java.lang.reflect.Method.getReturnType()");
+        methods.add("java.lang.reflect.Method.getGenericParameterTypes()");
 
         // Type java.lang.reflect.Modifier
+        fields.add("java.lang.reflect.Modifier.PROTECTED");
         fields.add("java.lang.reflect.Modifier.INTERFACE");
-        fields.add("java.lang.reflect.Modifier.STRICT");
-        fields.add("java.lang.reflect.Modifier.STATIC");
-        fields.add("java.lang.reflect.Modifier.PRIVATE");
-        fields.add("java.lang.reflect.Modifier.VOLATILE");
-        fields.add("java.lang.reflect.Modifier.FINAL");
-        fields.add("java.lang.reflect.Modifier.ABSTRACT");
-        fields.add("java.lang.reflect.Modifier.SYNCHRONIZED");
         fields.add("java.lang.reflect.Modifier.TRANSIENT");
+        fields.add("java.lang.reflect.Modifier.FINAL");
+        fields.add("java.lang.reflect.Modifier.STATIC");
+        fields.add("java.lang.reflect.Modifier.ABSTRACT");
         fields.add("java.lang.reflect.Modifier.PUBLIC");
         fields.add("java.lang.reflect.Modifier.NATIVE");
-        fields.add("java.lang.reflect.Modifier.PROTECTED");
+        fields.add("java.lang.reflect.Modifier.VOLATILE");
+        fields.add("java.lang.reflect.Modifier.SYNCHRONIZED");
+        fields.add("java.lang.reflect.Modifier.PRIVATE");
+        fields.add("java.lang.reflect.Modifier.STRICT");
         constructors.add("java.lang.reflect.Modifier()");
-        methods.add("java.lang.reflect.Modifier.isInterface(int)");
-        methods.add("java.lang.reflect.Modifier.toString(int)");
-        methods.add("java.lang.reflect.Modifier.isStatic(int)");
-        methods.add("java.lang.reflect.Modifier.isStrict(int)");
-        methods.add("java.lang.reflect.Modifier.isAbstract(int)");
-        methods.add("java.lang.reflect.Modifier.isVolatile(int)");
-        methods.add("java.lang.reflect.Modifier.isProtected(int)");
-        methods.add("java.lang.reflect.Modifier.isTransient(int)");
-        methods.add("java.lang.reflect.Modifier.isNative(int)");
-        methods.add("java.lang.reflect.Modifier.isSynchronized(int)");
-        methods.add("java.lang.reflect.Modifier.isPrivate(int)");
         methods.add("java.lang.reflect.Modifier.isFinal(int)");
         methods.add("java.lang.reflect.Modifier.isPublic(int)");
+        methods.add("java.lang.reflect.Modifier.isPrivate(int)");
+        methods.add("java.lang.reflect.Modifier.isNative(int)");
+        methods.add("java.lang.reflect.Modifier.isSynchronized(int)");
+        methods.add("java.lang.reflect.Modifier.isVolatile(int)");
+        methods.add("java.lang.reflect.Modifier.isStatic(int)");
+        methods.add("java.lang.reflect.Modifier.isStrict(int)");
+        methods.add("java.lang.reflect.Modifier.toString(int)");
+        methods.add("java.lang.reflect.Modifier.isAbstract(int)");
+        methods.add("java.lang.reflect.Modifier.isInterface(int)");
+        methods.add("java.lang.reflect.Modifier.isProtected(int)");
+        methods.add("java.lang.reflect.Modifier.isTransient(int)");
 
         // Type java.lang.reflect.ParameterizedType
-        honoraries.put("java.lang.reflect.ParameterizedType", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        methods.add("java.lang.reflect.ParameterizedType.getRawType()");
+        honoraries.put("java.lang.reflect.ParameterizedType", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         methods.add("java.lang.reflect.ParameterizedType.getOwnerType()");
+        methods.add("java.lang.reflect.ParameterizedType.getRawType()");
         methods.add("java.lang.reflect.ParameterizedType.getActualTypeArguments()");
 
         // Type java.lang.reflect.Proxy
@@ -1055,189 +1414,189 @@ public class Policy {
         // Type java.lang.reflect.Type
 
         // Type java.lang.reflect.TypeVariable
-        honoraries.put("java.lang.reflect.TypeVariable", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.reflect.TypeVariable", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         methods.add("java.lang.reflect.TypeVariable.getName()");
         methods.add("java.lang.reflect.TypeVariable.getGenericDeclaration()");
 
         // Type java.lang.reflect.UndeclaredThrowableException
-        honoraries.put("java.lang.reflect.UndeclaredThrowableException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.lang.reflect.UndeclaredThrowableException(Throwable, String)");
+        honoraries.put("java.lang.reflect.UndeclaredThrowableException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.lang.reflect.UndeclaredThrowableException(Throwable)");
-        methods.add("java.lang.reflect.UndeclaredThrowableException.getCause()");
+        constructors.add("java.lang.reflect.UndeclaredThrowableException(Throwable, String)");
         methods.add("java.lang.reflect.UndeclaredThrowableException.getUndeclaredThrowable()");
+        methods.add("java.lang.reflect.UndeclaredThrowableException.getCause()");
 
         // Type java.lang.reflect.WildcardType
-        honoraries.put("java.lang.reflect.WildcardType", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.lang.reflect.WildcardType", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         methods.add("java.lang.reflect.WildcardType.getUpperBounds()");
 
         // Type java.math.BigDecimal
-        honoraries.put("java.math.BigDecimal", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        fields.add("java.math.BigDecimal.ONE");
-        fields.add("java.math.BigDecimal.ROUND_UP");
-        fields.add("java.math.BigDecimal.ROUND_DOWN");
-        fields.add("java.math.BigDecimal.ROUND_FLOOR");
-        fields.add("java.math.BigDecimal.TEN");
-        fields.add("java.math.BigDecimal.ROUND_UNNECESSARY");
-        fields.add("java.math.BigDecimal.ROUND_HALF_EVEN");
-        fields.add("java.math.BigDecimal.ROUND_CEILING");
+        honoraries.put("java.math.BigDecimal", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         fields.add("java.math.BigDecimal.ZERO");
+        fields.add("java.math.BigDecimal.ROUND_HALF_EVEN");
         fields.add("java.math.BigDecimal.ROUND_HALF_UP");
         fields.add("java.math.BigDecimal.ROUND_HALF_DOWN");
+        fields.add("java.math.BigDecimal.ONE");
+        fields.add("java.math.BigDecimal.TEN");
+        fields.add("java.math.BigDecimal.ROUND_UP");
+        fields.add("java.math.BigDecimal.ROUND_UNNECESSARY");
+        fields.add("java.math.BigDecimal.ROUND_FLOOR");
+        fields.add("java.math.BigDecimal.ROUND_CEILING");
+        fields.add("java.math.BigDecimal.ROUND_DOWN");
+        constructors.add("java.math.BigDecimal(BigInteger, int, MathContext)");
+        constructors.add("java.math.BigDecimal(double)");
         constructors.add("java.math.BigDecimal(double, MathContext)");
-        constructors.add("java.math.BigDecimal(char[], int, int, MathContext)");
         constructors.add("java.math.BigDecimal(BigInteger)");
-        constructors.add("java.math.BigDecimal(char[], MathContext)");
-        constructors.add("java.math.BigDecimal(String, MathContext)");
-        constructors.add("java.math.BigDecimal(char[], int, int)");
-        constructors.add("java.math.BigDecimal(BigInteger, int)");
-        constructors.add("java.math.BigDecimal(BigInteger, MathContext)");
-        constructors.add("java.math.BigDecimal(int, MathContext)");
-        constructors.add("java.math.BigDecimal(String)");
         constructors.add("java.math.BigDecimal(long, MathContext)");
         constructors.add("java.math.BigDecimal(long)");
-        constructors.add("java.math.BigDecimal(BigInteger, int, MathContext)");
-        constructors.add("java.math.BigDecimal(int)");
         constructors.add("java.math.BigDecimal(char[])");
-        constructors.add("java.math.BigDecimal(double)");
-        methods.add("java.math.BigDecimal.abs(MathContext)");
-        methods.add("java.math.BigDecimal.divideToIntegralValue(BigDecimal, MathContext)");
-        methods.add("java.math.BigDecimal.pow(int)");
+        constructors.add("java.math.BigDecimal(char[], MathContext)");
+        constructors.add("java.math.BigDecimal(String, MathContext)");
+        constructors.add("java.math.BigDecimal(int)");
+        constructors.add("java.math.BigDecimal(int, MathContext)");
+        constructors.add("java.math.BigDecimal(char[], int, int)");
+        constructors.add("java.math.BigDecimal(BigInteger, MathContext)");
+        constructors.add("java.math.BigDecimal(String)");
+        constructors.add("java.math.BigDecimal(char[], int, int, MathContext)");
+        constructors.add("java.math.BigDecimal(BigInteger, int)");
+        methods.add("java.math.BigDecimal.divideAndRemainder(BigDecimal, MathContext)");
         methods.add("java.math.BigDecimal.round(MathContext)");
-        methods.add("java.math.BigDecimal.divide(BigDecimal, RoundingMode)");
-        methods.add("java.math.BigDecimal.setScale(int, RoundingMode)");
-        methods.add("java.math.BigDecimal.divideAndRemainder(BigDecimal)");
-        methods.add("java.math.BigDecimal.toBigInteger()");
-        methods.add("java.math.BigDecimal.byteValueExact()");
-        methods.add("java.math.BigDecimal.setScale(int, int)");
-        methods.add("java.math.BigDecimal.subtract(BigDecimal, MathContext)");
-        methods.add("java.math.BigDecimal.precision()");
-        methods.add("java.math.BigDecimal.longValue()");
-        methods.add("java.math.BigDecimal.hashCode()");
-        methods.add("java.math.BigDecimal.remainder(BigDecimal, MathContext)");
-        methods.add("java.math.BigDecimal.pow(int, MathContext)");
-        methods.add("java.math.BigDecimal.toString()");
-        methods.add("java.math.BigDecimal.floatValue()");
-        methods.add("java.math.BigDecimal.plus()");
-        methods.add("java.math.BigDecimal.setScale(int)");
-        methods.add("java.math.BigDecimal.plus(MathContext)");
-        methods.add("java.math.BigDecimal.scaleByPowerOfTen(int)");
-        methods.add("java.math.BigDecimal.divide(BigDecimal, int)");
-        methods.add("java.math.BigDecimal.intValue()");
-        methods.add("java.math.BigDecimal.movePointRight(int)");
-        methods.add("java.math.BigDecimal.valueOf(long)");
-        methods.add("java.math.BigDecimal.shortValueExact()");
-        methods.add("java.math.BigDecimal.valueOf(double)");
-        methods.add("java.math.BigDecimal.intValueExact()");
-        methods.add("java.math.BigDecimal.negate(MathContext)");
-        methods.add("java.math.BigDecimal.toBigIntegerExact()");
-        methods.add("java.math.BigDecimal.longValueExact()");
-        methods.add("java.math.BigDecimal.multiply(BigDecimal)");
-        methods.add("java.math.BigDecimal.divide(BigDecimal, int, RoundingMode)");
-        methods.add("java.math.BigDecimal.valueOf(long, int)");
         methods.add("java.math.BigDecimal.scale()");
-        methods.add("java.math.BigDecimal.doubleValue()");
-        methods.add("java.math.BigDecimal.unscaledValue()");
-        methods.add("java.math.BigDecimal.remainder(BigDecimal)");
-        methods.add("java.math.BigDecimal.multiply(BigDecimal, MathContext)");
+        methods.add("java.math.BigDecimal.divide(BigDecimal, RoundingMode)");
+        methods.add("java.math.BigDecimal.valueOf(long)");
         methods.add("java.math.BigDecimal.signum()");
         methods.add("java.math.BigDecimal.toEngineeringString()");
-        methods.add("java.math.BigDecimal.stripTrailingZeros()");
-        methods.add("java.math.BigDecimal.divide(BigDecimal)");
-        methods.add("java.math.BigDecimal.divide(BigDecimal, int, int)");
-        methods.add("java.math.BigDecimal.equals(Object)");
-        methods.add("java.math.BigDecimal.divide(BigDecimal, MathContext)");
-        methods.add("java.math.BigDecimal.divideAndRemainder(BigDecimal, MathContext)");
-        methods.add("java.math.BigDecimal.subtract(BigDecimal)");
-        methods.add("java.math.BigDecimal.abs()");
-        methods.add("java.math.BigDecimal.add(BigDecimal, MathContext)");
-        methods.add("java.math.BigDecimal.divideToIntegralValue(BigDecimal)");
-        methods.add("java.math.BigDecimal.add(BigDecimal)");
-        methods.add("java.math.BigDecimal.compareTo(BigDecimal)");
+        methods.add("java.math.BigDecimal.plus()");
+        methods.add("java.math.BigDecimal.remainder(BigDecimal, MathContext)");
+        methods.add("java.math.BigDecimal.valueOf(long, int)");
+        methods.add("java.math.BigDecimal.valueOf(double)");
+        methods.add("java.math.BigDecimal.movePointLeft(int)");
         methods.add("java.math.BigDecimal.toPlainString()");
         methods.add("java.math.BigDecimal.max(BigDecimal)");
+        methods.add("java.math.BigDecimal.multiply(BigDecimal)");
+        methods.add("java.math.BigDecimal.scaleByPowerOfTen(int)");
+        methods.add("java.math.BigDecimal.multiply(BigDecimal, MathContext)");
+        methods.add("java.math.BigDecimal.plus(MathContext)");
+        methods.add("java.math.BigDecimal.divide(BigDecimal, int, int)");
+        methods.add("java.math.BigDecimal.subtract(BigDecimal, MathContext)");
+        methods.add("java.math.BigDecimal.pow(int, MathContext)");
+        methods.add("java.math.BigDecimal.intValue()");
+        methods.add("java.math.BigDecimal.divideToIntegralValue(BigDecimal, MathContext)");
+        methods.add("java.math.BigDecimal.longValueExact()");
+        methods.add("java.math.BigDecimal.divide(BigDecimal, int, RoundingMode)");
+        methods.add("java.math.BigDecimal.negate(MathContext)");
+        methods.add("java.math.BigDecimal.hashCode()");
+        methods.add("java.math.BigDecimal.unscaledValue()");
+        methods.add("java.math.BigDecimal.equals(Object)");
+        methods.add("java.math.BigDecimal.setScale(int)");
+        methods.add("java.math.BigDecimal.movePointRight(int)");
+        methods.add("java.math.BigDecimal.toString()");
+        methods.add("java.math.BigDecimal.byteValueExact()");
+        methods.add("java.math.BigDecimal.divideToIntegralValue(BigDecimal)");
+        methods.add("java.math.BigDecimal.floatValue()");
+        methods.add("java.math.BigDecimal.add(BigDecimal)");
+        methods.add("java.math.BigDecimal.stripTrailingZeros()");
+        methods.add("java.math.BigDecimal.abs(MathContext)");
+        methods.add("java.math.BigDecimal.compareTo(BigDecimal)");
+        methods.add("java.math.BigDecimal.subtract(BigDecimal)");
+        methods.add("java.math.BigDecimal.divide(BigDecimal)");
+        methods.add("java.math.BigDecimal.intValueExact()");
+        methods.add("java.math.BigDecimal.toBigInteger()");
+        methods.add("java.math.BigDecimal.abs()");
         methods.add("java.math.BigDecimal.min(BigDecimal)");
-        methods.add("java.math.BigDecimal.movePointLeft(int)");
-        methods.add("java.math.BigDecimal.negate()");
+        methods.add("java.math.BigDecimal.setScale(int, int)");
+        methods.add("java.math.BigDecimal.pow(int)");
+        methods.add("java.math.BigDecimal.add(BigDecimal, MathContext)");
+        methods.add("java.math.BigDecimal.longValue()");
+        methods.add("java.math.BigDecimal.shortValueExact()");
         methods.add("java.math.BigDecimal.ulp()");
+        methods.add("java.math.BigDecimal.precision()");
+        methods.add("java.math.BigDecimal.divide(BigDecimal, MathContext)");
+        methods.add("java.math.BigDecimal.divide(BigDecimal, int)");
+        methods.add("java.math.BigDecimal.negate()");
+        methods.add("java.math.BigDecimal.setScale(int, RoundingMode)");
+        methods.add("java.math.BigDecimal.toBigIntegerExact()");
+        methods.add("java.math.BigDecimal.remainder(BigDecimal)");
+        methods.add("java.math.BigDecimal.doubleValue()");
+        methods.add("java.math.BigDecimal.divideAndRemainder(BigDecimal)");
 
         // Type java.math.BigInteger
-        honoraries.put("java.math.BigInteger", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        fields.add("java.math.BigInteger.ZERO");
+        honoraries.put("java.math.BigInteger", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         fields.add("java.math.BigInteger.ONE");
         fields.add("java.math.BigInteger.TEN");
-        constructors.add("java.math.BigInteger(String, int)");
+        fields.add("java.math.BigInteger.ZERO");
         constructors.add("java.math.BigInteger(int, Random)");
         constructors.add("java.math.BigInteger(byte[])");
+        constructors.add("java.math.BigInteger(int, int, Random)");
+        constructors.add("java.math.BigInteger(String, int)");
         constructors.add("java.math.BigInteger(int, byte[])");
         constructors.add("java.math.BigInteger(String)");
-        constructors.add("java.math.BigInteger(int, int, Random)");
         methods.add("java.math.BigInteger.or(BigInteger)");
-        methods.add("java.math.BigInteger.equals(Object)");
-        methods.add("java.math.BigInteger.toString()");
-        methods.add("java.math.BigInteger.setBit(int)");
-        methods.add("java.math.BigInteger.pow(int)");
-        methods.add("java.math.BigInteger.getLowestSetBit()");
-        methods.add("java.math.BigInteger.modInverse(BigInteger)");
-        methods.add("java.math.BigInteger.shiftLeft(int)");
-        methods.add("java.math.BigInteger.clearBit(int)");
-        methods.add("java.math.BigInteger.bitCount()");
-        methods.add("java.math.BigInteger.longValue()");
-        methods.add("java.math.BigInteger.divide(BigInteger)");
-        methods.add("java.math.BigInteger.doubleValue()");
-        methods.add("java.math.BigInteger.signum()");
-        methods.add("java.math.BigInteger.mod(BigInteger)");
-        methods.add("java.math.BigInteger.modPow(BigInteger, BigInteger)");
-        methods.add("java.math.BigInteger.and(BigInteger)");
-        methods.add("java.math.BigInteger.andNot(BigInteger)");
-        methods.add("java.math.BigInteger.intValue()");
-        methods.add("java.math.BigInteger.floatValue()");
-        methods.add("java.math.BigInteger.toString(int)");
-        methods.add("java.math.BigInteger.divideAndRemainder(BigInteger)");
-        methods.add("java.math.BigInteger.gcd(BigInteger)");
-        methods.add("java.math.BigInteger.hashCode()");
-        methods.add("java.math.BigInteger.shiftRight(int)");
-        methods.add("java.math.BigInteger.abs()");
-        methods.add("java.math.BigInteger.compareTo(BigInteger)");
-        methods.add("java.math.BigInteger.probablePrime(int, Random)");
         methods.add("java.math.BigInteger.subtract(BigInteger)");
         methods.add("java.math.BigInteger.negate()");
-        methods.add("java.math.BigInteger.min(BigInteger)");
-        methods.add("java.math.BigInteger.bitLength()");
-        methods.add("java.math.BigInteger.flipBit(int)");
-        methods.add("java.math.BigInteger.max(BigInteger)");
-        methods.add("java.math.BigInteger.xor(BigInteger)");
-        methods.add("java.math.BigInteger.not()");
-        methods.add("java.math.BigInteger.multiply(BigInteger)");
-        methods.add("java.math.BigInteger.testBit(int)");
+        methods.add("java.math.BigInteger.toString(int)");
         methods.add("java.math.BigInteger.toByteArray()");
-        methods.add("java.math.BigInteger.remainder(BigInteger)");
+        methods.add("java.math.BigInteger.max(BigInteger)");
+        methods.add("java.math.BigInteger.shiftRight(int)");
+        methods.add("java.math.BigInteger.and(BigInteger)");
+        methods.add("java.math.BigInteger.intValue()");
+        methods.add("java.math.BigInteger.clearBit(int)");
+        methods.add("java.math.BigInteger.flipBit(int)");
+        methods.add("java.math.BigInteger.xor(BigInteger)");
+        methods.add("java.math.BigInteger.compareTo(BigInteger)");
+        methods.add("java.math.BigInteger.divide(BigInteger)");
+        methods.add("java.math.BigInteger.multiply(BigInteger)");
         methods.add("java.math.BigInteger.add(BigInteger)");
+        methods.add("java.math.BigInteger.signum()");
+        methods.add("java.math.BigInteger.min(BigInteger)");
+        methods.add("java.math.BigInteger.floatValue()");
+        methods.add("java.math.BigInteger.hashCode()");
+        methods.add("java.math.BigInteger.remainder(BigInteger)");
+        methods.add("java.math.BigInteger.not()");
+        methods.add("java.math.BigInteger.modInverse(BigInteger)");
+        methods.add("java.math.BigInteger.longValue()");
+        methods.add("java.math.BigInteger.setBit(int)");
+        methods.add("java.math.BigInteger.probablePrime(int, Random)");
+        methods.add("java.math.BigInteger.getLowestSetBit()");
+        methods.add("java.math.BigInteger.doubleValue()");
+        methods.add("java.math.BigInteger.toString()");
         methods.add("java.math.BigInteger.valueOf(long)");
+        methods.add("java.math.BigInteger.testBit(int)");
+        methods.add("java.math.BigInteger.bitLength()");
+        methods.add("java.math.BigInteger.modPow(BigInteger, BigInteger)");
+        methods.add("java.math.BigInteger.pow(int)");
+        methods.add("java.math.BigInteger.bitCount()");
+        methods.add("java.math.BigInteger.shiftLeft(int)");
+        methods.add("java.math.BigInteger.equals(Object)");
+        methods.add("java.math.BigInteger.divideAndRemainder(BigInteger)");
+        methods.add("java.math.BigInteger.mod(BigInteger)");
+        methods.add("java.math.BigInteger.andNot(BigInteger)");
+        methods.add("java.math.BigInteger.abs()");
+        methods.add("java.math.BigInteger.gcd(BigInteger)");
 
         // Type java.math.MathContext
-        honoraries.put("java.math.MathContext", new String[]{"org.joe_e.Powerless", "org.joe_e.Selfless", "org.joe_e.Immutable"});
-        fields.add("java.math.MathContext.UNLIMITED");
+        honoraries.put("java.math.MathContext", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Selfless"});
         fields.add("java.math.MathContext.DECIMAL128");
-        fields.add("java.math.MathContext.DECIMAL32");
         fields.add("java.math.MathContext.DECIMAL64");
-        constructors.add("java.math.MathContext(int)");
+        fields.add("java.math.MathContext.UNLIMITED");
+        fields.add("java.math.MathContext.DECIMAL32");
         constructors.add("java.math.MathContext(String)");
         constructors.add("java.math.MathContext(int, RoundingMode)");
-        methods.add("java.math.MathContext.equals(Object)");
-        methods.add("java.math.MathContext.toString()");
-        methods.add("java.math.MathContext.hashCode()");
+        constructors.add("java.math.MathContext(int)");
         methods.add("java.math.MathContext.getRoundingMode()");
         methods.add("java.math.MathContext.getPrecision()");
+        methods.add("java.math.MathContext.equals(Object)");
+        methods.add("java.math.MathContext.hashCode()");
+        methods.add("java.math.MathContext.toString()");
 
         // Type java.math.RoundingMode
-        honoraries.put("java.math.RoundingMode", new String[]{"org.joe_e.Powerless", "org.joe_e.Equatable", "org.joe_e.Immutable"});
-        fields.add("java.math.RoundingMode.HALF_EVEN");
-        fields.add("java.math.RoundingMode.HALF_UP");
-        fields.add("java.math.RoundingMode.UNNECESSARY");
-        fields.add("java.math.RoundingMode.FLOOR");
-        fields.add("java.math.RoundingMode.HALF_DOWN");
-        fields.add("java.math.RoundingMode.CEILING");
+        honoraries.put("java.math.RoundingMode", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Equatable"});
         fields.add("java.math.RoundingMode.UP");
+        fields.add("java.math.RoundingMode.HALF_UP");
+        fields.add("java.math.RoundingMode.FLOOR");
+        fields.add("java.math.RoundingMode.CEILING");
+        fields.add("java.math.RoundingMode.UNNECESSARY");
+        fields.add("java.math.RoundingMode.HALF_EVEN");
+        fields.add("java.math.RoundingMode.HALF_DOWN");
         fields.add("java.math.RoundingMode.DOWN");
         methods.add("java.math.RoundingMode.values()");
         methods.add("java.math.RoundingMode.valueOf(int)");
@@ -1246,17 +1605,17 @@ public class Policy {
         // Type java.net.Authenticator
 
         // Type java.net.Authenticator$RequestorType
-        honoraries.put("java.net.Authenticator$RequestorType", new String[]{"org.joe_e.Powerless", "org.joe_e.Equatable", "org.joe_e.Immutable"});
+        honoraries.put("java.net.Authenticator$RequestorType", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Equatable"});
 
         // Type java.net.BindException
-        honoraries.put("java.net.BindException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.BindException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.net.CacheRequest
 
         // Type java.net.CacheResponse
 
         // Type java.net.ConnectException
-        honoraries.put("java.net.ConnectException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.ConnectException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.net.ContentHandler
 
@@ -1275,7 +1634,7 @@ public class Policy {
         // Type java.net.FileNameMap
 
         // Type java.net.HttpRetryException
-        honoraries.put("java.net.HttpRetryException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.HttpRetryException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.net.HttpURLConnection
 
@@ -1294,7 +1653,7 @@ public class Policy {
         // Type java.net.JarURLConnection
 
         // Type java.net.MalformedURLException
-        honoraries.put("java.net.MalformedURLException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.MalformedURLException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.net.MulticastSocket
 
@@ -1304,21 +1663,21 @@ public class Policy {
         methods.add("java.net.NetworkInterface.equals(Object)");
 
         // Type java.net.NoRouteToHostException
-        honoraries.put("java.net.NoRouteToHostException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.NoRouteToHostException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.net.PasswordAuthentication
 
         // Type java.net.PortUnreachableException
-        honoraries.put("java.net.PortUnreachableException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.PortUnreachableException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.net.ProtocolException
-        honoraries.put("java.net.ProtocolException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.ProtocolException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.net.Proxy
         methods.add("java.net.Proxy.equals(Object)");
 
         // Type java.net.Proxy$Type
-        honoraries.put("java.net.Proxy$Type", new String[]{"org.joe_e.Powerless", "org.joe_e.Equatable", "org.joe_e.Immutable"});
+        honoraries.put("java.net.Proxy$Type", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless", "org.joe_e.Equatable"});
 
         // Type java.net.ProxySelector
 
@@ -1334,7 +1693,7 @@ public class Policy {
         // Type java.net.SocketAddress
 
         // Type java.net.SocketException
-        honoraries.put("java.net.SocketException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.SocketException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.net.SocketImpl
 
@@ -1346,13 +1705,13 @@ public class Policy {
         methods.add("java.net.SocketPermission.equals(Object)");
 
         // Type java.net.SocketTimeoutException
-        honoraries.put("java.net.SocketTimeoutException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.SocketTimeoutException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.net.URI
         methods.add("java.net.URI.equals(Object)");
 
         // Type java.net.URISyntaxException
-        honoraries.put("java.net.URISyntaxException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.URISyntaxException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.net.URL
         methods.add("java.net.URL.equals(Object)");
@@ -1370,63 +1729,63 @@ public class Policy {
         // Type java.net.URLStreamHandlerFactory
 
         // Type java.net.UnknownHostException
-        honoraries.put("java.net.UnknownHostException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.UnknownHostException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.net.UnknownServiceException
-        honoraries.put("java.net.UnknownServiceException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
+        honoraries.put("java.net.UnknownServiceException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
 
         // Type java.util.AbstractList
         fields.add("java.util.AbstractList.modCount");
         constructors.add("java.util.AbstractList()");
-        methods.add("java.util.AbstractList.listIterator(int)");
-        methods.add("java.util.AbstractList.lastIndexOf(Object)");
-        methods.add("java.util.AbstractList.iterator()");
-        methods.add("java.util.AbstractList.add(int, E)");
-        methods.add("java.util.AbstractList.subList(int, int)");
         methods.add("java.util.AbstractList.clear()");
-        methods.add("java.util.AbstractList.equals(Object)");
         methods.add("java.util.AbstractList.get(int)");
-        methods.add("java.util.AbstractList.addAll(int, Collection<? extends E>)");
-        methods.add("java.util.AbstractList.listIterator()");
-        methods.add("java.util.AbstractList.add(E)");
-        methods.add("java.util.AbstractList.set(int, E)");
+        methods.add("java.util.AbstractList.subList(int, int)");
         methods.add("java.util.AbstractList.remove(int)");
+        methods.add("java.util.AbstractList.equals(Object)");
+        methods.add("java.util.AbstractList.lastIndexOf(Object)");
+        methods.add("java.util.AbstractList.add(int, E)");
         methods.add("java.util.AbstractList.indexOf(Object)");
+        methods.add("java.util.AbstractList.set(int, E)");
+        methods.add("java.util.AbstractList.iterator()");
+        methods.add("java.util.AbstractList.add(E)");
+        methods.add("java.util.AbstractList.listIterator()");
+        methods.add("java.util.AbstractList.listIterator(int)");
+        methods.add("java.util.AbstractList.addAll(int, Collection<? extends E>)");
         methods.add("java.util.AbstractList.removeRange(int, int)");
 
         // Type java.util.ArrayList
-        constructors.add("java.util.ArrayList(Collection<? extends E>)");
         constructors.add("java.util.ArrayList(int)");
         constructors.add("java.util.ArrayList()");
-        methods.add("java.util.ArrayList.contains(Object)");
-        methods.add("java.util.ArrayList.addAll(Collection<? extends E>)");
-        methods.add("java.util.ArrayList.add(E)");
-        methods.add("java.util.ArrayList.addAll(int, Collection<? extends E>)");
-        methods.add("java.util.ArrayList.indexOf(Object)");
+        constructors.add("java.util.ArrayList(Collection<? extends E>)");
+        methods.add("java.util.ArrayList.add(int, E)");
         methods.add("java.util.ArrayList.toArray()");
-        methods.add("java.util.ArrayList.clone()");
-        methods.add("java.util.ArrayList.isEmpty()");
-        methods.add("java.util.ArrayList.lastIndexOf(Object)");
         methods.add("java.util.ArrayList.ensureCapacity(int)");
-        methods.add("java.util.ArrayList.clear()");
-        methods.add("java.util.ArrayList.get(int)");
+        methods.add("java.util.ArrayList.indexOf(Object)");
+        methods.add("java.util.ArrayList.size()");
+        methods.add("java.util.ArrayList.add(E)");
+        methods.add("java.util.ArrayList.trimToSize()");
+        methods.add("java.util.ArrayList.addAll(Collection<? extends E>)");
+        methods.add("java.util.ArrayList.removeRange(int, int)");
+        methods.add("java.util.ArrayList.lastIndexOf(Object)");
+        methods.add("java.util.ArrayList.isEmpty()");
         methods.add("java.util.ArrayList.set(int, E)");
         methods.add("java.util.ArrayList.remove(Object)");
-        methods.add("java.util.ArrayList.add(int, E)");
-        methods.add("java.util.ArrayList.size()");
-        methods.add("java.util.ArrayList.removeRange(int, int)");
+        methods.add("java.util.ArrayList.clear()");
         methods.add("java.util.ArrayList.toArray(T[])");
-        methods.add("java.util.ArrayList.trimToSize()");
+        methods.add("java.util.ArrayList.clone()");
+        methods.add("java.util.ArrayList.addAll(int, Collection<? extends E>)");
         methods.add("java.util.ArrayList.remove(int)");
+        methods.add("java.util.ArrayList.contains(Object)");
+        methods.add("java.util.ArrayList.get(int)");
 
         // Type java.util.Iterator
-        methods.add("java.util.Iterator.next()");
         methods.add("java.util.Iterator.hasNext()");
+        methods.add("java.util.Iterator.next()");
 
         // Type java.util.NoSuchElementException
-        honoraries.put("java.util.NoSuchElementException", new String[]{"org.joe_e.Powerless", "org.joe_e.Immutable"});
-        constructors.add("java.util.NoSuchElementException()");
+        honoraries.put("java.util.NoSuchElementException", new String[]{"org.joe_e.Immutable", "org.joe_e.Powerless"});
         constructors.add("java.util.NoSuchElementException(String)");
+        constructors.add("java.util.NoSuchElementException()");
 
         // Type org.joe_e.Equatable
 
@@ -1439,8 +1798,8 @@ public class Policy {
 
         // Type org.joe_e.JoeE
         methods.add("org.joe_e.JoeE.isSubtypeOf(Class<?>, Class<?>)");
-        methods.add("org.joe_e.JoeE.instanceOf(Object, Class<?>)");
         methods.add("org.joe_e.JoeE.abort(Error)");
+        methods.add("org.joe_e.JoeE.instanceOf(Object, Class<?>)");
 
         // Type org.joe_e.Powerless
 
@@ -1449,8 +1808,8 @@ public class Policy {
 
         // Type org.joe_e.Struct
         constructors.add("org.joe_e.Struct()");
-        methods.add("org.joe_e.Struct.equals(Object)");
         methods.add("org.joe_e.Struct.hashCode()");
+        methods.add("org.joe_e.Struct.equals(Object)");
 
         // Type org.joe_e.Token
         constructors.add("org.joe_e.Token()");
@@ -1463,315 +1822,370 @@ public class Policy {
         methods.add("org.joe_e.array.ArrayBuilder.append(E[])");
 
         // Type org.joe_e.array.BooleanArray
-        methods.add("org.joe_e.array.BooleanArray.array(boolean[])");
-        methods.add("org.joe_e.array.BooleanArray.builder(int)");
-        methods.add("org.joe_e.array.BooleanArray.builder()");
-        methods.add("org.joe_e.array.BooleanArray.with(boolean)");
-        methods.add("org.joe_e.array.BooleanArray.without(int)");
-        methods.add("org.joe_e.array.BooleanArray.toArray(T[])");
-        methods.add("org.joe_e.array.BooleanArray.with(Boolean)");
-        methods.add("org.joe_e.array.BooleanArray.length()");
-        methods.add("org.joe_e.array.BooleanArray.hashCode()");
-        methods.add("org.joe_e.array.BooleanArray.get(int)");
         methods.add("org.joe_e.array.BooleanArray.getBoolean(int)");
-        methods.add("org.joe_e.array.BooleanArray.equals(Object)");
+        methods.add("org.joe_e.array.BooleanArray.array(boolean, boolean)");
+        methods.add("org.joe_e.array.BooleanArray.builder(int)");
+        methods.add("org.joe_e.array.BooleanArray.array(boolean, boolean, boolean)");
+        methods.add("org.joe_e.array.BooleanArray.length()");
+        methods.add("org.joe_e.array.BooleanArray.with(boolean)");
         methods.add("org.joe_e.array.BooleanArray.toBooleanArray()");
+        methods.add("org.joe_e.array.BooleanArray.toArray(T[])");
+        methods.add("org.joe_e.array.BooleanArray.array(boolean, boolean, boolean, boolean)");
+        methods.add("org.joe_e.array.BooleanArray.get(int)");
+        methods.add("org.joe_e.array.BooleanArray.array(boolean)");
+        methods.add("org.joe_e.array.BooleanArray.hashCode()");
         methods.add("org.joe_e.array.BooleanArray.toString()");
+        methods.add("org.joe_e.array.BooleanArray.array(boolean[])");
+        methods.add("org.joe_e.array.BooleanArray.without(int)");
+        methods.add("org.joe_e.array.BooleanArray.array()");
+        methods.add("org.joe_e.array.BooleanArray.builder()");
+        methods.add("org.joe_e.array.BooleanArray.with(Boolean)");
+        methods.add("org.joe_e.array.BooleanArray.equals(Object)");
 
         // Type org.joe_e.array.BooleanArray$Builder
-        methods.add("org.joe_e.array.BooleanArray$Builder.append(boolean[], int, int)");
         methods.add("org.joe_e.array.BooleanArray$Builder.append(boolean[])");
         methods.add("org.joe_e.array.BooleanArray$Builder.snapshot()");
-        methods.add("org.joe_e.array.BooleanArray$Builder.append(boolean)");
         methods.add("org.joe_e.array.BooleanArray$Builder.append(Boolean)");
         methods.add("org.joe_e.array.BooleanArray$Builder.append(Boolean[])");
+        methods.add("org.joe_e.array.BooleanArray$Builder.append(boolean)");
         methods.add("org.joe_e.array.BooleanArray$Builder.append(Boolean[], int, int)");
+        methods.add("org.joe_e.array.BooleanArray$Builder.append(boolean[], int, int)");
 
         // Type org.joe_e.array.ByteArray
-        methods.add("org.joe_e.array.ByteArray.with(Byte)");
         methods.add("org.joe_e.array.ByteArray.with(byte)");
-        methods.add("org.joe_e.array.ByteArray.builder()");
-        methods.add("org.joe_e.array.ByteArray.asInputStream()");
-        methods.add("org.joe_e.array.ByteArray.toString()");
-        methods.add("org.joe_e.array.ByteArray.toArray(T[])");
-        methods.add("org.joe_e.array.ByteArray.toByteArray()");
-        methods.add("org.joe_e.array.ByteArray.array(byte[])");
-        methods.add("org.joe_e.array.ByteArray.without(int)");
-        methods.add("org.joe_e.array.ByteArray.builder(int)");
-        methods.add("org.joe_e.array.ByteArray.getByte(int)");
-        methods.add("org.joe_e.array.ByteArray.hashCode()");
         methods.add("org.joe_e.array.ByteArray.length()");
+        methods.add("org.joe_e.array.ByteArray.getByte(int)");
+        methods.add("org.joe_e.array.ByteArray.array(byte, byte)");
+        methods.add("org.joe_e.array.ByteArray.array(byte, byte, byte, byte)");
+        methods.add("org.joe_e.array.ByteArray.builder(int)");
+        methods.add("org.joe_e.array.ByteArray.array()");
+        methods.add("org.joe_e.array.ByteArray.asInputStream()");
         methods.add("org.joe_e.array.ByteArray.equals(Object)");
+        methods.add("org.joe_e.array.ByteArray.array(byte[])");
+        methods.add("org.joe_e.array.ByteArray.toString()");
+        methods.add("org.joe_e.array.ByteArray.array(byte, byte, byte)");
+        methods.add("org.joe_e.array.ByteArray.toByteArray()");
+        methods.add("org.joe_e.array.ByteArray.hashCode()");
+        methods.add("org.joe_e.array.ByteArray.builder()");
+        methods.add("org.joe_e.array.ByteArray.array(byte)");
+        methods.add("org.joe_e.array.ByteArray.with(Byte)");
         methods.add("org.joe_e.array.ByteArray.get(int)");
+        methods.add("org.joe_e.array.ByteArray.toArray(T[])");
+        methods.add("org.joe_e.array.ByteArray.without(int)");
 
         // Type org.joe_e.array.ByteArray$Builder
-        methods.add("org.joe_e.array.ByteArray$Builder.append(Byte[])");
-        methods.add("org.joe_e.array.ByteArray$Builder.append(Byte)");
-        methods.add("org.joe_e.array.ByteArray$Builder.append(byte[])");
-        methods.add("org.joe_e.array.ByteArray$Builder.append(byte)");
-        methods.add("org.joe_e.array.ByteArray$Builder.asOutputStream()");
-        methods.add("org.joe_e.array.ByteArray$Builder.snapshot()");
         methods.add("org.joe_e.array.ByteArray$Builder.append(byte[], int, int)");
+        methods.add("org.joe_e.array.ByteArray$Builder.snapshot()");
+        methods.add("org.joe_e.array.ByteArray$Builder.asOutputStream()");
+        methods.add("org.joe_e.array.ByteArray$Builder.append(Byte[])");
         methods.add("org.joe_e.array.ByteArray$Builder.append(Byte[], int, int)");
+        methods.add("org.joe_e.array.ByteArray$Builder.append(Byte)");
+        methods.add("org.joe_e.array.ByteArray$Builder.append(byte)");
+        methods.add("org.joe_e.array.ByteArray$Builder.append(byte[])");
 
         // Type org.joe_e.array.ByteArray$BuilderOutputStream
-        constructors.add("org.joe_e.array.ByteArray$BuilderOutputStream(int)");
-        constructors.add("org.joe_e.array.ByteArray$BuilderOutputStream()");
         constructors.add("org.joe_e.array.ByteArray$BuilderOutputStream(Builder)");
-        methods.add("org.joe_e.array.ByteArray$BuilderOutputStream.write(byte[], int, int)");
-        methods.add("org.joe_e.array.ByteArray$BuilderOutputStream.write(int)");
-        methods.add("org.joe_e.array.ByteArray$BuilderOutputStream.write(byte[])");
+        constructors.add("org.joe_e.array.ByteArray$BuilderOutputStream()");
+        constructors.add("org.joe_e.array.ByteArray$BuilderOutputStream(int)");
         methods.add("org.joe_e.array.ByteArray$BuilderOutputStream.snapshot()");
+        methods.add("org.joe_e.array.ByteArray$BuilderOutputStream.write(byte[])");
+        methods.add("org.joe_e.array.ByteArray$BuilderOutputStream.write(int)");
+        methods.add("org.joe_e.array.ByteArray$BuilderOutputStream.write(byte[], int, int)");
         methods.add("org.joe_e.array.ByteArray$BuilderOutputStream.length()");
 
         // Type org.joe_e.array.CharArray
-        methods.add("org.joe_e.array.CharArray.hashCode()");
-        methods.add("org.joe_e.array.CharArray.get(int)");
-        methods.add("org.joe_e.array.CharArray.toCharArray()");
+        methods.add("org.joe_e.array.CharArray.array()");
         methods.add("org.joe_e.array.CharArray.builder(int)");
+        methods.add("org.joe_e.array.CharArray.equals(Object)");
+        methods.add("org.joe_e.array.CharArray.with(char)");
         methods.add("org.joe_e.array.CharArray.array(char[])");
         methods.add("org.joe_e.array.CharArray.toArray(T[])");
-        methods.add("org.joe_e.array.CharArray.toString()");
-        methods.add("org.joe_e.array.CharArray.equals(Object)");
-        methods.add("org.joe_e.array.CharArray.getChar(int)");
-        methods.add("org.joe_e.array.CharArray.with(Character)");
         methods.add("org.joe_e.array.CharArray.builder()");
-        methods.add("org.joe_e.array.CharArray.without(int)");
         methods.add("org.joe_e.array.CharArray.length()");
-        methods.add("org.joe_e.array.CharArray.with(char)");
+        methods.add("org.joe_e.array.CharArray.get(int)");
+        methods.add("org.joe_e.array.CharArray.toCharArray()");
+        methods.add("org.joe_e.array.CharArray.array(char)");
+        methods.add("org.joe_e.array.CharArray.without(int)");
+        methods.add("org.joe_e.array.CharArray.toString()");
+        methods.add("org.joe_e.array.CharArray.with(Character)");
+        methods.add("org.joe_e.array.CharArray.getChar(int)");
+        methods.add("org.joe_e.array.CharArray.array(char, char)");
+        methods.add("org.joe_e.array.CharArray.array(char, char, char, char)");
+        methods.add("org.joe_e.array.CharArray.array(char, char, char)");
+        methods.add("org.joe_e.array.CharArray.hashCode()");
 
         // Type org.joe_e.array.CharArray$Builder
-        methods.add("org.joe_e.array.CharArray$Builder.append(Character[])");
+        methods.add("org.joe_e.array.CharArray$Builder.append(Character)");
+        methods.add("org.joe_e.array.CharArray$Builder.snapshot()");
         methods.add("org.joe_e.array.CharArray$Builder.append(char)");
         methods.add("org.joe_e.array.CharArray$Builder.append(char[])");
-        methods.add("org.joe_e.array.CharArray$Builder.snapshot()");
-        methods.add("org.joe_e.array.CharArray$Builder.append(char[], int, int)");
         methods.add("org.joe_e.array.CharArray$Builder.append(Character[], int, int)");
-        methods.add("org.joe_e.array.CharArray$Builder.append(Character)");
+        methods.add("org.joe_e.array.CharArray$Builder.append(Character[])");
+        methods.add("org.joe_e.array.CharArray$Builder.append(char[], int, int)");
 
         // Type org.joe_e.array.ConstArray
-        methods.add("org.joe_e.array.ConstArray.toString()");
-        methods.add("org.joe_e.array.ConstArray.get(int)");
-        methods.add("org.joe_e.array.ConstArray.builder(int)");
-        methods.add("org.joe_e.array.ConstArray.array(T[])");
-        methods.add("org.joe_e.array.ConstArray.hashCode()");
-        methods.add("org.joe_e.array.ConstArray.builder()");
-        methods.add("org.joe_e.array.ConstArray.with(E)");
-        methods.add("org.joe_e.array.ConstArray.iterator()");
-        methods.add("org.joe_e.array.ConstArray.without(int)");
-        methods.add("org.joe_e.array.ConstArray.toArray(T[])");
         methods.add("org.joe_e.array.ConstArray.length()");
+        methods.add("org.joe_e.array.ConstArray.builder(int)");
+        methods.add("org.joe_e.array.ConstArray.get(int)");
+        methods.add("org.joe_e.array.ConstArray.toString()");
+        methods.add("org.joe_e.array.ConstArray.array(T[])");
+        methods.add("org.joe_e.array.ConstArray.builder()");
+        methods.add("org.joe_e.array.ConstArray.toArray(T[])");
         methods.add("org.joe_e.array.ConstArray.equals(Object)");
+        methods.add("org.joe_e.array.ConstArray.array()");
+        methods.add("org.joe_e.array.ConstArray.hashCode()");
+        methods.add("org.joe_e.array.ConstArray.array(T, T, T, T)");
+        methods.add("org.joe_e.array.ConstArray.iterator()");
+        methods.add("org.joe_e.array.ConstArray.array(T)");
+        methods.add("org.joe_e.array.ConstArray.without(int)");
+        methods.add("org.joe_e.array.ConstArray.with(E)");
+        methods.add("org.joe_e.array.ConstArray.array(T, T, T)");
+        methods.add("org.joe_e.array.ConstArray.array(T, T)");
 
         // Type org.joe_e.array.ConstArray$Builder
-        methods.add("org.joe_e.array.ConstArray$Builder.append(E)");
-        methods.add("org.joe_e.array.ConstArray$Builder.append(E[])");
-        methods.add("org.joe_e.array.ConstArray$Builder.length()");
-        methods.add("org.joe_e.array.ConstArray$Builder.append(E[], int, int)");
         methods.add("org.joe_e.array.ConstArray$Builder.snapshot()");
+        methods.add("org.joe_e.array.ConstArray$Builder.append(E)");
+        methods.add("org.joe_e.array.ConstArray$Builder.append(E[], int, int)");
+        methods.add("org.joe_e.array.ConstArray$Builder.length()");
+        methods.add("org.joe_e.array.ConstArray$Builder.append(E[])");
 
         // Type org.joe_e.array.DoubleArray
-        methods.add("org.joe_e.array.DoubleArray.array(double[])");
-        methods.add("org.joe_e.array.DoubleArray.builder(int)");
-        methods.add("org.joe_e.array.DoubleArray.toDoubleArray()");
-        methods.add("org.joe_e.array.DoubleArray.getDouble(int)");
+        methods.add("org.joe_e.array.DoubleArray.get(int)");
         methods.add("org.joe_e.array.DoubleArray.toString()");
-        methods.add("org.joe_e.array.DoubleArray.builder()");
-        methods.add("org.joe_e.array.DoubleArray.toArray(T[])");
-        methods.add("org.joe_e.array.DoubleArray.with(double)");
-        methods.add("org.joe_e.array.DoubleArray.without(int)");
         methods.add("org.joe_e.array.DoubleArray.with(Double)");
         methods.add("org.joe_e.array.DoubleArray.hashCode()");
         methods.add("org.joe_e.array.DoubleArray.equals(Object)");
-        methods.add("org.joe_e.array.DoubleArray.get(int)");
+        methods.add("org.joe_e.array.DoubleArray.toArray(T[])");
+        methods.add("org.joe_e.array.DoubleArray.toDoubleArray()");
+        methods.add("org.joe_e.array.DoubleArray.array(double[])");
+        methods.add("org.joe_e.array.DoubleArray.array(double, double)");
+        methods.add("org.joe_e.array.DoubleArray.builder(int)");
+        methods.add("org.joe_e.array.DoubleArray.with(double)");
+        methods.add("org.joe_e.array.DoubleArray.builder()");
+        methods.add("org.joe_e.array.DoubleArray.without(int)");
+        methods.add("org.joe_e.array.DoubleArray.array(double, double, double, double)");
+        methods.add("org.joe_e.array.DoubleArray.array()");
+        methods.add("org.joe_e.array.DoubleArray.array(double)");
+        methods.add("org.joe_e.array.DoubleArray.array(double, double, double)");
+        methods.add("org.joe_e.array.DoubleArray.getDouble(int)");
         methods.add("org.joe_e.array.DoubleArray.length()");
 
         // Type org.joe_e.array.DoubleArray$Builder
-        methods.add("org.joe_e.array.DoubleArray$Builder.append(Double)");
+        methods.add("org.joe_e.array.DoubleArray$Builder.append(double)");
         methods.add("org.joe_e.array.DoubleArray$Builder.append(Double[], int, int)");
         methods.add("org.joe_e.array.DoubleArray$Builder.snapshot()");
-        methods.add("org.joe_e.array.DoubleArray$Builder.append(double)");
+        methods.add("org.joe_e.array.DoubleArray$Builder.append(Double[])");
         methods.add("org.joe_e.array.DoubleArray$Builder.append(double[], int, int)");
         methods.add("org.joe_e.array.DoubleArray$Builder.append(double[])");
-        methods.add("org.joe_e.array.DoubleArray$Builder.append(Double[])");
+        methods.add("org.joe_e.array.DoubleArray$Builder.append(Double)");
 
         // Type org.joe_e.array.FloatArray
-        methods.add("org.joe_e.array.FloatArray.builder(int)");
-        methods.add("org.joe_e.array.FloatArray.with(Float)");
-        methods.add("org.joe_e.array.FloatArray.without(int)");
-        methods.add("org.joe_e.array.FloatArray.array(float[])");
-        methods.add("org.joe_e.array.FloatArray.toFloatArray()");
+        methods.add("org.joe_e.array.FloatArray.array(float, float)");
         methods.add("org.joe_e.array.FloatArray.with(float)");
+        methods.add("org.joe_e.array.FloatArray.array()");
+        methods.add("org.joe_e.array.FloatArray.array(float, float, float, float)");
+        methods.add("org.joe_e.array.FloatArray.length()");
+        methods.add("org.joe_e.array.FloatArray.without(int)");
+        methods.add("org.joe_e.array.FloatArray.with(Float)");
+        methods.add("org.joe_e.array.FloatArray.array(float[])");
+        methods.add("org.joe_e.array.FloatArray.array(float)");
         methods.add("org.joe_e.array.FloatArray.toArray(T[])");
         methods.add("org.joe_e.array.FloatArray.toString()");
-        methods.add("org.joe_e.array.FloatArray.length()");
-        methods.add("org.joe_e.array.FloatArray.get(int)");
-        methods.add("org.joe_e.array.FloatArray.getFloat(int)");
-        methods.add("org.joe_e.array.FloatArray.builder()");
         methods.add("org.joe_e.array.FloatArray.equals(Object)");
+        methods.add("org.joe_e.array.FloatArray.builder(int)");
+        methods.add("org.joe_e.array.FloatArray.builder()");
         methods.add("org.joe_e.array.FloatArray.hashCode()");
+        methods.add("org.joe_e.array.FloatArray.toFloatArray()");
+        methods.add("org.joe_e.array.FloatArray.getFloat(int)");
+        methods.add("org.joe_e.array.FloatArray.array(float, float, float)");
+        methods.add("org.joe_e.array.FloatArray.get(int)");
 
         // Type org.joe_e.array.FloatArray$Builder
-        methods.add("org.joe_e.array.FloatArray$Builder.append(float[], int, int)");
-        methods.add("org.joe_e.array.FloatArray$Builder.append(float)");
-        methods.add("org.joe_e.array.FloatArray$Builder.append(Float[], int, int)");
-        methods.add("org.joe_e.array.FloatArray$Builder.append(Float)");
-        methods.add("org.joe_e.array.FloatArray$Builder.append(float[])");
         methods.add("org.joe_e.array.FloatArray$Builder.snapshot()");
+        methods.add("org.joe_e.array.FloatArray$Builder.append(float[], int, int)");
+        methods.add("org.joe_e.array.FloatArray$Builder.append(Float[], int, int)");
         methods.add("org.joe_e.array.FloatArray$Builder.append(Float[])");
+        methods.add("org.joe_e.array.FloatArray$Builder.append(Float)");
+        methods.add("org.joe_e.array.FloatArray$Builder.append(float)");
+        methods.add("org.joe_e.array.FloatArray$Builder.append(float[])");
 
         // Type org.joe_e.array.ImmutableArray
-        methods.add("org.joe_e.array.ImmutableArray.array(E[])");
-        methods.add("org.joe_e.array.ImmutableArray.without(int)");
-        methods.add("org.joe_e.array.ImmutableArray.builder(int)");
-        methods.add("org.joe_e.array.ImmutableArray.builder()");
         methods.add("org.joe_e.array.ImmutableArray.with(E)");
+        methods.add("org.joe_e.array.ImmutableArray.builder(int)");
+        methods.add("org.joe_e.array.ImmutableArray.without(int)");
+        methods.add("org.joe_e.array.ImmutableArray.array(T, T)");
+        methods.add("org.joe_e.array.ImmutableArray.array()");
+        methods.add("org.joe_e.array.ImmutableArray.array(T, T, T, T)");
+        methods.add("org.joe_e.array.ImmutableArray.array(T[])");
+        methods.add("org.joe_e.array.ImmutableArray.builder()");
+        methods.add("org.joe_e.array.ImmutableArray.array(T, T, T)");
+        methods.add("org.joe_e.array.ImmutableArray.array(T)");
 
         // Type org.joe_e.array.ImmutableArray$Builder
         methods.add("org.joe_e.array.ImmutableArray$Builder.snapshot()");
+        methods.add("org.joe_e.array.ImmutableArray$Builder.append(E[], int, int)");
         methods.add("org.joe_e.array.ImmutableArray$Builder.append(E[])");
         methods.add("org.joe_e.array.ImmutableArray$Builder.append(E)");
-        methods.add("org.joe_e.array.ImmutableArray$Builder.append(E[], int, int)");
 
         // Type org.joe_e.array.IntArray
-        methods.add("org.joe_e.array.IntArray.array(int[])");
-        methods.add("org.joe_e.array.IntArray.toIntArray()");
-        methods.add("org.joe_e.array.IntArray.getInt(int)");
-        methods.add("org.joe_e.array.IntArray.with(Integer)");
+        methods.add("org.joe_e.array.IntArray.array(int, int)");
         methods.add("org.joe_e.array.IntArray.with(int)");
+        methods.add("org.joe_e.array.IntArray.array(int, int, int)");
+        methods.add("org.joe_e.array.IntArray.toIntArray()");
+        methods.add("org.joe_e.array.IntArray.toArray(T[])");
         methods.add("org.joe_e.array.IntArray.without(int)");
+        methods.add("org.joe_e.array.IntArray.builder()");
+        methods.add("org.joe_e.array.IntArray.get(int)");
         methods.add("org.joe_e.array.IntArray.equals(Object)");
+        methods.add("org.joe_e.array.IntArray.with(Integer)");
+        methods.add("org.joe_e.array.IntArray.array(int)");
+        methods.add("org.joe_e.array.IntArray.array(int[])");
         methods.add("org.joe_e.array.IntArray.hashCode()");
         methods.add("org.joe_e.array.IntArray.toString()");
         methods.add("org.joe_e.array.IntArray.builder(int)");
-        methods.add("org.joe_e.array.IntArray.get(int)");
         methods.add("org.joe_e.array.IntArray.length()");
-        methods.add("org.joe_e.array.IntArray.toArray(T[])");
-        methods.add("org.joe_e.array.IntArray.builder()");
+        methods.add("org.joe_e.array.IntArray.array(int, int, int, int)");
+        methods.add("org.joe_e.array.IntArray.getInt(int)");
+        methods.add("org.joe_e.array.IntArray.array()");
 
         // Type org.joe_e.array.IntArray$Builder
-        methods.add("org.joe_e.array.IntArray$Builder.append(Integer)");
-        methods.add("org.joe_e.array.IntArray$Builder.snapshot()");
-        methods.add("org.joe_e.array.IntArray$Builder.append(int[])");
-        methods.add("org.joe_e.array.IntArray$Builder.append(int[], int, int)");
-        methods.add("org.joe_e.array.IntArray$Builder.append(int)");
-        methods.add("org.joe_e.array.IntArray$Builder.append(Integer[])");
         methods.add("org.joe_e.array.IntArray$Builder.append(Integer[], int, int)");
+        methods.add("org.joe_e.array.IntArray$Builder.append(int[], int, int)");
+        methods.add("org.joe_e.array.IntArray$Builder.append(int[])");
+        methods.add("org.joe_e.array.IntArray$Builder.snapshot()");
+        methods.add("org.joe_e.array.IntArray$Builder.append(Integer)");
+        methods.add("org.joe_e.array.IntArray$Builder.append(Integer[])");
+        methods.add("org.joe_e.array.IntArray$Builder.append(int)");
 
         // Type org.joe_e.array.LongArray
+        methods.add("org.joe_e.array.LongArray.array(long)");
         methods.add("org.joe_e.array.LongArray.get(int)");
-        methods.add("org.joe_e.array.LongArray.getLong(int)");
-        methods.add("org.joe_e.array.LongArray.hashCode()");
-        methods.add("org.joe_e.array.LongArray.toArray(T[])");
         methods.add("org.joe_e.array.LongArray.without(int)");
-        methods.add("org.joe_e.array.LongArray.builder()");
-        methods.add("org.joe_e.array.LongArray.toLongArray()");
+        methods.add("org.joe_e.array.LongArray.getLong(int)");
+        methods.add("org.joe_e.array.LongArray.array(long, long)");
         methods.add("org.joe_e.array.LongArray.with(long)");
-        methods.add("org.joe_e.array.LongArray.length()");
-        methods.add("org.joe_e.array.LongArray.builder(int)");
         methods.add("org.joe_e.array.LongArray.equals(Object)");
+        methods.add("org.joe_e.array.LongArray.builder(int)");
+        methods.add("org.joe_e.array.LongArray.array(long, long, long, long)");
         methods.add("org.joe_e.array.LongArray.toString()");
+        methods.add("org.joe_e.array.LongArray.toLongArray()");
+        methods.add("org.joe_e.array.LongArray.builder()");
+        methods.add("org.joe_e.array.LongArray.hashCode()");
+        methods.add("org.joe_e.array.LongArray.length()");
+        methods.add("org.joe_e.array.LongArray.toArray(T[])");
+        methods.add("org.joe_e.array.LongArray.array(long, long, long)");
         methods.add("org.joe_e.array.LongArray.array(long[])");
+        methods.add("org.joe_e.array.LongArray.array()");
         methods.add("org.joe_e.array.LongArray.with(Long)");
 
         // Type org.joe_e.array.LongArray$Builder
-        methods.add("org.joe_e.array.LongArray$Builder.append(long[], int, int)");
-        methods.add("org.joe_e.array.LongArray$Builder.snapshot()");
-        methods.add("org.joe_e.array.LongArray$Builder.append(Long)");
-        methods.add("org.joe_e.array.LongArray$Builder.append(long[])");
         methods.add("org.joe_e.array.LongArray$Builder.append(long)");
+        methods.add("org.joe_e.array.LongArray$Builder.append(Long)");
         methods.add("org.joe_e.array.LongArray$Builder.append(Long[], int, int)");
+        methods.add("org.joe_e.array.LongArray$Builder.append(long[])");
+        methods.add("org.joe_e.array.LongArray$Builder.snapshot()");
+        methods.add("org.joe_e.array.LongArray$Builder.append(long[], int, int)");
         methods.add("org.joe_e.array.LongArray$Builder.append(Long[])");
 
         // Type org.joe_e.array.PowerlessArray
+        methods.add("org.joe_e.array.PowerlessArray.array(T, T, T, T)");
         methods.add("org.joe_e.array.PowerlessArray.builder(int)");
-        methods.add("org.joe_e.array.PowerlessArray.array(E[])");
+        methods.add("org.joe_e.array.PowerlessArray.array(T, T, T)");
+        methods.add("org.joe_e.array.PowerlessArray.array(T[])");
+        methods.add("org.joe_e.array.PowerlessArray.array()");
+        methods.add("org.joe_e.array.PowerlessArray.array(T, T)");
         methods.add("org.joe_e.array.PowerlessArray.without(int)");
         methods.add("org.joe_e.array.PowerlessArray.with(E)");
         methods.add("org.joe_e.array.PowerlessArray.builder()");
+        methods.add("org.joe_e.array.PowerlessArray.array(T)");
 
         // Type org.joe_e.array.PowerlessArray$Builder
+        methods.add("org.joe_e.array.PowerlessArray$Builder.append(E[], int, int)");
+        methods.add("org.joe_e.array.PowerlessArray$Builder.snapshot()");
         methods.add("org.joe_e.array.PowerlessArray$Builder.append(E[])");
         methods.add("org.joe_e.array.PowerlessArray$Builder.append(E)");
-        methods.add("org.joe_e.array.PowerlessArray$Builder.snapshot()");
-        methods.add("org.joe_e.array.PowerlessArray$Builder.append(E[], int, int)");
 
         // Type org.joe_e.array.ShortArray
-        methods.add("org.joe_e.array.ShortArray.with(short)");
-        methods.add("org.joe_e.array.ShortArray.getShort(int)");
-        methods.add("org.joe_e.array.ShortArray.toArray(T[])");
-        methods.add("org.joe_e.array.ShortArray.equals(Object)");
-        methods.add("org.joe_e.array.ShortArray.get(int)");
         methods.add("org.joe_e.array.ShortArray.builder()");
-        methods.add("org.joe_e.array.ShortArray.with(Short)");
-        methods.add("org.joe_e.array.ShortArray.builder(int)");
-        methods.add("org.joe_e.array.ShortArray.hashCode()");
-        methods.add("org.joe_e.array.ShortArray.length()");
         methods.add("org.joe_e.array.ShortArray.array(short[])");
-        methods.add("org.joe_e.array.ShortArray.toShortArray()");
-        methods.add("org.joe_e.array.ShortArray.without(int)");
+        methods.add("org.joe_e.array.ShortArray.equals(Object)");
         methods.add("org.joe_e.array.ShortArray.toString()");
+        methods.add("org.joe_e.array.ShortArray.array()");
+        methods.add("org.joe_e.array.ShortArray.builder(int)");
+        methods.add("org.joe_e.array.ShortArray.without(int)");
+        methods.add("org.joe_e.array.ShortArray.toArray(T[])");
+        methods.add("org.joe_e.array.ShortArray.getShort(int)");
+        methods.add("org.joe_e.array.ShortArray.hashCode()");
+        methods.add("org.joe_e.array.ShortArray.with(short)");
+        methods.add("org.joe_e.array.ShortArray.array(short, short, short, short)");
+        methods.add("org.joe_e.array.ShortArray.array(short, short)");
+        methods.add("org.joe_e.array.ShortArray.get(int)");
+        methods.add("org.joe_e.array.ShortArray.length()");
+        methods.add("org.joe_e.array.ShortArray.with(Short)");
+        methods.add("org.joe_e.array.ShortArray.array(short, short, short)");
+        methods.add("org.joe_e.array.ShortArray.toShortArray()");
+        methods.add("org.joe_e.array.ShortArray.array(short)");
 
         // Type org.joe_e.array.ShortArray$Builder
+        methods.add("org.joe_e.array.ShortArray$Builder.append(short[], int, int)");
         methods.add("org.joe_e.array.ShortArray$Builder.snapshot()");
+        methods.add("org.joe_e.array.ShortArray$Builder.append(Short)");
         methods.add("org.joe_e.array.ShortArray$Builder.append(short)");
         methods.add("org.joe_e.array.ShortArray$Builder.append(Short[])");
         methods.add("org.joe_e.array.ShortArray$Builder.append(short[])");
-        methods.add("org.joe_e.array.ShortArray$Builder.append(Short)");
-        methods.add("org.joe_e.array.ShortArray$Builder.append(short[], int, int)");
         methods.add("org.joe_e.array.ShortArray$Builder.append(Short[], int, int)");
 
         // Type org.joe_e.charset.ASCII
-        methods.add("org.joe_e.charset.ASCII.decode(byte[])");
-        methods.add("org.joe_e.charset.ASCII.decode(byte[], int, int)");
         methods.add("org.joe_e.charset.ASCII.encode(String)");
         methods.add("org.joe_e.charset.ASCII.output(OutputStream)");
         methods.add("org.joe_e.charset.ASCII.input(InputStream)");
+        methods.add("org.joe_e.charset.ASCII.decode(byte[], int, int)");
+        methods.add("org.joe_e.charset.ASCII.decode(byte[])");
 
         // Type org.joe_e.charset.URLEncoding
-        methods.add("org.joe_e.charset.URLEncoding.encode(String)");
         methods.add("org.joe_e.charset.URLEncoding.decode(String)");
+        methods.add("org.joe_e.charset.URLEncoding.encode(String)");
 
         // Type org.joe_e.charset.UTF8
-        methods.add("org.joe_e.charset.UTF8.output(OutputStream)");
-        methods.add("org.joe_e.charset.UTF8.input(InputStream)");
         methods.add("org.joe_e.charset.UTF8.encode(String)");
-        methods.add("org.joe_e.charset.UTF8.decode(byte[])");
+        methods.add("org.joe_e.charset.UTF8.input(InputStream)");
+        methods.add("org.joe_e.charset.UTF8.output(OutputStream)");
         methods.add("org.joe_e.charset.UTF8.decode(byte[], int, int)");
+        methods.add("org.joe_e.charset.UTF8.decode(byte[])");
 
         // Type org.joe_e.file.Filesystem
-        methods.add("org.joe_e.file.Filesystem.writeNew(File)");
         methods.add("org.joe_e.file.Filesystem.list(File)");
-        methods.add("org.joe_e.file.Filesystem.length(File)");
-        methods.add("org.joe_e.file.Filesystem.read(File)");
         methods.add("org.joe_e.file.Filesystem.checkName(String)");
         methods.add("org.joe_e.file.Filesystem.file(File, String)");
+        methods.add("org.joe_e.file.Filesystem.length(File)");
+        methods.add("org.joe_e.file.Filesystem.writeNew(File)");
+        methods.add("org.joe_e.file.Filesystem.read(File)");
 
         // Type org.joe_e.file.InvalidFilenameException
         constructors.add("org.joe_e.file.InvalidFilenameException()");
 
         // Type org.joe_e.reflect.Proxies
+        methods.add("org.joe_e.reflect.Proxies.proxy(InvocationHandler, Class<?>[])");
+        methods.add("org.joe_e.reflect.Proxies.isImplementable(Class<?>)");
         methods.add("org.joe_e.reflect.Proxies.getHandler(Proxy)");
-        methods.add("org.joe_e.reflect.Proxies.proxy(InvocationHandler, Class[])");
-        methods.add("org.joe_e.reflect.Proxies.isImplementable(Class)");
 
         // Type org.joe_e.reflect.Reflection
-        methods.add("org.joe_e.reflect.Reflection.construct(Constructor, Object[])");
-        methods.add("org.joe_e.reflect.Reflection.getName(Class)");
-        methods.add("org.joe_e.reflect.Reflection.method(Class, String, Class[])");
-        methods.add("org.joe_e.reflect.Reflection.constructors(Class)");
-        methods.add("org.joe_e.reflect.Reflection.fields(Class)");
+        methods.add("org.joe_e.reflect.Reflection.constructors(Class<?>)");
+        methods.add("org.joe_e.reflect.Reflection.field(Class<?>, String)");
         methods.add("org.joe_e.reflect.Reflection.invoke(Method, Object, Object[])");
-        methods.add("org.joe_e.reflect.Reflection.methods(Class)");
+        methods.add("org.joe_e.reflect.Reflection.getName(Class<?>)");
+        methods.add("org.joe_e.reflect.Reflection.constructor(Class<T>, Class<?>[])");
+        methods.add("org.joe_e.reflect.Reflection.methods(Class<?>)");
         methods.add("org.joe_e.reflect.Reflection.set(Field, Object, Object)");
         methods.add("org.joe_e.reflect.Reflection.get(Field, Object)");
-        methods.add("org.joe_e.reflect.Reflection.field(Class, String)");
-        methods.add("org.joe_e.reflect.Reflection.constructor(Class, Class[])");
+        methods.add("org.joe_e.reflect.Reflection.construct(Constructor<T>, Object[])");
+        methods.add("org.joe_e.reflect.Reflection.method(Class<?>, String, Class<?>[])");
+        methods.add("org.joe_e.reflect.Reflection.fields(Class<?>)");
 
         // Type org.joe_e.taming.Policy
         methods.add("org.joe_e.taming.Policy.fieldEnabled(String)");
         methods.add("org.joe_e.taming.Policy.methodEnabled(String)");
-        methods.add("org.joe_e.taming.Policy.hasHonorary(String, String)");
         methods.add("org.joe_e.taming.Policy.constructorEnabled(String)");
+        methods.add("org.joe_e.taming.Policy.hasHonorary(String, String)");
     }
 }
