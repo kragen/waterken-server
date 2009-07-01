@@ -3,10 +3,8 @@
 package org.waterken.net.http;
 
 import java.io.EOFException;
-import java.io.InputStream;
 import java.io.IOException;
-
-import org.joe_e.inert;
+import java.io.InputStream;
 
 /**
  * A <code>chunked</code> input stream.
@@ -28,7 +26,7 @@ ChunkedInputStream extends InputStream {
      * Constructs an instance.
      * @param in    underlying stream
      */
-    ChunkedInputStream(@inert final InputStream in) {
+    ChunkedInputStream(final InputStream in) {
         this.in = in;
     }
 

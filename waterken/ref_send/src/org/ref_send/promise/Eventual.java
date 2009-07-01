@@ -16,7 +16,6 @@ import org.joe_e.JoeE;
 import org.joe_e.Selfless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
-import org.joe_e.inert;
 import org.joe_e.array.ConstArray;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
@@ -839,7 +838,7 @@ Eventual implements Serializable {
      *                  {@linkplain Proxies#isImplementable allowed} proxy type
      */
     public final <T> T
-    _(final @inert T referent) {
+    _(final T referent) {
         if (referent instanceof Proxy) {
             try {
                 final Object handler = Proxies.getHandler((Proxy)referent);
@@ -868,8 +867,7 @@ Eventual implements Serializable {
      * @throws ClassCastException   no cast to <code>type</code>
      */
     static public @SuppressWarnings("unchecked") <T> T
-    cast(final Class<?> type,
-         final @inert Promise<T> promise) throws ClassCastException {
+    cast(final Class<?> type,final Promise<T> promise)throws ClassCastException{
         return (T)(Void.class == type || void.class == type ?
                 null :
             Float.class == type || float.class == type ?
@@ -955,7 +953,7 @@ Eventual implements Serializable {
      * @param referent immediate or eventual reference
      */
     static public @SuppressWarnings("unchecked") <T> Promise<T>
-    ref(final @inert T referent) {
+    ref(final T referent) {
         if (referent instanceof Promise) { return (Promise<T>)referent; }
         if (referent instanceof Proxy) {
             try {

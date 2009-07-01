@@ -5,8 +5,6 @@ package org.waterken.net.http;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.joe_e.inert;
-
 /**
  * A <code>chunked</code> output stream.
  */
@@ -27,7 +25,7 @@ ChunkedOutputStream extends OutputStream {
      * @param size  buffer size
      * @param out   underlying stream
      */
-    ChunkedOutputStream(final int size, @inert final OutputStream out) {
+    ChunkedOutputStream(final int size, final OutputStream out) {
         this.out = out;
 
         buffer = new byte[size];

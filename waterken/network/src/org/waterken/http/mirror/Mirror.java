@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.joe_e.inert;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.deserializer;
 import org.ref_send.name;
@@ -40,7 +39,7 @@ Mirror extends Struct implements Server, Serializable {
      * @param formats   each known file type
      */
     public @deserializer
-    Mirror(@name("archive") @inert final Archive archive,
+    Mirror(@name("archive") final Archive archive,
            @name("formats") final MIME formats) {
         this.archive = archive;
         this.formats = formats;

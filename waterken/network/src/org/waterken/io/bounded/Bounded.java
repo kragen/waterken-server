@@ -3,11 +3,9 @@
 package org.waterken.io.bounded;
 
 import java.io.EOFException;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-
-import org.joe_e.inert;
 
 /**
  * A fixed length segment of a longer stream.
@@ -87,7 +85,7 @@ Bounded {
      * @param out       underlying output stream
      */
     static public OutputStream
-    output(final long length, @inert final OutputStream out) {
+    output(final long length, final OutputStream out) {
         if (0 > length) { throw new RuntimeException(); }
         return new OutputStream() {
             private long remaining = length;

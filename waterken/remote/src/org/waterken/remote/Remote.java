@@ -9,12 +9,11 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
-import org.joe_e.inert;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.promise.Local;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
+import org.ref_send.promise.Local;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
@@ -81,11 +80,11 @@ Remote extends Local<Object> {
             static private final long serialVersionUID = 1L;
             
             public String
-            apply(final @inert Object target) {
-                final @inert Object handler = target instanceof Proxy
+            apply(final Object target) {
+                final Object handler = target instanceof Proxy
                     ? Proxies.getHandler((Proxy)target) : target;
                 if (handler instanceof Remote) {
-                    final @inert Remote x = (Remote)handler;
+                    final Remote x = (Remote)handler;
                     if (Local.trusted(local, x)) { return x.href; }
                 }
                 return next.apply(target);

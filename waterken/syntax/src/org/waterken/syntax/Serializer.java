@@ -5,7 +5,6 @@ package org.waterken.syntax;
 import java.lang.reflect.Type;
 
 import org.joe_e.Powerless;
-import org.joe_e.inert;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 
@@ -22,8 +21,7 @@ Serializer extends Powerless {
      * @param value     value to serialize
      * @return serialized content
      */
-    ByteArray serialize(Exporter export, Type type,
-                        @inert Object value) throws Exception;
+    ByteArray serialize(Exporter export,Type type,Object value)throws Exception;
     
     /**
      * Serializes a tuple.
@@ -33,5 +31,5 @@ Serializer extends Powerless {
      * @return serialized content
      */
     ByteArray serializeTuple(Exporter export, ConstArray<Type> types,
-                             @inert ConstArray<?> values) throws Exception;
+                             ConstArray<?> values) throws Exception;
 }

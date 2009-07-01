@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.joe_e.Struct;
-import org.joe_e.inert;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
@@ -46,7 +45,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
 
     public ByteArray
     serialize(final Exporter export,
-              final Type type, final @inert Object value) throws Exception {
+              final Type type, final Object value) throws Exception {
         /*
          * SECURITY CLAIM: Only the immutable root of the application object
          * tree provided by the values argument is serialized. The Exporter is
@@ -73,7 +72,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     
     public ByteArray
     serializeTuple(final Exporter export, final ConstArray<Type> types,
-                   final @inert ConstArray<?> values) throws Exception {
+                   final ConstArray<?> values) throws Exception {
         final ByteArray.BuilderOutputStream buffer =
             ByteArray.builder(512).asOutputStream();
         final Writer text = new BufferedWriter(UTF8.output(buffer));
@@ -97,7 +96,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
      * @param text      UTF-8 text output, will be flushed and closed
      */
     static public void
-    write(final Exporter export, final Type type, final @inert Object value,
+    write(final Exporter export, final Type type, final Object value,
                                  final Writer text) throws Exception {
         final JSONWriter top = JSONWriter.make(text);
         serialize(export, type, value, top);
@@ -118,7 +117,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     
     static private void
     serialize(final Exporter export, final Type implicit,
-              final @inert Object value, final JSONWriter out) throws Exception{
+              final Object value, final JSONWriter out) throws Exception {
         final Class<?> actual = null != value ? value.getClass() : Void.class;
         if (String.class == actual) {
             out.writeString((String)value);
@@ -172,12 +171,12 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
              */
             final Type elementType = Typedef.bound(T, implicit);
             final JSONWriter.ArrayWriter aout = out.startArray();
-            for (final @inert Object element : (ConstArray<?>)value) {
+            for (final Object element : (ConstArray<?>)value) {
                 serialize(export, elementType, element, aout.startElement());
             }
             aout.finish();
         } else if (Scope.class == actual) {
-            final @inert Scope scope = (Scope)value;
+            final Scope scope = (Scope)value;
             /*
              * SECURITY DEPENDENCY: Application code cannot extend ConstArray,
              * so iteration of the scope arrays will not transfer control to
@@ -186,7 +185,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             final JSONWriter.ObjectWriter oout = out.startObject();
             final int length = scope.values.length();
             for (int i = 0; i != length; ++i) {
-                final @inert Object member = scope.values.get(i);
+                final Object member = scope.values.get(i);
                 if (null != member) {
                     serialize(export, Object.class, member,
                               oout.startMember(scope.meta.names.get(i)));
@@ -209,7 +208,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                     if (!Modifier.isFinal(f.getModifiers())) {
                         throw new IllegalAccessException("MUST be final: " + f);
                     }
-                    final @inert Object member = Reflection.get(f, value);
+                    final Object member = Reflection.get(f, value);
                     if (null != member) {
                         serialize(export,
                                   Typedef.bound(f.getGenericType(), implicit),

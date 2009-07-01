@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
-import org.joe_e.inert;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
@@ -62,7 +61,7 @@ Response extends Struct implements Powerless, Record, Serializable {
      * Constructs an <code>OPTIONS</code> response.
      * @param allow supported HTTP methods
      */
-    static public @inert Response
+    static public Response
     options(final String... allow) {
         return new Response("HTTP/1.1", "204", "OK",
                             PowerlessArray.array(
@@ -96,7 +95,7 @@ Response extends Struct implements Powerless, Record, Serializable {
      * Constructs a <code>405</code> Method Not Allowed response.
      * @param each supported HTTP method
      */
-    static public @inert Response
+    static public Response
     notAllowed(final String... allow) {
         return new Response("HTTP/1.1", "405", "Method Not Allowed",
                             PowerlessArray.array(

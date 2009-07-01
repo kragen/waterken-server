@@ -11,7 +11,6 @@ import java.lang.reflect.TypeVariable;
 
 import org.joe_e.Selfless;
 import org.joe_e.Token;
-import org.joe_e.inert;
 import org.joe_e.array.ConstArray;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
@@ -57,7 +56,7 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      * @return <code>true</code> if trusted, else <code>false</code>
      */
     static protected final boolean
-    trusted(final Token local, final @inert Object untrusted) {
+    trusted(final Token local, final Object untrusted) {
         return untrusted instanceof Local &&
                local == ((Local<?>)untrusted)._.local;
     }
@@ -119,7 +118,7 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      * @param argv      invocation arguments
      */
     static public <T> Do<T,Object>
-    curry(final Method method, final @inert ConstArray<?> argv) {
+    curry(final Method method, final ConstArray<?> argv) {
         return new Invoke<T>(method, argv);
     }
 
@@ -134,9 +133,8 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      * @return <code>x</code>'s parameter type
      */
     static public Type
-    parameter(final @inert Do<?,?> x) {
-        final @inert Do<?,?> inner =
-            x instanceof Compose ? ((Compose<?,?>)x).block : x;
+    parameter(final Do<?,?> x) {
+        final Do<?,?> inner= x instanceof Compose ? ((Compose<?,?>)x).block : x;
         return inner instanceof Invoke
             ? ((Invoke<?>)inner).method.getDeclaringClass()
         : Typedef.value(P, inner.getClass());
@@ -154,9 +152,8 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      * @return <code>x</code>'s return type
      */
     static protected Type
-    output(final Class<?> p, final @inert Do<?,?> x) {
-        final @inert Do<?,?> inner =
-            x instanceof Compose ? ((Compose<?,?>)x).block : x;
+    output(final Class<?> p, final Do<?,?> x) {
+        final Do<?,?> inner= x instanceof Compose ? ((Compose<?,?>)x).block : x;
         return inner instanceof Invoke
             ? Typedef.bound(((Invoke<?>)inner).method.getGenericReturnType(), p)
         : Typedef.value(R, inner.getClass());

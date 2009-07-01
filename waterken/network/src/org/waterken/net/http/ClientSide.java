@@ -15,7 +15,6 @@ import java.net.SocketException;
 import java.util.LinkedList;
 
 import org.joe_e.Powerless;
-import org.joe_e.inert;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.ASCII;
 import org.joe_e.var.Milestone;
@@ -130,8 +129,7 @@ ClientSide implements Server {
         protected       InputStream in;
         protected       OutputStream out;
         
-        Connection(@inert final SocketAddress mostRecent,
-                   @inert final Outbound retry) {
+        Connection(final SocketAddress mostRecent, final Outbound retry) {
             this.mostRecent = mostRecent;
             this.retry = retry;
         }
@@ -183,10 +181,8 @@ ClientSide implements Server {
         private   final Client client;
         private   final Outbound pop;
         
-        Exchange(@inert final Request head,
-                 @inert final InputStream body,
-                 @inert final Client client,
-                 @inert final Outbound pop) {
+        Exchange(final Request head, final InputStream body,
+                 final Client client, final Outbound pop) {
             this.head = head;
             this.body = body;
             this.client = client;
@@ -203,7 +199,7 @@ ClientSide implements Server {
         private final Connection on;
         private final Exchange x;
         
-        Receive(@inert final Connection on, @inert final Exchange x) {
+        Receive(final Connection on, final Exchange x) {
             this.on = on;
             this.x = x; 
         }
@@ -242,7 +238,7 @@ ClientSide implements Server {
         private final Connection on;
         private final Exchange x;
         
-        Send(@inert final Connection on, @inert final Exchange x) {
+        Send(final Connection on, final Exchange x) {
             this.on = on;
             this.x = x;
         }

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 
-import org.joe_e.inert;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.var.Milestone;
 import org.ref_send.deserializer;
@@ -117,7 +116,7 @@ HTTPD extends TCPDaemon {
      */
     static protected InputStream
     input(final PowerlessArray<Header> headers,
-          @inert final InputStream connection) throws Exception {
+          final InputStream connection) throws Exception {
         final StringBuilder encodingList = new StringBuilder();
         for (final Header header : headers) {
             if (Header.equivalent("Transfer-Encoding", header.name)) {
@@ -125,7 +124,7 @@ HTTPD extends TCPDaemon {
                 encodingList.append(header.value);
             }
         }
-        @inert InputStream r = null;
+        InputStream r = null;
         final PowerlessArray<String> encoding =
             TokenList.decode(encodingList.toString());
         for (int i = encoding.length(); i-- != 0;) {

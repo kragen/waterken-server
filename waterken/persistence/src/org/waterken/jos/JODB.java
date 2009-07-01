@@ -33,7 +33,6 @@ import org.joe_e.Immutable;
 import org.joe_e.JoeE;
 import org.joe_e.Struct;
 import org.joe_e.Token;
-import org.joe_e.inert;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
@@ -449,7 +448,7 @@ JODB<S> extends Database<S> {
         }
 
         public String
-        export(final @inert Object o, final boolean isWeak) {
+        export(final Object o, final boolean isWeak) {
             
             // check for an existing strong identity
             {

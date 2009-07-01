@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.joe_e.inert;
-
 /**
  * A stream that is not allowed to be longer than a preset limit.
  */
@@ -84,7 +82,7 @@ Limited {
      * @param out   underlying output stream
      */
     static public OutputStream
-    output(final long max, @inert final OutputStream out) {
+    output(final long max, final OutputStream out) {
         if (0 > max) { throw new RuntimeException(); }
         return new OutputStream() {
             private long remaining = max;   // number of bytes remaining 

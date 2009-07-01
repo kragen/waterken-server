@@ -9,7 +9,6 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
 import org.joe_e.Token;
-import org.joe_e.inert;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
@@ -192,7 +191,7 @@ HTTP extends Eventual implements Serializable {
                 static private final long serialVersionUID = 1L;
 
                 public String
-                apply(final @inert Object object) {
+                apply(final Object object) {
                     return href(_.root.export(object, false));
                 }
             }
@@ -341,7 +340,7 @@ HTTP extends Eventual implements Serializable {
             static private final long serialVersionUID = 1L;
 
             public String
-            apply(final @inert Object target) {
+            apply(final Object target) {
                 final String absolute = URI.resolve(here, export.apply(target));
                 return null != there ? URI.relate(there, absolute) : absolute;
             }

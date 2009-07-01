@@ -9,7 +9,6 @@ import java.io.Writer;
 
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
-import org.joe_e.inert;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.ASCII;
@@ -131,7 +130,7 @@ Request extends Struct implements Powerless, Record, Serializable {
      *         else <code>false</code>
      * @throws Exception    any problem
      */
-    public @inert boolean
+    public boolean
     respond(final String etag, final Client client,
             final String... allow) throws Exception {
         if (!expect(client, allow)) { return false; }
@@ -162,7 +161,7 @@ Request extends Struct implements Powerless, Record, Serializable {
      *         else <code>false</code>
      * @throws Exception    any problem
      */
-    public @inert boolean
+    public boolean
     expect(final Client client, final String... allow) throws Exception {
         
         // filter for disallowed methods
@@ -218,7 +217,7 @@ Request extends Struct implements Powerless, Record, Serializable {
      * @return <code>null</code> if request should proceed,
      *         else failure response message
      */
-    public @inert Response
+    public Response
     allow(final String etag) {
         if (null != etag) {
             final String ifNoneMatch = TokenList.list("If-None-Match", headers);
@@ -251,7 +250,7 @@ Request extends Struct implements Powerless, Record, Serializable {
     /**
      * Constructs a <code>TRACE</code> response.
      */
-    public @inert Message<Response>
+    public Message<Response>
     trace() {
         final ByteArray.BuilderOutputStream buffer =
             ByteArray.builder().asOutputStream();

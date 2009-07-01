@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.db;
 
-import org.joe_e.inert;
 import org.joe_e.file.InvalidFilenameException;
 
 /**
@@ -46,5 +45,5 @@ Root {
      * @return assigned name
      * @throws ProhibitedCreation       in a {@link Transaction#query}
      */
-    String export(@inert Object value, boolean isWeak)throws ProhibitedCreation;
+    String export(Object value, boolean isWeak) throws ProhibitedCreation;
 }

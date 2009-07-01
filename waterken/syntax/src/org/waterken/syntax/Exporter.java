@@ -2,8 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax;
 
-import org.joe_e.inert;
-
 /**
  * A reference exporter.
  */
@@ -15,5 +13,5 @@ Exporter {
      * @param target    reference to export
      * @return exported URL
      */
-    String apply(@inert Object target);
+    String apply(Object target);
 }
