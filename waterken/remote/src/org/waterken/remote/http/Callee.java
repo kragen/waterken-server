@@ -121,14 +121,14 @@ Callee extends Struct implements Serializable {
                      * to ensure application layer cannot detect request replay
                      */
                     final Dispatch lambda = Dispatch.post(target, p);
-                    if (null == lambda) {               // no such method
+                    if (null == lambda) {       // no such method
                         exports._.log.got(message, null, null);
                         exports._.log.returned(message + "-return");
                         final boolean get = null != Dispatch.get(target, p);
                         return new Message<Response>(Response.notAllowed(
                             get ? new String[]{"TRACE","OPTIONS","GET"} : 
                                   new String[]{"TRACE","OPTIONS"      }), null);
-                    }                                   // method invocation
+                    }                           // method invocation
                     if (null != message) {
                         exports._.log.got(message, null, lambda.implementation);
                     }
