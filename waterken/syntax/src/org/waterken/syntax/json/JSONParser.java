@@ -197,26 +197,27 @@ JSONParser {
         return null != promised ? ref(value) : value;
     }
     
-    private @SuppressWarnings("unchecked") Object
+    private Object
     parseArray(final Type required) throws Exception {
         if (!"[".equals(lexer.getHead())) { throw new Exception(); }
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
         final Class<?> rawExpected = Typedef.raw(expected);
-        final ConstArray.Builder builder = 
-            BooleanArray.class == rawExpected ? BooleanArray.builder()
-            : CharArray.class == rawExpected ? CharArray.builder()
-            : ByteArray.class == rawExpected ? ByteArray.builder()
-            : ShortArray.class == rawExpected ? ShortArray.builder()
-            : IntArray.class == rawExpected ? IntArray.builder()
-            : LongArray.class == rawExpected ? LongArray.builder()
-            : FloatArray.class == rawExpected ? FloatArray.builder()
-            : DoubleArray.class == rawExpected ? DoubleArray.builder()
-            : PowerlessArray.class.isAssignableFrom(rawExpected)
-                ? PowerlessArray.builder()
-            : ImmutableArray.class.isAssignableFrom(rawExpected)
-                ? ImmutableArray.builder()
-            : ConstArray.builder();
+        final @SuppressWarnings("unchecked") ConstArray.Builder<Object> builder= 
+            (ConstArray.Builder)(
+                BooleanArray.class == rawExpected ? BooleanArray.builder() :
+                CharArray.class == rawExpected ? CharArray.builder() :
+                ByteArray.class == rawExpected ? ByteArray.builder() :
+                ShortArray.class == rawExpected ? ShortArray.builder() :
+                IntArray.class == rawExpected ? IntArray.builder() :
+                LongArray.class == rawExpected ? LongArray.builder() :
+                FloatArray.class == rawExpected ? FloatArray.builder() :
+                DoubleArray.class == rawExpected ? DoubleArray.builder() :
+                PowerlessArray.class.isAssignableFrom(rawExpected) ?
+                    PowerlessArray.builder() :
+                ImmutableArray.class.isAssignableFrom(rawExpected) ?
+                    ImmutableArray.builder() :
+                ConstArray.builder());
         if (!"]".equals(lexer.next())) {
             final Type elementT = Typedef.value(T, expected);
             while (true) {
