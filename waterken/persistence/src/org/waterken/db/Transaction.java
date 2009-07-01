@@ -11,7 +11,8 @@ public interface
 Transaction<R extends Immutable> extends Immutable {
     
     /**
-     * indicates a {@linkplain Database#enter transaction} may modify existing state
+     * indicates a {@linkplain Database#enter transaction} may modify existing
+     * state
      */
     boolean update = false;
 
