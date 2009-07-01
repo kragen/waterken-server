@@ -101,8 +101,8 @@ Config {
         this.supported = supported;
         this.output = output;
         
-        cacheKeys = PowerlessArray.array(new String[] {});
-        cacheValues = ConstArray.array(new Object[] {});
+        cacheKeys = PowerlessArray.array();
+        cacheValues = ConstArray.array();
     }
     
     /**

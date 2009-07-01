@@ -94,7 +94,7 @@ ServerSide implements Promise<Void> {
             } else if (version.startsWith("HTTP/0.")) {
                 // old HTTP client; no headers, no content
                 current.closing.mark(true);
-                headers = PowerlessArray.array(new Header[] {});
+                headers = PowerlessArray.array();
                 body = null;
             } else {
                 throw new Exception("HTTP Version Not Supported: " + version);

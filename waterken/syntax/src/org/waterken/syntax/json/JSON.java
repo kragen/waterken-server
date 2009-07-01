@@ -26,7 +26,7 @@ JSON {
     static public PowerlessArray<String>
     upto(final Class<?> bottom, final Class<?> top) {
         if (Promise.class.isAssignableFrom(bottom)) {
-            return PowerlessArray.array(new String[] {});
+            return PowerlessArray.array();
         }
         
         // simplify the knot at the top of the world

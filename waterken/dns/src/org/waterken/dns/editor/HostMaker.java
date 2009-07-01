@@ -36,8 +36,7 @@ HostMaker {
         class Host implements Menu<ByteArray>, Serializable {
             static private final long serialVersionUID = 1L;
 
-            private ConstArray<ResourceVariable> vars =
-                ConstArray.array(new ResourceVariable[] {});
+            private ConstArray<ResourceVariable> vars = ConstArray.array();
 
             public Promise<Snapshot<ByteArray>>
             getSnapshot() {
