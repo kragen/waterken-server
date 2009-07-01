@@ -44,7 +44,7 @@ Callee extends Struct implements Serializable {
     apply(final String query, final Message<Request> m) throws Exception {
         
         // further dispatch the request based on the accessed member
-        final String p = HTTP.predicate(query);
+        final String p = HTTP.predicate(m.head.method, query);
         if (null == p) {                        // when block
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
@@ -111,60 +111,76 @@ Callee extends Struct implements Serializable {
         }
         
         if ("POST".equals(m.head.method)) {
-            final Dispatch lambda = Dispatch.post(target, p);
-            if (null == lambda) {           // no such method
-                final boolean get = null != Dispatch.get(target, p);
-                return new Message<Response>(Response.notAllowed(
-                    get ? new String[] { "TRACE", "OPTIONS", "GET" } : 
-                          new String[] { "TRACE", "OPTIONS"        }), null);
-            }                                   // method invocation
             final Response failed = m.head.allow(null);
             if (null != failed) { return new Message<Response>(failed, null); }
-            String contentType = m.head.getContentType();
-            if (null == contentType) {
-                contentType = FileType.json.name;
-            } else {
-                final int end = contentType.indexOf(';');
-                if (-1 != end) {
-                    contentType = contentType.substring(0, end);
-                }
-            }
-            final Deserializer deserializer =
-                Header.equivalent(FileType.json.name, contentType) ||
-                Header.equivalent("text/plain",       contentType) ?
-                    new JSONDeserializer() : null;
-            final Object value = exports.execute(query, lambda.implementation,
-                                                 new Promise<Object>() {
-                public Object
-                call() throws Exception {
+            return exports.execute(query, new NonIdempotent() {
+                public Message<Response>
+                apply(final String message) throws Exception {
                     /*
-                     * SECURITY CLAIM: deserialize inside the once block to
-                     * ensure application code cannot detect request replay by
-                     * causing failed deserialization
+                     * SECURITY CLAIM: do request processing inside once block
+                     * to ensure application layer cannot detect request replay
                      */
-                    final ConstArray<?> argv;
-                    try {
-                        argv = null == deserializer ? ConstArray.array(m.body) : 
-                            deserializer.deserializeTuple(exports.getHere(),
-                                exports.connect(), ConstArray.array(lambda.
-                                    implementation.getGenericParameterTypes()),
-                                exports.getCodebase(), m.body.asInputStream());
-                    } catch (final BadSyntax e) {
-                        /*
-                         * strip out the parsing information to avoid leaking
-                         * information to the application layer
-                         */ 
-                        throw (Exception)e.getCause();
+                    final Dispatch lambda = Dispatch.post(target, p);
+                    if (null == lambda) {               // no such method
+                        exports._.log.got(message, null, null);
+                        exports._.log.returned(message + "-return");
+                        final boolean get = null != Dispatch.get(target, p);
+                        return new Message<Response>(Response.notAllowed(
+                            get ? new String[]{"TRACE","OPTIONS","GET"} : 
+                                  new String[]{"TRACE","OPTIONS"      }), null);
+                    }                                   // method invocation
+                    if (null != message) {
+                        exports._.log.got(message, null, lambda.implementation);
                     }
-
-                    // AUDIT: call to untrusted application code
-                    final Object r = Reflection.invoke(lambda.declaration,
-                        target, argv.toArray(new Object[argv.length()]));
-                    return Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
+                    Object value;
+                    try {
+                        String contentType = m.head.getContentType();
+                        if (null == contentType) {
+                            contentType = FileType.json.name;
+                        } else {
+                            final int end = contentType.indexOf(';');
+                            if (-1 != end) {
+                                contentType = contentType.substring(0, end);
+                            }
+                        }
+                        final Deserializer syntax =
+                            Header.equivalent(FileType.json.name, contentType)||
+                            Header.equivalent("text/plain",       contentType) ?
+                                new JSONDeserializer() : null;
+                        final ConstArray<?> argv;
+                        try {
+                            argv = null == syntax ? ConstArray.array(m.body) : 
+                                syntax.deserializeTuple(exports.getHere(),
+                                  exports.connect(), ConstArray.array(lambda.
+                                    implementation.getGenericParameterTypes()),
+                                  exports.getCodebase(),m.body.asInputStream());
+                        } catch (final BadSyntax e) {
+                            /*
+                             * strip out the parsing information to avoid
+                             * leaking information to the application layer
+                             */ 
+                            throw (Exception)e.getCause();
+                        }
+    
+                        // AUDIT: call to untrusted application code
+                        value = Reflection.invoke(lambda.declaration, target,
+                                argv.toArray(new Object[argv.length()]));
+                        if (Fulfilled.isInstance(value)) {
+                            value = ((Promise<?>)value).call();
+                        }
+                    } catch (final Exception e) {
+                        value = Eventual.reject(e);
+                    }
+                    final Type R = lambda.declaration.getGenericReturnType();
+                    if (null != message) {
+                        if (null!=value || (void.class!=R && Void.class!=R)) {
+                            exports._.log.returned(message + "-return");
+                        }
+                    }
+                    return serialize(m.head.method, "200", "OK",
+                                     Server.ephemeral, R, value);
                 }
             });
-            return serialize(m.head.method, "200", "OK", Server.ephemeral,
-                             lambda.declaration.getGenericReturnType(), value);
         }
         
         final boolean get = null != Dispatch.get(target, p);

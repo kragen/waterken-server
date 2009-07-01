@@ -3,12 +3,13 @@
 package org.waterken.remote.http;
 
 import java.io.Serializable;
-import java.lang.reflect.Method;
 
 import org.joe_e.array.ConstArray;
-import org.ref_send.promise.Eventual;
-import org.ref_send.promise.Log;
-import org.ref_send.promise.Promise;
+import org.joe_e.array.PowerlessArray;
+import org.joe_e.reflect.Reflection;
+import org.waterken.http.Message;
+import org.waterken.http.Response;
+import org.waterken.uri.Header;
 
 /**
  * The server-side state associated with a messaging session.
@@ -18,45 +19,46 @@ ServerSideSession implements Serializable {
     static private final long serialVersionUID = 1L;
 
     private final String name;                  // GUID of this session
-    private final Log log;                      // corresponding log output
     
-    private       long current;                 // current window number
-    private       ConstArray<Object> returns;   // returns in current window
+    private long current;                           // current window number
+    private ConstArray<Message<Response>> returns;  // returns in current window
     
     protected
-    ServerSideSession(final String name, final Log log) {
+    ServerSideSession(final String name) {
         this.name = name;
-        this.log = log;
         
         current = -1;
-        returns = ConstArray.array(new Object[] {});
+        returns = ConstArray.array();
     }
     
-    static protected Object
-    execute(final Promise<?> op) {
+    static protected Message<Response>
+    execute(final String message, final NonIdempotent op) {
         try {
-            return op.call();
+            return op.apply(message);
         } catch (final Exception e) {
-            return Eventual.reject(e);
+            return new Message<Response>(new Response(
+                "HTTP/1.1", "409", Reflection.getName(e.getClass()),
+                PowerlessArray.array(new Header("Content-Length", "0"))), null);
         }
     }
     
-    protected Object
-    once(final long window, final int message,
-         final Method method, final Promise<?> op) {
+    protected Message<Response>
+    once(final long window, final int message, final NonIdempotent op) {
         if (window == current) {
-            if (message != returns.length()) { return returns.get(message); }
+            if (message != returns.length()) {
+                if (message < returns.length()) { return returns.get(message); }
+                for (int i = returns.length(); i != message; i += 1) {
+                    returns = returns.with(new Message<Response>(new Response(
+                        "HTTP/1.1", "404", "never", PowerlessArray.
+                            array(new Header("Content-Length", "0"))), null));
+                }
+            }
         } else {
             current = window;
-            returns = ConstArray.array(new Object[] {});
+            returns = ConstArray.array();
         }
-        log.got(name + "-" + window + "-" + message, null, method);
-        final Object r = execute(op);
+        final Message<Response> r = execute(name+"-"+window+"-"+message, op);
         returns = returns.with(r);
-        final Class<?> R = method.getReturnType();
-        if (null != r || (void.class != R && Void.class != R)) {
-            log.returned(name + "-" + window + "-" + message + "-return");
-        }
         return r;
     }
 }

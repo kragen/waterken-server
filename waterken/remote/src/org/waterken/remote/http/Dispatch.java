@@ -77,6 +77,7 @@ Dispatch extends Struct implements Record, Serializable {
      */
     static public Dispatch
     post(final Object target, final String name) {
+        final String methodName= null==name || "".equals(name) ? "apply" : name;
         final Class<?> type = null != target ? target.getClass() : Void.class;
         final boolean c = Class.class == type;
         Method implementation = null;
@@ -84,7 +85,7 @@ Dispatch extends Struct implements Record, Serializable {
         for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
             final int flags = m.getModifiers();
             if (c == isStatic(flags)) {
-                if (name.equals(m.getName()) && null == property(m)) {
+                if (methodName.equals(m.getName()) && null == property(m)) {
                     if (null != implementation) {
                         if (null != bridge) { return null; }
                         if (implementation.isBridge()) {

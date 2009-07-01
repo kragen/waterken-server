@@ -8,9 +8,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.joe_e.Token;
-import org.ref_send.promise.Log;
 import org.waterken.base32.Base32;
-import org.waterken.db.Database;
 import org.waterken.db.Root;
 
 /**
@@ -35,8 +33,7 @@ SessionMaker implements Serializable {
     open(final String key) {
         ServerSideSession r = root.fetch(null, sessionKeyPrefix + key);
         if (null == r) {
-            final Log log = root.fetch(null, Database.log);
-            r = new ServerSideSession(hash(key), log);
+            r = new ServerSideSession(hash(key));
             root.assign(sessionKeyPrefix + key, r);
         }
         return r;

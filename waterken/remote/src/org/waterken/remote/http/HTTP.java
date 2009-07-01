@@ -25,6 +25,8 @@ import org.waterken.db.Database;
 import org.waterken.db.Effect;
 import org.waterken.db.Root;
 import org.waterken.db.TransactionMonitor;
+import org.waterken.http.Message;
+import org.waterken.http.Response;
 import org.waterken.http.Server;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
@@ -204,17 +206,15 @@ HTTP extends Eventual implements Serializable {
         /**
          * Receives an operation.
          * @param query     request query string
-         * @param method    corresponding operation
          * @param op        operation to run
          * @return <code>op</code> return value
          */
-        protected Object
-        execute(final String query,
-                final Method method, final Promise<Object> op) {
+        protected Message<Response>
+        execute(final String query, final NonIdempotent op) {
             final String x = session(query);
-            if (null == x) { return ServerSideSession.execute(op); }
+            if (null == x) { return ServerSideSession.execute(null, op); }
             final ServerSideSession session = new SessionMaker(_.root).open(x);
-            return session.once(window(query), message(query), method, op);
+            return session.once(window(query), message(query), op);
         }
         
         /**
@@ -300,27 +300,30 @@ HTTP extends Eventual implements Serializable {
 
     /**
      * Extracts the subject key from a web-key.
-     * @param q web-key argument string
+     * @param query web-key argument string
      * @return corresponding subject key
      */
     static private String
-    subject(final String q) { return Query.arg(null, q, "s"); }
+    subject(final String query) { return Query.arg(null, query, "s"); }
     
     /**
      * Extracts the predicate string from a web-key.
-     * @param q web-key argument string
+     * @param method    HTTP request method
+     * @param query     web-key argument string
      * @return corresponding predicate string
      */
     static protected String
-    predicate(final String q) { return Query.arg(null, q, "q"); }
+    predicate(final String method, final String query) {
+        return Query.arg("POST".equals(method) ? "apply" : null, query, "q");
+    }
     
     /**
      * Extracts the session key.
-     * @param q web-key argument string
+     * @param query web-key argument string
      * @return corresponding session key
      */
     static private String
-    session(final String q) { return Query.arg(null, q, "x"); }
+    session(final String query) { return Query.arg(null, query, "x"); }
     
     static private long
     window(final String q) { return Long.parseLong(Query.arg(null, q, "w")); }
