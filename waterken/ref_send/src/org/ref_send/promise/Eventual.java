@@ -751,7 +751,7 @@ Eventual implements Serializable {
         final Promise<When<T>> front = allocWhen(condition);
         final State<T> state = new State<T>(condition, front);
         return new Channel<T>(new Tail<T>(this, state),
-                              new Head<T>(condition, state,front));
+                              new Head<T>(condition, state, front));
     }
 
     /**
