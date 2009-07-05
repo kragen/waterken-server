@@ -131,7 +131,7 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
         if (other instanceof BooleanArray) {
             // Simple case: just compare booleanArr fields
             return Arrays.equals(booleans, ((BooleanArray)other).booleans);
-        } else if (other instanceof ConstArray) {
+        } else if (other instanceof ConstArray<?>) {
             // Other array does not have contents in booleanArr:
             // check that length matches, and then compare elements one-by-one
             final ConstArray<?> otherArray = (ConstArray<?>)other;

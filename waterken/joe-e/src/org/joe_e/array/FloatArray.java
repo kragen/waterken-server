@@ -131,7 +131,7 @@ public final class FloatArray extends PowerlessArray<Float> {
         if (other instanceof FloatArray) {
             // Simple case: just compare floatArr fields
             return Arrays.equals(floats, ((FloatArray)other).floats);
-        } else if (other instanceof ConstArray) {
+        } else if (other instanceof ConstArray<?>) {
             // Other array does not have contents in floatArr:
             // check that length matches, and then compare elements one-by-one
             final ConstArray<?> otherArray = (ConstArray<?>)other;

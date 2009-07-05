@@ -276,7 +276,7 @@ public final class Reflection {
             sb.append("." + member.getName());
             return Policy.fieldEnabled(sb.toString());
         }
-        else if (member instanceof Constructor) {
+        else if (member instanceof Constructor<?>) {
             String stringForm = member.toString();
             String args = stringForm.substring(stringForm.indexOf('('),
                                                stringForm.indexOf(')') + 1);

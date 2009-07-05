@@ -131,7 +131,7 @@ public final class ShortArray extends PowerlessArray<Short> {
         if (other instanceof ShortArray) {
             // Simple case: just compare shortArr fields
             return Arrays.equals(shorts, ((ShortArray)other).shorts);
-        } else if (other instanceof ConstArray) {
+        } else if (other instanceof ConstArray<?>) {
             // Other array does not have contents in shortArr:
             // check that length matches, and then compare elements one-by-one
             final ConstArray<?> otherArray = (ConstArray<?>)other;

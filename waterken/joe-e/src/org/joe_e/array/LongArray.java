@@ -131,7 +131,7 @@ public final class LongArray extends PowerlessArray<Long> {
         if (other instanceof LongArray) {
             // Simple case: just compare longArr fields
             return Arrays.equals(longs, ((LongArray)other).longs);
-        } else if (other instanceof ConstArray) {
+        } else if (other instanceof ConstArray<?>) {
             // Other array does not have contents in longArr:
             // check that length matches, and then compare elements one-by-one
             final ConstArray<?> otherArray = (ConstArray<?>)other;

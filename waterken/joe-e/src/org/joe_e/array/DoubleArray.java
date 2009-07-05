@@ -131,7 +131,7 @@ public final class DoubleArray extends PowerlessArray<Double> {
         if (other instanceof DoubleArray) {
             // Simple case: just compare doubleArr fields
             return Arrays.equals(doubles, ((DoubleArray)other).doubles);
-        } else if (other instanceof ConstArray) {
+        } else if (other instanceof ConstArray<?>) {
             // Other array does not have contents in doubleArr:
             // check that length matches, and then compare elements one-by-one
             final ConstArray<?> otherArray = (ConstArray<?>)other;

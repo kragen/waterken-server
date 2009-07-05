@@ -158,7 +158,7 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
      */ 
     public boolean equals(final Object other) {
         // Can't be equal if not a ConstArray
-        if (!(other instanceof ConstArray)) {
+        if (!(other instanceof ConstArray<?>)) {
             return false;
         }
         ConstArray<?> otherArray = (ConstArray<?>) other;
@@ -233,7 +233,7 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
             if (element == null) {
                 text.append("null");
             }
-            if (element instanceof String || element instanceof ConstArray
+            if (element instanceof String || element instanceof ConstArray<?>
                 || element instanceof Boolean || element instanceof Byte  
                 || element instanceof Character || element instanceof Double
                 || element instanceof Float || element instanceof Integer

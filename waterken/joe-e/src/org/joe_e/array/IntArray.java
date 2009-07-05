@@ -131,7 +131,7 @@ public final class IntArray extends PowerlessArray<Integer> {
         if (other instanceof IntArray) {
             // Simple case: just compare intArr fields
             return Arrays.equals(ints, ((IntArray)other).ints);
-        } else if (other instanceof ConstArray) {
+        } else if (other instanceof ConstArray<?>) {
             // Other array does not have contents in intArr:
             // check that length matches, and then compare elements one-by-one
             final ConstArray<?> otherArray = (ConstArray<?>)other;

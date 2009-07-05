@@ -134,7 +134,7 @@ public final class ByteArray extends PowerlessArray<Byte> {
         if (other instanceof ByteArray) {
             // Simple case: just compare byteArr fields
             return Arrays.equals(bytes, ((ByteArray)other).bytes);
-        } else if (other instanceof ConstArray) {
+        } else if (other instanceof ConstArray<?>) {
             // Other array does not have contents in byteArr:
             // check that length matches, and then compare elements one-by-one
             final ConstArray<?> otherArray = (ConstArray<?>)other;

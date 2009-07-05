@@ -131,7 +131,7 @@ public final class CharArray extends PowerlessArray<Character> {
         if (other instanceof CharArray) {
             // Simple case: just compare charArr fields
             return Arrays.equals(chars, ((CharArray)other).chars);
-        } else if (other instanceof ConstArray) {
+        } else if (other instanceof ConstArray<?>) {
             // Other array does not have contents in charArr:
             // check that length matches, and then compare elements one-by-one
             final ConstArray<?> otherArray = (ConstArray<?>)other;
