@@ -45,7 +45,7 @@ Fulfilled<T> implements Promise<T>, Serializable {
     public boolean
     equals(final Object x) {
         try {
-            return x instanceof Fulfilled &&
+            return x instanceof Fulfilled<?> &&
                 isWeak == ((Fulfilled<?>)x).isWeak &&
                 (state.getClass() == ((Fulfilled<?>)x).state.getClass()
                     ? state.equals(((Fulfilled<?>)x).state)

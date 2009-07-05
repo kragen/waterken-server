@@ -57,7 +57,7 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      */
     static protected final boolean
     trusted(final Token local, final Object untrusted) {
-        return untrusted instanceof Local &&
+        return untrusted instanceof Local<?> &&
                local == ((Local<?>)untrusted)._.local;
     }
 
@@ -134,10 +134,11 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      */
     static public Type
     parameter(final Do<?,?> x) {
-        final Do<?,?> inner= x instanceof Compose ? ((Compose<?,?>)x).block : x;
-        return inner instanceof Invoke
-            ? ((Invoke<?>)inner).method.getDeclaringClass()
-        : Typedef.value(P, inner.getClass());
+        final Do<?,?> inner =
+        	x instanceof Compose<?,?> ? ((Compose<?,?>)x).block : x;
+        return inner instanceof Invoke<?> ?
+        	((Invoke<?>)inner).method.getDeclaringClass() :
+        Typedef.value(P, inner.getClass());
     }
 
     /**
@@ -153,9 +154,10 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      */
     static protected Type
     output(final Class<?> p, final Do<?,?> x) {
-        final Do<?,?> inner= x instanceof Compose ? ((Compose<?,?>)x).block : x;
-        return inner instanceof Invoke
-            ? Typedef.bound(((Invoke<?>)inner).method.getGenericReturnType(), p)
-        : Typedef.value(R, inner.getClass());
+        final Do<?,?> inner =
+        	x instanceof Compose<?,?> ? ((Compose<?,?>)x).block : x;
+        return inner instanceof Invoke<?> ?
+        	Typedef.bound(((Invoke<?>)inner).method.getGenericReturnType(), p) :
+        Typedef.value(R, inner.getClass());
     }
 }

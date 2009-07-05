@@ -45,7 +45,7 @@ Rejected<T> implements Promise<T>, InvocationHandler, Powerless,
      */
     public boolean
     equals(final Object x) {
-        return x instanceof Rejected &&
+        return x instanceof Rejected<?> &&
                (null != reason
                    ? reason.equals(((Rejected<?>)x).reason)
                    : null == ((Rejected<?>)x).reason);

@@ -59,7 +59,7 @@ Typedef {
                 }
             }
         }
-        if (r instanceof TypeVariable) {
+        if (r instanceof TypeVariable<?>) {
             if (a instanceof ParameterizedType) {
                 int i = 0;
                 for (final TypeVariable<?> v : declaration.getTypeParameters()){
@@ -81,7 +81,7 @@ Typedef {
      */
     static public Class<?>
     raw(final Type type) {
-        return type instanceof Class
+        return type instanceof Class<?>
             ? (Class<?>)type
         : (type instanceof ParameterizedType
             ? raw(((ParameterizedType)type).getRawType())
@@ -98,7 +98,7 @@ Typedef {
      */
     static public Type
     bound(final Type parameter, final Type declared) {
-        final Type argument = parameter instanceof TypeVariable
+        final Type argument = parameter instanceof TypeVariable<?>
             ? value((TypeVariable<?>)parameter, declared)
         : parameter;
         return argument instanceof WildcardType

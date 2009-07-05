@@ -388,7 +388,7 @@ Eventual implements Serializable {
 
         public boolean
         equals(final Object x) {
-            return x instanceof Enqueue &&
+            return x instanceof Enqueue<?> &&
                 _.equals(((Enqueue<?>)x)._) &&
                 (null != untrusted
                     ? untrusted.equals(((Enqueue<?>)x).untrusted)
@@ -445,16 +445,16 @@ Eventual implements Serializable {
             ref(a).call();      // ensure the called value is not one that is
                                 // expected to be handled as a rejection
         } catch (final Exception reason) {
-            final Class<?> c = (observer instanceof Compose
+            final Class<?> c = (observer instanceof Compose<?,?>
                 ? ((Compose<?,?>)observer).block : observer).getClass();
             log.got(message, c, reject);
             return observer.reject(reason);
         }
         final Method m;
         final Class<?> c; {
-            final Do<?,?> inner = observer instanceof Compose ?
+            final Do<?,?> inner = observer instanceof Compose<?,?> ?
                     ((Compose<?,?>)observer).block : observer;
-            if (inner instanceof Invoke) {
+            if (inner instanceof Invoke<?>) {
                 m = ((Invoke<?>)inner).method;
                 c = a.getClass();
             } else {
@@ -586,7 +586,7 @@ Eventual implements Serializable {
                     log.problem(e);
                     throw e;
                 }
-            } else if (ignored && value instanceof Rejected) {
+            } else if (ignored && value instanceof Rejected<?>) {
                 final Exception e = ((Rejected<?>)value).reason;
                 log.got(here + "#w" + message, null, null);
                 log.sentIf(here + "#w" + message, here + "#p" + condition);
@@ -645,7 +645,7 @@ Eventual implements Serializable {
 
         public boolean
         equals(final Object x) {
-            return x instanceof Tail && state.equals(((Tail<?>)x).state);
+            return x instanceof Tail<?> && state.equals(((Tail<?>)x).state);
         }
 
         public T
@@ -693,13 +693,13 @@ Eventual implements Serializable {
         
         public void
         resolve(Promise<T> p) {
-            if (p instanceof Fulfilled) {
+            if (p instanceof Fulfilled<?>) {
                 p = ((Fulfilled<T>)p).getState(); 
                 log.fulfilled(here + "#p" + condition);
             } else if (null == p) {
                 p = new Inline<T>(null);
                 log.rejected(here + "#p" + condition, null);
-            } else if (p instanceof Rejected) {
+            } else if (p instanceof Rejected<?>) {
                 log.rejected(here + "#p" + condition, ((Rejected<T>)p).reason);
             } else {
                 log.resolved(here + "#p" + condition);

@@ -163,7 +163,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             }
         } else if (BigDecimal.class == actual) {
             serialize(export, implicit, ((BigDecimal)value).doubleValue(), out);
-        } else if (value instanceof ConstArray) {
+        } else if (value instanceof ConstArray<?>) {
             /*
              * SECURITY DEPENDENCY: Application code cannot extend ConstArray,
              * so iteration of the value array will not transfer control to

@@ -259,7 +259,7 @@ JSONParser {
             lexer.next();
             Class<?> type = null;
             final Object value = parseValue(PowerlessArray.class);
-            if (value instanceof PowerlessArray) {
+            if (value instanceof PowerlessArray<?>) {
                 for (final Object typename : (PowerlessArray<?>)value) {
                     try {
                         final Class<?> t = JSON.load(code, (String)typename);
