@@ -271,11 +271,17 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     sum += l;
                 }
                 if (n - i > 1) {
+                	try {
+                        mkdir(pending);
+                	} catch (final IOException e) {
+                		if (dir.isDirectory()) { throw e; }
+                		return;	// database no longer exists, skip the merge
+                	}
+                	
                     // take ownership of the loaded archives
                     final ArrayList<N2V> prior = versions;
                     versions = null;
 
-                    mkdir(pending);
                     final String name = name(++lastId);
                     final FileOutputStream sout =
                         new FileOutputStream(Filesystem.file(pending, name));
