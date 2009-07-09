@@ -47,11 +47,7 @@ public final class Reflection {
      */
     static public Field field(final Class<?> type, final String name) 
                                         throws NoSuchFieldException {
-        final Field f = type.getField(name);
-        if (!safe(f)) { 
-            throw new NoSuchFieldException(); 
-        }
-        return f;
+        return type.getField(name);
     }
 
     /**
@@ -63,20 +59,9 @@ public final class Reflection {
      * @return described fields
      */
     static public PowerlessArray<Field> fields(final Class<?> type) {
-        Field[] fs = type.getFields();
-
-        // Filter the members.
-        int n = 0;
-        for (final Field f : fs) {
-            if (safe(f)) {
-                fs[n++] = f; 
-            }
-        }
+        final Field[] fs = type.getFields();
 
         // Sort the members to preserve determinism.
-        if (fs.length != n) { 
-            System.arraycopy(fs, 0, fs = new Field[n], 0, n);
-        }
         Arrays.sort(fs, new Comparator<Field>() {
             public int compare(final Field a, final Field b) {
                 int diff = a.getName().compareTo(b.getName());
@@ -105,11 +90,7 @@ public final class Reflection {
      */
     static public <T> Constructor<T> constructor(final Class<T> type, final Class<?>... args)
                                         throws NoSuchMethodException {
-        final Constructor<T> c = type.getConstructor(args);
-        if (!safe(c)) {
-            throw new NoSuchMethodException();
-        }
-        return c;
+        return type.getConstructor(args);
     }
 
     
@@ -130,20 +111,9 @@ public final class Reflection {
     static public PowerlessArray<Constructor<?>> 
                                         constructors(final Class<?> type) {
     
-        Constructor<?>[] cs = type.getConstructors();
-
-        // Filter the members.
-        int n = 0;
-        for (final Constructor<?> c : cs) {
-            if (safe(c)) { 
-                cs[n++] = c;
-            }
-        }
+        final Constructor<?>[] cs = type.getConstructors();
 
         // Sort the members to preserve determinism.
-        if (cs.length != n) { 
-            System.arraycopy(cs, 0, cs = new Constructor[n], 0, n); 
-        }
         Arrays.sort(cs, new Comparator<Constructor<?>>() {
             public int compare(final Constructor<?> a, final Constructor<?> b) {
                 final Class<?>[] pa = a.getParameterTypes();
@@ -175,11 +145,7 @@ public final class Reflection {
     static public Method method(final Class<?> type, final String name, 
                                 final Class<?>... args) 
                                         throws NoSuchMethodException {
-        final Method r = type.getMethod(name, args);
-        if (!safe(r)) { 
-            throw new NoSuchMethodException(); 
-        }
-        return r;
+        return type.getMethod(name, args);
     }
 
     /**
@@ -191,20 +157,9 @@ public final class Reflection {
      * @return described methods
      */
     static public PowerlessArray<Method> methods(final Class<?> type) {
-        Method[] ms = type.getMethods();
-
-        // Filter the members.
-        int n = 0;
-        for (final Method m : ms) { 
-            if (safe(m)) { 
-                ms[n++] = m; 
-            }
-        }
+        final Method[] ms = type.getMethods();
 
         // Sort the members to preserve determinism.
-        if (ms.length != n) { 
-            System.arraycopy(ms, 0, ms = new Method[n], 0, n); 
-        }
         Arrays.sort(ms, new Comparator<Method>() {
             public int compare(final Method a, final Method b) {
                 int diff = a.getName().compareTo(b.getName());
@@ -308,6 +263,7 @@ public final class Reflection {
         if (!Modifier.isPublic(field.getDeclaringClass().getModifiers())) {
             throw new IllegalAccessException();
         }
+        if (!safe(field)) { throw new IllegalAccessException(); }
         return field.get(self);
     }
 
@@ -323,6 +279,7 @@ public final class Reflection {
         if (!Modifier.isPublic(field.getDeclaringClass().getModifiers())) {
             throw new IllegalAccessException();
         }
+        if (!safe(field)) { throw new IllegalAccessException(); }
         field.set(self, value);
     }
 
@@ -341,6 +298,7 @@ public final class Reflection {
         if (!Modifier.isPublic(ctor.getDeclaringClass().getModifiers())) {
             throw new IllegalAccessException();
         }
+        if (!safe(ctor)) { throw new IllegalAccessException(); }
         try {
             return ctor.newInstance(args);
         } catch (final IllegalArgumentException e) {
@@ -370,6 +328,7 @@ public final class Reflection {
         if (!Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
             throw new IllegalAccessException();
         }
+        if (!safe(method)) { throw new IllegalAccessException(); }
         try {
             return method.invoke(self, args);
         } catch (final IllegalArgumentException e) {
