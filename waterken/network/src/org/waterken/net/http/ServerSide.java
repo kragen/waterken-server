@@ -93,7 +93,7 @@ ServerSide implements Promise<Void> {
                 headers = HTTPD.forward(version, all, current.closing);
             } else if (version.startsWith("HTTP/0.")) {
                 // old HTTP client; no headers, no content
-                current.closing.mark(true);
+                current.closing.set(true);
                 headers = PowerlessArray.array();
                 body = null;
             } else {

@@ -30,7 +30,7 @@ Slicer extends ObjectOutputStream {
     private final Object top;
     private final Root root;
     
-    private final Milestone<Boolean> unmanaged = Milestone.plan();
+    private final Milestone<Boolean> unmanaged = Milestone.make();
     private final HashSet<String> splices = new HashSet<String>(8);
     
     Slicer(final boolean weakTop, final Object top, final Root root,
@@ -57,7 +57,7 @@ Slicer extends ObjectOutputStream {
 
     protected Object
     replaceObject(Object x) throws IOException {
-        if (x instanceof File) { unmanaged.mark(true); }
+        if (x instanceof File) { unmanaged.set(true); }
         
         final Class<?> type = null != x ? x.getClass() : Void.class;
         // BEGIN: persistence for non-Serializable types

@@ -134,9 +134,9 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                 versions = null;
                 
                 // construct an update transaction
-                final Milestone<Boolean> committing = Milestone.plan();
-                final Milestone<Boolean> mutated = Milestone.plan();
-                final Milestone<ArchiveOutput> updates = Milestone.plan();
+                final Milestone<Boolean> committing = Milestone.make();
+                final Milestone<Boolean> mutated = Milestone.make();
+                final Milestone<ArchiveOutput> updates = Milestone.make();
                 final Object lock = this;
                 return active = new Update() {
                     
@@ -147,7 +147,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                             
                             active = null;
                             lock.notify();
-                            committing.mark(true);
+                            committing.set(true);
                             if (updates.is()) {
                                 try {
                                     updates.get().close();
@@ -177,9 +177,9 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                         if (!updates.is()) {
                             if (!mutated.is()) {
                                 mkdir(pending);
-                                mutated.mark(true);
+                                mutated.set(true);
                             }
-                            updates.mark(new N2VOutput(writeNew(
+                            updates.set(new N2VOutput(writeNew(
                                 Filesystem.file(pending, name(++lastId)))));
                         }
                         return updates.get().append(filename);
@@ -199,7 +199,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                         }
                         if (!mutated.is()) {
                             mkdir(pending);
-                            mutated.mark(true);
+                            mutated.set(true);
                         }
                         final File child = Filesystem.file(pending, filename);
                         mkdir(child);
@@ -212,7 +212,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                         if (this != active) { throw new AssertionError(); }
                         if (committing.is()) { throw new AssertionError(); }
                         
-                        committing.mark(true);
+                        committing.set(true);
                         if (mutated.is()) {
                             if (updates.is()) {
                                 updates.get().finish();

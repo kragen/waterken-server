@@ -70,7 +70,7 @@ Config {
 
     private final File root;
     private final ClassLoader code;
-    private final String baseURI;
+    private final String namespace;
     private final Importer connect;
     private final Exporter export;
     private final PowerlessArray<Syntax> supported;
@@ -83,19 +83,19 @@ Config {
      * Constructs an instance.
      * @param root      root folder for configuration files
      * @param code      class loader for serialized objects
-     * @param baseURI   base URI for all referenced objects
+     * @param namespace global identifier for stored object namespace
      * @param connect   remote reference importer, may be <code>null</code>
      * @param export    remote reference exporter, may be <code>null</code>
      * @param supported each supported {@linkplain #read input} syntax
      * @param output    {@linkplain #init output} syntax
      */
     public
-    Config(final File root, final ClassLoader code,
-           final String baseURI, final Importer connect, final Exporter export, 
+    Config(final File root, final ClassLoader code, final String namespace,
+    	   final Importer connect, final Exporter export, 
            final PowerlessArray<Syntax> supported, final Syntax output) {
         this.root = root;
         this.code = code;
-        this.baseURI = baseURI;
+        this.namespace = namespace;
         this.connect = connect;
         this.export = export;
         this.supported = supported;
@@ -109,14 +109,14 @@ Config {
      * Constructs an instance.
      * @param root      root folder for configuration files
      * @param code      class loader for serialized objects
-     * @param baseURI   base URI for all referenced objects
+     * @param namespace global identifier for stored object namespace
      * @param connect   remote reference importer, may be <code>null</code>
      * @param export    remote reference exporter, may be <code>null</code>
      */
     public
-    Config(final File root, final ClassLoader code,
-           final String baseURI, final Importer connect, final Exporter export){
-        this(root, code, baseURI, connect, export, known, json);
+    Config(final File root, final ClassLoader code, final String namespace,
+    	   final Importer connect, final Exporter export) {
+        this(root, code, namespace, connect, export, known, json);
     }
     
     /**
@@ -167,21 +167,20 @@ Config {
      */
     public @SuppressWarnings("unchecked") <T> T
     read(final String name, final Type type) throws Exception {
-        return (T)sub(root, baseURI).apply(name, baseURI, type);
+        return (T)sub(root, namespace).apply(name, namespace, type);
     }
     
     private Importer
-    sub(final File root, final String baseURI) { return new Importer() {
+    sub(final File root, final String namespace) { return new Importer() {
         public Object
         apply(final String href, final String base,
-                               final Type type) throws Exception {
-            if (!baseURI.equals(base) || -1 != href.indexOf(':')) {
+                                 final Type type) throws Exception {
+            if (!namespace.equals(base) || -1 != href.indexOf(':')) {
                 return connect.apply(href, base, type);
             }
             
             // check the cache
-            String path = baseURI.substring(0, baseURI.lastIndexOf('/') + 1);
-            final String key = path + href; {
+            final String key = base + href; {
                 for (int i = cacheKeys.length(); 0 != i--;) {
                     if (cacheKeys.get(i).equals(key)) {
                         return cacheValues.get(i);
@@ -190,13 +189,14 @@ Config {
             }
 
             // descend to the named file
-            File folder = root;     // sub-folder containing file
-            String name = href;     // filename
+            File folder = root;     // folder containing file
+            String subspace = base;	// namespace for containing folder
+            String name = href;     // simple name
             while (true) {
                 final int i = name.indexOf('/');
                 if (-1 == i) { break; }
                 folder = Filesystem.file(folder, name.substring(0, i));
-                path += name.substring(0, i + 1);
+                subspace += name.substring(0, i + 1);
                 name = name.substring(i + 1);
             }
             if ("".equals(name)) { return folder; }
@@ -208,9 +208,8 @@ Config {
                 final String filename = name + syntax.ext;
                 final File file = Filesystem.file(folder, filename);
                 if (!file.isFile()) { continue; }
-                final String subBaseURI = path + filename;
-                r = syntax.deserializer.deserialize(subBaseURI,
-                    sub(folder, subBaseURI), type, code, Filesystem.read(file));
+                r = syntax.deserializer.deserialize(subspace,
+                    sub(folder, subspace), type, code, Filesystem.read(file));
                 break;
             }
             cacheKeys = cacheKeys.with(key);
@@ -257,7 +256,7 @@ Config {
     public void
     override(final String name, final Object value) {
         Filesystem.file(root, name);
-        cacheKeys = cacheKeys.with(baseURI + name);
+        cacheKeys = cacheKeys.with(namespace + name);
         cacheValues = cacheValues.with(value);
     }
 }

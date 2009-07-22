@@ -36,7 +36,7 @@ Responder extends Client {
                                                 // next one to output
     
     // response data waiting it's turn for output
-    public  final Milestone<Boolean> closing = Milestone.plan();
+    public  final Milestone<Boolean> closing = Milestone.make();
     private       Responder next;
     private       String version;
     private       String method;
@@ -51,7 +51,7 @@ Responder extends Client {
 
     Responder(final Server server, final OutputStream connection) {
         this.server = server;
-        failed = Milestone.plan();
+        failed = Milestone.make();
         this.connection =
             new BufferedOutputStream(connection,chunkSize-"0\r\n\r\n".length());
     }
@@ -63,8 +63,8 @@ Responder extends Client {
     
     public synchronized void
     fail(final Exception reason) throws Exception {
-        failed.mark(true);
-        closing.mark(true);
+        failed.set(true);
+        closing.set(true);
         super.fail(reason);
     }
     
@@ -116,13 +116,13 @@ Responder extends Client {
             try {
                 write(closing, out, version, method, head, body);
             } catch (final Exception e) {
-                failed.mark(true);
-                closing.mark(true);
+                failed.set(true);
+                closing.set(true);
                 try { out.close(); } catch (final IOException e2) {}
                 throw e;
             }
             if (closing.is()) {
-                failed.mark(true);
+                failed.set(true);
                 out.flush();
                 out.close();
             } else {
@@ -190,18 +190,18 @@ Responder extends Client {
         hrs.write("\r\n");
 
         // output the header
-        final Milestone<Boolean> selfDelimiting = Milestone.plan();
-        if (empty) { selfDelimiting.mark(true); }
-        final Milestone<Boolean> contentLengthSpecified = Milestone.plan();
+        final Milestone<Boolean> selfDelimiting = Milestone.make();
+        if (empty) { selfDelimiting.set(true); }
+        final Milestone<Boolean> contentLengthSpecified = Milestone.make();
         long contentLength = 0;
         for (final Header header : head.headers) {
             if (!contentLengthSpecified.is() &&
                     Header.equivalent("Content-Length", header.name)) {
-                contentLengthSpecified.mark(true);
+                contentLengthSpecified.set(true);
                 if (!"HEAD".equals(method)) {
                     contentLength = Long.parseLong(header.value);
                     if (0 > contentLength) {throw new Exception("Bad Length");}
-                    selfDelimiting.mark(true);
+                    selfDelimiting.set(true);
                 }
             } else {
                 for (final String name : new String[] { "Content-Length",
@@ -259,7 +259,7 @@ Responder extends Client {
                 if (null != body) { Stream.copy(body, brs); }
                 brs.close();
             } else {
-                closing.mark(true);
+                closing.set(true);
                 hrs.write("Connection: close\r\n");
                 hrs.write("\r\n");
                 hrs.flush();

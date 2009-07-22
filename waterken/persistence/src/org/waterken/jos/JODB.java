@@ -139,7 +139,7 @@ JODB<S> extends Database<S> {
     /**
      * Has the {@link #wake wake} task been run?
      */
-    private final Milestone<Boolean> awake = Milestone.plan();
+    private final Milestone<Boolean> awake = Milestone.make();
     private       ClassLoader code = JODB.class.getClassLoader();
     private       SecureRandom prng;
     private       HashMap<String,Bucket> f2b;       // object cache
@@ -161,7 +161,7 @@ JODB<S> extends Database<S> {
         synchronized (store) {
             if (!awake.is() && !(body instanceof Wake)) {
                 enter(Transaction.query, new Wake()).call();
-                awake.mark(true);
+                awake.set(true);
             }
             Promise<R> r;
             final Processor m = tx = new Processor(isQuery, store.update());
@@ -338,7 +338,7 @@ JODB<S> extends Database<S> {
             try {
                 final Object o;
                 final ByteArray version;
-                final Milestone<Boolean> unmanaged = Milestone.plan();
+                final Milestone<Boolean> unmanaged = Milestone.make();
                 final HashSet<String> splices = new HashSet<String>(8);
                 if (JODB.secret.equals(f)) {
                     // base case for loading the master secret
@@ -363,7 +363,7 @@ JODB<S> extends Database<S> {
                         protected Object
                         resolveObject(Object x) throws IOException {
                             if (x instanceof File) {
-                                unmanaged.mark(true);
+                                unmanaged.set(true);
                             } else if (x instanceof Splice) {
                                 splices.add(((Splice)x).name);
                                 x = load(((Splice)x).name);
@@ -589,7 +589,7 @@ JODB<S> extends Database<S> {
                     sub.code = code;
                 }
                 sub.prng = prng;
-                sub.awake.mark(true);
+                sub.awake.set(true);
                 return sub.enter(Transaction.update, new Transaction<X>() {
                     public X
                     apply(final Root local) throws Exception {

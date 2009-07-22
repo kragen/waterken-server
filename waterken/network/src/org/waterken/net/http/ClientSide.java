@@ -361,17 +361,17 @@ ClientSide implements Server {
         hout.write(" HTTP/1.1\r\n");
 
         // output the header
-        final Milestone<Boolean> selfDelimiting = Milestone.plan();
-        if (null == body) { selfDelimiting.mark(true); }
-        final Milestone<Boolean> contentLengthSpecified = Milestone.plan();
+        final Milestone<Boolean> selfDelimiting = Milestone.make();
+        if (null == body) { selfDelimiting.set(true); }
+        final Milestone<Boolean> contentLengthSpecified = Milestone.make();
         long contentLength = 0;
         for (final Header header : head.headers) {
             if (!contentLengthSpecified.is() &&
                     Header.equivalent("Content-Length", header.name)) {
-                contentLengthSpecified.mark(true);
+                contentLengthSpecified.set(true);
                 contentLength = Long.parseLong(header.value);
                 if (0 > contentLength) { throw new Exception("Bad Length"); }
-                selfDelimiting.mark(true);
+                selfDelimiting.set(true);
             } else {
                 for (final String name : new String[] { "Content-Length",
                                                         "Connection",
@@ -464,7 +464,7 @@ ClientSide implements Server {
         if (status.startsWith("1")) { return receive(method, cin, client); }
 
         // build the response
-        final Milestone<Boolean> closing = Milestone.plan();
+        final Milestone<Boolean> closing = Milestone.make();
         headers = HTTPD.forward(version, headers, closing);
         final InputStream entity;
         if ("204".equals(status)) {

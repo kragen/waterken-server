@@ -175,7 +175,7 @@ HTTPD extends TCPDaemon {
         boolean keepAlive = false;
         for (final String token : TokenList.decode(connectionList.toString())) {
             if (Header.equivalent("close", token)) {
-                closing.mark(true);
+                closing.set(true);
             } else if (Header.equivalent("keep-alive", token)) {
                 keepAlive = true;
             }
@@ -185,8 +185,8 @@ HTTPD extends TCPDaemon {
                 }
             }
         }
-        if (!version.startsWith("HTTP/1.")) { closing.mark(true); }
-        if (!keepAlive && "HTTP/1.0".equals(version)) { closing.mark(true); }
+        if (!version.startsWith("HTTP/1.")) { closing.set(true); }
+        if (!keepAlive && "HTTP/1.0".equals(version)) { closing.set(true); }
         return r;
     }
 }

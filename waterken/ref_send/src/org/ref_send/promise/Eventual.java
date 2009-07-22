@@ -707,7 +707,7 @@ Eventual implements Serializable {
             enqueue.apply(new Forward<T>(true, condition, p, front));
             try {
                 final State<T> cell = state.call();
-                if (null != cell) { cell.mark(p); }
+                if (null != cell) { cell.set(p); }
             } catch (final Exception e) {}
         }
 
