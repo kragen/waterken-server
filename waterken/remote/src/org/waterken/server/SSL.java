@@ -72,7 +72,7 @@ SSL {
             
             public Socket
             locate(final String authority,
-                   final SocketAddress x) throws IOException{
+                   final SocketAddress x) throws IOException {
                 if (null == factory) {
                     try {
                         factory = credentials.getContext().getSocketFactory();
