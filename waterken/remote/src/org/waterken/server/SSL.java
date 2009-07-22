@@ -35,6 +35,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.file.Filesystem;
+import org.joe_e.var.Milestone;
 import org.waterken.base32.Base32;
 import org.waterken.http.Client;
 import org.waterken.http.Request;
@@ -88,7 +89,7 @@ SSL {
                 final int port = Location.port(standardPort, location);
                 final InetAddress[] addrs = InetAddress.getAllByName(hostname);
                 final int[] pending = { addrs.length };
-                final Socket[] winner = { null };
+                final Milestone<Socket> winner = Milestone.make();
                 class Racer extends Thread {
                     private final Connect connect;
                     
@@ -112,9 +113,8 @@ SSL {
                         } finally {
                             synchronized (pending) {
                                 if (null != authenticated) {
-                                    if (null == winner[0]) {
-                                        winner[0] = authenticated;
-                                        pending.notify();
+                                    if (winner.set(authenticated)) {
+	                                    pending.notify();
                                     } else {
                                         try { authenticated.close(); }
                                         catch (final IOException e) {}
@@ -137,7 +137,7 @@ SSL {
                     if (0 != pending[0]) {
                         try {pending.wait();} catch (InterruptedException e) {}
                     }
-                    if (null != winner[0]) { return winner[0]; }
+                    if (winner.is()) { return winner.get(); }
                 }
                 throw new ConnectException();
             }
