@@ -15,7 +15,6 @@ import org.waterken.net.Locator;
 import org.waterken.net.http.ClientSide;
 import org.waterken.thread.Loop;
 import org.waterken.thread.Sleep;
-import org.waterken.uri.Header;
 import org.waterken.uri.Location;
 
 /**
@@ -51,7 +50,7 @@ Proxy extends Struct implements Server, Serializable {
         // TODO: implement boot comm
         final String host = TokenList.find("localhost", "Host", head.headers);
         final Locator transport =
-            Header.equivalent("localhost", Location.hostname(host))?http:https;
+            "localhost".equals(Location.hostname(host)) ? http : https;
         connect(transport.canonicalize(host),transport).serve(head,body,client);
     }
 }

@@ -5,7 +5,6 @@ package org.waterken.server;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.net.ConnectException;
@@ -64,9 +63,8 @@ SSL {
             public String
             canonicalize(final String authority) {
                 final String location = Authority.location(authority);
-                final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
-                return Header.toLowerCase(hostname) +
+                return Location.hostname(location) +
                        (standardPort == port ? "" : ":" + port);
             }
             
@@ -148,48 +146,42 @@ SSL {
     interface Connect { Socket apply() throws Exception; }
     
     static private Connect
-    proxy(final SSLSocketFactory factory,final String hostname, final int port){
-        return new Connect() {
-            public Socket
-            apply() throws Exception {
-                final Socket proxy = new Socket(
-                    System.getProperty("proxyHost"),
-                    Integer.parseInt(System.getProperty("proxyPort")));
-                try {
-                    final OutputStream out = proxy.getOutputStream();
-                    ClientSide.send(new Request(
-                        "HTTP/1.0", "CONNECT", hostname + ":" + port,
-                        PowerlessArray.array(new Header[0])), null, out);
-                    out.flush();
-                    final boolean[] connected = { false };
-                    ClientSide.receive("CONNECT", proxy.getInputStream(),
-                                       new Client() {
-                        public void
-                        receive(final Response head,
+    proxy(final SSLSocketFactory factory,
+    	  final String hostname, final int port) { return new Connect() {
+        public Socket
+        apply() throws Exception {
+            final Socket proxy = new Socket(System.getProperty("proxyHost"),
+                           Integer.parseInt(System.getProperty("proxyPort")));
+            try {
+                ClientSide.send(new Request("HTTP/1.0", "CONNECT",
+                	hostname + ":" + port, PowerlessArray.array(new Header[0])),
+                	null, proxy.getOutputStream());
+                final boolean[] connected = { false };
+                ClientSide.receive("CONNECT", proxy.getInputStream(),
+                                   new Client() {
+                    public void
+                    receive(final Response head,
                             final InputStream body) throws Exception {
-                            if ("200".equals(head.status)) {
-                                connected[0] = true;
-                            }
+                        if ("200".equals(head.status)) {
+                            connected[0] = true;
                         }
-                    });
-                    if (!connected[0]) { throw new ConnectException(); }
-                    return factory.createSocket(proxy, hostname, port, true);
-                } catch (final Exception e) {
-                    proxy.close();
-                    throw e;
-                }
+                    }
+                });
+                if (!connected[0]) { throw new ConnectException(); }
+                return factory.createSocket(proxy, hostname, port, true);
+            } catch (final Exception e) {
+                proxy.close();
+                throw e;
             }
-        };
-    }
+        }
+    }; }
     
     static private Connect
     direct(final SSLSocketFactory factory,
-           final InetAddress addr, final int port) {
-        return new Connect() {
-            public Socket
-            apply() throws Exception { return factory.createSocket(addr, port); }
-        };
-    }
+           final InetAddress addr, final int port) { return new Connect() {
+        public Socket
+        apply() throws Exception { return factory.createSocket(addr, port); }
+    }; }
     
     static private void
     authenticate(final String hostname,

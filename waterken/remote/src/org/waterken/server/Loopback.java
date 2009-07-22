@@ -13,17 +13,14 @@ import java.net.UnknownHostException;
 
 import org.waterken.net.Locator;
 import org.waterken.uri.Authority;
-import org.waterken.uri.Header;
 import org.waterken.uri.Location;
 
 /**
  * The loopback device.
  */
-final class
+/* package */ final class
 Loopback {
-
-    private
-    Loopback() {}
+    private Loopback() {}
     
     static protected final InetAddress addr;
     static {
@@ -32,7 +29,7 @@ Loopback {
         } catch (final UnknownHostException e) { throw new AssertionError(e); }
     }
     
-    static Locator
+    static protected Locator
     client(final int standardPort, final PrintStream log) {
         class ClientX implements Locator, Serializable {
             static private final long serialVersionUID = 1L;
@@ -40,9 +37,8 @@ Loopback {
             public String
             canonicalize(final String authority) {
                 final String location = Authority.location(authority);
-                final String hostname = Location.hostname(location);
                 final int port = Location.port(standardPort, location);
-                return Header.toLowerCase(hostname) +
+                return Location.hostname(location) +
                        (standardPort == port ? "" : ":" + port);
             }
             
@@ -53,12 +49,10 @@ Loopback {
                 
                 log.println("connecting to <" + location + ">...");
                 
-                final String hostname = Location.hostname(location);
-                final int port = Location.port(standardPort, location);
-                if (!Header.equivalent("localhost", hostname)) {
+                if (!"localhost".equals(Location.hostname(location))) {
                     throw new ConnectException();
                 }
-                return new Socket(addr, port);
+                return new Socket(addr, Location.port(standardPort, location));
             }
         }
         return new ClientX();
