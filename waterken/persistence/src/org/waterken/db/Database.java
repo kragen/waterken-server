@@ -109,7 +109,7 @@ Database<S> {
      * transaction was never attempted.
      * </p>
      * <p>
-     * The implementation MUST NOT rely on the {@link Transaction#isQuery}
+     * The implementation MUST NOT rely on the <code>isQuery</code>
      * argument accurately describing the transaction's behavior. If
      * {@link Transaction#query} is specified, the implementation MUST check
      * that the constraints are met; if not, the transaction MUST be aborted.

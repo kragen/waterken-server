@@ -37,6 +37,7 @@ import org.waterken.remote.http.HTTP;
 import org.waterken.remote.http.VatInitializer;
 import org.waterken.server.Settings;
 import org.waterken.syntax.Exporter;
+import org.waterken.thread.Loop;
 import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 
@@ -274,6 +275,10 @@ GenKey {
                         final String port=443==https.port ? "" : ":"+https.port;
                         System.out.println("Restart your server and visit:");
                         System.out.println("https://" + hostname + port + "/");
+                        
+                        _.destruct.apply(null);
+                        Loop.pool.shutdown();
+                        
                         return null;
                     }
                 }
