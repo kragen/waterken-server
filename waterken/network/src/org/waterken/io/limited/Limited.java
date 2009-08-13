@@ -19,7 +19,7 @@ Limited {
 	 * An attempt to read more than the specified <code>max</code> bytes will
 	 * cause a {@link TooBig} exception. If the underlying stream is of length
 	 * <code>max</code> bytes, this exception will preempt return of an
-	 * <code>EOF</code> value. To support return of an EOF code, specify a
+	 * <code>EOF</code> code. To support return of an EOF code, specify a
 	 * <code>max</code> bytes value one greater than the length of the
 	 * underlying stream.
 	 * </p>
