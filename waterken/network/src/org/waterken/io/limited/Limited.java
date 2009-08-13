@@ -4,7 +4,6 @@ package org.waterken.io.limited;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * A stream that is not allowed to be longer than a preset limit.
