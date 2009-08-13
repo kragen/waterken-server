@@ -256,7 +256,7 @@ Pipeline implements Serializable {
                     if (length > maxEntitySize) { throw new TooBig(); }
                     r = new Message<Response>(head, Stream.snapshot(
                     		length >= 0 ? length : 1024,
-                            Limited.input(maxEntitySize+1,body)));
+                            Limited.input(maxEntitySize + 1, body)));
                 } catch (final TooBig e) {
                     r = new Message<Response>(Response.tooBig(), null);
                 }
