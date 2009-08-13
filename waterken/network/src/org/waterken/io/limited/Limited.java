@@ -81,44 +81,4 @@ Limited {
             markSupported() { return in.markSupported(); }
         };
     }
-    
-    /**
-     * Limits an output stream.
-     * @param max   maximum number of bytes that can be written
-     * @param out   underlying output stream
-     */
-    static public OutputStream
-    output(final long max, final OutputStream out) {
-        if (0 > max) { throw new RuntimeException(); }
-        return new OutputStream() {
-            private long remaining = max;   // number of bytes remaining 
-            
-            public void
-            write(final int b) throws IOException {
-                if (0 == remaining) { throw new TooBig(); }
-                out.write(b);
-                --remaining;
-            }
-
-            public void
-            write(final byte[] b) throws IOException {
-                if (b.length > remaining) { throw new TooBig(); }
-                out.write(b);
-                remaining -= b.length;
-            }
-
-            public void
-            write(final byte[] b,final int off,final int len)throws IOException{
-                if (len > remaining) { throw new TooBig(); }
-                out.write(b, off, len);
-                remaining -= len;
-            }
-
-            public void
-            flush() throws IOException { out.flush(); }
-
-            public void
-            close() throws IOException { out.close(); }
-        };
-    }
 }
