@@ -11,15 +11,21 @@ import java.io.OutputStream;
  */
 public final class
 Limited {
+    private Limited() {}
 
-    private
-    Limited() {}
-
-    /**
-     * Limits an input stream.
-     * @param max   maximum number of bytes that can be read
-     * @param in    underlying stream
-     */
+	/**
+	 * Limits an input stream.
+	 * <p>
+	 * An attempt to read more than the specified <code>max</code> bytes will
+	 * cause a {@link TooBig} exception. If the underlying stream is of length
+	 * <code>max</code> bytes, this exception will preempt return of an
+	 * <code>EOF</code> value. To support return of an EOF code, specify a
+	 * <code>max</code> bytes value one greater than the length of the
+	 * underlying stream.
+	 * </p>
+	 * @param max	maximum number of bytes that can be read
+	 * @param in	underlying stream
+	 */
     static public InputStream
     input(final long max, final InputStream in) {
         if (0 > max) { throw new RuntimeException(); }
