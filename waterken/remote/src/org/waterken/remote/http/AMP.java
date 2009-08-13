@@ -87,7 +87,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
             }
             final Message<Request> m = new Message<Request>(head, null == body
                 ? null : Stream.snapshot(length >= 0 ? length : 512,
-                                         Limited.input(maxEntitySize, body)));
+                                         Limited.input(maxEntitySize+1, body)));
             vat.service.apply(new Service() {
                 public Void
                 call() throws Exception {
