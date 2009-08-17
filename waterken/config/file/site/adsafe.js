@@ -1,5 +1,5 @@
 // adsafe.js
-// 2009-06-05
+// 2009-08-11
 
 //    Public Domain.
 
@@ -22,10 +22,10 @@
 
 /*jslint browser: true, nomen: false */
 
-/*members "", "#", "&", ">", "*", "+", ".", "/", ":blur", ":checked",
+/*members "", "#", "&", "*", "+", ".", "\/", ":blur", ":checked",
     ":disabled", ":enabled", ":even", ":focus", ":hidden", ":odd", ":tag",
-    ":text", ":unchecked", ":visible", ">", Debug, "[", "[!=", "[$=", "[*=",
-    "[=", "[^=", "[|=", "[~=", _, "___ on ___", "___adsafe root___",
+    ":text", ":trim", ":unchecked", ":visible", ">", "[", "[!=", "[$=",
+    "[*=", "[=", "[^=", "[|=", "[~=", _, "___ on ___", "___adsafe root___",
     ___nodes___, ___star___, "_adsafe mark_", _intercept, a, abbr, acronym,
     addEventListener, address, altKey, append, appendChild, apply, area,
     arguments, autocomplete, b, bdo, big, blockquote, blur, br, bubble,
@@ -36,27 +36,26 @@
     createElement, createRange, createTextNode, createTextRange, cssFloat,
     ctrlKey, currentStyle, dd, defaultView, del, dfn, dir, disabled, div,
     dl, dt, em, empty, enable, ephemeral, eval, exec, expand, explode,
-    fieldset, filter, fire, firstChild, focus, font, form, fragment,
+    fieldset, fire, firstChild, focus, font, forEach, form, fragment,
     fromCharCode, get, getCheck, getClass, getComputedStyle, getElementById,
     getElementsByTagName, getMark, getName, getOffsetHeight, getOffsetWidth,
-    getParent, getSelection, getStyle, getTagName, getValue, go, h1, h2, h3,
-    h4, h5, h6, hasOwnProperty, hr, i, id, img, inRange, indexOf, input,
-    ins, insertBefore, invoke, isArray, kbd, key, keyCode, klass, label,
-    later, legend, length, li, lib, log, map, mark, menu, message, name,
-    nextSibling, nodeName, nodeValue, object, off, offsetHeight,
-    offsetWidth, ol, on, onclick, ondblclick, onfocusin, onfocusout,
-    onkeypress, onmousedown, onmousemove, onmouseout, onmouseover,
-    onmouseup, op, opera, optgroup, option, p, parent, parentNode,
+    getParent, getSelection, getStyle, getTagName, getTitle, getValue, go,
+    h1, h2, h3, h4, h5, h6, hasOwnProperty, hr, i, id, img, inRange,
+    indexOf, input, ins, insertBefore, invoke, isArray, kbd, key, keyCode,
+    klass, label, later, legend, length, li, lib, log, map, mark, menu,
+    message, name, nextSibling, nodeName, nodeValue, object, off,
+    offsetHeight, offsetWidth, ol, on, onclick, ondblclick, onfocusin,
+    onfocusout, onkeypress, onmousedown, onmousemove, onmouseout,
+    onmouseover, onmouseup, op, optgroup, option, p, parent, parentNode,
     postError, pre, prepend, preventDefault, protect, prototype, push, q,
     remove, removeChild, removeElement, replace, replaceNode, returnValue,
     row, samp, select, selection, selectionEnd, selectionStart, set,
     shiftKey, slice, small, span, srcElement, stopPropagation, strong,
     style, styleFloat, sub, sup, table, tag, tagName, target, tbody, td,
-    test, text, textarea, tfoot, th, that, thead, toLowerCase, toString,
-    toUpperCase, tr, tt, type, u, ul, unwatch, value, valueOf, var,
-    visibility, watch, window, writeln, x, y
+    test, text, textarea, tfoot, th, that, thead, title, toLowerCase,
+    toString, toUpperCase, tr, tt, type, u, ul, unwatch, value, valueOf,
+    var, visibility, watch, window, writeln, x, y
 */
-
 
 "use strict";
 
@@ -87,6 +86,7 @@ var ADSAFE = (function () {
         flipflop,       // Used in :even/:odd processing
         has_focus,
         hunter,         // Set of hunter patterns
+        interceptors = [],
 
         makeableTagName = {
 
@@ -215,13 +215,14 @@ var ADSAFE = (function () {
 
 //  The reject function enforces the restriction on get and put.
 //  It allows access only to objects and arrays. It does not allow use of
-//  the banned names, or names that are not strings or numbers, or strings
-//  that start with _.
+//  the banned names, or names that are not strings or positive numbers,
+//  or strings that start with _ or -.
 
     function reject(object, name) {
         return typeof object !== 'object' || banned[name] ||
-            (typeof name !== 'number' &&
-                (typeof name !== 'string' || name.charAt(0) === '_'));
+                ((typeof name !== 'number' || name < 0) &&
+                (typeof name !== 'string' || name.charAt(0) === '_' ||
+                name.charAt(0) === '-'));
     }
 
 
@@ -287,8 +288,8 @@ var ADSAFE = (function () {
             query = [],     // The resulting query array
             selector,
             qx = id ?
-/^\s*(?:([\*\/])|\[\s*([a-z][0-9a-z_\-]*)\s*(?:([!*~|$\^]?\=)\s*([0-9A-Za-z_\-*%&;.\/:!]+)\s*)?\]|#\s*([A-Z]+_[A-Z0-9]+)|:\s*([a-z]+)|([.&_>]?)\s*([a-z][0-9a-z\-]*))\s*/ :
-/^\s*(?:([\*\/])|\[\s*([a-z][0-9a-z_\-]*)\s*(?:([!*~|$\^]?\=)\s*([0-9A-Za-z_\-*%&;.\/:!]+)\s*)?\]|#\s*([\-A-Za-z0-9_]+)|:\s*([a-z]+)|([.&_>]?)\s*([a-z][0-9a-z\-]*))\s*/;
+/^\s*(?:([\*\/])|\[\s*([a-z][0-9a-z_\-]*)\s*(?:([!*~|$\^]?\=)\s*([0-9A-Za-z_\-*%&;.\/:!]+)\s*)?\]|#\s*([A-Z]+_[A-Z0-9]+)|:\s*([a-z]+)|([.&_>\+]?)\s*([a-z][0-9a-z\-]*))\s*/ :
+/^\s*(?:([\*\/])|\[\s*([a-z][0-9a-z_\-]*)\s*(?:([!*~|$\^]?\=)\s*([0-9A-Za-z_\-*%&;.\/:!]+)\s*)?\]|#\s*([\-A-Za-z0-9_]+)|:\s*([a-z]+)|([.&_>\+]?)\s*([a-z][0-9a-z\-]*))\s*/;
 
 // Loop over all of the selectors in the text.
 
@@ -304,7 +305,7 @@ var ADSAFE = (function () {
 //          match[4]  attribute value
 //          match[5]  # id
 //          match[6]  : option
-//          match[7]  . & _ >
+//          match[7]  . & _ > +
 //          match[8]      name
 
             match = qx.exec(text);
@@ -353,7 +354,7 @@ var ADSAFE = (function () {
                     op: ':' + match[6]
                 };
 
-// The selector is one of > . & _ or a naked tag name
+// The selector is one of > + . & _ or a naked tag name
 
             } else {
                 selector = {
@@ -391,11 +392,11 @@ var ADSAFE = (function () {
         '+': function (node) {
             node = node.nextSibling;
             name = name.toUpperCase();
-            while (node) {
-                if (node.tagName === name) {
-                    result.push(node);
-                }
+            while (node && !node.tagName) {
                 node = node.nextSibling;
+            }
+            if (node && node.tagName === name) {
+                result.push(node);
             }
         },
         '>': function (node) {
@@ -474,43 +475,17 @@ var ADSAFE = (function () {
             return typeof member === 'string' &&
                 ('-' + member + '-').slice.indexOf('-' + value + '-') >= 0;
         },
+        ':blur': function (node) {
+            return node !== has_focus;
+        },
         ':checked': function (node) {
             return node.checked;
-        },
-        ':unchecked': function (node) {
-            return node.tagName && !node.checked;
-        },
-        ':enabled': function (node) {
-            return node.tagName && !node.disabled;
         },
         ':disabled': function (node) {
             return node.tagName && node.disabled;
         },
-        ':visible': function (node) {
-            return node.tagName && getStyleObject(node).visibility === 'visible';
-        },
-        ':hidden': function (node) {
-            return node.tagName && getStyleObject(node).visibility !== 'visible';
-        },
-        ':focus': function (node) {
-            return node === has_focus;
-        },
-        ':blur': function (node) {
-            return node !== has_focus;
-        },
-        ':text': function (node) {
-            return node.nodeName === '#text';
-        },
-        ':tag': function (node) {
-            return node.tagName;
-        },
-        ':odd': function (node) {
-            if (node.tagName) {
-                flipflop = !flipflop;
-                return flipflop;
-            } else {
-                return false;
-            }
+        ':enabled': function (node) {
+            return node.tagName && !node.disabled;
         },
         ':even': function (node) {
             var f;
@@ -521,6 +496,35 @@ var ADSAFE = (function () {
             } else {
                 return false;
             }
+        },
+        ':focus': function (node) {
+            return node === has_focus;
+        },
+        ':hidden': function (node) {
+            return node.tagName && getStyleObject(node).visibility !== 'visible';
+        },
+        ':odd': function (node) {
+            if (node.tagName) {
+                flipflop = !flipflop;
+                return flipflop;
+            } else {
+                return false;
+            }
+        },
+        ':tag': function (node) {
+            return node.tagName;
+        },
+        ':text': function (node) {
+            return node.nodeName === '#text';
+        },
+        ':trim': function (node) {
+            return node.nodeName !== '#text' || /\W/.test(node.nodeValue);
+        },
+        ':unchecked': function (node) {
+            return node.tagName && !node.checked;
+        },
+        ':visible': function (node) {
+            return node.tagName && getStyleObject(node).visibility === 'visible';
         }
     };
 
@@ -698,7 +702,7 @@ var ADSAFE = (function () {
                             } else {
                                 the_event.bubble();
                             }
-                        } catch (e) {
+                        } catch (ignore) {
                         }
                     },
                     key: key,
@@ -806,7 +810,7 @@ var ADSAFE = (function () {
                 }
                 return this;
             },
-            check: function (check) {
+            check: function (value) {
                 if (this === this.window) {
                     return error();
                 }
@@ -819,14 +823,14 @@ var ADSAFE = (function () {
                     for (i = 0; i < b.length; i += 1) {
                         node = b[i];
                         if (node.tagName) {
-                            node.checked = value[i];
+                            node.checked = !!value[i];
                         }
                     }
                 } else {
                     for (i = 0; i < b.length; i += 1) {
                         node = b[i];
                         if (node.tagName) {
-                            node.checked = value;
+                            node.checked = !!value;
                         }
                     }
                 }
@@ -890,6 +894,9 @@ var ADSAFE = (function () {
                 return this;
             },
             ephemeral: function () {
+                if (this === this.window) {
+                    return error('ADsafe error.');
+                }
                 if (ephemeral) {
                     ephemeral.remove();
                 }
@@ -959,6 +966,16 @@ var ADSAFE = (function () {
                         has_focus = b[0].focus();
                         return this;
                     }
+                }
+                return error();
+            },
+            each: function (func) {
+                var b = this.___nodes___, i;
+                if (this !== this.window && typeof func === 'function') {
+                    for (i = 0; i < b.length; i += 1) {
+                        func(new Bunch([b[i]]));
+                    }
+                    return this;
                 }
                 return error();
             },
@@ -1062,6 +1079,13 @@ var ADSAFE = (function () {
                 }
                 return a.length === 1 ? a[0] : a;
             },
+            getTitle: function () {
+                var a = [], b = this.___nodes___, i;
+                for (i = 0; i < b.length; i += 1) {
+                    a[i] = b[i].title;
+                }
+                return a.length === 1 ? a[0] : a;
+            },
             getValue: function () {
                 var a = [], b = this.___nodes___, i, node;
                 for (i = 0; i < b.length; i += 1) {
@@ -1091,14 +1115,14 @@ var ADSAFE = (function () {
                     for (i = 0; i < b.length; i += 1) {
                         node = b[i];
                         if (node.tagName) {
-                            node.className = value[i];
+                            node.className = String(value[i]);
                         }
                     }
                 } else {
                     for (i = 0; i < b.length; i += 1) {
                         node = b[i];
                         if (node.tagName) {
-                            node.className = value;
+                            node.className = String(value);
                         }
                     }
                 }
@@ -1337,10 +1361,10 @@ var ADSAFE = (function () {
                         node = b[i];
                         if (node.tagName) {
                             if (name !== 'float') {
-                                node.style[name] = value;
+                                node.style[name] = String(value);
                             } else {
                                 node.style.cssFloat = node.style.styleFloat =
-                                        value;
+                                        String(value);
                             }
                         }
                     }
@@ -1349,6 +1373,9 @@ var ADSAFE = (function () {
             },
             tag: function (tag, type, name) {
                 var node;
+                if (typeof tag !== 'string') {
+                    return error();
+                }
                 if (makeableTagName[tag] !== true) {
                     return error('ADsafe: Bad tag: ' + tag);
                 }
@@ -1369,9 +1396,35 @@ var ADSAFE = (function () {
                     for (i = 0; i < text.length; i += 1) {
                         a[i] = document.createTextNode(String(text[i]));
                     }
-                    return a;
+                    return new Bunch(a);
                 }
                 return new Bunch([document.createTextNode(String(text))]);
+            },
+            title: function (value) {
+                if (this === this.window) {
+                    return error('ADsafe error.');
+                }
+                var b = this.___nodes___, i, node;
+                if (value instanceof Array) {
+                    if (value.length !== b.length) {
+                        return error('ADsafe: Array length: ' + b.length +
+                                '-' + value.length);
+                    }
+                    for (i = 0; i < b.length; i += 1) {
+                        node = b[i];
+                        if (node.tagName) {
+                            node.title = String(value[i]);
+                        }
+                    }
+                } else {
+                    for (i = 0; i < b.length; i += 1) {
+                        node = b[i];
+                        if (node.tagName) {
+                            node.title = String(value);
+                        }
+                    }
+                }
+                return this;
             },
             value: function (value) {
                 if (this === this.window || value === undefined) {
@@ -1395,7 +1448,7 @@ var ADSAFE = (function () {
                                 }
                             }
                         } else if (node.nodeName === '#text') {
-                            node.nodeValue = value[i];
+                            node.nodeValue = String(value[i]);
                         }
                     }
                 } else {
@@ -1413,7 +1466,7 @@ var ADSAFE = (function () {
                                     String(value)));
                             }
                         } else if (node.nodeName === '#text') {
-                            node.nodeValue = value;
+                            node.nodeValue = String(value);
                         }
                     }
                 }
@@ -1462,6 +1515,9 @@ var ADSAFE = (function () {
             },
             tag: function (tag, type, name) {
                 var node;
+                if (typeof tag !== 'string') {
+                    return error();
+                }
                 if (makeableTagName[tag] !== true) {
                     return error('ADsafe: Bad tag: ' + tag);
                 }
@@ -1482,7 +1538,7 @@ var ADSAFE = (function () {
                     for (i = 0; i < text.length; i += 1) {
                         a[i] = document.createTextNode(String(text[i]));
                     }
-                    return a;
+                    return new Bunch(a);
                 }
                 return new Bunch([document.createTextNode(String(text))]);
             },
@@ -1565,7 +1621,7 @@ var ADSAFE = (function () {
 //  will be passed the wrapped dom node and an object containing the libraries.
 
         go: function (id, f) {
-            var dom, root, i, scripts;
+            var dom, fun, root, i, scripts;
 
 //  If ADSAFE.id was called, the id better match.
 
@@ -1599,10 +1655,15 @@ var ADSAFE = (function () {
             dom = root[0];
 
 
-// If the page has an ADSAFE._intercept method, call it.
+// If the page has registered interceptors, call then.
 
-            if (typeof ADSAFE._intercept === 'function') {
-                ADSAFE._intercept(id, dom, adsafe_lib, root[1]);
+            for (i = 0; i < interceptors.length; i += 1) {
+                fun = interceptors[i];
+                if (typeof fun === 'function') {
+                    try {
+                        fun(id, dom, adsafe_lib, root[1]);
+                    } catch (ignore) {}
+                }
             }
 
 //  Call the supplied function.
@@ -1703,6 +1764,12 @@ var ADSAFE = (function () {
                 return;
             }
             return error();
+        },
+
+//  ADSAFE._intercept allows the page to see the widget's capabilities.
+
+        _intercept: function (f) {
+            interceptors.push(f);
         }
 
     };
