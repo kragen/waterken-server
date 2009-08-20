@@ -79,15 +79,8 @@ Caller extends Struct implements Messenger, Serializable {
             fulfill(final String request, final Message<Response> response) {
                 // TODO: implement polling on a 404 response?
                 
-                final String absolute = URI.resolve(here, href);
-                final Object x = receive(HTTP.get(absolute, null),
-                                         response, Local.parameter(observer));
-                if (Eventual.ref(x) instanceof Remote &&
-                        absolute.equals(URI.resolve(here, export.apply(x)))) {
-                    resolve(request, new Inline<Object>(x));
-                } else {
-                    resolve(request, x);
-                }
+                resolve(request, receive(HTTP.get(URI.resolve(here,href), null),
+                        				 response, Local.parameter(observer)));
             }
             
             public void
@@ -145,17 +138,11 @@ Caller extends Struct implements Messenger, Serializable {
             public void
             fulfill(final String request, final Message<Response> response) {
                 _.log.got(request, null, null);
-                final Object r;
-                if ("404".equals(response.head.status)) {
-                    // re-dispatch invocation on resolved value of web-key
-                    final Do<Object,Object> invoke = Local.curry(method, null);
-                    r = _.when(proxy, invoke);
-                } else {
-                    r = receive(HTTP.get(URI.resolve(here,href),name), response,
-                            Typedef.bound(method.getGenericReturnType(),
-                                          proxy.getClass()));
+                if (null != resolver) {
+                  resolver.apply(receive(HTTP.get(URI.resolve(here,href),name),
+                    response, Typedef.bound(method.getGenericReturnType(),
+                                    		proxy.getClass())));
                 }
-                if (null != resolver) { resolver.apply(r); }
             }
             
             public void
@@ -185,21 +172,10 @@ Caller extends Struct implements Messenger, Serializable {
             fulfill(final String request, final Message<Response> response) {
                 final Type R = Typedef.bound(method.getGenericReturnType(),
                                              proxy.getClass());
-                final Object r;
-                final boolean got;
-                if ("404".equals(response.head.status)) {
-                    // re-dispatch invocation on resolved value of web-key
-                    _.log.got(request, null, null);
-                    final Do<Object,Object> invoke = Local.curry(method, argv);
-                    r = _.when(proxy, invoke);
-                    got = true;
-                } else {
-                    r = receive(
-                        HTTP.post(URI.resolve(here, href), name, null, 0, 0),
-                        response, R);
-                    got = null != r || (void.class != R && Void.class != R); 
-                    if (got) { _.log.got(request + "-return", null, null); }
-                }
+                final Object r = receive(HTTP.post(URI.resolve(here,href), name,
+                					               null, 0, 0), response, R);
+                final boolean got = null!=r || (void.class!=R && Void.class!=R); 
+                if (got) { _.log.got(request + "-return", null, null); }
                 if (null != resolver && got) { resolver.apply(r); }
             }
             

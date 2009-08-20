@@ -216,6 +216,34 @@ is marked not cacheable, such as by including the response header:
 creation request with a <code>404</code> response. Make the response cacheable
 to avoid receiving future session creation requests.</p>
 
+<h3><a name="remotePromise" href="#remotePromise">server-side promise</a></h3>
+<p>The reference returned by a call to <code><a href="#Q.get">Q.get</a>()</code>
+or <code><a href="#Q.post">Q.post</a>()</code> is a special kind of reference
+called a "<a href="../promise/">promise</a>". A promise is unlike a normal
+reference in that it can refer to an object that is yet-to-be-determined, such
+as the return value from an asynchronous request.  If your server-side code
+also uses promises, a URLref that refers to a promise must be distinguished
+from one that refers to a direct object reference.  Mark a URLref as referring
+to a promise by starting the fragment with the text '<code>o=</code>'.  This
+marking is used by <code><a href="#Q.when">Q.when</a>()</code>, which registers
+callbacks to be notified when a promise is resolved. If the promise marking is
+present, <code>Q.when()</code> will fetch the resolved value from the server;
+otherwise, it will treat the client-side promise as the fulfilled value. For
+example:</p>
+<pre>
+var remoteProxy = &hellip; // @ https://example.com/myApp/#s=obj123
+lib.Q.when(remoteProxy, function(value) {
+    // value will be remoteProxy
+});
+var remotePromise = &hellip; // @ https://example.com/myApp/#o=&amp;s=obj123
+lib.Q.when(remotePromise, function(value) {
+    // value will be JSON value returned by GET request to:
+    // &lt;https://example.com/myApp/?o=&amp;s=obj123&gt;
+}, function(reason) {
+    // or the reason the GET request failed
+});
+</pre>
+
 <h2><a name="files" href="#files">Server-side files</a></h2>
 <p>The code for the web_send library must be delivered to the browser by your
 server. Checkout the necessary files using the subversion command:</p>
@@ -640,7 +668,7 @@ locally</a>.</p>
 </div>
 <p class="footer comment">
 <a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
-<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-06-08</a>
+<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/index.html?view=log">2009-08-19</a>
 </p>
 </body>
 </html>

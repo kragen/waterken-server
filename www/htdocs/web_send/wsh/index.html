@@ -158,7 +158,7 @@ For example:</p>
       nojsoncallback: 1,
       method: 'flickr.panda.getPhotos',
       panda_name: 'ling ling' })
-; var luckyTitle = lib.Q.when(lingLing, function (value) {
+; var luckyTitle = lib.Q.when(lib.Q.get(lingLing), function (value) {
       return value.photos.photo[0].title;
   })
 ; luckyTitle
@@ -169,7 +169,7 @@ For example:</p>
 </div>
 <p class="footer comment">
 <a class="author" href="http://waterken.sourceforge.net/recent.html">Tyler Close</a>,
-<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/wsh/index.html?view=log">2009-05-29</a>
+<a class="date" href="http://waterken.svn.sourceforge.net/viewvc/waterken/server/trunk/www/htdocs/web_send/wsh/index.html?view=log">2009-08-19</a>
 </p>
 </body>
 </html>

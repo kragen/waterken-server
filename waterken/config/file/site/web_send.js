@@ -71,7 +71,7 @@ ADSAFE.lib('web', function (lib) {
                 unsealedURLref = href;
                 return resolved ? cache() : proxy;
             }
-            if ('WHEN' === op) {
+            if (/#o=/.test(href)) {
                 if (!cache) {
                     var pr = lib.Q.defer();
                     cache = pr.promise;
@@ -81,36 +81,25 @@ ADSAFE.lib('web', function (lib) {
                         if (notYetPumpkin === x) {
                             // poll for the resolved value of the promise
                             ADSAFE.later(function () {
-                                send(proxy, href, 'GET', retry);
+                                send(href, 'GET', retry);
                             }, b);
                             var c = Math.min(a + b, 60 * 60 * 1000);
                             a = b;
                             b = c;
                         } else {
-                            // if it resolved to itself, it's a remote
-                            // reference, not a promise
-                            pr.resolve((href===unsealURLref(x))?lib.Q.ref(x):x);
+                            pr.resolve(x);
                             resolved = true;
                         }
                     };
-                    send(proxy, href, 'GET', retry);
+                    send(href, 'GET', retry);
                 }
-                // process when blocks in the same order as other requests
-                send(cache, href, 'WHEN', null, null, [ arg1, arg2 ]);
+                cache(op, arg1, arg2, arg3);
             } else {
-                send(proxy, href, op, function (r) {
-                    if (notYetPumpkin === r) {
-                        // resend on the resolved value of the promise
-                        proxy('WHEN', function (x) {
-                            (('function' === typeof x) ? x : lib.Q.ref(x))(
-                                op, arg1, arg2, arg3);
-                        }, function (reason) {
-                            if (arg1) { arg1(lib.Q.reject(reason)); }
-                        });
-                    } else {
-                        if (arg1) { arg1(r); }
-                    }
-                }, arg2, arg3);
+                if ('WHEN' === op) {
+                    if (arg1) { arg1(proxy); }
+                } else {
+                    send(href, op, arg1, arg2, arg3);
+                }
             }
         }
         if (props) {
@@ -347,12 +336,6 @@ ADSAFE.lib('web', function (lib) {
                 if (m !== connection) { return; }
 
                 var msg = pending[0];
-                if ('WHEN' === msg.op) {
-                    popRequest(msg);
-                    msg.target('WHEN', msg.argv[0], msg.argv[1]);
-                    return;
-                }
-
                 var requestURI = makeRequestURI(msg.href, msg.q,
                                                 msg.idempotent ? null : x, w);
                 try {
@@ -413,11 +396,10 @@ ADSAFE.lib('web', function (lib) {
             return m;
         }
 
-        return function (target, href, op, resolve, q, argv) {
+        return function (href, op, resolve, q, argv) {
             var idempotent = 'GET'     === op || 'HEAD'   === op ||
                              'PUT'     === op || 'DELETE' === op ||
-                             'OPTIONS' === op || 'TRACE'  === op ||
-                             'WHEN'    === op;
+                             'OPTIONS' === op || 'TRACE'  === op;
             if (!idempotent && !initialized) {
                 pending.push({
                     idempotent: true,
@@ -433,7 +415,6 @@ ADSAFE.lib('web', function (lib) {
             }
             pending.push({
                 idempotent: idempotent,
-                target: target,
                 href: href,
                 op: op,
                 resolve: resolve,
@@ -449,7 +430,6 @@ ADSAFE.lib('web', function (lib) {
 
     /**
      * Enqueues an HTTP request.
-     * @param target    target reference
      * @param href      target URLref
      * @param op        HTTP verb
      * @param resolve   response resolver
@@ -458,14 +438,14 @@ ADSAFE.lib('web', function (lib) {
      */
     send = (function () {
         var sessions = { /* origin => session */ };
-        return function (target, href, op, resolve, q, argv) {
+        return function (href, op, resolve, q, argv) {
             var origin = resolveURI(href, '/');
             var session = ADSAFE.get(sessions, origin);
             if (!session) {
                 session = makeSession();
                 ADSAFE.set(sessions, origin, session);
             }
-            return session(target, href, op, resolve, q, argv);
+            return session(href, op, resolve, q, argv);
         };
     }());
 

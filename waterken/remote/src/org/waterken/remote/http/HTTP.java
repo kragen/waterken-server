@@ -16,10 +16,12 @@ import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
+import org.ref_send.promise.Local;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Vat;
+import org.ref_send.type.Typedef;
 import org.waterken.db.Creator;
 import org.waterken.db.Database;
 import org.waterken.db.Effect;
@@ -129,13 +131,27 @@ HTTP extends Eventual implements Serializable {
 
         public void
         when(final String href,final Remote proxy, final Do<Object,?> observer){
-            peer(href).when(href, proxy, observer);
+        	if (isPromise(URI.fragment("", href))) {
+        		peer(href).when(href, proxy, observer);
+        	} else {
+                _.when(new Inline<Object>(Eventual.cast(
+                			Typedef.raw(Local.parameter(observer)), proxy)),
+                	   observer);
+            }
         }
         
         public Object
         invoke(final String href, final Object proxy,
                final Method method, final Object... arg) {
-            return peer(href).invoke(href, proxy, method, arg);
+        	if (isPromise(URI.fragment("", href))) {
+        		// re-dispatch invocation on resolved value of web-key 	 
+                final ConstArray<?> argv = 	 
+                    ConstArray.array(null == arg ? new Object[0] : arg);
+                final Do<Object,Object> invoke = Local.curry(method, argv);
+                return _.when(proxy, invoke);
+        	} else {
+	            return peer(href).invoke(href, proxy, method, arg);
+        	}
         }
         
         // org.waterken.remote.http.Exports.HTTP interface
@@ -183,7 +199,7 @@ HTTP extends Eventual implements Serializable {
             }
             return new ImporterX();
         }
-
+	     
         /**
          * Constructs a reference exporter.
          */
@@ -194,7 +210,9 @@ HTTP extends Eventual implements Serializable {
 
                 public String
                 apply(final Object object) {
-                    return href(_.root.export(object, false));
+                    final Promise<?> p = Eventual.ref(object);
+                    return href(_.root.export(object, false), 	 
+                                !Fulfilled.isInstance(p) || isPBC(near(p)));
                 }
             }
             return Remote.export(_.local, new ExporterX());
@@ -294,9 +312,20 @@ HTTP extends Eventual implements Serializable {
     /**
      * Constructs a web-key.
      * @param subject   target object key
+     * @param isPromise Is the target object a promise? 	 
      */
-    static protected String
-    href(final String subject) { return "./#s=" + URLEncoding.encode(subject); }
+    static private String
+    href(final String subject, final boolean isPromise) {
+    	return "./#"+(isPromise ? "o=&" : "")+"s="+URLEncoding.encode(subject); 	 
+    }
+    
+    /**
+     * Does the given web-key refer to a promise? 	 
+     * @param q web-key argument string 	 
+     * @return <code>true</code> if a promise, else <code>false</code> 	 
+     */ 	 
+    static private boolean 	 
+    isPromise(final String q) { return null != Query.arg(null, q, "o"); }
 
     /**
      * Extracts the subject key from a web-key.
@@ -330,6 +359,36 @@ HTTP extends Eventual implements Serializable {
     
     static private int
     message(final String q) { return Integer.parseInt(Query.arg("0", q, "m")); }
+    
+    static private final Class<?> Fulfilled = Eventual.ref(0).getClass();
+    
+    /**
+     * Is the given object pass-by-construction? 	 
+     * @param object  candidate object 	 
+     * @return <code>true</code> if pass-by-construction, else
+     *  	   <code>false</code> 	 
+     */ 	 
+    static private boolean 	 
+    isPBC(final Object object) { 	 
+    	final Class<?> type = null != object ? object.getClass() : Void.class; 	 
+        return String.class == type || 	 
+            Integer.class == type || 	 
+            Boolean.class == type || 	 
+            Long.class == type || 	 
+            Byte.class == type || 	 
+            Short.class == type || 	 
+            Character.class == type || 	 
+            Double.class == type || 	 
+            Float.class == type || 	 
+            Void.class == type || 	 
+            java.math.BigInteger.class == type || 	 
+            java.math.BigDecimal.class == type || 	 
+            org.ref_send.scope.Scope.class == type || 	 
+            org.ref_send.Record.class.isAssignableFrom(type) || 	 
+            Throwable.class.isAssignableFrom(type) || 	 
+            org.joe_e.array.ConstArray.class.isAssignableFrom(type) || 	 
+            org.ref_send.promise.Promise.class.isAssignableFrom(type); 	 
+    }
     
     /**
      * Changes the base URI.
