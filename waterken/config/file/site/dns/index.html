@@ -285,7 +285,7 @@ ADSAFE.go('DNS_', function (dom, lib) {
         return false;
     }
     var resource = lib.web.getLocation();
-    lib.Q.when(resource, function (representation) {
+    lib.Q.when(lib.Q.get(resource), function (representation) {
         if (isa(representation, 'org.waterken.dns.editor.Registrar')) {
             renderRegistrar(resource);
         } else if (isa(representation, 'org.waterken.menu.Menu')) {
