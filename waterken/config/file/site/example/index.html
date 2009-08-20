@@ -276,7 +276,7 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
         return false;
     }
     var resource = lib.web.getLocation();
-    lib.Q.when(resource, function (representation) {
+    lib.Q.when(lib.Q.get(resource), function (representation) {
         if (isa(representation, 'org.waterken.bang.DrumFactory')) {
             renderDrumFactory(resource);
         } else if (isa(representation, 'org.waterken.serial.Series')) {
