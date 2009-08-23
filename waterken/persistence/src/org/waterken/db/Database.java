@@ -73,6 +73,18 @@ Database<S> {
     static public final String wake = ".wake";
 
     // org.waterken.db.Database interface
+
+    /**
+     * indicates a {@linkplain Database#enter transaction} only queries existing
+     * state, and does not persist any new selfish objects
+     */
+    public static final boolean query = true;
+
+    /**
+     * indicates a {@linkplain Database#enter transaction} may modify existing
+     * state
+     */
+    public static final boolean update = false;
     
     /**
      * session state shared across all vats
@@ -111,8 +123,8 @@ Database<S> {
      * <p>
      * The implementation MUST NOT rely on the <code>isQuery</code>
      * argument accurately describing the transaction's behavior. If
-     * {@link Transaction#query} is specified, the implementation MUST check
-     * that the constraints are met; if not, the transaction MUST be aborted.
+     * {@link #query} is specified, the implementation MUST check that the
+     * constraints are met; if not, the transaction MUST be aborted.
      * </p>
      * <p>
      * The <code>body</code> MUST NOT retain references to any of the objects
@@ -134,8 +146,7 @@ Database<S> {
      * but may schedule additional effects.
      * </p>
      * @param <R> <code>body</code>'s return type
-     * @param isQuery   either {@link Transaction#update} or
-     *                  {@link Transaction#query}
+     * @param isQuery   either {@link #update} or {@link #query}
      * @param body transaction body
      * @return promise for <code>body</code>'s return
      * @throws DoesNotExist database no longer exists

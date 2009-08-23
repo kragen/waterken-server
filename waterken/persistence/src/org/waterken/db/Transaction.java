@@ -11,18 +11,6 @@ public interface
 Transaction<R extends Immutable> extends Immutable {
     
     /**
-     * indicates a {@linkplain Database#enter transaction} may modify existing
-     * state
-     */
-    boolean update = false;
-
-    /**
-     * indicates a {@linkplain Database#enter transaction} only queries existing
-     * state, and does not persist any new selfish objects
-     */
-    boolean query = true;
-
-    /**
      * Executes the transaction.
      * @param root {@link Database} root
      * @return any return

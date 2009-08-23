@@ -160,7 +160,7 @@ JODB<S> extends Database<S> {
     enter(final boolean isQuery, final Transaction<R> body) throws Exception {
         synchronized (store) {
             if (!awake.is() && !(body instanceof Wake)) {
-                enter(Transaction.query, new Wake()).call();
+                enter(Database.query, new Wake()).call();
                 awake.set(true);
             }
             Promise<R> r;
@@ -590,7 +590,7 @@ JODB<S> extends Database<S> {
                 }
                 sub.prng = prng;
                 sub.awake.set(true);
-                return sub.enter(Transaction.update, new Transaction<X>() {
+                return sub.enter(Database.update, new Transaction<X>() {
                     public X
                     apply(final Root local) throws Exception {
                         local.assign(Database.project, subProject);

@@ -8,7 +8,7 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * Signals an attempt to modify persistent state in a {@link Transaction#query}
+ * Signals an attempt to modify persistent state in a {@link Database#query}
  * {@link Database#enter transaction}.
  */
 public class

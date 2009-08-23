@@ -4,4 +4,4 @@
 /**
  * An <code>.n2v</code> (name to value) archive file format. 
  */
-@org.joe_e.IsJoeE package org.waterken.archive.n2v;
+package org.waterken.archive.n2v;

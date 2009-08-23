@@ -28,6 +28,7 @@ import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Vat;
 import org.waterken.base32.Base32;
+import org.waterken.db.Database;
 import org.waterken.db.Root;
 import org.waterken.db.Transaction;
 import org.waterken.dns.editor.Registrar;
@@ -239,7 +240,7 @@ GenKey {
         final String top = VatInitializer.create(
             Settings.db(""), "dns", "http://localhost/", null,
             org.waterken.dns.editor.HostMaker.class);
-        Settings.db(URI.path(top)).enter(Transaction.update,
+        Settings.db(URI.path(top)).enter(Database.update,
                                          new Transaction<Immutable>() {
             public Immutable
             apply(final Root local) throws Exception {

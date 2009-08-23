@@ -32,7 +32,7 @@ Root {
      * @param name  name to bind
      * @param value value to store
      * @throws InvalidFilenameException <code>name</code> not allowed
-     * @throws ProhibitedModification   in a {@link Transaction#query}
+     * @throws ProhibitedModification   in a {@link Database#query}
      */
     void assign(String name, Object value) throws InvalidFilenameException,
                                                   ProhibitedModification;
@@ -43,7 +43,7 @@ Root {
      * @param isWeak    <code>false</code> if garbage collection of the
      *                  <code>value</code> is prevented, else <code>true</code>
      * @return assigned name
-     * @throws ProhibitedCreation       in a {@link Transaction#query}
+     * @throws ProhibitedCreation       in a {@link Database#query}
      */
     String export(Object value, boolean isWeak) throws ProhibitedCreation;
 }

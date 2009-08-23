@@ -153,7 +153,7 @@ Pipeline implements Serializable {
            ) { return new Effect<Server>() {
         public void
         apply(final Database<Server> vat) throws Exception {
-            vat.enter(Transaction.query, new Transaction<Immutable>() {
+            vat.enter(Database.query, new Transaction<Immutable>() {
                 public Immutable
                 apply(final Root root) throws Exception {
                     final Receiver<Effect<Server>> effect =
@@ -186,31 +186,10 @@ Pipeline implements Serializable {
                             guid = m.name + "-0-" + mid;
                         }
                         try {
-                            final Message<Request> q =
-                                x.render(m.key, window, index);
-                            effect.apply(new Effect<Server>() {
-                                public void
-                                apply(Database<Server> vat) throws Exception {
-                                    vat.session.serve(q.head,
-                                      null!=q.body?q.body.asInputStream():null,
-                                      fulfill(vat, peer, guid, mid));
-                                }
-                            });
+                            effect.apply(fulfill(peer, guid, mid,
+                                                 x.render(m.key,window,index)));
                         } catch (final Exception reason) {
-                            final String authority = URI.authority(peer);
-                            final String location=Authority.location(authority);
-                            effect.apply(new Effect<Server>() {
-                                public void
-                                apply(Database<Server> vat) throws Exception {
-                                    vat.session.serve(
-                                        new Request("HTTP/1.1", "OPTIONS",
-                                            URI.request(peer),
-                                            PowerlessArray.array(
-                                                new Header("Host", location)
-                                            )), null,
-                                        reject(vat, peer, guid, mid, reason));
-                                }
-                            });
+                            effect.apply(reject(peer, guid, mid, reason));
                         }
                     }
                     return new Token();
@@ -219,67 +198,91 @@ Pipeline implements Serializable {
         }
     }; }
     
-    static private Client
-    reject(final Database<Server> vat, final String peer,
-           final String request, final long mid, final Exception reason
-          ) { return new Client() {
+    static private Effect<Server>
+    fulfill(final String peer, final String request, final long mid,
+            final Message<Request> q) { return new Effect<Server>() {
         public void
-        receive(final Response head, final InputStream body) throws Exception {
-            vat.service.apply(new Service() {
-                public Void
-                call() throws Exception {
-                    vat.enter(Transaction.update, new Transaction<Immutable>() {
-                        public Immutable
-                        apply(final Root local) throws Exception {
-                            final Outbound outbound =
-                                local.fetch(null, VatInitializer.outbound);
-                            outbound.find(peer).dequeue(mid).
-                                reject(request, reason);
-                            return new Token();
+        apply(final Database<Server> vat) throws Exception {
+            vat.session.serve(q.head, null!=q.body?q.body.asInputStream():null,
+                              new Client() {
+                public void
+                receive(final Response head,
+                        final InputStream body) throws Exception {
+                    Message<Response> r;
+                    if (null != body) {
+                        try {
+                            final int length = head.getContentLength();
+                            if (length > maxEntitySize) { throw new TooBig(); }
+                            r = new Message<Response>(head, Stream.snapshot(
+                            		length >= 0 ? length : 1024,
+                                    Limited.input(maxEntitySize + 1, body)));
+                        } catch (final TooBig e) {
+                            r = new Message<Response>(Response.tooBig(), null);
                         }
-                    }).call();
-                    return null;
+                    } else {
+                        r = new Message<Response>(head, null);
+                    }
+                    final Message<Response> response = r;
+                    vat.service.apply(new Service() {
+                        public Void
+                        call() throws Exception {
+                            vat.enter(Database.update,
+                                fulfillTX(peer, request, mid, response)).call();
+                            return null;
+                        }
+                    });
                 }
             });
         }
     }; }
     
-    static private Client
-    fulfill(final Database<Server> vat, final String peer, 
-            final String request, final long mid) { return new Client() {
-        public void
-        receive(final Response head, final InputStream body) throws Exception {
-            Message<Response> r;
-            if (null != body) {
-                try {
-                    final int length = head.getContentLength();
-                    if (length > maxEntitySize) { throw new TooBig(); }
-                    r = new Message<Response>(head, Stream.snapshot(
-                    		length >= 0 ? length : 1024,
-                            Limited.input(maxEntitySize + 1, body)));
-                } catch (final TooBig e) {
-                    r = new Message<Response>(Response.tooBig(), null);
-                }
-            } else {
-                r = new Message<Response>(head, null);
+    static private Transaction<Immutable>
+    fulfillTX(final String peer, final String request, final long mid,
+              final Message<Response> response) {
+        return new Transaction<Immutable>() {
+            public Immutable
+            apply(final Root local) throws Exception {
+                final Outbound outbound =
+                    local.fetch(null, VatInitializer.outbound);
+                outbound.find(peer).dequeue(mid).fulfill(request, response);
+                return new Token();
             }
-            final Message<Response> response = r;
-            vat.service.apply(new Service() {
-                public Void
-                call() throws Exception {
-                    vat.enter(Transaction.update, new Transaction<Immutable>() {
-                        public Immutable
-                        apply(final Root local) throws Exception {
-                            final Outbound outbound =
-                                local.fetch(null, VatInitializer.outbound);
-                            outbound.find(peer).dequeue(mid).
-                                fulfill(request, response);
-                            return new Token();
-                        }
-                    }).call();
-                    return null;
-                }
-            });
+        };
+    }
+    
+    static private Effect<Server>
+    reject(final String peer, final String request, final long mid,
+           final Exception reason) { return new Effect<Server>() {
+        public void
+        apply(final Database<Server> vat) throws Exception {
+            vat.session.serve(new Request("HTTP/1.1", "OPTIONS",
+                    URI.request(peer), PowerlessArray.array(new Header("Host",
+                            Authority.location(URI.authority(peer))))),
+                null, new Client() {
+                    public void
+                    receive(final Response head,
+                            final InputStream body) throws Exception {
+                        vat.service.apply(new Service() {
+                            public Void
+                            call() throws Exception {
+                                vat.enter(Database.update,
+                                          rejectTX(peer, request, mid, reason));
+                                return null;
+                            }
+                        });
+                    }
+                });
+        }
+    }; }
+    
+    static private Transaction<Immutable>
+    rejectTX(final String peer, final String request, final long mid,
+             final Exception reason) { return new Transaction<Immutable>() {
+        public Immutable
+        apply(final Root local) throws Exception {
+            final Outbound outbound = local.fetch(null,VatInitializer.outbound);
+            outbound.find(peer).dequeue(mid).reject(request, reason);
+            return new Token();
         }
     }; }
 }

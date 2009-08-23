@@ -119,7 +119,7 @@ NameServer extends UDPDaemon {
         final PowerlessArray<ByteArray> answers;
         try {
             answers= dbm.connect(file(master, Header.toLowerCase(qname))).enter(
-                Transaction.query, new Transaction<PowerlessArray<ByteArray>>(){
+                Database.query, new Transaction<PowerlessArray<ByteArray>>(){
                 public PowerlessArray<ByteArray>
                 apply(final Root root) throws Exception {
                     final Menu<ByteArray> top = root.fetch(null, Database.top);

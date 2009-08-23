@@ -12,6 +12,7 @@ import org.joe_e.Immutable;
 import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
 import org.ref_send.promise.Receiver;
+import org.waterken.db.Database;
 import org.waterken.db.DatabaseManager;
 import org.waterken.db.Root;
 import org.waterken.db.Transaction;
@@ -118,7 +119,7 @@ Serve {
             }
         });
         try {
-            vats.connect(dir).enter(Transaction.query,
+            vats.connect(dir).enter(Database.query,
                                     new Transaction<Immutable>() {
                 public Immutable
                 apply(final Root local) { return new Token(); }

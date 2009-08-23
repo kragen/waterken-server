@@ -61,14 +61,8 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
             if (null == q) {
                 final String project;
                 try {
-                    project = vat.enter(Transaction.query,
-                            new Transaction<PowerlessArray<String>>() {
-                        public PowerlessArray<String>
-                        apply(final Root root) throws Exception {
-                            final String r = root.fetch(null, Database.project);
-                            return PowerlessArray.array(r);
-                        }
-                    }).call().get(0);
+                    project = vat.enter(Database.query,
+                            projectGetter()).call().get(0);
                 } catch (final DoesNotExist e) {
                     client.receive(Response.gone(), null);
                     return;
@@ -102,14 +96,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                                       "HEAD".equals(head.method) ||
                                       "OPTIONS".equals(head.method) ||
                                       "TRACE".equals(head.method),
-                                      new Transaction<Message<Response>>() {
-                            public Message<Response>
-                            apply(final Root root) throws Exception {
-                                final HTTP.Exports exports =
-                                    root.fetch(null, VatInitializer.exports);
-                                return new Callee(exports).apply(q, m);
-                            }
-                        }).call();
+                                      callee(q, m)).call();
                     } catch (final DoesNotExist e) {
                         client.receive(Response.gone(), null);
                         return null;
@@ -118,14 +105,37 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                         throw e;
                     }
                     try {
-                        client.receive(
-                            r.head, null!=r.body ?r.body.asInputStream() :null);
+                        client.receive(r.head, null != r.body ?
+                                                r.body.asInputStream() : null);
                     } catch (final IOException e) {}
                     return null;
                 }
             });
         }
     }; }
+    
+    static private Transaction<PowerlessArray<String>>
+    projectGetter() {
+        return new Transaction<PowerlessArray<String>>() {
+            public PowerlessArray<String>
+            apply(final Root root) throws Exception {
+                final String r = root.fetch(null, Database.project);
+                return PowerlessArray.array(r);
+            }
+        };
+    }
+    
+    static private Transaction<Message<Response>>
+    callee(final String q, final Message<Request> m) {
+        return new Transaction<Message<Response>>() {
+            public Message<Response>
+            apply(final Root root) throws Exception {
+                final HTTP.Exports exports =
+                    root.fetch(null, VatInitializer.exports);
+                return new Callee(exports).apply(q, m);
+            }
+        };
+    }
 
     static private <T> Receiver<T>
     poster(final String href, final Server proxy) { return new Receiver<T>() {

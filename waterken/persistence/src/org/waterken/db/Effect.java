@@ -5,7 +5,7 @@ package org.waterken.db;
 import org.joe_e.Immutable;
 
 /**
- * A side-effect of an {@linkplain Transaction#update update} transaction.
+ * A side-effect of an {@linkplain Database#update update} transaction.
  */
 public interface
 Effect<S> extends Immutable {

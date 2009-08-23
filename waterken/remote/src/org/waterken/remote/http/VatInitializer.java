@@ -90,7 +90,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         final ByteArray body = new JSONSerializer().serializeTuple(null,
             ConstArray.array(make.getGenericParameterTypes()),
             ConstArray.array(argv)); 
-        return parent.enter(Transaction.update,
+        return parent.enter(Database.update,
                             new Transaction<PowerlessArray<String>>() {
             public PowerlessArray<String>
             apply(final Root local) throws Exception {
@@ -136,7 +136,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         return new Effect<Server>() {
             public void
             apply(final Database<Server> vat) throws Exception {
-                vat.enter(Transaction.update, new Transaction<Immutable>() {
+                vat.enter(Database.update, new Transaction<Immutable>() {
                     public Immutable
                     apply(final Root local) throws Exception {
                         final List<Promise<?>> tasks =

@@ -12,12 +12,12 @@ import java.io.Writer;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
-import java.util.LinkedList;
 
 import org.joe_e.Powerless;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.ASCII;
 import org.joe_e.var.Milestone;
+import org.ref_send.list.List;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.waterken.http.Client;
@@ -264,7 +264,7 @@ ClientSide implements Server {
     class Retry implements Outbound {
         private       SocketAddress mostRecent = null;
         private       Connection current = null;
-        private final LinkedList<Exchange> pending = new LinkedList<Exchange>();
+        private final List<Exchange> pending = List.list();
         
         public Void
         call() {
@@ -290,14 +290,14 @@ ClientSide implements Server {
             final Exchange x = new Exchange(head, body, client, new Outbound() {
                 public Void
                 call() {
-                    pending.removeFirst();
+                    pending.pop();
                     return null;
                 }
             });
             sender.apply(new Outbound() {
                 public Void
                 call() {
-                    pending.addLast(x);
+                    pending.append(x);
                     sender.apply(new Send(current, x));
                     return null;
                 }
