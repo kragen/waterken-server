@@ -55,7 +55,7 @@ Bounce {
                           -Float.MAX_VALUE, -Float.MIN_VALUE,
                           Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY,
                           Float.NaN),
-                    DoubleArray.array(0.0, Math.E, Math.PI,
+                    DoubleArray.array(0.0,
                           Double.MAX_VALUE, Double.MIN_VALUE,
                           -Double.MAX_VALUE, -Double.MIN_VALUE,
                           Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,

@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.eq;
 
-import static org.ref_send.promise.Eventual.near;
 import static org.ref_send.promise.Eventual.ref;
 import static org.ref_send.test.Logic.join;
 
@@ -62,7 +61,6 @@ SoundCheck {
         check(_._(x_).equals(x_));
         check(_._(x).equals(x_));
         check(ref(x_).equals(p));
-        check(x == near(x_));
         final Promise<?> d = _.when(x_, new EQ());
         
         return join(_, a, b, c, d);
