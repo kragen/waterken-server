@@ -339,7 +339,7 @@ Eventual implements Serializable {
         } catch (final Exception e) { throw new Error(e); }
     }
     
-    /* package */ final <P,R> Promise<R>
+    protected final <P,R> Promise<R>
     when(final Class<?> R, final Promise<P> p, final Do<P,R> observer) {
         final Promise<R> r;
         final Do<P,?> forwarder;
