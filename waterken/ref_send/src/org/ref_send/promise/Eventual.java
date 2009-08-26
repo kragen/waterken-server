@@ -206,8 +206,6 @@ Eventual implements Serializable {
      * example:
      * </p>
      * <pre>
-     * import static org.ref_send.promise.Resolved.ref;
-     * &hellip;
      * final Promise&lt;Account&gt; mine = &hellip;
      * final Promise&lt;Integer&gt; balance =
      *     _.when(mine, new Do&lt;Account,Integer&gt;() {
