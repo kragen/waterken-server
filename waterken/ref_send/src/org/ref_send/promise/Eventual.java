@@ -823,30 +823,23 @@ Eventual implements Serializable {
      * Invocations of methods defined by {@link Object} are <strong>not</strong>
      * queued, and so can cause plan interference, or throw an exception.
      * </p>
-     * <p>
-     * This method will not throw an {@link Exception}.
-     * </p>
      * @param <T> referent type, MUST be an
      *            {@linkplain Proxies#isImplementable allowed} proxy type
      * @param referent  immediate or eventual reference,
      *                  MUST be non-<code>null</code>
      * @return corresponding eventual reference
-     * @throws Error    <code>null</code> <code>referent</code> or
-     *                  <code>T</code> not an
+     * @throws NullPointerException	<code>null</code> <code>referent</code>	
+     * @throws ClassCastException	<code>T</code> not an
      *                  {@linkplain Proxies#isImplementable allowed} proxy type
      */
     public final <T> T
     _(final T referent) {
         if (referent instanceof Proxy) {
-            try {
-                final Object handler = Proxies.getHandler((Proxy)referent);
-                if ((null != handler && Rejected.class == handler.getClass()) ||
-                    Local.trusted(local, handler)) { return referent; }
-            } catch (final Exception e) {}
+            final Object handler = Proxies.getHandler((Proxy)referent);
+            if ((null != handler && Rejected.class == handler.getClass()) ||
+                Local.trusted(local, handler)) { return referent; }
         }
-        try {
-          return cast(referent.getClass(), new Enqueue<T>(this, ref(referent)));
-        } catch (final Exception e) { throw new Error(e); }
+        return cast(referent.getClass(), new Enqueue<T>(this, ref(referent)));
     }
 
     /**
