@@ -615,7 +615,7 @@ Eventual implements Serializable {
                 block.observer = observer;
                 back = block.next = allocWhen(condition);
             } else {
-                /**
+                /*
                  * Promise is already resolved and all previously registered
                  * when blocks run. Start a new when block chain and kick off a
                  * new when block running task.
