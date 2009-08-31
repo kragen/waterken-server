@@ -108,36 +108,42 @@ Pipeline implements Serializable {
         if (mid != acknowledged + 1) { throw new RuntimeException(); }
         
         final Operation front = pending.pop();
-        if (pending.isEmpty()) {
-            Eventual.near(outbound).remove(this);
-        }
         acknowledged += 1;
-        if (front instanceof UpdateOperation) {
-            activeIndex += 1;
-        }
-        if (front instanceof QueryOperation) {
-            if (0 == halts) {
-                queries -= 1;
-            } else {
-                /*
-                 * restart message sending if this was the last query we were
-                 * waiting on in the halted pipeline
-                 */
-                int max = pending.getSize();
-                long skipTo = acknowledged;
-                for (final Operation x : pending) {
-                    ++skipTo;
-                    if (x instanceof UpdateOperation) {
-                        halts -= 1;
-                        activeWindow += 1;
-                        activeIndex = -1;
-                        effect.apply(restart(peer, max, skipTo));
-                        break;
-                    }
-                    if (x instanceof QueryOperation) { break; }
-                    --max;
-                }
-            }
+        if (pending.isEmpty()) {
+            activeWindow += 1;
+            activeIndex = -1;
+            halts = 0;
+            queries = 0;
+            updates = 0;
+            Eventual.near(outbound).remove(this);
+        } else {
+	        if (front instanceof UpdateOperation) {
+	            activeIndex += 1;
+	        }
+	        if (front instanceof QueryOperation) {
+	            if (0 == halts) {
+	                queries -= 1;
+	            } else {
+	                /*
+	                 * restart message sending if this was the last query we
+	                 * were waiting on in the halted pipeline
+	                 */
+	                int max = pending.getSize();
+	                long skipTo = acknowledged;
+	                for (final Operation x : pending) {
+	                    ++skipTo;
+	                    if (x instanceof UpdateOperation) {
+	                        halts -= 1;
+	                        activeWindow += 1;
+	                        activeIndex = -1;
+	                        effect.apply(restart(peer, max, skipTo));
+	                        break;
+	                    }
+	                    if (x instanceof QueryOperation) { break; }
+	                    --max;
+	                }
+	            }
+	        }
         }
         return front;
     }
