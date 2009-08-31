@@ -44,18 +44,17 @@ ServerSideSession implements Serializable {
     
     protected Message<Response>
     once(final long window, final int message, final NonIdempotent op) {
-        if (window == current) {
-            if (message != returns.length()) {
-                if (message < returns.length()) { return returns.get(message); }
-                for (int i = returns.length(); i != message; i += 1) {
-                    returns = returns.with(new Message<Response>(new Response(
-                        "HTTP/1.1", "404", "never", PowerlessArray.
-                            array(new Header("Content-Length", "0"))), null));
-                }
-            }
-        } else {
-            current = window;
+        if (window != current) {
             returns = ConstArray.array();
+            current = window;
+        }
+        if (message != returns.length()) {
+            if (message < returns.length()) { return returns.get(message); }
+            for (int i = returns.length(); i != message; i += 1) {
+                returns = returns.with(new Message<Response>(new Response(
+                    "HTTP/1.1", "404", "never", PowerlessArray.array(
+                    		new Header("Content-Length", "0"))), null));
+            }
         }
         final Message<Response> r = execute(name+"-"+window+"-"+message, op);
         returns = returns.with(r);
