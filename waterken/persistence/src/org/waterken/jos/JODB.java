@@ -242,6 +242,9 @@ JODB<S> extends Database<S> {
         }
     }
     
+    /**
+     * A transaction processor.
+     */
     static private final class
     Processor {
         final boolean isQuery;
@@ -261,6 +264,11 @@ JODB<S> extends Database<S> {
         }
     }
     
+    /**
+     * Creates a new persistent bucket.
+     * @param f	bucket's filename
+     * @param o	root object to be stored in the bucket
+     */
     private void
     create(final String f, final Object o) {
         /*
@@ -279,6 +287,9 @@ JODB<S> extends Database<S> {
     
     private final Root root = new Root() {
 
+    	/**
+    	 * stack of buckets currently being deserialized
+    	 */
         private final ArrayList<String> stack = new ArrayList<String>(16);
 
         /**
