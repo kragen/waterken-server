@@ -50,6 +50,21 @@ ServerSideSession implements Serializable {
         }
         if (message != returns.length()) {
             if (message < returns.length()) { return returns.get(message); }
+            
+            /*
+             * Previous requests may have failed at lower levels in the
+             * protocol stack, such as an unknown HTTP method, a failed HTTP
+             * precondition, a too big request entity, or an invocation on a
+             * promise. Our own client side code should never encounter this
+             * condition.
+             */
+            
+            if (message - returns.length() > 10) {
+            	/*
+            	 * Most likely someone's just messing with us.
+            	 */
+            	throw new RuntimeException("missing requests");
+            }
             for (int i = returns.length(); i != message; i += 1) {
                 returns = returns.with(new Message<Response>(new Response(
                     "HTTP/1.1", "404", "never", PowerlessArray.array(
