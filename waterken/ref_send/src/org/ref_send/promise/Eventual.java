@@ -202,7 +202,7 @@ Eventual implements Serializable {
      * the <code>observer</code>'s {@link Do#reject reject} method will be
      * called with the reason; otherwise, the {@link Do#fulfill fulfill} method
      * will be called with either an immediate reference for a local referent,
-     * or an {@linkplain #cast eventual reference} for a remote referent. For
+     * or an {@linkplain #_ eventual reference} for a remote referent. For
      * example:
      * </p>
      * <pre>
@@ -249,7 +249,7 @@ Eventual implements Serializable {
      * @param <R> <code>observer</code>'s return type
      * @param promise   observed promise
      * @param observer  observer, MUST NOT be <code>null</code>
-     * @return promise, or {@linkplain #cast eventual reference}, for the
+     * @return promise, or {@linkplain #_ eventual reference}, for the
      *         <code>observer</code>'s return, or <code>null</code> if the
      *         <code>observer</code>'s return type is <code>Void</code>
      */
@@ -279,7 +279,7 @@ Eventual implements Serializable {
     }
     
     /**
-     * Registers an observer on an {@linkplain #cast eventual reference}.
+     * Registers an observer on an {@linkplain #_ eventual reference}.
      * <p>
      * The implementation behavior is the same as that documented for the
      * promise based {@link #when(Promise, Do) when} statement.
@@ -298,7 +298,7 @@ Eventual implements Serializable {
     }
     
     /**
-     * Registers an observer on an {@linkplain #cast eventual reference}.
+     * Registers an observer on an {@linkplain #_ eventual reference}.
      * <p>
      * The implementation behavior is the same as that documented for the
      * promise based {@link #when(Promise, Do) when} statement.
@@ -307,7 +307,7 @@ Eventual implements Serializable {
      * @param <R> <code>observer</code>'s return type
      * @param reference observed reference
      * @param observer  observer, MUST NOT be <code>null</code>
-     * @return promise, or {@linkplain #cast eventual reference}, for the
+     * @return promise, or {@linkplain #_ eventual reference}, for the
      *         <code>observer</code>'s return, or <code>null</code> if the
      *         <code>observer</code>'s return type is <code>Void</code>
      */
@@ -321,7 +321,7 @@ Eventual implements Serializable {
     }
 
     /**
-     * Registers an observer on an {@linkplain #cast eventual reference}.
+     * Registers an observer on an {@linkplain #_ eventual reference}.
      * <p>
      * The implementation behavior is the same as that documented for the
      * promise based {@link #when(Promise, Do) when} statement.
@@ -1078,7 +1078,7 @@ Eventual implements Serializable {
 
     /**
      * Causes a compile error for code that attempts to create an
-     * {@linkplain #cast eventual reference} of a concrete type.
+     * {@linkplain #_ eventual reference} of a concrete type.
      * <p>
      * If you encounter a compile error because your code is linking to this
      * method, insert an explicit cast to the
