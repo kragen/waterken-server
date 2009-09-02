@@ -155,7 +155,7 @@ List<T> implements Iterable<T>, Serializable {
     }
     
     /**
-     * Constructs an {@linkplain #append appender}.
+     * Constructs an {@linkplain #append append}er.
      */
     public Receiver<T>
     appender() { return new Appender(); }
