@@ -24,7 +24,7 @@ Vat<T> extends Struct implements Record, Serializable {
     /**
      * destruct the vat
      * <p>
-     * call like: <code>destruct.run(null)</code>
+     * call like: <code>destruct.apply(null)</code>
      * </p>
      */
     public final Receiver<?> destruct;
