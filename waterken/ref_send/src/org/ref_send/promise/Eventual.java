@@ -373,15 +373,16 @@ Eventual implements Serializable {
             ref(a).call();      // ensure the called value is not one that is
                                 // expected to be handled as a rejection
         } catch (final Exception reason) {
-            final Class<?> c = (observer instanceof Compose
-                ? ((Compose)observer).block : observer).getClass();
+            final @SuppressWarnings("unchecked") Class<?> c =
+            	(observer instanceof Compose ? ((Compose)observer).block :
+            								   observer).getClass();
             log.got(message, c, reject);
             return observer.reject(reason);
         }
         final Method m;
         final Class<?> c; {
-            final Do inner = observer instanceof Compose ?
-                    ((Compose)observer).block : observer;
+            final @SuppressWarnings("unchecked") Do inner =
+            	observer instanceof Compose ?((Compose)observer).block:observer;
             if (inner instanceof Invoke<?>) {
                 m = ((Invoke<?>)inner).method;
                 c = a.getClass();

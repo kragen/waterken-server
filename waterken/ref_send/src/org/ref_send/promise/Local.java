@@ -134,10 +134,10 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      */
     static public Type
     parameter(final Do<?,?> x) {
-        final Do<?,?> inner =
+        final @SuppressWarnings("unchecked") Do inner =
             x instanceof Compose ? ((Compose)x).block : x;
-        return inner instanceof Invoke ?
-            ((Invoke)inner).method.getDeclaringClass() :
+        return inner instanceof Invoke<?> ?
+            ((Invoke<?>)inner).method.getDeclaringClass() :
         Typedef.value(P, inner.getClass());
     }
 
@@ -154,10 +154,10 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      */
     static protected Type
     output(final Class<?> p, final Do<?,?> x) {
-        final Do<?,?> inner =
+        final @SuppressWarnings("unchecked") Do<?,?> inner =
             x instanceof Compose ? ((Compose)x).block : x;
-        return inner instanceof Invoke ?
-            Typedef.bound(((Invoke)inner).method.getGenericReturnType(), p) :
+        return inner instanceof Invoke<?> ?
+            Typedef.bound(((Invoke<?>)inner).method.getGenericReturnType(), p) :
         Typedef.value(R, inner.getClass());
     }
 }
