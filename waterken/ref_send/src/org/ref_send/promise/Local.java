@@ -27,7 +27,7 @@ import org.ref_send.type.Typedef;
 public abstract class
 Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
-    
+
     /**
      * corresponding eventual operator
      */
@@ -48,7 +48,7 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
         if (_.local != local) { throw new ClassCastException(); }
         this._ = _;
     }
-    
+
     /**
      * Is an untrusted promise actually a trusted implementation?
      * @param local {@link Local} permission
@@ -104,14 +104,14 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
     call() throws Exception;
 
     // org.ref_send.promise.Deferred interface
-    
+
     /**
      * Notifies an observer in a future event loop turn.
      * @param observer  promise observer
      */
     protected abstract void
     when(Do<T,?> observer);
-    
+
     /**
      * Constructs a pending invocation.
      * @param method    method to invoke
@@ -126,7 +126,7 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      * Do block parameter type
      */
     static private final TypeVariable<?> P = Typedef.var(Do.class, "P");
-    
+
     /**
      * Determines a block's parameter type.
      * @param x block to introspect on
@@ -135,9 +135,9 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
     static public Type
     parameter(final Do<?,?> x) {
         final Do<?,?> inner =
-        	x instanceof Compose<?,?> ? ((Compose<?,?>)x).block : x;
-        return inner instanceof Invoke<?> ?
-        	((Invoke<?>)inner).method.getDeclaringClass() :
+            x instanceof Compose ? ((Compose)x).block : x;
+        return inner instanceof Invoke ?
+            ((Invoke)inner).method.getDeclaringClass() :
         Typedef.value(P, inner.getClass());
     }
 
@@ -145,7 +145,7 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      * Do block return type
      */
     static private final TypeVariable<?> R = Typedef.var(Do.class, "R");
-    
+
     /**
      * Determines a block's return type.
      * @param p block's parameter type
@@ -155,9 +155,9 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
     static protected Type
     output(final Class<?> p, final Do<?,?> x) {
         final Do<?,?> inner =
-        	x instanceof Compose<?,?> ? ((Compose<?,?>)x).block : x;
-        return inner instanceof Invoke<?> ?
-        	Typedef.bound(((Invoke<?>)inner).method.getGenericReturnType(), p) :
+            x instanceof Compose ? ((Compose)x).block : x;
+        return inner instanceof Invoke ?
+            Typedef.bound(((Invoke)inner).method.getGenericReturnType(), p) :
         Typedef.value(R, inner.getClass());
     }
 }

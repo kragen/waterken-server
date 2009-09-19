@@ -145,17 +145,17 @@ Eventual implements Serializable {
      * raw event loop
      */
     private   final Receiver<Promise<?>> enqueue;
-    
+
     /**
      * URI for the event loop
      */
     protected final String here;
-    
+
     /**
      * debugging output
      */
     public    final Log log;
-    
+
     /**
      * destruct the vat
      * <p>
@@ -206,11 +206,13 @@ Eventual implements Serializable {
      * example:
      * </p>
      * <pre>
+     * import static org.ref_send.promise.Eventual.ref;
+     * &hellip;
      * final Promise&lt;Account&gt; mine = &hellip;
      * final Promise&lt;Integer&gt; balance =
-     *     _.when(mine, new Do&lt;Account,Integer&gt;() {
-     *         public Integer
-     *         fulfill(final Account x) { return x.getBalance(); }
+     *     _.when(mine, new Do&lt;Account,Promise&lt;Integer&gt;&gt;() {
+     *         public Promise&lt;Integer&gt;
+     *         fulfill(final Account x) { return ref(x.getBalance()); }
      *     });
      * </pre>
      * <p>
@@ -230,25 +232,6 @@ Eventual implements Serializable {
      * @param <R> <code>observer</code>'s return type
      * @param promise   observed promise
      * @param observer  observer, MUST NOT be <code>null</code>
-     * @return promise for the observer's return value
-     */
-    public final <P,R extends Serializable> Promise<R>
-    when(final Promise<P> promise, final Do<P,R> observer) {
-        try {
-            return when(Object.class, promise, observer);
-        } catch (final Exception e) { throw new Error(e); }
-    }
-
-    /**
-     * Registers an observer on a promise.
-     * <p>
-     * The implementation behavior is the same as that documented for the
-     * promise based {@link #when(Promise, Do) when} statement.
-     * </p>
-     * @param <P> <code>observer</code>'s parameter type
-     * @param <R> <code>observer</code>'s return type
-     * @param promise   observed promise
-     * @param observer  observer, MUST NOT be <code>null</code>
      * @return promise, or {@linkplain #_ eventual reference}, for the
      *         <code>observer</code>'s return, or <code>null</code> if the
      *         <code>observer</code>'s return type is <code>Void</code>
@@ -261,42 +244,6 @@ Eventual implements Serializable {
         } catch (final Exception e) { throw new Error(e); }
     }
 
-    /**
-     * Registers an observer on a promise.
-     * <p>
-     * The implementation behavior is the same as that documented for the
-     * promise based {@link #when(Promise, Do) when} statement.
-     * </p>
-     * @param <P> <code>observer</code>'s parameter type
-     * @param promise   observed promise
-     * @param observer  observer, MUST NOT be <code>null</code>
-     */
-    public final <P> void
-    when(final Promise<P> promise, final Do<P,Void> observer) {
-        try {
-            when(Void.class, promise, observer);
-        } catch (final Exception e) { throw new Error(e); }
-    }
-    
-    /**
-     * Registers an observer on an {@linkplain #_ eventual reference}.
-     * <p>
-     * The implementation behavior is the same as that documented for the
-     * promise based {@link #when(Promise, Do) when} statement.
-     * </p>
-     * @param <P> <code>observer</code>'s parameter type
-     * @param <R> <code>observer</code>'s return type
-     * @param reference observed reference
-     * @param observer  observer, MUST NOT be <code>null</code>
-     * @return promise for the observer's return value
-     */
-    public final <P,R extends Serializable> Promise<R>
-    when(final P reference, final Do<P,R> observer) {
-        try {
-            return when(Object.class, ref(reference), observer);
-        } catch (final Exception e) { throw new Error(e); }
-    }
-    
     /**
      * Registers an observer on an {@linkplain #_ eventual reference}.
      * <p>
@@ -320,23 +267,6 @@ Eventual implements Serializable {
         } catch (final Exception e) { throw new Error(e); }
     }
 
-    /**
-     * Registers an observer on an {@linkplain #_ eventual reference}.
-     * <p>
-     * The implementation behavior is the same as that documented for the
-     * promise based {@link #when(Promise, Do) when} statement.
-     * </p>
-     * @param <P> <code>observer</code>'s parameter type
-     * @param reference observed reference
-     * @param observer  observer, MUST NOT be <code>null</code>
-     */
-    public final <P> void
-    when(final P reference, final Do<P,Void> observer) {
-        try {
-            when(Void.class, ref(reference), observer);
-        } catch (final Exception e) { throw new Error(e); }
-    }
-    
     protected final <P,R> Promise<R>
     when(final Class<?> R, final Promise<P> p, final Do<P,R> observer) {
         final Promise<R> r;
@@ -419,21 +349,21 @@ Eventual implements Serializable {
             _.log.sent(_.here + "#t" + id);
         }
     }
-    
+
     static private final Method fulfill;
     static {
         try {
             fulfill = Reflection.method(Do.class, "fulfill", Object.class);
         } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
     }
-    
+
     static private final Method reject;
     static {
         try {
             reject = Reflection.method(Do.class, "reject", Exception.class);
         } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
     }
-    
+
     static private <P,R> R
     sample(final Promise<P> promise, final Do<P,R> observer,
            final Log log, final String message) throws Exception {
@@ -443,20 +373,20 @@ Eventual implements Serializable {
             ref(a).call();      // ensure the called value is not one that is
                                 // expected to be handled as a rejection
         } catch (final Exception reason) {
-            final Class<?> c = (observer instanceof Compose<?,?>
-                ? ((Compose<?,?>)observer).block : observer).getClass();
+            final Class<?> c = (observer instanceof Compose
+                ? ((Compose)observer).block : observer).getClass();
             log.got(message, c, reject);
             return observer.reject(reason);
         }
         final Method m;
         final Class<?> c; {
-            final Do<?,?> inner = observer instanceof Compose<?,?> ?
-                    ((Compose<?,?>)observer).block : observer;
+            final Do inner = observer instanceof Compose ?
+                    ((Compose)observer).block : observer;
             if (inner instanceof Invoke<?>) {
                 m = ((Invoke<?>)inner).method;
                 c = a.getClass();
             } else {
-                m = fulfill; 
+                m = fulfill;
                 c = inner.getClass();
             }
         }
@@ -477,7 +407,7 @@ Eventual implements Serializable {
         Do<T,?> observer;           // client's when block code
         Promise<When<T>> next;      // next when block registered on the promise
     }
-    
+
     /**
      * number of when blocks created
      * <p>
@@ -485,7 +415,7 @@ Eventual implements Serializable {
      * </p>
      */
     private long whens;
-    
+
     /**
      * pool of previously used when blocks
      * <p>
@@ -494,12 +424,12 @@ Eventual implements Serializable {
      * </p>
      */
     private Promise<When<?>> whenPool;
-    
+
     private final @SuppressWarnings("unchecked") <T> Promise<When<T>>
     allocWhen(final long condition) {
         final long message = ++whens;
         if (0 == message) { throw new AssertionError(); }
-        
+
         final Promise<When<T>> r;
         final When<T> block;
         if (null == whenPool) {
@@ -515,7 +445,7 @@ Eventual implements Serializable {
         block.message = message;
         return r;
     }
-    
+
     private final @SuppressWarnings("unchecked") void
     freeWhen(final Promise pBlock, final When block) {
         block.condition = 0;
@@ -524,7 +454,7 @@ Eventual implements Serializable {
         block.next = (Promise)whenPool;
         whenPool = pBlock;
     }
-    
+
     private final class
     Forward<T> extends Struct implements Promise<Void>, Serializable {
         static private final long serialVersionUID = 1L;
@@ -533,7 +463,7 @@ Eventual implements Serializable {
         private final long condition;           // id of corresponding promise
         private final Promise<T> value;         // resolved value of promise
         private final Promise<When<T>> pending; // when block to run
-        
+
         Forward(final boolean ignored, final long condition,
                 final Promise<T> value, final Promise<When<T>> pending) {
             this.ignored = ignored;
@@ -562,14 +492,14 @@ Eventual implements Serializable {
                     throw e;
                 }
                 if (condition != block.condition) { return null; } // been done
-                
+
                 // free the block, thus ensuring it is not run again
                 message     = block.message;
                 observer    = block.observer;
                 next        = block.next;
                 freeWhen(pending, block);
             }
-            
+
             if (null != next) {
                 enqueue.apply(new Forward<T>(false, condition, value, next));
                 try {
@@ -594,19 +524,19 @@ Eventual implements Serializable {
             return null;
         }
     }
-    
+
     private final class
     State<T> extends Milestone<Promise<T>> {
         static private final long serialVersionUID = 1L;
-        
+
         private final long condition;           // id of this promise
         private       Promise<When<T>> back;    // observer list sentinel
-        
+
         State(final long condition, final Promise<When<T>> back) {
             this.condition = condition;
             this.back = back;
         }
-        
+
         protected void
         observe(final Do<T,?> observer) {
             final When<T> block = near(back);
@@ -626,7 +556,7 @@ Eventual implements Serializable {
             }
         }
     }
-    
+
     static private final class
     Tail<T> extends Local<T> {
         static private final long serialVersionUID = 1L;
@@ -656,7 +586,7 @@ Eventual implements Serializable {
         public void
         when(final Do<T,?> observer) { near(state).observe(observer); }
     }
-    
+
     private final class
     Head<T> extends Struct implements Resolver<T>, Serializable {
         static private final long serialVersionUID = 1L;
@@ -664,7 +594,7 @@ Eventual implements Serializable {
         private final long condition;           // id of corresponding promise
         private final Promise<State<T>> state;  // promise's mutable state
         private final Promise<When<T>> front;   // first when block to run
-        
+
         Head(final long condition, final State<T> state,
                                    final Promise<When<T>> front) {
             this.condition = condition;
@@ -682,17 +612,17 @@ Eventual implements Serializable {
              * complexity is in service to this goal.
              */
         }
-        
+
         public void
         apply(final T r) { resolve(null == r ? null : ref(r)); }
 
         public void
         reject(final Exception reason) { resolve(new Rejected<T>(reason)); }
-        
+
         public void
         resolve(Promise<T> p) {
             if (p instanceof Fulfilled<?>) {
-                p = ((Fulfilled<T>)p).getState(); 
+                p = ((Fulfilled<T>)p).getState();
                 log.fulfilled(here + "#p" + condition);
             } else if (null == p) {
                 p = new Inline<T>(null);
@@ -712,7 +642,7 @@ Eventual implements Serializable {
         public void
         progress() { log.progressed(here + "#p" + condition); }
     }
-    
+
     /**
      * number of promises {@linkplain #defer created}
      * <p>
@@ -828,8 +758,8 @@ Eventual implements Serializable {
      * @param referent  immediate or eventual reference,
      *                  MUST be non-<code>null</code>
      * @return corresponding eventual reference
-     * @throws NullPointerException	<code>null</code> <code>referent</code>	
-     * @throws ClassCastException	<code>T</code> not an
+     * @throws NullPointerException <code>null</code> <code>referent</code>
+     * @throws ClassCastException   <code>T</code> not an
      *                  {@linkplain Proxies#isImplementable allowed} proxy type
      */
     public final <T> T
@@ -843,13 +773,30 @@ Eventual implements Serializable {
     }
 
     /**
+     * Causes a compile error for code that attempts to create an
+     * {@linkplain #_ eventual reference} of a concrete type.
+     * <p>
+     * If you encounter a compile error because your code is linking to this
+     * method, insert an explicit cast to the
+     * {@linkplain Proxies#isImplementable allowed} proxy type. For example,
+     * </p>
+     * <kbd>_._(this).apply(null);</kbd>
+     * <p>becomes:</p>
+     * <kbd>_._((Receiver&lt;?&gt;)this).apply(null);</kbd>
+     * @param x ignored
+     * @throws AssertionError   always thrown
+     */
+    public final <T extends Serializable> void
+    _(final T x) { throw new AssertionError(); }
+
+    /**
      * Casts a promise to a specified type.
      * <p>
      * For example,
      * </p>
      * <pre>
      *  final Channel&lt;Receiver&lt;Integer&gt;&gt; x = _.defer();
-     *  final Receiver&lt;Integer&gt; r_ = cast(Receiver.class, x.promise); 
+     *  final Receiver&lt;Integer&gt; r_ = cast(Receiver.class, x.promise);
      * </pre>
      * @param <T> referent type to implement
      * @param type      referent type to implement
@@ -875,7 +822,7 @@ Eventual implements Serializable {
                 proxy((InvocationHandler)promise, type, Selfless.class) :
             proxy((InvocationHandler)promise, ifaces(type)));
     }
-    
+
     /**
      * Lists the proxy interfaces for a concrete type.
      * @param concrete  type to mimic
@@ -930,7 +877,7 @@ Eventual implements Serializable {
         }
         return r;
     }
-    
+
     /**
      * Gets a corresponding {@linkplain Promise promise}.
      * <p>
@@ -971,7 +918,7 @@ Eventual implements Serializable {
             return reject(e);
         }
     }
-    
+
     /**
      * Gets a corresponding immediate reference.
      * <p>
@@ -1006,7 +953,7 @@ Eventual implements Serializable {
             return promise.call();
         } catch (final Exception e) { throw new Error(e); }
     }
-    
+
     /**
      * Constructs a rejected {@linkplain Promise promise}.
      * @param <T> referent type
@@ -1014,7 +961,7 @@ Eventual implements Serializable {
      */
     static public <T> Promise<T>
     reject(final Exception reason) { return new Rejected<T>(reason); }
-    
+
     /**
      * Creates a sub-vat.
      * <p>
@@ -1070,46 +1017,103 @@ Eventual implements Serializable {
             invoke = new Invoke<Class<?>>(make, argv.snapshot());
         } catch (final Exception e) { throw new Error(e); }
         final Receiver<?> destruct = cast(Receiver.class, null);
-        final @SuppressWarnings("unchecked") R top = (R)when(maker, invoke); 
+        final @SuppressWarnings("unchecked") R top = (R)when(maker, invoke);
         return new Vat<R>(top, destruct);
     }
 
-    // Debugging assistance
-
-    /**
-     * Causes a compile error for code that attempts to create an
-     * {@linkplain #_ eventual reference} of a concrete type.
-     * <p>
-     * If you encounter a compile error because your code is linking to this
-     * method, insert an explicit cast to the
-     * {@linkplain Proxies#isImplementable allowed} proxy type. For example,
-     * </p>
-     * <kbd>_._(this).apply(null);</kbd>
-     * <p>becomes:</p>
-     * <kbd>_._((Receiver&lt;?&gt;)this).apply(null);</kbd>
-     * @param x ignored
-     * @throws AssertionError   always thrown
-     */
-    public final <T extends Serializable> void
-    _(final T x) { throw new AssertionError(); }
-
-    /**
-     * Causes a compile error for code that attempts to cast a promise to a
-     * concrete type.
-     * <p>
-     * If you encounter a compile error because your code is linking to this
-     * method, replace the specified concrete type with an
-     * {@linkplain Proxies#isImplementable allowed} proxy type. For example,
-     * </p>
-     * <kbd>final Observer o_ = _.cast(Observer.class, op);</kbd>
-     * <p>becomes:</p>
-     * <kbd>final Receiver&lt;?&gt; o_ = _.cast(Receiver.class, op);</kbd>
-     * @param <R> referent type to implement
-     * @param type      ignored
-     * @param promise   ignored
-     * @throws AssertionError   always thrown
-     */
-    static public <R extends Serializable> void
-    cast(final Class<R> type,
-         final Promise<?> promise) { throw new AssertionError();}
+//  The following convenience overloads are supported under JDK1.6 and early
+//  versions of JDK1.5, but not on later versions of JDK1.5. They support a
+//  slighter better syntax and are faster than the generic implementations.
+//
+//  /**
+//   * Registers an observer on a promise.
+//   * <p>
+//   * The implementation behavior is the same as that documented for the
+//   * promise based {@link #when(Promise, Do) when} statement.
+//   * </p>
+//   * @param <P> <code>observer</code>'s parameter type
+//   * @param <R> <code>observer</code>'s return type
+//   * @param promise   observed promise
+//   * @param observer  observer, MUST NOT be <code>null</code>
+//   * @return promise for the observer's return value
+//   */
+//  public final <P,R extends Serializable> Promise<R>
+//  when(final Promise<P> promise, final Do<P,R> observer) {
+//      try {
+//          return when(Object.class, promise, observer);
+//      } catch (final Exception e) { throw new Error(e); }
+//  }
+//
+//  /**
+//   * Registers an observer on a promise.
+//   * <p>
+//   * The implementation behavior is the same as that documented for the
+//   * promise based {@link #when(Promise, Do) when} statement.
+//   * </p>
+//   * @param <P> <code>observer</code>'s parameter type
+//   * @param promise   observed promise
+//   * @param observer  observer, MUST NOT be <code>null</code>
+//   */
+//  public final <P> void
+//  when(final Promise<P> promise, final Do<P,Void> observer) {
+//      try {
+//          when(Void.class, promise, observer);
+//      } catch (final Exception e) { throw new Error(e); }
+//  }
+//
+//  /**
+//   * Registers an observer on an {@linkplain #_ eventual reference}.
+//   * <p>
+//   * The implementation behavior is the same as that documented for the
+//   * promise based {@link #when(Promise, Do) when} statement.
+//   * </p>
+//   * @param <P> <code>observer</code>'s parameter type
+//   * @param <R> <code>observer</code>'s return type
+//   * @param reference observed reference
+//   * @param observer  observer, MUST NOT be <code>null</code>
+//   * @return promise for the observer's return value
+//   */
+//  public final <P,R extends Serializable> Promise<R>
+//  when(final P reference, final Do<P,R> observer) {
+//      try {
+//          return when(Object.class, ref(reference), observer);
+//      } catch (final Exception e) { throw new Error(e); }
+//  }
+//
+//  /**
+//   * Registers an observer on an {@linkplain #_ eventual reference}.
+//   * <p>
+//   * The implementation behavior is the same as that documented for the
+//   * promise based {@link #when(Promise, Do) when} statement.
+//   * </p>
+//   * @param <P> <code>observer</code>'s parameter type
+//   * @param reference observed reference
+//   * @param observer  observer, MUST NOT be <code>null</code>
+//   */
+//  public final <P> void
+//  when(final P reference, final Do<P,Void> observer) {
+//      try {
+//          when(Void.class, ref(reference), observer);
+//      } catch (final Exception e) { throw new Error(e); }
+//  }
+//
+//  /**
+//   * Causes a compile error for code that attempts to cast a promise to a
+//   * concrete type.
+//   * <p>
+//   * If you encounter a compile error because your code is linking to this
+//   * method, replace the specified concrete type with an
+//   * {@linkplain Proxies#isImplementable allowed} proxy type. For example,
+//   * </p>
+//   * <kbd>final Observer o_ = _.cast(Observer.class, op);</kbd>
+//   * <p>becomes:</p>
+//   * <kbd>final Receiver&lt;?&gt; o_ = _.cast(Receiver.class, op);</kbd>
+//   * @param <R> referent type to implement
+//   * @param type      ignored
+//   * @param promise   ignored
+//   * @throws AssertionError   always thrown
+//   */
+//  static public <R extends Serializable> void
+//  cast(final Class<R> type,
+//       final Promise<?> promise) { throw new AssertionError();}
 }

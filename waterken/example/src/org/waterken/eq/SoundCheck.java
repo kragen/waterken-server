@@ -1,4 +1,4 @@
-// Copyright 2007 Waterken Inc. under the terms of the MIT X license
+// Copyright 2007-2009 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.eq;
 
@@ -20,7 +20,7 @@ import org.ref_send.promise.Receiver;
 public final class
 SoundCheck {
     private SoundCheck() {}
-    
+
     /**
      * Runs a unit test.
      * @param _ eventual operator
@@ -29,9 +29,9 @@ SoundCheck {
     make(final Eventual _) throws Exception {
         final Channel<?> x = _.defer();
         return join(_, testNormal(_, x.resolver),
-                      testNull(_, null),
-                      testDouble(_),
-                      testFloat(_));
+                       testNull(_, null),
+                       testDouble(_),
+                       testFloat(_));
     }
 
     /**
@@ -43,26 +43,26 @@ SoundCheck {
         check(p.equals(p));
         check(ref(x).equals(p));
         check(x.equals(p.call()));
-        class EQ extends Do<T,Boolean> implements Serializable {
+        class EQ extends Do<T,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Boolean
+            public Promise<Boolean>
             fulfill(final T arg) throws Exception {
                 check(x.equals(arg));
-                return true;
+                return ref(true);
             }
         }
         final Promise<?> a = _.when(p, new EQ());
         final Promise<?> b = _.when(x, new EQ());
         final Promise<?> c = _.when(new Sneaky<T>(x), new EQ());
-        
+
         final T x_ = _._(x);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
         check(_._(x).equals(x_));
         check(ref(x_).equals(p));
         final Promise<?> d = _.when(x_, new EQ());
-        
+
         return join(_, a, b, c, d);
     }
 
@@ -78,32 +78,32 @@ SoundCheck {
             p.call();
             check(false);
         } catch (final NullPointerException e) {}
-        class NE extends Do<T,Boolean> implements Serializable {
+        class NE extends Do<T,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Boolean
+            public Promise<Boolean>
             fulfill(final T arg) throws Exception { throw new Exception(); }
-            
-            public Boolean
+
+            public Promise<Boolean>
             reject(final Exception reason) throws Exception {
-                if (reason instanceof NullPointerException) { return true; }
+                if (reason instanceof NullPointerException) {return ref(true);}
                 throw reason;
             }
         }
         final Promise<?> a = _.when(p, new NE());
         final Promise<?> b = _.when(x, new NE());
         final Promise<?> c = _.when(new Sneaky<T>(x), new NE());
-        
+
         final T x_ = Eventual.cast(Receiver.class, p);
         check(x_.equals(x_));
         check(_._(x_).equals(x_));
         check(Eventual.cast(Receiver.class, p).equals(x_));
         check(ref(x_).equals(p));
         final Promise<?> d = _.when(x_, new NE());
-        
+
         return join(_, a, b, c, d);
     }
-    
+
     static private <T> Promise<?>
     testNaN(final Eventual _, final T x) throws Exception {
         final Promise<T> p = ref(x);
@@ -113,15 +113,15 @@ SoundCheck {
             p.call();
             check(false);
         } catch (final ArithmeticException e) {}
-        class ENaN extends Do<T,Boolean> implements Serializable {
+        class ENaN extends Do<T,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Boolean
+            public Promise<Boolean>
             fulfill(final T arg) throws Exception { throw new Exception(); }
-            
-            public Boolean
+
+            public Promise<Boolean>
             reject(final Exception reason) throws Exception {
-                if (reason instanceof ArithmeticException) { return true; }
+                if (reason instanceof ArithmeticException) { return ref(true); }
                 throw reason;
             }
         }
@@ -142,18 +142,18 @@ SoundCheck {
         check(pMin.equals(pMin));
         check(ref(Double.MIN_VALUE).equals(pMin));
         check(Double.MIN_VALUE == pMin.call());
-        class EQ extends Do<Double,Boolean> implements Serializable {
+        class EQ extends Do<Double,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Boolean
+            public Promise<Boolean>
             fulfill(final Double arg) throws Exception {
                 check(Double.MIN_VALUE == arg);
-                return true;
+                return ref(true);
             }
         }
         final Promise<?> a = _.when(pMin, new EQ());
         final Promise<?> b = _.when(Double.MIN_VALUE, new EQ());
-        
+
         final Promise<?> c = testNaN(_, Double.NaN);
         final Promise<?> d = testNaN(_, Double.NEGATIVE_INFINITY);
         final Promise<?> e = testNaN(_, Double.POSITIVE_INFINITY);
@@ -171,30 +171,30 @@ SoundCheck {
         check(pMin.equals(pMin));
         check(ref(Float.MIN_VALUE).equals(pMin));
         check(Float.MIN_VALUE == pMin.call());
-        class EQ extends Do<Float,Boolean> implements Serializable {
+        class EQ extends Do<Float,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Boolean
+            public Promise<Boolean>
             fulfill(final Float arg) throws Exception {
                 check(Float.MIN_VALUE == arg);
-                return true;
+                return ref(true);
             }
         }
         final Promise<?> a = _.when(pMin, new EQ());
         final Promise<?> b = _.when(Float.MIN_VALUE, new EQ());
-        
+
         final Promise<?> c = testNaN(_, Float.NaN);
         final Promise<?> d = testNaN(_, Float.NEGATIVE_INFINITY);
         final Promise<?> e = testNaN(_, Float.POSITIVE_INFINITY);
 
         return join(_, a, b, c, d, e);
     }
-    
+
     static private void
     check(final boolean valid) throws Exception {
         if (!valid) { throw new Exception(); }
     }
-    
+
     // Command line interface
 
     /**
