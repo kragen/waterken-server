@@ -154,7 +154,7 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      */
     static protected Type
     output(final Class<?> p, final Do<?,?> x) {
-        final @SuppressWarnings("unchecked") Do<?,?> inner =
+        final @SuppressWarnings("unchecked") Do inner =
             x instanceof Compose ? ((Compose)x).block : x;
         return inner instanceof Invoke<?> ?
             Typedef.bound(((Invoke<?>)inner).method.getGenericReturnType(), p) :
