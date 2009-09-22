@@ -284,7 +284,7 @@ ADSAFE.go('EXAMPLE_', function (dom, lib) {
         } else if (isa(representation, 'org.waterken.serial.SeriesFactory')) {
             renderSeriesFactory(resource);
         } else {
-            renderBody(resource);
+            renderBody(representation);
         }
     }, function (reason) {
         renderBody(resource);
