@@ -375,7 +375,7 @@ Eventual implements Serializable {
         } catch (final Exception reason) {
             final @SuppressWarnings("unchecked") Class<?> c =
             	(observer instanceof Compose ? ((Compose)observer).block :
-            								   observer).getClass();
+            	                               observer).getClass();
             log.got(message, c, reject);
             return observer.reject(reason);
         }
