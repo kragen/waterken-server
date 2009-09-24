@@ -817,6 +817,8 @@ Eventual implements Serializable {
                 cast(type, new Rejected<T>(new NullPointerException())) :
             type.isInstance(promise) ?
                 promise :
+            Fulfilled.class == promise.getClass() ?
+            	near(promise) :
             Selfless.class == type ?
                 proxy((InvocationHandler)promise, Selfless.class) :
             type.isInterface() ?
