@@ -807,18 +807,18 @@ Eventual implements Serializable {
      */
     static public @SuppressWarnings("unchecked") <T> T
     cast(final Class<?> type,final Promise<T> promise)throws ClassCastException{
-        return (T)(Void.class == type || void.class == type ?
+        return (T)(null == promise ?
+                cast(type, new Rejected<T>(new NullPointerException())) :
+            type.isInstance(promise) ?
+                promise :
+            Fulfilled.class == promise.getClass() ?
+                near(promise) :
+        	Void.class == type || void.class == type ?
                 null :
             Float.class == type || float.class == type ?
                 Float.NaN :
             Double.class == type || double.class == type ?
                 Double.NaN :
-            null == promise ?
-                cast(type, new Rejected<T>(new NullPointerException())) :
-            type.isInstance(promise) ?
-                promise :
-            Fulfilled.class == promise.getClass() ?
-            	near(promise) :
             Selfless.class == type ?
                 proxy((InvocationHandler)promise, Selfless.class) :
             type.isInterface() ?
