@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeSet;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -520,7 +521,7 @@ JODB<S> extends Database<S> {
             try {
                 mac = allocMac(root);
             } catch (final Exception e) { throw new Error(e); }
-            for (final String name : tx.o2f.values()) {
+            for (final String name : new TreeSet<String>(tx.o2f.values())) {
                 final Bucket b = f2b.get(name);
                 if (!b.created) {
                     if (!b.managed) { return null; }

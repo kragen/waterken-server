@@ -163,6 +163,11 @@ Eventual implements Serializable {
      * </p>
      */
     public    final Receiver<?> destruct;
+    
+    /**
+     * mutable statistics about eventual operations 
+     */
+    private   /* final */ Fulfilled<Stats> stats; 
 
     /**
      * Constructs an instance.
@@ -190,6 +195,17 @@ Eventual implements Serializable {
     Eventual(final Receiver<Promise<?>> enqueue) {
         this(new Token(), enqueue, "", new Log(), cast(Receiver.class,
                 new Rejected<Receiver<?>>(new NullPointerException())));
+    }
+    
+    /**
+     * Upgrades from prior version that has inline statistics.
+     */
+    private Stats
+    stats() {
+    	if (null == stats) {
+            stats = new Fulfilled<Stats>(false, new Stats());
+    	}
+    	return near(stats);
     }
 
     // org.ref_send.promise.Eventual interface
@@ -292,14 +308,6 @@ Eventual implements Serializable {
         new Enqueue<T>(this, untrusted);
     }
 
-    /**
-     * number of tasks enqueued
-     * <p>
-     * This variable is only incremented and should never be allowed to wrap.
-     * </p>
-     */
-    private long tasks;
-
     static private final class
     Enqueue<T> extends Local<T> {
         static private final long serialVersionUID = 1L;
@@ -328,8 +336,7 @@ Eventual implements Serializable {
 
         public void
         when(final Do<T,?> observer) {
-            final long id = ++_.tasks;
-            if (0 == id) { throw new AssertionError(); }
+            final long id = near(_.stats).newTask();
             class Sample extends Struct implements Promise<Void>, Serializable {
                 static private final long serialVersionUID = 1L;
 
@@ -399,7 +406,7 @@ Eventual implements Serializable {
      * A registered promise observer.
      * @param <T> referent type
      */
-    static private final class
+    static protected final class
     When<T> implements Equatable, Serializable {
         static private final long serialVersionUID = 1L;
 
@@ -407,53 +414,6 @@ Eventual implements Serializable {
         long message;               // id for this when block
         Do<T,?> observer;           // client's when block code
         Promise<When<T>> next;      // next when block registered on the promise
-    }
-
-    /**
-     * number of when blocks created
-     * <p>
-     * This variable is only incremented and should never be allowed to wrap.
-     * </p>
-     */
-    private long whens;
-
-    /**
-     * pool of previously used when blocks
-     * <p>
-     * When blocks are recycled so that environments providing orthogonal
-     * persistence don't accumulate lots of dead objects.
-     * </p>
-     */
-    private Promise<When<?>> whenPool;
-
-    private final @SuppressWarnings("unchecked") <T> Promise<When<T>>
-    allocWhen(final long condition) {
-        final long message = ++whens;
-        if (0 == message) { throw new AssertionError(); }
-
-        final Promise<When<T>> r;
-        final When<T> block;
-        if (null == whenPool) {
-            block = new When<T>();
-            r = ref(block);
-        } else {
-            r = (Promise)whenPool;
-            block = (When)near(r);
-            whenPool = (Promise)block.next;
-            block.next = null;
-        }
-        block.condition = condition;
-        block.message = message;
-        return r;
-    }
-
-    private final @SuppressWarnings("unchecked") void
-    freeWhen(final Promise pBlock, final When block) {
-        block.condition = 0;
-        block.message = 0;
-        block.observer = null;
-        block.next = (Promise)whenPool;
-        whenPool = pBlock;
     }
 
     private final class
@@ -498,7 +458,7 @@ Eventual implements Serializable {
                 message     = block.message;
                 observer    = block.observer;
                 next        = block.next;
-                freeWhen(pending, block);
+                stats().freeWhen(pending, block);
             }
 
             if (null != next) {
@@ -544,14 +504,14 @@ Eventual implements Serializable {
             if (condition == block.condition) {
                 log.sentIf(here+"#w"+block.message, here+"#p"+condition);
                 block.observer = observer;
-                back = block.next = allocWhen(condition);
+                back = block.next = stats().allocWhen(condition);
             } else {
                 /*
                  * Promise is already resolved and all previously registered
                  * when blocks run. Start a new when block chain and kick off a
                  * new when block running task.
                  */
-                back = allocWhen(condition);
+                back = stats().allocWhen(condition);
                 enqueue.apply(new Forward<T>(false, condition, get(), back));
                 observe(observer);
             }
@@ -645,14 +605,6 @@ Eventual implements Serializable {
     }
 
     /**
-     * number of promises {@linkplain #defer created}
-     * <p>
-     * This variable is only incremented and should never be allowed to wrap.
-     * </p>
-     */
-    private long deferrals;
-
-    /**
      * Creates a promise in the unresolved state.
      * <p>
      * The return from this method is a ( {@linkplain Promise promise},
@@ -675,9 +627,8 @@ Eventual implements Serializable {
      */
     public final <T> Channel<T>
     defer() {
-        final long condition = ++deferrals;
-        if (0 == condition) { throw new AssertionError(); }
-        final Promise<When<T>> front = allocWhen(condition);
+        final long condition = stats().newDeferral();
+        final Promise<When<T>> front = stats().allocWhen(condition);
         final State<T> state = new State<T>(condition, front);
         return new Channel<T>(new Tail<T>(this, state),
                               new Head<T>(condition, state, front));

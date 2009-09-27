@@ -48,12 +48,13 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     public PowerlessArray<String>
     apply(final Root root) throws Exception {
         final Log log = root.fetch(null, Database.log);
-        final Receiver<Effect<Server>> effect=root.fetch(null,Database.effect);
+        final Receiver<Effect<Server>> effect= root.fetch(null,Database.effect);
         
         final List<Promise<?>> tasks = List.list();
         final Receiver<?> destruct = root.fetch(null, Database.destruct);
         final Outbound outbound = new Outbound();
-        final HTTP.Exports exports = HTTP.make(enqueue(effect,tasks), root,
+        final HTTP.Exports exports = HTTP.make(
+        		decouple(Eventual.ref(enqueue(effect,tasks))), root,
                 log, destruct, Eventual.ref(outbound));
         final String mid = exports.getHere() + "#make";
         log.got(mid, null, make);
@@ -79,7 +80,8 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         root.assign(Database.top, top);
         final Exporter export =
             HTTP.changeBase(exports.getHere(), exports.export(), base);
-        return PowerlessArray.array(mid, export.apply(top), export.apply(destruct));
+        return PowerlessArray.array(mid, export.apply(top),
+        							export.apply(destruct));
     }
     
     static public String
@@ -96,9 +98,23 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             apply(final Root local) throws Exception {
                 final Creator creator = local.fetch(null, Database.creator);
                 return creator.apply(project, base, label,
-                                   new VatInitializer(make, null, body)).call();
+                                     new VatInitializer(make,null,body)).call();
             }
         }).call().get(1);
+    }
+    
+    static private Receiver<Promise<?>>
+    decouple(final Promise<Receiver<Promise<?>>> enqueue) {
+    	class Decoupler extends Struct
+                        implements Receiver<Promise<?>>, Serializable {
+            static private final long serialVersionUID = 1L;
+
+            public void
+            apply(final Promise<?> task) {
+            	Eventual.near(enqueue).apply(task);
+            }
+        }
+    	return new Decoupler();
     }
     
     static private Receiver<Promise<?>>
