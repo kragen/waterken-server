@@ -12,6 +12,7 @@ import org.joe_e.array.ByteArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
+import org.ref_send.promise.Failure;
 import org.ref_send.promise.Promise;
 
 /**
@@ -43,8 +44,12 @@ Pitch {
         final ByteArray payload =
             ByteArray.array(new byte[] { 0,1,2,3,4,5,6,7,8,9 });
         final Promise<?> c = _.when(x_.bounce(payload), was(payload));
+        
+        final ByteArray maxPayload =
+        	ByteArray.array(new byte[Failure.maxEntitySize]);
+        final Promise<?> d = _.when(x_.bounce(maxPayload), was(maxPayload));
 
-        return join(_, a, b, c);
+        return join(_, a, b, c, d);
     }
     
     // Command line interface
