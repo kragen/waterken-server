@@ -291,7 +291,7 @@ ADSAFE.go('DNS_', function (dom, lib) {
         } else if (isa(representation, 'org.waterken.menu.Menu')) {
             renderMenu(resource);
         } else {
-            renderBody(resource);
+            renderBody(representation);
         }
     }, function (reason) {
         renderBody(resource);
