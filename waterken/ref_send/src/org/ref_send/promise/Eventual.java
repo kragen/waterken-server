@@ -196,16 +196,16 @@ Eventual implements Serializable {
         this(new Token(), enqueue, "", new Log(), cast(Receiver.class,
                 new Rejected<Receiver<?>>(new NullPointerException())));
     }
-    
+
     /**
      * Upgrades from prior version that has inline statistics.
      */
     private Stats
     stats() {
-    	if (null == stats) {
+        if (null == stats) {
             stats = new Fulfilled<Stats>(false, new Stats());
-    	}
-    	return near(stats);
+        }
+        return near(stats);
     }
 
     // org.ref_send.promise.Eventual interface
@@ -381,15 +381,15 @@ Eventual implements Serializable {
                                 // expected to be handled as a rejection
         } catch (final Exception reason) {
             final @SuppressWarnings("unchecked") Class<?> c =
-            	(observer instanceof Compose ? ((Compose)observer).block :
-            	                               observer).getClass();
+                (observer instanceof Compose ? ((Compose)observer).block :
+                                               observer).getClass();
             log.got(message, c, reject);
             return observer.reject(reason);
         }
         final Method m;
         final Class<?> c; {
             final @SuppressWarnings("unchecked") Do inner =
-            	observer instanceof Compose ?((Compose)observer).block:observer;
+                observer instanceof Compose ?((Compose)observer).block:observer;
             if (inner instanceof Invoke<?>) {
                 m = ((Invoke<?>)inner).method;
                 c = a.getClass();
@@ -764,7 +764,7 @@ Eventual implements Serializable {
                 promise :
             Fulfilled.class == promise.getClass() ?
                 near(promise) :
-        	Void.class == type || void.class == type ?
+            Void.class == type || void.class == type ?
                 null :
             Float.class == type || float.class == type ?
                 Float.NaN :

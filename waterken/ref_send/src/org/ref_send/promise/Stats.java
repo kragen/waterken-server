@@ -24,7 +24,7 @@ Stats implements Serializable {
 
     protected long
     newTask() {
-    	final long id = ++tasks;
+        final long id = ++tasks;
         if (0 == id) { throw new AssertionError(); }
         return id;
     }
@@ -86,7 +86,7 @@ Stats implements Serializable {
 
     protected long
     newDeferral() {
-    	final long id = ++deferrals;
+        final long id = ++deferrals;
         if (0 == id) { throw new AssertionError(); }
         return id;
     }
