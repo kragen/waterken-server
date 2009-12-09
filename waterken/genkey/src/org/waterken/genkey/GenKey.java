@@ -239,7 +239,8 @@ GenKey {
              final String redirectoryURL) throws Exception {
         final String top = VatInitializer.create(
             Settings.db(""), "dns", "http://localhost/", null,
-            org.waterken.dns.editor.HostMaker.class);
+            org.waterken.dns.editor.HostMaker.class,
+            ByteArray.array(new byte[] { '[', ']' }));
         Settings.db(URI.path(top)).enter(Database.update,
                                          new Transaction<Immutable>() {
             public Immutable

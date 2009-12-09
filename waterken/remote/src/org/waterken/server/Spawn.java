@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
+import org.joe_e.array.ByteArray;
+import org.joe_e.charset.UTF8;
 import org.waterken.net.http.HTTPD;
 import org.waterken.project.Project;
 import org.waterken.remote.http.VatInitializer;
@@ -11,11 +13,9 @@ import org.waterken.uri.Hostname;
 /**
  * Command line program to create a new database.
  */
-final class
+/* package */ final class
 Spawn {
-
-    private
-    Spawn() {}
+    private Spawn() {}
     
     /**
      * @param args  command line arguments
@@ -34,19 +34,34 @@ Spawn {
         final String project = args[0];
         final String typename = args[1];
         final String label = 2 < args.length ? args[2] : null;
-        final Object[] argv;
-        if (3 < args.length) {
-            argv = new Object[args.length - 3];
-            for (int i = 3; i != args.length; ++i) {
-                try {
-                    argv[i - 3] = Integer.parseInt(args[i]);
-                } catch (final Exception e) {
-                    argv[i - 3] = args[i];
-                }
-            }
-        } else {
-            argv = new Object[0];
+        
+        /*
+         * The command line arguments are assumed to be syntactically valid. 
+         */
+        final StringBuilder json = new StringBuilder();
+        json.append("[ ");
+        for (int i = 3; i < args.length; i += 1) {
+        	if (i != 3) { json.append(", "); }
+        	final String arg = args[i];
+        	if ("null".equals(arg) || "false".equals(arg)|| "true".equals(arg)){
+        		json.append(arg);
+        	} else if (arg.startsWith("@")) {
+        		json.append("{ \"@\" : \"");
+        		json.append(arg.substring(1));
+        		json.append("\" }");
+        	} else if (arg.length() != 0 &&
+        			   "1234567890-".indexOf(arg.charAt(0)) != -1) {
+        		json.append(arg);
+        	} else if (arg.startsWith("\"")) {
+        		json.append(arg);
+        	} else {
+        		json.append("\"");
+        		json.append(arg);
+        		json.append("\"");
+        	}
         }
+        json.append(" ]");
+        final ByteArray body = ByteArray.array(UTF8.encode(json.toString()));
 
         // load configured values
         final String vatURIPathPrefix= Settings.config.read("vatURIPathPrefix");
@@ -71,7 +86,7 @@ Spawn {
         final ClassLoader code = Project.connect(project);
         final Class<?> maker = code.loadClass(typename);
         final String r = VatInitializer.create(Settings.db(""), project,
-                                               here, label, maker, argv);
+                                               here, label, maker, body);
         System.out.println(r);
     }
 }

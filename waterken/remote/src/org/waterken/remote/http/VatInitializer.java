@@ -26,7 +26,6 @@ import org.waterken.db.Transaction;
 import org.waterken.http.Server;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.json.JSONDeserializer;
-import org.waterken.syntax.json.JSONSerializer;
 
 /**
  * The vat initialization transaction.
@@ -87,11 +86,8 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     static public String
     create(final Database<Server> parent, final String project,
            final String base, final String label,
-           final Class<?> maker, final Object... argv) throws Exception {
+           final Class<?> maker, final ByteArray body) throws Exception {
         final Method make = Dispatch.post(maker, "make").declaration;
-        final ByteArray body = new JSONSerializer().serializeTuple(null,
-            ConstArray.array(make.getGenericParameterTypes()),
-            ConstArray.array(argv)); 
         return parent.enter(Database.update,
                             new Transaction<PowerlessArray<String>>() {
             public PowerlessArray<String>
