@@ -15,7 +15,6 @@ import org.waterken.net.Locator;
 import org.waterken.net.http.ClientSide;
 import org.waterken.thread.Loop;
 import org.waterken.thread.Sleep;
-import org.waterken.uri.Location;
 
 /**
  * The HTTPS gateway for this JVM.
@@ -45,12 +44,12 @@ Proxy extends Struct implements Server, Serializable {
     static private final Locator http = Loopback.client(80, System.out);
     
     public void
-    serve(final Request head,
+    serve(final String scheme, final Request head,
           final InputStream body, final Client client) throws Exception {
         // TODO: implement boot comm
+        final Locator transport = "http".equals(scheme) ? http : https;
         final String host = TokenList.find("localhost", "Host", head.headers);
-        final Locator transport =
-            "localhost".equals(Location.hostname(host)) ? http : https;
-        connect(transport.canonicalize(host),transport).serve(head,body,client);
+        connect(transport.canonicalize(host), transport).
+            serve(scheme, head, body, client);
     }
 }

@@ -334,7 +334,7 @@ ClientSide implements Server {
     }
 
     public void
-    serve(final Request head, final InputStream body, final Client client) {
+    serve(String scheme, final Request head, final InputStream body, final Client client) {
         entry.enqueue(head, body, client);
     }
     

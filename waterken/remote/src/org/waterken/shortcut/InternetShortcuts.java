@@ -1,55 +1,58 @@
-// Copyright 2008 Waterken Inc. under the terms of the MIT X license
+// Copyright 2009 Waterken Inc. under the terms of the MIT X license
 // found at http://www.opensource.org/licenses/mit-license.html
-package org.waterken.http.dump;
+package org.waterken.shortcut;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Serializable;
+import java.io.Writer;
+import java.lang.reflect.Type;
 
+import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
+import org.joe_e.charset.UTF8;
 import org.joe_e.file.Filesystem;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.scope.Scope;
 import org.waterken.http.Client;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
+import org.waterken.syntax.Importer;
+import org.waterken.syntax.json.JSONDeserializer;
 import org.waterken.uri.Header;
 import org.waterken.uri.Query;
 import org.waterken.uri.URI;
 
 /**
- * A POST dump.
+ * An Internet Shortcut emitter.
  */
 public final class
-Dump implements Server, Serializable {
+InternetShortcuts implements Server, Serializable {
     static private final long serialVersionUID = 1L;
 
     private final String path;
     private final String key;
-    private final File file;
+    private final File root;
     private final Server next;
-    
-    private       OutputStream log;
 
     /**
      * Constructs an instance.
      * @param path  expected URI path
      * @param key   expected request key
-     * @param file  dumped to file
+     * @param root  root directory
      * @param next  next server to try
      */
     public @deserializer
-    Dump(@name("path") final String path,
-         @name("key") final String key,
-         @name("file") final File file,
-         @name("next") final Server next) throws IOException {
+    InternetShortcuts(@name("path") final String path,
+                      @name("key") final String key,
+                      @name("root") final File root,
+                      @name("next") final Server next) throws IOException {
         this.path = path;
         this.key = key;
-        this.file = file;
+        this.root = root;
         this.next = next;
     }
 
@@ -76,30 +79,37 @@ Dump implements Server, Serializable {
         // obey any request restrictions
         if (!head.respond(null, client, "POST", "OPTIONS", "TRACE")) { return; }
 
-        // strip off the outer array syntax
-        final int length = head.getContentLength();
-        final byte[] buffer = new byte[length];
-        for (int i = 0; i != length; ) {
-            final int n = body.read(buffer, i, length - i);
-            if (-1 == n) { throw new EOFException(); }
-            i += n;
-        }
-        int begin = 0;
-        while ('[' != buffer[begin++]) {}
-        int end = length - 1;
-        while (']' != buffer[end--]) {}
-
-        // write out the log entry
-        synchronized (this) {
-            if (null == log) {
-                file.delete();
-                log = Filesystem.writeNew(file);
-                log.write('[');
-            } else {
-                log.write(',');
+        // deserialize the provided link
+        class Ref {
+            final String url;
+            Ref(final String url) {
+                this.url = url;
             }
-            log.write(buffer, begin, end - begin);
-            log.flush();
+        }
+        final ConstArray<?> args = new JSONDeserializer().deserializeTuple(
+            head.getAbsoluteRequestURI(scheme), new Importer() {
+                public Object
+                apply(final String href, final String base,
+                      final Type type) throws Exception {
+                    return new Ref(URI.resolve(base, href));
+                }
+            }, ConstArray.array((Type)Object.class), null, body);
+        if (0 == args.length() || !(args.get(0) instanceof Scope<?>)) {
+            client.receive(Response.badRequest(), null);
+            return;
+        }
+        final Scope<?> link = (Scope<?>)args.get(0);
+        final String name = link.get("name");
+        final File file = Filesystem.file(root, name + ".url");
+        file.delete();
+        final Ref href = link.get("href");
+        if (null != href) {
+            final Writer out = UTF8.output(Filesystem.writeNew(file));
+            out.write("[InternetShortcut]\r\nURL=");
+            out.write(href.url);
+            out.write("\r\n");
+            out.flush();
+            out.close();
         }
         
         // acknowledge the request

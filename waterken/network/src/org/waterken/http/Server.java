@@ -22,10 +22,12 @@ Server {
 
     /**
      * Eventually process a request.
+     * @param scheme    target URI scheme
      * @param head      request head
      * @param body      request body, or <code>null</code> if none
      * @param client    corresponding response processor
      * @throws Exception    any problem which should terminate the connection
      */
-    void serve(Request head, InputStream body, Client client) throws Exception;
+    void serve(String scheme, Request head,
+               InputStream body, Client client) throws Exception;
 }

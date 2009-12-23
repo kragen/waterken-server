@@ -40,12 +40,12 @@ Trace extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
 
     public void
-    serve(final Request head, final InputStream body,
-                              final Client client) throws Exception {        
+    serve(final String scheme, final Request head,
+          final InputStream body, final Client client) throws Exception {        
     
         // further dispatch the request
         if (!URI.path(head.uri).startsWith(prefix)) {
-            next.serve(head, body, client);
+            next.serve(scheme, head, body, client);
             return;
         }
 

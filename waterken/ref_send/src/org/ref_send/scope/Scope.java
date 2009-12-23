@@ -9,15 +9,16 @@ import org.joe_e.array.ConstArray;
 
 /**
  * A [ name =&gt; value ] record.
+ * @param <T> soft type
  */
 public final class
-Scope implements Selfless, Serializable {
+Scope<T> implements Selfless, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
      * metadata
      */
-    public final Layout meta;
+    public final Layout<T> meta;
 
     /**
      * each corresponding value
@@ -30,7 +31,7 @@ Scope implements Selfless, Serializable {
      * @param values    {@link #values}
      */
     public
-    Scope(final Layout meta, final ConstArray<?> values) {
+    Scope(final Layout<T> meta, final ConstArray<?> values) {
         if (meta.names.length()!=values.length()){throw new RuntimeException();}
         
         this.meta = meta;
@@ -47,8 +48,8 @@ Scope implements Selfless, Serializable {
     public boolean
     equals(final Object o) {
         return null != o && Scope.class == o.getClass() &&
-               values.equals(((Scope)o).values) &&
-               meta.equals(((Scope)o).meta);
+               values.equals(((Scope<?>)o).values) &&
+               meta.equals(((Scope<?>)o).meta);
     }
     
     /**
@@ -56,4 +57,13 @@ Scope implements Selfless, Serializable {
      */
     public int
     hashCode() { return 0x4EF5C09E + meta.hashCode() + values.hashCode(); }
+    
+    // org.ref_send.scope.Scope interface
+    
+    public <R> R 
+    get(final String name) {
+        final int i = meta.find(name);
+        final @SuppressWarnings("unchecked") R r = (R)values.get(i); 
+        return r;
+    }
 }

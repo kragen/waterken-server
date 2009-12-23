@@ -49,7 +49,8 @@ Settings {
      */
     static public    final Config config =
         new Config(configFolder, code, "file:///",
-                   AMP.connect(new Proxy()), null);
+                   AMP.connect(new Proxy()), null,
+                   new File(System.getProperty("user.home")));
     static {
         config.override("fileMetadata", new FilesystemClock());
         config.override("stdin", System.in);

@@ -57,8 +57,8 @@ Mux<S> extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
 
     public void
-    serve(final Request head, final InputStream body,
-                              final Client client) throws Exception {
+    serve(final String scheme, final Request head,
+          final InputStream body, final Client client) throws Exception {
         final Server server;
         final String path = URI.path(head.uri);
         if (path.startsWith(prefix)) {
@@ -76,7 +76,7 @@ Mux<S> extends Struct implements Server, Serializable {
         } else {
             server = next;
         }
-        server.serve(head, body, client);
+        server.serve(scheme, head, body, client);
     }
     
     /**

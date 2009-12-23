@@ -17,6 +17,7 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 import org.waterken.io.open.Open;
 import org.waterken.uri.Header;
+import org.waterken.uri.URI;
 
 /**
  * An HTTP Request-Line and headers.
@@ -65,6 +66,16 @@ Request extends Struct implements Powerless, Record, Serializable {
     }
     
     // org.waterken.http.Request interface
+    
+    /**
+     * Reconstructs the absolute request URI.
+     * @param scheme    expected URI scheme
+     */
+    public String
+    getAbsoluteRequestURI(final String scheme) {
+        final String host = TokenList.find("", "Host", headers);
+        return URI.resolve(URI.resolve(scheme + ":", "//" + host), uri);
+    }
 
     /**
      * Gets the <code>Content-Type</code>.

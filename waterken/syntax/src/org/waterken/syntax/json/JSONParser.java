@@ -254,7 +254,7 @@ JSONParser {
               Constructor<?> make = null;
         final PowerlessArray.Builder<String> names = PowerlessArray.builder(1);
         final ConstArray.Builder<Object> values = ConstArray.builder(1);
-        if ("\"class\"".equals(lexer.getHead())) {
+        if (null != code && "\"class\"".equals(lexer.getHead())) {
             if (!":".equals(lexer.next())) { throw new Exception(); }
             lexer.next();
             Class<?> type = null;
@@ -373,7 +373,8 @@ JSONParser {
         
         final Object r;
         if (null == make) {
-            r = new Scope(new Layout(undeclared), values.snapshot());  
+            r = new Scope<Object>(new Layout<Object>(undeclared),
+            					  values.snapshot());  
         } else {
             for (int i = donev.length; 0 != i--;) {
                 if (!donev[i]) {

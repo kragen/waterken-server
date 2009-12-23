@@ -48,8 +48,8 @@ Mirror extends Struct implements Server, Serializable {
     // org.waterken.http.Server interface
     
     public void
-    serve(final Request head, final InputStream body,
-                              final Client client) throws Exception {
+    serve(final String scheme, final Request head,
+          final InputStream body, final Client client) throws Exception {
 
         // determine the request target
         FileType type = FileType.unknown;

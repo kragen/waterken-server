@@ -14,9 +14,10 @@ import org.ref_send.name;
 
 /**
  * A description of a {@linkplain Scope record}.
+ * @param <T> soft type
  */
 public final class
-Layout implements Powerless, Selfless, Record, Serializable {
+Layout<T> implements Powerless, Selfless, Record, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
@@ -45,6 +46,16 @@ Layout implements Powerless, Selfless, Record, Serializable {
         this.names = names;
     }
     
+    /**
+     * Defines a new layout.
+     * @param <T> soft type
+     * @param names	{@link #names}
+     */
+    static public <T> Layout<T>
+    define(final String... names) {
+    	return new Layout<T>(PowerlessArray.array(names));
+    }
+    
     // java.lang.Object interface
     
     /**
@@ -55,7 +66,7 @@ Layout implements Powerless, Selfless, Record, Serializable {
     public boolean
     equals(final Object o) {
         return null != o && Layout.class == o.getClass() &&
-               names.equals(((Layout)o).names);
+               names.equals(((Layout<?>)o).names);
     }
     
     /**
@@ -70,9 +81,9 @@ Layout implements Powerless, Selfless, Record, Serializable {
      * Constructs a scope.
      * @param values    {@link Scope#values}
      */
-    public Scope
+    public Scope<T>
     make(final Object... values) {
-        return new Scope(this, ConstArray.array(values));
+        return new Scope<T>(this, ConstArray.array(values));
     }
     
     /**

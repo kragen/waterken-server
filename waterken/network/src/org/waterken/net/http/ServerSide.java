@@ -127,7 +127,8 @@ ServerSide implements Promise<Void> {
             // process the request
             final Responder next = current.follow(version, method);
             try {
-                config.server.serve(new Request(version, method, requestURI,
+                config.server.serve(config.SSL ? "https" : "http",
+                                    new Request(version, method, requestURI,
                                                 headers), body, current);
             } catch (final Exception e) {
                 current.fail(e);

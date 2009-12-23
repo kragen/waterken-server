@@ -209,8 +209,8 @@ Pipeline implements Serializable {
             final Message<Request> q) { return new Effect<Server>() {
         public void
         apply(final Database<Server> vat) throws Exception {
-            vat.session.serve(q.head, null!=q.body?q.body.asInputStream():null,
-                              new Client() {
+            vat.session.serve(URI.scheme(peer), q.head,
+                      null!=q.body?q.body.asInputStream():null, new Client() {
                 public void
                 receive(final Response head,
                         final InputStream body) throws Exception {
@@ -261,23 +261,24 @@ Pipeline implements Serializable {
            final Exception reason) { return new Effect<Server>() {
         public void
         apply(final Database<Server> vat) throws Exception {
-            vat.session.serve(new Request("HTTP/1.1", "OPTIONS",
-                    URI.request(peer), PowerlessArray.array(new Header("Host",
-                            Authority.location(URI.authority(peer))))),
-                null, new Client() {
-                    public void
-                    receive(final Response head,
-                            final InputStream body) throws Exception {
-                        vat.service.apply(new Service() {
-                            public Void
-                            call() throws Exception {
-                                vat.enter(Database.update,
-                                          rejectTX(peer, request, mid, reason));
-                                return null;
-                            }
-                        });
-                    }
-                });
+            vat.session.serve(URI.scheme(peer), new Request("HTTP/1.1",
+                    "OPTIONS", URI.request(peer), PowerlessArray.array(
+                        new Header("Host",
+                                   Authority.location(URI.authority(peer)))
+                    )), null, new Client() {
+                public void
+                receive(final Response head,
+                        final InputStream body) throws Exception {
+                    vat.service.apply(new Service() {
+                        public Void
+                        call() throws Exception {
+                            vat.enter(Database.update,
+                                      rejectTX(peer, request, mid, reason));
+                            return null;
+                        }
+                    });
+                }
+            });
         }
     }; }
     

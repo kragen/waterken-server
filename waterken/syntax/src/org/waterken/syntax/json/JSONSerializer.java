@@ -113,7 +113,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     /**
      * encoding of a rejected promise
      */
-    static private final Layout JSONerror=new Layout(PowerlessArray.array("!"));
+    static private final Layout<?> JSONerror =
+    	new Layout<Object>(PowerlessArray.array("!"));
     
     static private void
     serialize(final Exporter export, final Type implicit,
@@ -176,7 +177,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             }
             aout.finish();
         } else if (Scope.class == actual) {
-            final Scope scope = (Scope)value;
+            final Scope<?> scope = (Scope<?>)value;
             /*
              * SECURITY DEPENDENCY: Application code cannot extend ConstArray,
              * so iteration of the scope arrays will not transfer control to

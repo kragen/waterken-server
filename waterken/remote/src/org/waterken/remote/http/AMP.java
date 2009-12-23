@@ -53,7 +53,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
     remote(final Server bootstrap,
            final Database<Server> vat) { return new Server() {
         public void
-        serve(final Request head,
+        serve(final String scheme, final Request head,
               final InputStream body, final Client client) throws Exception {
 
             // check for web browser bootstrap request
@@ -67,10 +67,10 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                     client.receive(Response.gone(), null);
                     return;
                 }
-                bootstrap.serve(new Request(head.version, head.method,
-                        "/site/" + URLEncoding.encode(project) + "/" +
-                        URLEncoding.encode(Path.name(URI.path(head.uri)))+"?o=",
-                        head.headers), body, client);
+                bootstrap.serve(scheme, new Request(head.version, head.method,
+                    "/site/" + URLEncoding.encode(project) + "/" +
+                    URLEncoding.encode(Path.name(URI.path(head.uri))) + "?o=",
+                    head.headers), body, client);
                 return;
             }
 
@@ -146,7 +146,8 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                 final Message<Request> q = Caller.serialize("", null, target,
                      ConstArray.array((Type)Object.class),
                      ConstArray.array(value));
-                proxy.serve(q.head, q.body.asInputStream(), new Client() {
+                proxy.serve(URI.scheme(href), q.head,
+                            q.body.asInputStream(), new Client() {
                     public void
                     receive(final Response head, final InputStream body) {}
                 });

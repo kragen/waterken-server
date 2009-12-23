@@ -73,6 +73,7 @@ Config {
     private final String namespace;
     private final Importer connect;
     private final Exporter export;
+    private final File home;
     private final PowerlessArray<Syntax> supported;
     private final Syntax output;
     
@@ -86,18 +87,20 @@ Config {
      * @param namespace global identifier for stored object namespace
      * @param connect   remote reference importer, may be <code>null</code>
      * @param export    remote reference exporter, may be <code>null</code>
+     * @param home      root folder for a path beginning with <code>~</code>
      * @param supported each supported {@linkplain #read input} syntax
      * @param output    {@linkplain #init output} syntax
      */
     public
     Config(final File root, final ClassLoader code, final String namespace,
-    	   final Importer connect, final Exporter export, 
+    	   final Importer connect, final Exporter export, final File home,
            final PowerlessArray<Syntax> supported, final Syntax output) {
         this.root = root;
         this.code = code;
         this.namespace = namespace;
         this.connect = connect;
         this.export = export;
+        this.home = home;
         this.supported = supported;
         this.output = output;
         
@@ -112,11 +115,12 @@ Config {
      * @param namespace global identifier for stored object namespace
      * @param connect   remote reference importer, may be <code>null</code>
      * @param export    remote reference exporter, may be <code>null</code>
+     * @param home      root folder for a path beginning with <code>~</code>
      */
     public
     Config(final File root, final ClassLoader code, final String namespace,
-    	   final Importer connect, final Exporter export) {
-        this(root, code, namespace, connect, export, known, json);
+    	   final Importer connect, final Exporter export, final File home) {
+        this(root, code, namespace, connect, export, home, known, json);
     }
     
     /**
@@ -126,7 +130,7 @@ Config {
      */
     public
     Config(final File root, final ClassLoader code) {
-        this(root, code, "file:///", null, null);
+        this(root, code, "file:///", null, null, null);
     }
     
     /**
@@ -179,19 +183,27 @@ Config {
                 return connect.apply(href, base, type);
             }
             
+            File folder;        // folder containing file
+            String subspace;    // namespace for containing folder
+            String name = href; // simple name
+            if (name.startsWith("~/")) {
+                folder = Config.this.home;
+                subspace = Config.this.namespace + "~/";
+                name = name.substring("~/".length());
+            } else {
+                folder = root;
+                subspace = namespace;
+            }
+
             // check the cache
-            final String key = base + href; {
-                for (int i = cacheKeys.length(); 0 != i--;) {
-                    if (cacheKeys.get(i).equals(key)) {
-                        return cacheValues.get(i);
-                    }
+            final String key = subspace + name;
+            for (int i = cacheKeys.length(); 0 != i--;) {
+                if (cacheKeys.get(i).equals(key)) {
+                    return cacheValues.get(i);
                 }
             }
 
             // descend to the named file
-            File folder = root;     // folder containing file
-            String subspace = base;	// namespace for containing folder
-            String name = href;     // simple name
             while (true) {
                 final int i = name.indexOf('/');
                 if (-1 == i) { break; }

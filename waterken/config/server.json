@@ -16,13 +16,19 @@
       "file" : { "@" : "log/live.log" },
       "formats" : { "@" : "mime" },
       "next" : {
-        "class" : [ "org.waterken.http.mirror.Mirror" ],
-        "archive" : {
-          "class" : [ "org.waterken.archive.dir.Directory" ],
-          "meta" : { "@" : "fileMetadata" },
-          "root" : { "@" : "file/" }
-        },
-        "formats" : { "@" : "mime" }
+        "class" : [ "org.waterken.shortcut.InternetShortcuts" ],
+        "path" : "inbox/",
+        "key" : { "@" : "inboxKey" },
+        "root" : { "@" : "~/Favorites/" },
+        "next" : {
+          "class" : [ "org.waterken.http.mirror.Mirror" ],
+          "archive" : {
+            "class" : [ "org.waterken.archive.dir.Directory" ],
+            "meta" : { "@" : "fileMetadata" },
+            "root" : { "@" : "file/" }
+          },
+          "formats" : { "@" : "mime" }
+        }
       }
     }
   }
