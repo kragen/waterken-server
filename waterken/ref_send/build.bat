@@ -6,4 +6,5 @@ javac -d bin ^
   src\org\ref_send\*.java ^
   src\org\ref_send\list\*.java ^
   src\org\ref_send\promise\*.java ^
+  src\org\ref_send\scope\*.java ^
   src\org\ref_send\type\*.java

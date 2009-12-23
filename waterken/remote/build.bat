@@ -9,4 +9,5 @@ javac %1 -d bin ^
   src\org\waterken\remote\*.java ^
   src\org\waterken\remote\http\*.java ^
   src\org\waterken\remote\mux\*.java ^
+  src\org\waterken\shortcut\*.java ^
   src\org\waterken\server\*.java
