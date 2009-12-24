@@ -10,18 +10,18 @@ import org.ref_send.scope.Scope;
  */
 public final class
 Link {
-	private Link() {}
+    private Link() {}
 
-	/**
-	 * A {@link Link} maker.
-	 */
-	static public final Layout<Link> Maker = Layout.define("href", "name");
-	
-	/**
-	 * Constructs an instance.
-	 * @param href referent
-	 * @param name hypertext
-	 */
-	static public Scope<Link>
-	a(final Object href, final String name) { return Maker.make(href, name); }
+    /**
+     * A {@link Link} maker.
+     */
+    static public final Layout<Link> Maker = Layout.define("href", "name");
+
+    /**
+     * Constructs an instance.
+     * @param href referent
+     * @param name hypertext
+     */
+    static public Scope<Link>
+    a(final Object href, final String name) { return Maker.make(href, name); }
 }
