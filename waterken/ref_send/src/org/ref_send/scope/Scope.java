@@ -60,9 +60,15 @@ Scope<T> implements Selfless, Serializable {
     
     // org.ref_send.scope.Scope interface
     
+    /**
+     * Gets the corresponding value.
+     * @param name  name to lookup
+     * @return corresponding value, or <code>null</code> if none
+     */
     public <R> R 
     get(final String name) {
         final int i = meta.find(name);
+        if (-1 == i) { return null; }
         final @SuppressWarnings("unchecked") R r = (R)values.get(i); 
         return r;
     }
