@@ -7,29 +7,32 @@
     "class" : [ "org.waterken.remote.http.AMP" ]
   },
   "next" : {
-    "class" : [ "org.waterken.http.trace.Trace" ],
-    "prefix" : "trace/",
-    "next" : {
-      "class" : [ "org.waterken.http.dump.Dump" ],
-      "path" : "log/",
-      "key" : { "@" : "logKey" },
-      "file" : { "@" : "log/live.log" },
-      "formats" : { "@" : "mime" },
-      "next" : {
+    "class" : [ "org.waterken.http.servlets.Servlets" ],
+    "prefix" : "~/",
+    "servlets" : {
+      "trace" : {
+        "class" : [ "org.waterken.http.trace.Trace" ],
+      },
+      "log" : {
+        "class" : [ "org.waterken.http.dump.Dump" ],
+        "key" : { "@" : "logKey" },
+        "file" : { "@" : "log/live.log" }
+      },
+      "inbox" : {
         "class" : [ "org.waterken.shortcut.InternetShortcuts" ],
-        "path" : "inbox/",
         "key" : { "@" : "inboxKey" },
-        "root" : { "@" : "~/Favorites/" },
-        "next" : {
-          "class" : [ "org.waterken.http.mirror.Mirror" ],
-          "archive" : {
-            "class" : [ "org.waterken.archive.dir.Directory" ],
-            "meta" : { "@" : "fileMetadata" },
-            "root" : { "@" : "file/" }
-          },
-          "formats" : { "@" : "mime" }
-        }
+        "root" : { "@" : "~/Desktop/" },
+        "format" : { "@" : "desktop" }
       }
+    },
+    "next" : {
+      "class" : [ "org.waterken.http.mirror.Mirror" ],
+      "archive" : {
+        "class" : [ "org.waterken.archive.dir.Directory" ],
+        "meta" : { "@" : "fileMetadata" },
+        "root" : { "@" : "file/" }
+      },
+      "formats" : { "@" : "mime" }
     }
   }
 }
