@@ -4,7 +4,6 @@ package org.waterken.http.dump;
 
 import java.io.EOFException;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -28,29 +27,21 @@ public final class
 Dump implements Server, Serializable {
     static private final long serialVersionUID = 1L;
 
-    private final String path;
     private final String key;
     private final File file;
-    private final Server next;
     
     private       OutputStream log;
 
     /**
      * Constructs an instance.
-     * @param path  expected URI path
      * @param key   expected request key
      * @param file  dumped to file
-     * @param next  next server to try
      */
     public @deserializer
-    Dump(@name("path") final String path,
-         @name("key") final String key,
-         @name("file") final File file,
-         @name("next") final Server next) throws IOException {
-        this.path = path;
+    Dump(@name("key") final String key,
+         @name("file") final File file) {
         this.key = key;
         this.file = file;
-        this.next = next;
     }
 
     // org.waterken.http.Server interface
@@ -58,11 +49,6 @@ Dump implements Server, Serializable {
     public void
     serve(final String scheme, final Request head,
           final InputStream body, final Client client) throws Exception {        
-        // further dispatch the request
-        if (!URI.path(head.uri).equals(path)) {
-            next.serve(scheme, head, body, client);
-            return;
-        }
 
         // further dispatch the request based on the query string
         final String query = URI.query("", head.uri);

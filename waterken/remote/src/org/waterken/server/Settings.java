@@ -56,6 +56,7 @@ Settings {
         config.override("stdin", System.in);
         config.override("stdout", System.out);
         config.override("stderr", System.err);
+        config.override("desktop", System.getProperty("sun.desktop"));
         
         final Receiver<Event> log;
         try { log = config.read("log");

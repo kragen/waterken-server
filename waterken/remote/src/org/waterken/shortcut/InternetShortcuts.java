@@ -3,7 +3,6 @@
 package org.waterken.shortcut;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.io.Writer;
@@ -33,27 +32,23 @@ public final class
 InternetShortcuts implements Server, Serializable {
     static private final long serialVersionUID = 1L;
 
-    private final String path;
     private final String key;
     private final File root;
-    private final Server next;
+    private final String format;
 
     /**
      * Constructs an instance.
-     * @param path  expected URI path
-     * @param key   expected request key
-     * @param root  root directory
-     * @param next  next server to try
+     * @param key       expected request key
+     * @param root      root directory
+     * @param format    shortcut file format
      */
     public @deserializer
-    InternetShortcuts(@name("path") final String path,
-                      @name("key") final String key,
+    InternetShortcuts(@name("key") final String key,
                       @name("root") final File root,
-                      @name("next") final Server next) throws IOException {
-        this.path = path;
+                      @name("format") final String format) {
         this.key = key;
         this.root = root;
-        this.next = next;
+        this.format = format;
     }
 
     // org.waterken.http.Server interface
@@ -61,11 +56,6 @@ InternetShortcuts implements Server, Serializable {
     public void
     serve(final String scheme, final Request head,
           final InputStream body, final Client client) throws Exception {        
-        // further dispatch the request
-        if (!URI.path(head.uri).equals(path)) {
-            next.serve(scheme, head, body, client);
-            return;
-        }
 
         // further dispatch the request based on the query string
         final String query = URI.query("", head.uri);
@@ -100,14 +90,23 @@ InternetShortcuts implements Server, Serializable {
         }
         final Scope<?> link = (Scope<?>)args.get(0);
         final String name = link.get("name");
-        final File file = Filesystem.file(root, name + ".url");
+        final File file = Filesystem.file(root,
+                name + ("gnome".equals(format) ? ".desktop" : ".url"));
         file.delete();
         final Ref href = link.get("href");
         if (null != href) {
             final Writer out = UTF8.output(Filesystem.writeNew(file));
-            out.write("[InternetShortcut]\r\nURL=");
-            out.write(href.url);
-            out.write("\r\n");
+            if ("gnome".equals(format)) {
+                out.write("[Desktop Entry]\nType=Link\nName=");
+                out.write(name);
+                out.write("\nURL=");
+                out.write(href.url);
+                out.write("\n");
+            } else {
+                out.write("[InternetShortcut]\r\nURL=");
+                out.write(href.url);
+                out.write("\r\n");
+            }
             out.flush();
             out.close();
         }
