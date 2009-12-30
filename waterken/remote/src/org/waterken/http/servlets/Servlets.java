@@ -4,6 +4,7 @@ package org.waterken.http.servlets;
 
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.Iterator;
 
 import org.joe_e.Struct;
 import org.ref_send.deserializer;
@@ -29,7 +30,7 @@ Servlets extends Struct implements Server, Serializable {
 
     /**
      * Constructs an instance.
-     * @param prefix    URI sub-hierarchy for persistent databases
+     * @param prefix    URI sub-hierarchy for servlets
      * @param servlets  name to implementation map    
      * @param next      default server
      */
@@ -50,15 +51,20 @@ Servlets extends Struct implements Server, Serializable {
         final Server server;
         final String path = URI.path(head.uri);
         if (path.startsWith(prefix)) {
-            server = servlets.get(
-                Path.walk(path.substring(prefix.length())).iterator().next());
-            if (null == server) {
-                client.receive(Response.gone(), null);
-                return;
+            final Iterator<String> segments =
+                Path.walk(path.substring(prefix.length())).iterator();
+            if (segments.hasNext()) {
+                server = servlets.get(segments.next());
+            } else {
+                server = null;
             }
         } else {
             server = next;
         }
-        server.serve(scheme, head, body, client);
+        if (null == server) {
+            client.receive(Response.gone(), null);
+        } else {
+            server.serve(scheme, head, body, client);
+        }
     }
 }
