@@ -4,7 +4,7 @@
       xml:base="http://waterken.sourceforge.net/">
 
 <id>http://waterken.sourceforge.net/recent</id>
-<updated>2009-06-10T00:01:00Z</updated>
+<updated>2010-01-14T00:00:00Z</updated>
 <title>Waterken News</title>
 <subtitle>Capability security on the Web</subtitle>
 <link href="recent.html"/>
@@ -15,6 +15,25 @@
     <name>Tyler Close</name>
     <uri>http://waterken.sourceforge.net/recent.html</uri>
 </author>
+
+<entry>
+<id>http://waterken.sourceforge.net/recent#13</id>
+<published>2010-01-14T00:00:00Z</published>
+<updated>2010-01-14T00:00:00Z</updated>
+<title>Joe-E paper available</title>
+<link href="http://www.eros-os.org/pipermail/e-lang/2010-January/013372.html"/>
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
+<p>Mark Miller writes:</p>
+<blockquote>
+I just wanted to let you and everyone know that this is an
+<a href="http://www.cs.berkeley.edu/~daw/papers/joe-e-ndss10.pdf">*awesome*
+paper</a>.  Besides explaining <a href="http://joe-e.org/">Joe-E</a> itself, it
+is perhaps the clearest and most powerful statement to date of the benefits
+provided by object-capability languages. I will be recommending this paper
+widely.
+</blockquote>
+</div></content>
+</entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#12</id>
