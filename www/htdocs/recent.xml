@@ -25,12 +25,12 @@
 <content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
 <p>Mark Miller writes:</p>
 <blockquote>
-I just wanted to let you and everyone know that this is an
-<a href="http://www.cs.berkeley.edu/~daw/papers/joe-e-ndss10.pdf">*awesome*
+<p>I just wanted to let you and everyone know that this is an <a
+href="http://www.cs.berkeley.edu/~daw/papers/joe-e-ndss10.pdf">*awesome*
 paper</a>.  Besides explaining <a href="http://joe-e.org/">Joe-E</a> itself, it
 is perhaps the clearest and most powerful statement to date of the benefits
 provided by object-capability languages. I will be recommending this paper
-widely.
+widely.</p>
 </blockquote>
 </div></content>
 </entry>
