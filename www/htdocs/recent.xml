@@ -4,7 +4,7 @@
       xml:base="http://waterken.sourceforge.net/">
 
 <id>http://waterken.sourceforge.net/recent</id>
-<updated>2010-01-14T00:00:00Z</updated>
+<updated>2010-01-27T00:00:00Z</updated>
 <title>Waterken News</title>
 <subtitle>Capability security on the Web</subtitle>
 <link href="recent.html"/>
@@ -15,6 +15,31 @@
     <name>Tyler Close</name>
     <uri>http://waterken.sourceforge.net/recent.html</uri>
 </author>
+
+<entry>
+<id>http://waterken.sourceforge.net/recent#14</id>
+<published>2010-01-27T00:00:00Z</published>
+<updated>2010-01-27T00:00:00Z</updated>
+<title>W3C FPWD: Uniform Messaging Policy (UMP), Level One</title>
+<link href="http://www.w3.org/TR/UMP/"/>
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
+<p>The Same Origin Policy is a mess. It cripples legitimate Web pages to
+messaging with only their own host, instead of the whole Web; yet is still rife
+with devastating security gotchas. The ground rules are setup to favor the
+attacker over the legitimate developer. The UMP is a first step towards a saner
+security model for the Web. In this first step, we cut both the restrictions
+and threats to cross-site messaging:</p>
+<blockquote>
+<p>The Uniform Messaging Policy (UMP) enables cross-site messaging that avoids
+Cross-Site-Request-Forgery and similar attacks that abuse HTTP cookies and other
+credentials.  For example, content from <code>customer.example.org</code> can
+safely specify requests to resources determined by
+<code>service.example.com</code>. Rather than restricting information retrieval
+to a single origin, as the Same Origin Policy almost does, the Uniform Messaging
+Policy supports origin independent messaging.</p>
+</blockquote>
+</div></content>
+</entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#13</id>
