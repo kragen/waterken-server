@@ -65,36 +65,36 @@ Serve {
         // start the network services
         final Receiver<ByteArray> updateDNS_= Settings.config.read("updateDNS");
         for (final String service : services) {
-        	try {
-	            final Object config = Settings.config.read(service);
-	            final Runnable task;
-	            if (config instanceof TCPDaemon) {
-	                final TCPDaemon daemon = (TCPDaemon)config;
-	                final ServerSocket listen = daemon.SSL
-	                    ? credentials.getContext().getServerSocketFactory().
-	                        createServerSocket(daemon.port, daemon.backlog)
-	                : new ServerSocket(daemon.port, daemon.backlog,
-	                				   Loopback.addr);
-	                task = new TCP(service, daemon,
-	                               daemon.SSL ? hostname : "localhost",
-	                               listen, updateDNS_);
-	            } else if (config instanceof UDPDaemon) {
-	                final UDPDaemon daemon = (UDPDaemon)config;
-	                task = new UDP(daemon, new DatagramSocket(daemon.port));
-	            } else if (config instanceof Runnable) {
-	                task = (Runnable)config;
-	            } else {
-	            	throw new Exception("Unrecognized service: " + service);
-	            }
-	
-	            // run the corresponding daemon
-	            new Thread(task, service).start();
-	        } catch (final BindException e) {
-	        	System.err.println("Cannot use configured port for: "+service);
-	        	System.err.println("Try configuring a different port number " +
-	        	    "using the corresponding file in the config/ folder.");
-	        	throw e;
-	        }
+            try {
+                final Object config = Settings.config.read(service);
+                final Runnable task;
+                if (config instanceof TCPDaemon) {
+                    final TCPDaemon daemon = (TCPDaemon)config;
+                    final ServerSocket listen = daemon.SSL
+                        ? credentials.getContext().getServerSocketFactory().
+                            createServerSocket(daemon.port, daemon.backlog)
+                    : new ServerSocket(daemon.port, daemon.backlog,
+                                       Loopback.addr);
+                    task = new TCP(service, daemon,
+                                   daemon.SSL ? hostname : "localhost",
+                                   listen, updateDNS_);
+                } else if (config instanceof UDPDaemon) {
+                    final UDPDaemon daemon = (UDPDaemon)config;
+                    task = new UDP(daemon, new DatagramSocket(daemon.port));
+                } else if (config instanceof Runnable) {
+                    task = (Runnable)config;
+                } else {
+                    throw new Exception("Unrecognized service: " + service);
+                }
+    
+                // run the corresponding daemon
+                new Thread(task, service).start();
+            } catch (final BindException e) {
+                System.err.println("Cannot use configured port for: "+service);
+                System.err.println("Try configuring a different port number " +
+                    "using the corresponding file in the config/ folder.");
+                throw e;
+            }
         }
 
         // ping all the persistent vats to restart any pending tasks

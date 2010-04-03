@@ -117,33 +117,33 @@ Pipeline implements Serializable {
             updates = 0;
             Eventual.near(outbound).remove(this);
         } else {
-	        if (front instanceof UpdateOperation) {
-	            activeIndex += 1;
-	        }
-	        if (front instanceof QueryOperation) {
-	            if (0 == halts) {
-	                queries -= 1;
-	            } else {
-	                /*
-	                 * restart message sending if this was the last query we
-	                 * were waiting on in the halted pipeline
-	                 */
-	                int max = pending.getSize();
-	                long skipTo = acknowledged;
-	                for (final Operation x : pending) {
-	                    ++skipTo;
-	                    if (x instanceof UpdateOperation) {
-	                        halts -= 1;
-	                        activeWindow += 1;
-	                        activeIndex = -1;
-	                        effect.apply(restart(peer, max, skipTo));
-	                        break;
-	                    }
-	                    if (x instanceof QueryOperation) { break; }
-	                    --max;
-	                }
-	            }
-	        }
+            if (front instanceof UpdateOperation) {
+                activeIndex += 1;
+            }
+            if (front instanceof QueryOperation) {
+                if (0 == halts) {
+                    queries -= 1;
+                } else {
+                    /*
+                     * restart message sending if this was the last query we
+                     * were waiting on in the halted pipeline
+                     */
+                    int max = pending.getSize();
+                    long skipTo = acknowledged;
+                    for (final Operation x : pending) {
+                        ++skipTo;
+                        if (x instanceof UpdateOperation) {
+                            halts -= 1;
+                            activeWindow += 1;
+                            activeIndex = -1;
+                            effect.apply(restart(peer, max, skipTo));
+                            break;
+                        }
+                        if (x instanceof QueryOperation) { break; }
+                        --max;
+                    }
+                }
+            }
         }
         return front;
     }
@@ -220,7 +220,7 @@ Pipeline implements Serializable {
                             final int length = head.getContentLength();
                             if (length > maxEntitySize) { throw new TooBig(); }
                             r = new Message<Response>(head, Stream.snapshot(
-                            		length >= 0 ? length : 1024,
+                                    length >= 0 ? length : 1024,
                                     Limited.input(maxEntitySize + 1, body)));
                         } catch (final TooBig e) {
                             r = new Message<Response>(Response.tooBig(), null);
