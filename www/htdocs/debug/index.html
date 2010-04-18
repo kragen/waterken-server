@@ -45,7 +45,7 @@ For example, the contents of this file should look like:</p>
 <code><a href="../deploy/#config">config/</a></code> folder. This file
 specifies the web-key used in sending log events. For example,</p>
 <pre>
-{ "@" : "http://localhost:8080/log/#s=mySecretKey" }
+{ "@" : "http://localhost:8080/~/log/#s=mySecretKey" }
 </pre>
 <p>The above example sends log events to the previously configured log store on
 the local machine. The received events are stored in the file
@@ -58,7 +58,7 @@ console. If so, use the following content for <code>log.json</code>:</p>
 {
   "class" : [ "org.waterken.trace.Verbose" ],
   "out" : { "@" : "stdout" },
-  "next" : { "@" : "http://localhost:8080/log/#s=mySecretKey" }
+  "next" : { "@" : "http://localhost:8080/~/log/#s=mySecretKey" }
 }
 </pre>
 <h3><a name="log_format"
