@@ -961,6 +961,7 @@ Eventual implements Serializable {
                     break;
                 }
             }
+            if (null == make) { throw new NotAMaker(maker); }
             final Class<?>[] paramv = make.getParameterTypes();
             final ConstArray.Builder<Object> argv =
                 ConstArray.builder(paramv.length);
