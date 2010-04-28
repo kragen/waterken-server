@@ -75,8 +75,8 @@ HTTP extends Eventual implements Serializable {
             for (final Method m : Reflection.methods(maker)) {
                 if ("make".equals(m.getName()) &&
                         Modifier.isStatic(m.getModifiers())) {
+                    if (null != make) { throw new NotAMaker(maker); }
                     make = m;
-                    break;
                 }
             }
             if (null == make) { throw new NotAMaker(maker); }
