@@ -13,6 +13,13 @@ public interface
 Tracer {
     
     /**
+     * Gets the current timestamp.
+     * @return difference, measured in milliseconds, between now and midnight,
+     *         January 1, 1970 UTC
+     */
+    long timestamp();
+    
+    /**
      * Gets the text message from an exception.
      * @param e exception to extract message from
      */

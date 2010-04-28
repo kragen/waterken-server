@@ -29,6 +29,9 @@ ApplicationTracer {
         class TracerX extends Struct implements Tracer, Serializable {
             static private final long serialVersionUID = 1L;
             
+            public long
+            timestamp() { return System.currentTimeMillis(); }
+            
             public String
             readException(final Throwable e) { return e.getMessage(); }
 

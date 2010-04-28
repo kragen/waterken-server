@@ -60,7 +60,8 @@ EventSender {
                     } catch (final NoSuchMethodException e) {}
                 }
                 stderr.apply(new Got(mark.apply(),
-                    null!=method ? tracer.traceMember(method) : null, message));
+                    null != method ? tracer.traceMember(method) : null,
+                    message, tracer.timestamp()));
             }
 
             public @Override void

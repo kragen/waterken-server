@@ -19,6 +19,15 @@ Got extends Event {
     public final String message;
     
     /**
+     * difference, measured in milliseconds, between the time the event was
+     * received and midnight, January 1, 1970 UTC
+     * <p>
+     * Is <code>null</code> if the timestamp is unknown.
+     * </p>
+     */
+    public final Long timestamp;
+    
+    /**
      * Constructs an instance.
      * @param anchor    {@link #anchor}
      * @param trace     {@link #trace}
@@ -27,8 +36,10 @@ Got extends Event {
     public @deserializer
     Got(@name("anchor") final Anchor anchor,
         @name("trace") final Trace trace,
-        @name("message") final String message) {
+        @name("message") final String message,
+        @name("timestamp") final Long timestamp) {
         super(anchor, trace);
         this.message = message;
+        this.timestamp = timestamp;
     }
 }
