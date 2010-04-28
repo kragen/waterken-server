@@ -40,12 +40,13 @@ EventSender {
 
             public @Override void
             comment(final String text) {
-                stderr.apply(new Comment(mark.apply(),tracer.traceHere(),text));
+                stderr.apply(new Comment(mark.apply(), tracer.timestamp(),
+                                         tracer.traceHere(), text));
             }
             
             public @Override void
             problem(final Exception reason) {
-                stderr.apply(new Problem(mark.apply(),
+                stderr.apply(new Problem(mark.apply(), tracer.timestamp(),
                                          tracer.traceException(reason),
                                          tracer.readException(reason), reason));
             }
@@ -53,55 +54,56 @@ EventSender {
             public @Override void
             got(final String message, final Class<?> concrete, Method method) {
                 if (null != concrete && null != method &&
-                        !Modifier.isStatic(method.getModifiers())){
+                        !Modifier.isStatic(method.getModifiers())) {
                     try {
                         method = Reflection.method(concrete, method.getName(),
                                                    method.getParameterTypes());
                     } catch (final NoSuchMethodException e) {}
                 }
-                stderr.apply(new Got(mark.apply(),
-                    null != method ? tracer.traceMember(method) : null,
-                    message, tracer.timestamp()));
+                stderr.apply(new Got(mark.apply(), tracer.timestamp(),
+                    null!=method ? tracer.traceMember(method) : null, message));
             }
 
             public @Override void
             sent(final String message) {
-                stderr.apply(new Sent(mark.apply(),tracer.traceHere(),message));
+                stderr.apply(new Sent(mark.apply(), tracer.timestamp(),
+                                      tracer.traceHere(), message));
             }
 
             public @Override void
             returned(final String message) {
-                stderr.apply(new Returned(mark.apply(), null, message));
+                stderr.apply(new Returned(mark.apply(), tracer.timestamp(),
+                                          null, message));
             }
 
             protected @Override void
             sentIf(final String message, final String condition) {
-                stderr.apply(new SentIf(mark.apply(), tracer.traceHere(),
-                                        message, condition));
+                stderr.apply(new SentIf(mark.apply(), tracer.timestamp(),
+                                        tracer.traceHere(),message, condition));
             }
 
             protected @Override void
             resolved(final String condition) {
-                stderr.apply(new Resolved(mark.apply(), tracer.traceHere(),
-                                          condition));
+                stderr.apply(new Resolved(mark.apply(), tracer.timestamp(),
+                                          tracer.traceHere(), condition));
             }
 
             protected @Override void
             fulfilled(final String condition) {
-                stderr.apply(new Fulfilled(mark.apply(), tracer.traceHere(),
-                                           condition));
+                stderr.apply(new Fulfilled(mark.apply(), tracer.timestamp(),
+                                           tracer.traceHere(), condition));
             }
             
             protected @Override void
             rejected(final String condition, final Exception reason) {
-                stderr.apply(new Rejected(mark.apply(), tracer.traceHere(),
-                                          condition, reason));
+                stderr.apply(new Rejected(mark.apply(), tracer.timestamp(),
+                                          tracer.traceHere(),condition,reason));
             }
             
             protected @Override void
             progressed(final String condition) {
-                stderr.apply(new Progressed(mark.apply(), tracer.traceHere(),
-                                            condition));
+                stderr.apply(new Progressed(mark.apply(), tracer.timestamp(),
+                                            tracer.traceHere(), condition));
             }
         }
         return new LogX();

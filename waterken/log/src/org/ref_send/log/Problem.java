@@ -20,16 +20,18 @@ Problem extends Comment {
     /**
      * Constructs an instance.
      * @param anchor    {@link #anchor}
+     * @param timestamp {@link #timestamp}
      * @param trace     {@link #trace}
      * @param text      {@link #text}
      * @param reason    {@link #reason}
      */
     public @deserializer
     Problem(@name("anchor") final Anchor anchor,
+            @name("timestamp") final Long timestamp,
             @name("trace") final Trace trace,
             @name("text") final String text,
             @name("reason") final Exception reason) {
-        super(anchor, trace, text);
+        super(anchor, timestamp, trace, text);
         this.reason = reason;
     }
 }

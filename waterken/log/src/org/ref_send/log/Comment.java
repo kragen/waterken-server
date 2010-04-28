@@ -20,14 +20,16 @@ Comment extends Event {
     /**
      * Constructs an instance.
      * @param anchor    {@link #anchor}
+     * @param timestamp {@link #timestamp}
      * @param trace     {@link #trace}
      * @param text      {@link #text}
      */
     public @deserializer
     Comment(@name("anchor") final Anchor anchor,
+            @name("timestamp") final Long timestamp,
             @name("trace") final Trace trace,
             @name("text") final String text) {
-        super(anchor, trace);
+        super(anchor, timestamp, trace);
         this.text = text;
     }
 }

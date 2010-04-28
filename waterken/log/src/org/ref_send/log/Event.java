@@ -21,6 +21,12 @@ Event extends Struct implements Powerless, Record, Serializable {
      * event identifier
      */
     public final Anchor anchor;
+
+    /**
+     * difference, measured in milliseconds, between the time the event occurred
+     * and midnight, January 1, 1970 UTC (optional)
+     */
+    public final Long timestamp;
     
     /**
      * trace of the call site that produced the event (optional)
@@ -30,12 +36,15 @@ Event extends Struct implements Powerless, Record, Serializable {
     /**
      * Constructs an instance.
      * @param anchor    {@link #anchor}
+     * @param timestamp {@link #timestamp}
      * @param trace     {@link #trace}
      */
     public @deserializer
     Event(@name("anchor") final Anchor anchor,
+          @name("timestamp") final Long timestamp,
           @name("trace") final Trace trace) {
         this.anchor = anchor;
+        this.timestamp = timestamp;
         this.trace = trace;
     }
 }

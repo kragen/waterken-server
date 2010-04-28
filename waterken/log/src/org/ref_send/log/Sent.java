@@ -21,14 +21,16 @@ Sent extends Event {
     /**
      * Constructs an instance.
      * @param anchor    {@link #anchor}
+     * @param timestamp {@link #timestamp}
      * @param trace     {@link #trace}
      * @param message   {@link #message}
      */
     public @deserializer
     Sent(@name("anchor") final Anchor anchor,
+         @name("timestamp") final Long timestamp,
          @name("trace") final Trace trace,
          @name("message") final String message) {
-        super(anchor, trace);
+        super(anchor, timestamp, trace);
         this.message = message;
     }
 }

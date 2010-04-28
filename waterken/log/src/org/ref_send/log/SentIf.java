@@ -28,16 +28,18 @@ SentIf extends Sent {
     /**
      * Constructs an instance.
      * @param anchor    {@link #anchor}
+     * @param timestamp {@link #timestamp}
      * @param trace     {@link #trace}
      * @param message   {@link #message}
      * @param condition {@link #condition}
      */
     public @deserializer
     SentIf(@name("anchor") final Anchor anchor,
+           @name("timestamp") final Long timestamp,
            @name("trace") final Trace trace,
            @name("message") final String message,
            @name("condition") final String condition) {
-        super(anchor, trace, message);
+        super(anchor, timestamp, trace, message);
         this.condition = condition;
     }
 }

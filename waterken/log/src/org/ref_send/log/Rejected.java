@@ -21,16 +21,18 @@ Rejected extends Resolved {
     /**
      * Constructs an instance.
      * @param anchor    {@link #anchor}
+     * @param timestamp {@link #timestamp}
      * @param trace     {@link #trace}
      * @param condition {@link #condition}
      * @param reason    {@link #reason}
      */
     public @deserializer
     Rejected(@name("anchor") final Anchor anchor,
+             @name("timestamp") final Long timestamp,
              @name("trace") final Trace trace,
              @name("condition") final String condition,
              @name("reason") final Exception reason) {
-        super(anchor, trace, condition);
+        super(anchor, timestamp, trace, condition);
         this.reason = reason;
     }
 }

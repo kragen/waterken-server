@@ -16,13 +16,15 @@ Fulfilled extends Resolved {
     /**
      * Constructs an instance.
      * @param anchor    {@link #anchor}
+     * @param timestamp {@link #timestamp}
      * @param trace     {@link #trace}
      * @param condition {@link #condition}
      */
     public @deserializer
     Fulfilled(@name("anchor") final Anchor anchor,
+              @name("timestamp") final Long timestamp,
               @name("trace") final Trace trace,
               @name("condition") final String condition) {
-        super(anchor, trace, condition);
+        super(anchor, timestamp, trace, condition);
     }
 }
