@@ -18,6 +18,7 @@ import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Local;
 import org.ref_send.promise.Log;
+import org.ref_send.promise.NotAMaker;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.ref_send.promise.Vat;
@@ -78,7 +79,7 @@ HTTP extends Eventual implements Serializable {
                     break;
                 }
             }
-            if (null == make) { throw new NullPointerException(); }
+            if (null == make) { throw new NotAMaker(maker); }
         } catch (final Exception e) { throw new Error(e); }
         final Class<?> R = make.getReturnType();
         try {
