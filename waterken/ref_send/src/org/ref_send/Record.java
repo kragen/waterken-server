@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send;
 
+import org.joe_e.Selfless;
+
 /**
  * A pass-by-construction object.
  * <p>
@@ -10,4 +12,4 @@ package org.ref_send;
  * </p>
  */
 public interface
-Record {}
+Record extends Selfless {}
