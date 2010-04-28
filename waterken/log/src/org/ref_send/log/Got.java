@@ -32,6 +32,7 @@ Got extends Event {
      * @param anchor    {@link #anchor}
      * @param trace     {@link #trace}
      * @param message   {@link #message}
+     * @param timestamp {@link #timestamp}
      */
     public @deserializer
     Got(@name("anchor") final Anchor anchor,
