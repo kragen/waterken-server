@@ -47,8 +47,8 @@ TurnCounter extends Struct implements Serializable {
         class State implements Serializable {
             static private final long serialVersionUID = 1L;
 
-            long turns = 0;     // id of current turn
-            long anchors = 0;   // id of next anchor
+            long turns = 1;     // id of current turn
+            long anchors = 1;   // id of next anchor
         }
         final State m = new State();
         class Flip extends Struct implements Receiver<Object>, Serializable {
@@ -57,7 +57,7 @@ TurnCounter extends Struct implements Serializable {
             public void
             apply(final Object ignored) {
                 m.turns += 1;
-                m.anchors = 0;
+                m.anchors = 1;
             }
         }
         class Mark extends Struct implements Marker, Serializable {
