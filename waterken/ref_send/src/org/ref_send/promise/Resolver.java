@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.promise;
 
-
 /**
  * A {@link Promise} resolver.
  * @param <T> promised referent type

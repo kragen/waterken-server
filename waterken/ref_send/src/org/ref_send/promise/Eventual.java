@@ -336,7 +336,7 @@ Eventual implements Serializable {
 
         public void
         when(final Do<T,?> observer) {
-            final long id = near(_.stats).newTask();
+            final long id = _.stats().newTask();
             class Sample extends Struct implements Promise<Void>, Serializable {
                 static private final long serialVersionUID = 1L;
 
