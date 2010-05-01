@@ -185,6 +185,7 @@ Eventual implements Serializable {
         this.here = here;
         this.log = log;
         this.destruct = destruct;
+        this.stats = new Fulfilled<Stats>(false, new Stats());
     }
 
     /**
