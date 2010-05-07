@@ -4,7 +4,7 @@
       xml:base="http://waterken.sourceforge.net/">
 
 <id>http://waterken.sourceforge.net/recent</id>
-<updated>2010-01-27T00:00:00Z</updated>
+<updated>2010-05-07T00:00:00Z</updated>
 <title>Waterken News</title>
 <subtitle>Capability security on the Web</subtitle>
 <link href="recent.html"/>
@@ -15,6 +15,36 @@
     <name>Tyler Close</name>
     <uri>http://waterken.sourceforge.net/recent.html</uri>
 </author>
+
+<entry>
+<id>http://waterken.sourceforge.net/recent#15</id>
+<published>2010-05-07T00:00:00Z</published>
+<updated>2010-05-07T00:00:00Z</updated>
+<title>Giving the keynote speech at DCDP 2010</title>
+<link href="http://soft.vub.ac.be/events/dcdp/"/>
+<content type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml">
+<p><strong>Using the Web for decentralized coordination of distributed
+processes.<br/>  You <em>can</em> get there from here.</strong></p>
+<p>At first blush, the Web might not seem like a good starting place for
+decentralized coordination of distributed processes. A typical Web application
+is vulnerable to multiple central authorities and so is not decentralized. Most
+often, coping with the travails of distribution depends upon human intervention
+via the browser's 'refresh' button; which doesn't bode well for headless
+processes.  Coordination between Web applications, where it's done at all,
+often results in complete vulnerability between participants. Looking at the
+Web as a platform for decentralized coordination of distributed processes, it
+seems reasonable to conclude: "You can't get there from here".</p>
+<p>Sometimes, a different perspective is all that is needed to find a way
+forward out of the maze. In this talk, we'll reacquaint ourselves with the
+Web's core technologies: the URL, HTTP and TLS. With a fresh outlook on these
+technologies, we'll explore how to use them for the desired effect, while still
+working within the existing Web infrastructure. Using simple and compatible
+extensions to the Web, we'll study cases where we can now coordinate the
+formerly intractable. The Waterken Server and an extended Web browser enable
+demonstration of these implementation techniques. With a different perspective
+on where "here" is, we'll get "there".</p>
+</div></content>
+</entry>
 
 <entry>
 <id>http://waterken.sourceforge.net/recent#14</id>
