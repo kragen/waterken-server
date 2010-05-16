@@ -164,6 +164,11 @@ SSL {
                             final InputStream body) throws Exception {
                         if ("200".equals(head.status)) {
                             connected[0] = true;
+                            if (null != body) {
+                                while (body.read() != -1) {
+                                    body.skip(Long.MAX_VALUE);
+                                }
+                            }
                         }
                     }
                 });

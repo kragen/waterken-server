@@ -213,7 +213,7 @@ Callee extends Struct implements Serializable {
                 "HTTP/1.1", status, phrase,
                 PowerlessArray.array(
                     new Header("Cache-Control", 
-                               0 < maxAge ? "max-age=" + maxAge : "no-cache"),
+                               "must-revalidate, max-age=" + maxAge),
                     new Header("Content-Type", contentType),
                     new Header("Content-Length", "" + content.length())
                 )),

@@ -14,6 +14,7 @@ import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.reflect.Reflection;
+import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Local;
@@ -48,11 +49,11 @@ public final class
 HTTP extends Eventual implements Serializable {
     static private final long serialVersionUID = 1L;    
     
-    private   final Root root;                          // vat root
-    private   final Promise<Outbound> outbound;         // active msg pipelines
+    private final Root root;                          // vat root
+    private final Promise<Outbound> outbound;         // active msg pipelines
     
-    private   final Creator creator;                    // sub-vat factory
-    private   final Receiver<Effect<Server>> effect;    // tx effect scheduler
+    private final Creator creator;                    // sub-vat factory
+    private final Receiver<Effect<Server>> effect;    // tx effect scheduler
 
     private
     HTTP(final Receiver<Promise<?>> enqueue,
@@ -131,14 +132,39 @@ HTTP extends Eventual implements Serializable {
         // org.waterken.remote.Messenger interface
 
         public void
-        when(final String href,final Remote proxy, final Do<Object,?> observer){
-        	if (isPromise(URI.fragment("", href))) {
-        		peer(href).when(href, proxy, observer);
-        	} else {
-                _.when(Void.class, new Inline<Object>(Eventual.cast(
-                			Typedef.raw(Local.parameter(observer)), proxy)),
-                	   observer);
+        when(final String href, final Remote proxy,
+                   Class<?> T, final Do<Object,?> observer){
+            if (null == T) {
+                /*
+                 * If we have no type information for the reference use type
+                 * hints provided by the observer.
+                 */
+                T = Typedef.raw(Local.parameter(observer)); 
             }
+            Promise<Object> promise;
+        	if (isPromise(URI.fragment("", href))) {
+                /*
+                 * Queue the observer on a local version of the remote promise,
+                 * scheduling a fetch of the remote value when the local version
+                 * is first created. Keeping a local version ensures all
+                 * observers are notified in the same order they were
+                 * registered.
+                 */
+        	    final String promiseKey = ".promise-"+URLEncoding.encode(href);
+        	    promise = _.root.fetch(null, promiseKey);
+        	    if (null == promise) {
+        	        final Deferred<Object> local = _.defer();
+        	        _.root.assign(promiseKey, promise = local.promise);
+                    peer(href).when(href, T, local.resolver);
+        	    }
+        	} else {
+                /*
+                 * The href identifies a remote reference, not a remote promise,
+                 * so invoke the observer with an eventual reference.
+                 */
+                promise = new Inline<Object>(Eventual.cast(T, proxy));
+            }
+            _.when(T, Void.class, promise, observer);
         }
         
         public Object

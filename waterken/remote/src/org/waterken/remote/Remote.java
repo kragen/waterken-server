@@ -144,5 +144,7 @@ Remote extends Local<Object> {
     // org.ref_send.promise.Deferred interface
 
     public void
-    when(final Do<Object,?> observer) { messenger.when(href, this, observer); }
+    when(final Class<?> T, final Do<Object,?> observer) {
+        messenger.when(href, this, T, observer);
+    }
 }

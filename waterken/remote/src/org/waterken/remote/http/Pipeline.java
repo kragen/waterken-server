@@ -9,6 +9,8 @@ import java.io.Serializable;
 
 import org.joe_e.Immutable;
 import org.joe_e.Token;
+import org.joe_e.array.ConstArray;
+import org.joe_e.array.ImmutableArray;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
@@ -43,14 +45,16 @@ Pipeline implements Serializable {
     private   final String name;                    // messaging session name
     private   final Receiver<Effect<Server>> effect;
     private   final Promise<Outbound> outbound;
+    
+    private   final ConstArray<List<Operation>> pollers;
    
     private         long activeWindow = 1;  // id of on-the-air window
     private         int  activeIndex = -1;  // last acknowledged window index
     private         long acknowledged = 0;  // total acknowledged operations 
     
     private   final List<Operation> pending = List.list();
-    private         int halts = 0;      // number of pending pipeline flushes
-    private         int queries = 0;    // number of queries after last flush
+    private         long halts = 0;     // number of pending pipeline flushes
+    private         long queries = 0;   // number of queries after last flush
     private         int updates = 0;    // number of updates after last flush
     
     /*
@@ -67,10 +71,194 @@ Pipeline implements Serializable {
         this.name = name;
         this.effect = effect;
         this.outbound = outbound;
+        
+        final ConstArray.Builder<List<Operation>> b = ConstArray.builder(5);
+        for (int i = 5; 0 != i--;) {
+            final List<Operation> l = List.list();
+            b.append(l);
+        }
+        pollers = b.snapshot();
+    }
+    
+    /**
+     * Serializes requests and enqueues them on the transient HTTP connection.
+     * @param max       maximum number of requests to enqueue
+     * @param skipTo    mid of first request to send
+     */
+    private ImmutableArray<Effect<Server>>
+    restart(final long max, final long skipTo) {
+        final ImmutableArray.Builder<Effect<Server>> r=ImmutableArray.builder();
+        int index = activeIndex;
+        boolean queried = false;
+        long sent = acknowledged;
+        boolean found = false;
+        long n = max;
+        for (final Operation x : pending) {
+            if (x instanceof UpdateOperation) {
+                if (queried) { break; }
+                index += 1;
+            }
+            if (x instanceof QueryOperation) { queried = true; }
+            final long mid = sent++;
+            found = found || skipTo == mid;
+            if (!found) { continue; }
+           
+            final String guid;
+            if (x instanceof UpdateOperation) {
+                guid = name + "-" + activeWindow + "-" + index;
+            } else {
+                guid = name + "-0-" + mid;
+            }
+            try {
+                r.append(fulfill(peer, guid, mid,
+                                 x.render(key, activeWindow, index)));
+            } catch (final Exception reason) {
+                r.append(reject(peer, guid, mid, reason));
+            }
+            
+            if (0 == --n) { break; }
+        }
+        return r.snapshot();
+    }
+    
+    /**
+     * Creates a query transaction to serialize a request.
+     */
+    static private Effect<Server>
+    restartTx(final String peer, final long max, final long skipTo
+              ) { return new Effect<Server>() {
+        public void
+        apply(final Database<Server> vat) throws Exception {
+            final ImmutableArray<Effect<Server>> effects =
+                vat.enter(Database.query,
+                          new Transaction<ImmutableArray<Effect<Server>>>() {
+                public ImmutableArray<Effect<Server>>
+                apply(final Root root) throws Exception {
+                    final Outbound outbound =
+                        root.fetch(null, VatInitializer.outbound);
+                    return outbound.find(peer).restart(max, skipTo);
+                }
+            }).call();
+            for (final Effect<Server> effect : effects) {
+                vat.service.apply(new Service() {
+                    @Override public Void
+                    call() throws Exception {
+                        effect.apply(vat);
+                        return null;
+                    }
+                });
+            }
+        }
+    }; }
+    
+    /**
+     * Are there any pending messages in this pipeline?
+     */
+    private boolean
+    isActive() {
+        if (!pending.isEmpty()) { return true; }
+        for (final List<?> i : pollers) {
+            if (!i.isEmpty()) { return true; }
+        }
+        return false;
     }
 
-    protected void
-    resend() { effect.apply(restart(peer, pending.getSize(), acknowledged + 1)); }
+    /**
+     * Restarts request sending.
+     */
+    protected ImmutableArray<Effect<Server>>
+    resend() {
+        ImmutableArray<Effect<Server>> r =
+            restart(pending.getSize(), acknowledged);
+        int priority = 0;
+        for (final List<Operation> poller : pollers) {
+            if (!poller.isEmpty()) {
+                r = r.with(waitTx(peer, priority, 0L));
+            }
+            priority += 1;
+        }
+        return r;
+    }
+    
+    /**
+     * Enqueue an operation to retry until a non-404 response is received.
+     * @param operation operation to enqueue
+     * @return GUID assigned to request
+     */
+    protected String
+    poll(final Operation operation) {return enqueue(new Poller(0, operation));}
+    
+    private final class
+    Poller extends Operation implements Serializable {
+        static private final long serialVersionUID = 1L;
+
+        private final long retries;
+        private final Operation underlying;
+        
+        Poller(final long retries, final Operation underlying) {
+            this.retries = retries;
+            this.underlying = underlying;
+        }
+        
+        protected Message<Request>
+        render(final String sessionKey,
+               final long window, final int index) throws Exception {
+            return underlying.render(sessionKey, window, index);
+        }
+
+        protected void
+        fulfill(final String request, final Message<Response> response) {
+            underlying.fulfill(request, response);
+            if ("404".equals(response.head.status)) {
+                if (!isActive()) { Eventual.near(outbound).add(Pipeline.this); }
+                final int priority = (int)Math.min(pollers.length()-1, retries); 
+                final List<Operation> poller = pollers.get(priority);
+                if (poller.isEmpty()) {
+                    effect.apply(waitTx(peer, priority, 1000L << 3 * priority));
+                }
+                poller.append(new Poller(retries + 1, underlying));
+            }
+        }
+
+        protected void
+        reject(final String request, final Exception reason) {
+            underlying.reject(request, reason);
+        }
+    }
+    
+    static private Effect<Server>
+    waitTx(final String peer, final int priority, final long ms) {
+        return new Effect<Server>() {
+            public void
+            apply(final Database<Server> vat) throws Exception {
+                vat.scheduler.apply(ms, new Service() {
+                    public Void
+                    call() throws Exception {
+                        vat.enter(Database.update, new Transaction<Immutable>(){
+                            public Immutable
+                            apply(final Root root) throws Exception {
+                                final Outbound outbound =
+                                    root.fetch(null, VatInitializer.outbound);
+                                outbound.find(peer).tick(priority);
+                                return new Token();
+                            }
+                        }).call();
+                        return null;
+                    }
+                });
+            }
+        };
+    }
+    
+    private void
+    tick(final int priority) {
+        final List<Operation> poller = pollers.get(priority);
+        if (0 == halts) {
+            effect.apply(restartTx(peer, poller.getSize(),
+                                   acknowledged + pending.getSize()));
+        }
+        while (!poller.isEmpty()) { pending.append(poller.pop()); }
+    }
     
     /**
      * Enqueue an operation.
@@ -79,11 +267,9 @@ Pipeline implements Serializable {
      */
     protected String
     enqueue(final Operation operation) {
-        if (pending.isEmpty()) {
-            Eventual.near(outbound).add(this);
-        }
-        pending.append(operation);
+        if (!isActive()) { Eventual.near(outbound).add(this); }
         final long mid = acknowledged + pending.getSize();
+        pending.append(operation);
         final String guid;
         if (operation instanceof UpdateOperation) {
             if (0 != queries) {
@@ -99,13 +285,13 @@ Pipeline implements Serializable {
         if (operation instanceof QueryOperation) {
             queries += 1;
         }
-        if (0 == halts) { effect.apply(restart(peer, 1, mid)); }
+        if (0 == halts) { effect.apply(restartTx(peer, 1, mid)); }
         return guid;
     }
     
     private Operation
     dequeue(final long mid) {
-        if (mid != acknowledged + 1) { throw new RuntimeException(); }
+        if (mid != acknowledged) { throw new RuntimeException(); }
         
         final Operation front = pending.pop();
         acknowledged += 1;
@@ -115,7 +301,7 @@ Pipeline implements Serializable {
             halts = 0;
             queries = 0;
             updates = 0;
-            Eventual.near(outbound).remove(this);
+            if (!isActive()) { Eventual.near(outbound).remove(this); }
         } else {
             if (front instanceof UpdateOperation) {
                 activeIndex += 1;
@@ -128,19 +314,19 @@ Pipeline implements Serializable {
                      * restart message sending if this was the last query we
                      * were waiting on in the halted pipeline
                      */
-                    int max = pending.getSize();
+                    long max = pending.getSize();
                     long skipTo = acknowledged;
                     for (final Operation x : pending) {
-                        ++skipTo;
                         if (x instanceof UpdateOperation) {
                             halts -= 1;
                             activeWindow += 1;
                             activeIndex = -1;
-                            effect.apply(restart(peer, max, skipTo));
+                            effect.apply(restartTx(peer, max, skipTo));
                             break;
                         }
                         if (x instanceof QueryOperation) { break; }
                         --max;
+                        ++skipTo;
                     }
                 }
             }
@@ -148,69 +334,13 @@ Pipeline implements Serializable {
         return front;
     }
     
-    /**
-     * Serializes requests and enqueues them on the transient HTTP connection.
-     * @param peer      absolute URI for the pipeline to service
-     * @param max       maximum number of requests to enqueue
-     * @param skipTo    id of first request to send
-     */
-    static private Effect<Server>
-    restart(final String peer, final int max, final long skipTo
-           ) { return new Effect<Server>() {
-        public void
-        apply(final Database<Server> vat) throws Exception {
-            vat.enter(Database.query, new Transaction<Immutable>() {
-                public Immutable
-                apply(final Root root) throws Exception {
-                    final Receiver<Effect<Server>> effect =
-                        root.fetch(null, Database.effect);
-                    final Outbound outbound =
-                        root.fetch(null, VatInitializer.outbound);
-                    final Pipeline m = outbound.find(peer);
-                    final long window = m.activeWindow;
-                    int index = m.activeIndex;
-                    boolean queried = false;
-                    long sent = m.acknowledged;
-                    boolean found = false;
-                    int n = max;
-                    for (final Operation x : m.pending) {
-                        if (x instanceof UpdateOperation) {
-                            if (queried) { break; }
-                            index += 1;
-                        }
-                        if (x instanceof QueryOperation) { queried = true; }
-                        sent += 1;
-                        found = found || skipTo == sent;
-                        if (!found) { continue; }
-                        if (0 == n--) { break; }
-                       
-                        final long mid = sent;
-                        final String guid;
-                        if (x instanceof UpdateOperation) {
-                            guid = m.name + "-" + window + "-" + index;
-                        } else {
-                            guid = m.name + "-0-" + mid;
-                        }
-                        try {
-                            effect.apply(fulfill(peer, guid, mid,
-                                                 x.render(m.key,window,index)));
-                        } catch (final Exception reason) {
-                            effect.apply(reject(peer, guid, mid, reason));
-                        }
-                    }
-                    return new Token();
-                }
-            }).call();
-        }
-    }; }
-    
     static private Effect<Server>
     fulfill(final String peer, final String request, final long mid,
             final Message<Request> q) { return new Effect<Server>() {
         public void
         apply(final Database<Server> vat) throws Exception {
             vat.session.serve(URI.scheme(peer), q.head,
-                      null!=q.body?q.body.asInputStream():null, new Client() {
+                  null != q.body ? q.body.asInputStream() : null, new Client() {
                 public void
                 receive(final Response head,
                         final InputStream body) throws Exception {
@@ -262,7 +392,7 @@ Pipeline implements Serializable {
         public void
         apply(final Database<Server> vat) throws Exception {
             vat.session.serve(URI.scheme(peer), new Request("HTTP/1.1",
-                    "OPTIONS", URI.request(peer), PowerlessArray.array(
+                    "HEAD", URI.request(peer), PowerlessArray.array(
                         new Header("Host",
                                    Authority.location(URI.authority(peer)))
                     )), null, new Client() {

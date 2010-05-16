@@ -10,19 +10,15 @@ import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
-import org.ref_send.promise.Channel;
-import org.ref_send.promise.Do;
+import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Failure;
-import org.ref_send.promise.Local;
 import org.ref_send.promise.Resolver;
 import org.ref_send.type.Typedef;
 import org.waterken.http.Message;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.io.FileType;
-import org.waterken.remote.Messenger;
-import org.waterken.remote.Remote;
 import org.waterken.syntax.BadSyntax;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
@@ -36,7 +32,7 @@ import org.waterken.uri.URI;
  * Client-side of the HTTP web-amp protocol.
  */
 /* package */ final class
-Caller extends Struct implements Messenger, Serializable {
+Caller extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
 
     private final Eventual _;
@@ -57,10 +53,10 @@ Caller extends Struct implements Messenger, Serializable {
         this.msgs = msgs;
     }
 
-    // org.waterken.remote.Messenger interface
+    // org.waterken.remote.http.Caller interface
 
     public void
-    when(final String href, final Remote proxy, final Do<Object,?> observer) {
+    when(final String href, final Class<?> T, final Resolver<Object> resolver) {
         class When extends Operation implements Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -77,30 +73,28 @@ Caller extends Struct implements Messenger, Serializable {
 
             public void
             fulfill(final String request, final Message<Response> response) {
-                // TODO: implement polling on a 404 response?
-                
-                resolve(request, receive(HTTP.get(URI.resolve(here,href), null),
-                        				 response, Local.parameter(observer)));
+                _.log.got(request, null, null);
+                if ("404".equals(response.head.status)) {
+                    resolver.progress();
+                } else {
+                    resolver.apply(receive(
+                        HTTP.get(URI.resolve(here, href), null), response, T));
+                }
             }
             
             public void
             reject(final String request, final Exception reason) {
-                resolve(request, Eventual.reject(reason));
-            }
-            
-            private void
-            resolve(final String request, final Object value) {
                 _.log.got(request, null, null);
-                _.when(value, observer);
+                resolver.reject(reason);
             }
         }
-        _.log.sent(msgs.enqueue(new When()));
+        _.log.sent(msgs.poll(new When()));
     }
    
     public Object
     invoke(final String href, final Object proxy,
            final Method method, final Object... arg) {
-        final Channel<Object> r = _.defer();
+        final Deferred<Object> r = _.defer();
         final String property = Dispatch.property(method);
         if (null != property) {
             get(href, property, proxy, method, r.resolver);

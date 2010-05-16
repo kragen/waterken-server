@@ -16,10 +16,10 @@ Messenger {
      * Settles a remote promise.
      * @param href      relative URL string for message target
      * @param proxy     local proxy object
+     * @param T         concrete referent type, <code>null</code> if not known
      * @param observer  promise observer
      */
-    void
-    when(String href, Remote proxy, Do<Object,?> observer);
+    void when(String href, Remote proxy, Class<?> T, Do<Object,?> observer);
     
     /**
      * Invokes a remote object.
@@ -29,6 +29,5 @@ Messenger {
      * @param arg       each argument
      * @return return reference
      */
-    Object
-    invoke(String href, Object proxy, Method method, Object... arg);
+    Object invoke(String href, Object proxy, Method method, Object... arg);
 }

@@ -11,6 +11,7 @@ import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
+import org.joe_e.array.ImmutableArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.list.List;
@@ -61,7 +62,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         root.assign(VatInitializer.outbound, outbound);
         root.assign(VatInitializer.exports, exports);
         root.assign(VatInitializer.sessions, new SessionMaker(root));
-        root.assign(Database.wake, wake(tasks, outbound, effect));
+        root.assign(Database.wake, wake(tasks, outbound));
         final ConstArray<Type> signature =
             ConstArray.array(make.getGenericParameterTypes());
         final Object[] argv = new Object[signature.length()];
@@ -128,16 +129,24 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         return new Enqueue();
     }
     
-    static private Receiver<?>
-    wake(final List<Promise<?>> tasks, final Outbound outbound,
-         final Receiver<Effect<Server>> effect) {
-        class Wake extends Struct implements Receiver<Object>, Serializable {
+    static private Promise<ImmutableArray<Effect<Server>>>
+    wake(final List<Promise<?>> tasks, final Outbound outbound) {
+        class Wake extends Struct
+                   implements Promise<ImmutableArray<Effect<Server>>>,
+                              Serializable {
             static private final long serialVersionUID = 1L;
             
-            public void
-            apply(final Object ignored) {
-                if (!tasks.isEmpty()) { effect.apply(runTask()); }
-                for (final Pipeline x : outbound.getPending()) { x.resend(); }
+            public ImmutableArray<Effect<Server>>
+            call() {
+                final ImmutableArray.Builder<Effect<Server>> r =
+                    ImmutableArray.builder();
+                if (!tasks.isEmpty()) { r.append(runTask()); }
+                for (final Pipeline pending : outbound.getPending()) {
+                    for (final Effect<Server> effect : pending.resend()) {
+                        r.append(effect);
+                    }
+                }
+                return r.snapshot();
             }
         }
         return new Wake();
