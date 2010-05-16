@@ -6,7 +6,6 @@ import org.joe_e.Immutable;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Scheduler;
 import org.waterken.store.DoesNotExist;
 
 /**

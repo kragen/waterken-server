@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
-import org.ref_send.promise.Scheduler;
+import org.waterken.db.Scheduler;
 
 /**
  * Puts an event on a specified event loop after a timeout.
