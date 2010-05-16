@@ -19,7 +19,6 @@ import org.joe_e.Token;
 import org.joe_e.array.ConstArray;
 import org.joe_e.reflect.Proxies;
 import org.joe_e.reflect.Reflection;
-import org.joe_e.var.Milestone;
 import org.ref_send.type.Typedef;
 
 /**
@@ -254,10 +253,11 @@ Eventual implements Serializable {
      *         <code>observer</code>'s return type is <code>Void</code>
      */
     public final <P,R> R
-    when(final Promise<P> promise, final Do<P,R> observer) {
+    when(final Promise<? extends P> promise,
+         final Do<? super P, ? extends R> observer) {
         try {
             final Class<?> R = Typedef.raw(Local.output(Object.class,observer));
-            return cast(R, when(R, promise, observer));
+            return cast(R, when(null, R, promise, observer));
         } catch (final Exception e) { throw new Error(e); }
     }
 
@@ -276,27 +276,28 @@ Eventual implements Serializable {
      *         <code>observer</code>'s return type is <code>Void</code>
      */
     public final <P,R> R
-    when(final P reference, final Do<P,R> observer) {
+    when(final P reference, final Do<? super P, ? extends R> observer) {
         try {
-            final Class<?> R = Typedef.raw(Local.output(null != reference ?
-                    reference.getClass() : Object.class, observer));
-            return cast(R, when(R, ref(reference), observer));
+            final Class<?> P= null!=reference?reference.getClass():Object.class;
+            final Class<?> R = Typedef.raw(Local.output(P, observer));
+            return cast(R, when(P, R, ref(reference), observer));
         } catch (final Exception e) { throw new Error(e); }
     }
 
     protected final <P,R> Promise<R>
-    when(final Class<?> R, final Promise<P> p, final Do<P,R> observer) {
+    when(final Class<?> P, final Class<?> R, final Promise<? extends P> p,
+         final Do<? super P, ? extends R> observer) {
         final Promise<R> r;
-        final Do<P,?> forwarder;
+        final Do<? super P,?> forwarder;
         if (void.class == R || Void.class == R) {
             r = null;
             forwarder = observer;
         } else {
-            final Channel<R> x = defer();
+            final Deferred<R> x = defer();
             r = x.promise;
             forwarder = new Compose<P,R>(observer, x.resolver);
         }
-        trust(p).when(forwarder);
+        trust(p).when(P, forwarder);
         return r;
     }
 
@@ -336,7 +337,7 @@ Eventual implements Serializable {
         call() throws Exception { return untrusted.call(); }
 
         public void
-        when(final Do<T,?> observer) {
+        when(final Class<?> P, final Do<? super T, ?> observer) {
             final long id = _.stats().newTask();
             class Sample extends Struct implements Promise<Void>, Serializable {
                 static private final long serialVersionUID = 1L;
@@ -372,8 +373,9 @@ Eventual implements Serializable {
         } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
     }
 
-    static private <P,R> R
-    sample(final Promise<P> promise, final Do<P,R> observer,
+    static protected <P,R> R
+    sample(final Promise<? extends P> promise,
+           final Do<? super P, ? extends R> observer,
            final Log log, final String message) throws Exception {
         final P a;
         try {
@@ -413,34 +415,37 @@ Eventual implements Serializable {
 
         long condition;             // id for the corresponding promise
         long message;               // id for this when block
-        Do<T,?> observer;           // client's when block code
+        Do<? super T,?> observer;   // client's when block code
         Promise<When<T>> next;      // next when block registered on the promise
     }
 
+    /**
+     * Executes the next Do block registered on the promise.
+     */
     private final class
     Forward<T> extends Struct implements Promise<Void>, Serializable {
         static private final long serialVersionUID = 1L;
 
-        private final boolean ignored;          // resolution ignored so far?
-        private final long condition;           // id of corresponding promise
-        private final Promise<T> value;         // resolved value of promise
-        private final Promise<When<T>> pending; // when block to run
+        private final boolean ignored;              // value ignored so far?
+        private final long condition;               // corresponding promise id
+        private final Promise<When<T>> pending;     // when block to run
+        private final Class<?> T;                   // referent type of promise
+        private final Promise<? extends T> value;   // resolved value of promise
 
-        Forward(final boolean ignored, final long condition,
-                final Promise<T> value, final Promise<When<T>> pending) {
+        Forward(final boolean ignored,
+                final long condition, final Promise<When<T>> pending,
+                final Class<?> T, final Promise<? extends T> value) {
             this.ignored = ignored;
             this.condition = condition;
-            this.value = value;
             this.pending = pending;
+            this.T = T;
+            this.value = value;
         }
 
-        /**
-         * Notifies the next observer of the resolved value.
-         */
         public Void
         call() throws Exception {
             final long message;
-            final Do<T,?> observer;
+            final Do<? super T,?> observer;
             final Promise<When<T>> next; {
                 final When<T> block;
                 try {
@@ -463,11 +468,11 @@ Eventual implements Serializable {
             }
 
             if (null != next) {
-                enqueue.apply(new Forward<T>(false, condition, value, next));
+                enqueue.apply(new Forward<T>(false, condition, next, T, value));
                 try {
                     if (Local.trusted(local, value)) {
                         log.got(here + "#w" + message, null, null);
-                        ((Local<T>)value).when(observer);
+                        ((Local<? extends T>)value).when(T, observer);
                     } else {
                         // AUDIT: call to untrusted application code
                         sample(value, observer, log, here + "#w" + message);
@@ -477,6 +482,13 @@ Eventual implements Serializable {
                     throw e;
                 }
             } else if (ignored && value instanceof Rejected<?>) {
+                /*
+                 * No when block has been queued on this promise, so this
+                 * rejection will go unnoticed by the application code. To make
+                 * the exception show up in the log, create a dummy when block
+                 * to log the problem. This dummy when block has the unusual
+                 * nature of being a message that is received before it is sent.
+                 */
                 final Exception e = ((Rejected<?>)value).reason;
                 log.got(here + "#w" + message, null, null);
                 log.sentIf(here + "#w" + message, here + "#p" + condition);
@@ -488,11 +500,15 @@ Eventual implements Serializable {
     }
 
     private final class
-    State<T> extends Milestone<Promise<T>> {
+    State<T> implements Serializable {
         static private final long serialVersionUID = 1L;
 
         private final long condition;           // id of this promise
         private       Promise<When<T>> back;    // observer list sentinel
+        
+        private       boolean resolved;             // Is resolved yet?
+        private       Class<?> T;                   // concrete referent type
+        private       Promise<? extends T> value;   // resolved value
 
         State(final long condition, final Promise<When<T>> back) {
             this.condition = condition;
@@ -500,7 +516,7 @@ Eventual implements Serializable {
         }
 
         protected void
-        observe(final Do<T,?> observer) {
+        observe(final Do<? super T,?> observer) {
             final When<T> block = near(back);
             if (condition == block.condition) {
                 log.sentIf(here+"#w"+block.message, here+"#p"+condition);
@@ -513,7 +529,7 @@ Eventual implements Serializable {
                  * new when block running task.
                  */
                 back = stats().allocWhen(condition);
-                enqueue.apply(new Forward<T>(false, condition, get(), back));
+                enqueue.apply(new Forward<T>(false, condition, back, T, value));
                 observe(observer);
             }
         }
@@ -540,13 +556,15 @@ Eventual implements Serializable {
 
         public T
         call() throws Exception {
-            final Promise<T> value = state.call().get();
-            if (null == value) { throw new Unresolved(); }
-            return value.call();
+            final State<T> cell = state.call();
+            if (!cell.resolved) { throw new Unresolved(); }
+            return cell.value.call();
         }
 
         public void
-        when(final Do<T,?> observer) { near(state).observe(observer); }
+        when(final Class<?> T, final Do<? super T,?> observer) {
+            near(state).observe(observer);
+        }
     }
 
     private final class
@@ -576,33 +594,40 @@ Eventual implements Serializable {
         }
 
         public void
-        apply(final T r) { resolve(null == r ? null : ref(r)); }
+        progress() { log.progressed(here + "#p" + condition); }
 
         public void
         reject(final Exception reason) { resolve(new Rejected<T>(reason)); }
 
         public void
-        resolve(Promise<T> p) {
+        resolve(final Promise<T> p) { set(null != p ? null : Void.class, p); }
+
+        public void
+        apply(final T r) {
+            set(null != r ? r.getClass() : Void.class,
+                null != r ? ref(r) : null);
+        }
+        
+        private void
+        set(final Class<?> T, Promise<T> p) {
             if (p instanceof Fulfilled<?>) {
                 p = ((Fulfilled<T>)p).getState();
                 log.fulfilled(here + "#p" + condition);
-            } else if (null == p) {
-                p = new Inline<T>(null);
-                log.rejected(here + "#p" + condition, null);
             } else if (p instanceof Rejected<?>) {
                 log.rejected(here + "#p" + condition, ((Rejected<T>)p).reason);
             } else {
                 log.resolved(here + "#p" + condition);
             }
-            enqueue.apply(new Forward<T>(true, condition, p, front));
+            enqueue.apply(new Forward<T>(true, condition, front, T, p));
             try {
                 final State<T> cell = state.call();
-                if (null != cell) { cell.set(p); }
-            } catch (final Exception e) {}
+                if (null != cell && !cell.resolved && null == cell.value) {
+                    cell.resolved = true;
+                    cell.T = T;
+                    cell.value = p;
+                }
+            } catch (final Exception e) { log.problem(e); }
         }
-
-        public void
-        progress() { log.progressed(here + "#p" + condition); }
     }
 
     /**
@@ -626,13 +651,13 @@ Eventual implements Serializable {
      * @param <T> referent type
      * @return ( {@linkplain Promise promise}, {@linkplain Resolver resolver} )
      */
-    public final <T> Channel<T>
+    public final <T> Deferred<T>
     defer() {
         final long condition = stats().newDeferral();
         final Promise<When<T>> front = stats().allocWhen(condition);
         final State<T> state = new State<T>(condition, front);
-        return new Channel<T>(new Tail<T>(this, state),
-                              new Head<T>(condition, state, front));
+        return new Deferred<T>(new Tail<T>(this, state),
+                               new Head<T>(condition, state, front));
     }
 
     /**

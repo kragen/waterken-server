@@ -10,7 +10,7 @@ import org.ref_send.deserializer;
 import org.ref_send.name;
 
 /**
- * A return from a {@linkplain Eventual#defer promise creation}.
+ * A return from an {@linkplain Eventual#defer explicit promise creation}.
  * <p>
  * This class represents the reified {@linkplain Promise tail} and
  * {@linkplain Resolver head} of a reference:
@@ -19,7 +19,7 @@ import org.ref_send.name;
  * @param <T> referent type
  */
 public class
-Channel<T> extends Struct implements Record, Serializable {
+Deferred<T> extends Struct implements Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -38,8 +38,8 @@ Channel<T> extends Struct implements Record, Serializable {
      * @param resolver  {@link #resolver}
      */
     public @deserializer
-    Channel(@name("promise") final Promise<T> promise,
-            @name("resolver") final Resolver<T> resolver) {
+    Deferred(@name("promise") final Promise<T> promise,
+             @name("resolver") final Resolver<T> resolver) {
         this.promise = promise;
         this.resolver = resolver;
     }

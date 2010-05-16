@@ -91,9 +91,10 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
             }
         }
         try {
-            final Class<?> R = Typedef.raw(Typedef.bound(
-                    method.getGenericReturnType(), proxy.getClass()));
-            return Eventual.cast(R, _.when(R, this, new Invoke<T>(method,
+            final Class<?> P = proxy.getClass();
+            final Class<?> R =
+                Typedef.raw(Typedef.bound(method.getGenericReturnType(), P));
+            return Eventual.cast(R, _.when(P, R, this, new Invoke<T>(method,
                     null == args ? null : ConstArray.array(args))));
         } catch (final Exception e) { throw new Error(e); }
     }
@@ -103,14 +104,15 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
     public abstract T
     call() throws Exception;
 
-    // org.ref_send.promise.Deferred interface
+    // org.ref_send.promise.Local interface
 
     /**
      * Notifies an observer in a future event loop turn.
+     * @param T         concrete referent type, <code>null</code> if not known
      * @param observer  promise observer
      */
     protected abstract void
-    when(Do<T,?> observer);
+    when(Class<?> T, Do<? super T,?> observer);
 
     /**
      * Constructs a pending invocation.
@@ -154,10 +156,8 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      */
     static protected Type
     output(final Class<?> p, final Do<?,?> x) {
-        final @SuppressWarnings("unchecked") Do inner =
-            x instanceof Compose ? ((Compose)x).block : x;
-        return inner instanceof Invoke<?> ?
-            Typedef.bound(((Invoke<?>)inner).method.getGenericReturnType(), p) :
-        Typedef.value(R, inner.getClass());
+        return x instanceof Invoke<?> ?
+            Typedef.bound(((Invoke<?>)x).method.getGenericReturnType(), p) :
+        Typedef.value(R, x.getClass());
     }
 }

@@ -8,18 +8,11 @@ package org.ref_send.promise;
  */
 public interface
 Resolver<T> extends Receiver<T> {
-
+    
     /**
-     * Resolve the corresponding promise to the given reference.
-     * <p>
-     * This method is syntactic sugar for:
-     * </p>
-     * <pre>
-     * {@link #resolve resolve}({@link Eventual#ref ref}(referent));
-     * </pre>
-     * @param referent  resolved value of the corresponding promise
+     * Logs progress towards resolution.
      */
-    void apply(T referent);
+    void progress();
 
     /**
      * Put the corresponding promise in the rejected state.
@@ -38,9 +31,10 @@ Resolver<T> extends Receiver<T> {
      * @param promise   promise to forward requests to
      */
     void resolve(Promise<T> promise);
-    
+
     /**
-     * Logs progress towards resolution.
+     * Resolve the corresponding promise to the given reference.
+     * @param referent  reference to forward requests to
      */
-    void progress();
+    void apply(T referent);
 }

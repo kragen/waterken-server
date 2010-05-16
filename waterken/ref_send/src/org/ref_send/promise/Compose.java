@@ -13,7 +13,7 @@ import java.io.Serializable;
 Compose<P,R> extends Do<P,Void> implements Serializable {
     static private final long serialVersionUID = 1L;
 
-    protected final Do<P,R> block;
+    protected final Do<? super P,? extends R> block;
     private   final Resolver<R> resolver;
     
     /**
@@ -22,7 +22,8 @@ Compose<P,R> extends Do<P,Void> implements Serializable {
      * @param resolver  code block's return resolver
      */
     public
-    Compose(final Do<P,R> block, final Resolver<R> resolver) {
+    Compose(final Do<? super P, ? extends R> block,
+            final Resolver<R> resolver) {
         this.block = block;
         this.resolver = resolver;
     }

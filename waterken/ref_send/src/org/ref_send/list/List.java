@@ -43,12 +43,12 @@ List<T> implements Iterable<T>, Serializable {
     /**
      * link count
      */
-    private int capacity;
+    private long capacity;
 
     /**
      * element count
      */
-    private int size;
+    private long size;
 
     private
     List() {
@@ -107,7 +107,7 @@ List<T> implements Iterable<T>, Serializable {
     /**
      * Gets the element count.
      */
-    public int
+    public long
     getSize() { return size; }
 
     /**
