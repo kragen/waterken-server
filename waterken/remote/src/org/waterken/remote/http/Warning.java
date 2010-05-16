@@ -3,7 +3,6 @@
 package org.waterken.remote.http;
 
 import org.ref_send.deserializer;
-import org.ref_send.name;
 import org.ref_send.promise.Failure;
 
 /**
@@ -12,22 +11,11 @@ import org.ref_send.promise.Failure;
 public class
 Warning extends Failure {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * Constructs an instance.
-     * @param status    {@link #status}
-     * @param phrase    {@link #phrase}
-     */
-    public @deserializer
-    Warning(@name("status") final String status,
-            @name("phrase") final String phrase) {
-        super(status, phrase);
-    }
     
     /**
      * Constructs an instance.
      */
-    public
+    public @deserializer
     Warning() {
         super("400", "state response");
     }
