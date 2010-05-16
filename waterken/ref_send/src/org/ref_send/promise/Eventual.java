@@ -166,7 +166,7 @@ Eventual implements Serializable {
     /**
      * mutable statistics about eventual operations 
      */
-    private   /* final */ Fulfilled<Stats> stats; 
+    private   final Fulfilled<Stats> stats; 
 
     /**
      * Constructs an instance.
@@ -195,17 +195,6 @@ Eventual implements Serializable {
     Eventual(final Receiver<Promise<?>> enqueue) {
         this(new Token(), enqueue, "", new Log(), cast(Receiver.class,
                 new Rejected<Receiver<?>>(new NullPointerException())));
-    }
-
-    /**
-     * Upgrades from prior version that has inline statistics.
-     */
-    private Stats
-    stats() {
-        if (null == stats) {
-            stats = new Fulfilled<Stats>(false, new Stats());
-        }
-        return near(stats);
     }
 
     // org.ref_send.promise.Eventual interface
@@ -338,7 +327,7 @@ Eventual implements Serializable {
 
         public void
         when(final Class<?> P, final Do<? super T, ?> observer) {
-            final long id = _.stats().newTask();
+            final long id = near(_.stats).newTask();
             class Sample extends Struct implements Promise<Void>, Serializable {
                 static private final long serialVersionUID = 1L;
 
@@ -464,7 +453,7 @@ Eventual implements Serializable {
                 message     = block.message;
                 observer    = block.observer;
                 next        = block.next;
-                stats().freeWhen(pending, block);
+                near(stats).freeWhen(pending, block);
             }
 
             if (null != next) {
@@ -521,14 +510,14 @@ Eventual implements Serializable {
             if (condition == block.condition) {
                 log.sentIf(here+"#w"+block.message, here+"#p"+condition);
                 block.observer = observer;
-                back = block.next = stats().allocWhen(condition);
+                back = block.next = near(stats).allocWhen(condition);
             } else {
                 /*
                  * Promise is already resolved and all previously registered
                  * when blocks run. Start a new when block chain and kick off a
                  * new when block running task.
                  */
-                back = stats().allocWhen(condition);
+                back = near(stats).allocWhen(condition);
                 enqueue.apply(new Forward<T>(false, condition, back, T, value));
                 observe(observer);
             }
@@ -653,8 +642,8 @@ Eventual implements Serializable {
      */
     public final <T> Deferred<T>
     defer() {
-        final long condition = stats().newDeferral();
-        final Promise<When<T>> front = stats().allocWhen(condition);
+        final long condition = near(stats).newDeferral();
+        final Promise<When<T>> front = near(stats).allocWhen(condition);
         final State<T> state = new State<T>(condition, front);
         return new Deferred<T>(new Tail<T>(this, state),
                                new Head<T>(condition, state, front));
