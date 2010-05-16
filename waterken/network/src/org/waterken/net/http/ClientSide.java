@@ -476,22 +476,16 @@ ClientSide implements Server {
         } else if ("CONNECT".equals(method)) {
             entity = null;
         } else {
-            /*
-             * with the exception of the cases handled above, all responses have
-             * a message body, which is either explicitly delimited, or
-             * terminated by connection close
-             */
+            // with the exception of the cases handled above, all responses have
+            // a message body, which is either explicitly delimited, or
+            // terminated by connection close
             final InputStream explicit = HTTPD.input(headers, cin);
             entity = null != explicit ? explicit : cin;
         }
         client.receive(new Response(version, status, phrase, headers), entity);
-        
-        /*
-         * ensure this response has been fully read out of the response stream
-         * before reading in the next response
-         */
-        if (!closing.is() && null != entity) {
-            while (entity.read() != -1) { entity.skip(Long.MAX_VALUE); }
+        if (null != entity) {
+            // close the stream if the client doesn't want all the data
+            if (entity.read() != -1) { closing.set(true); }
             entity.close();
         }
         return closing.is();

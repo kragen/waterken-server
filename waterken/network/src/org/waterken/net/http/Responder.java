@@ -188,6 +188,8 @@ Responder extends Client {
         hrs.write(" ");
         hrs.write(head.phrase);
         hrs.write("\r\n");
+        
+        hrs.write("Access-Control-Allow-Origin: *\r\n");
 
         // output the header
         final Milestone<Boolean> selfDelimiting = Milestone.make();

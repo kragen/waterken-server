@@ -124,7 +124,7 @@ Mirror extends Struct implements Server, Serializable {
                 PowerlessArray.builder(6);
             headers.append(new Header("ETag", etag));
             headers.append(new Header("Cache-Control",
-                    null != promise ? "max-age=" + forever : "no-cache"));
+                "must-revalidate, max-age=" + (null != promise ? forever : 0)));
             headers.append(new Header("Content-Length", ""+target.getLength()));
             headers.append(new Header("Content-Type", type.name));
             if (null != encoding) {
