@@ -20,7 +20,7 @@ import org.joe_e.array.IntArray;
 import org.joe_e.array.LongArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.array.ShortArray;
-import org.ref_send.promise.Channel;
+import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
@@ -38,7 +38,7 @@ Bounce {
      */
     static public Wall
     make(final Eventual _) {
-        final Channel<Boolean> d = _.defer();
+        final Deferred<Boolean> d = _.defer();
         final Receiver<Boolean> normal = d.resolver;
         final Promise<Boolean> p = ref(false);
         class WallX extends Struct implements Wall, Serializable {

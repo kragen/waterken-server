@@ -7,7 +7,7 @@ import static org.ref_send.promise.Eventual.cast;
 import java.io.Serializable;
 import java.util.Iterator;
 
-import org.ref_send.promise.Channel;
+import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Resolver;
@@ -31,7 +31,7 @@ Serial {
          * The implementation starts with a promise for the initial element,
          * from which all other promises are derived.
          */ 
-        final Channel<Element<T>> initial = _.defer();
+        final Deferred<Element<T>> initial = _.defer();
         class SeriesX implements Series<T>, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -78,7 +78,7 @@ Serial {
                  * reference for what will be the next element in the list,
                  * which is now the new last element.
                  */
-                final Channel<Element<T>> x = _.defer();
+                final Deferred<Element<T>> x = _.defer();
                 back.apply(Link.link(value, cast(Element.class, x.promise)));
                 back = x.resolver;
             }

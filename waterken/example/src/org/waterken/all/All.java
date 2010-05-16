@@ -14,6 +14,9 @@ import org.waterken.bang.Drum;
 import org.waterken.bounce.Bounce;
 import org.waterken.bounce.Pitch;
 import org.waterken.bounce.Wall;
+import org.waterken.delayed.Forwarder;
+import org.waterken.delayed.ForwarderMaker;
+import org.waterken.delayed.Relay;
 import org.waterken.eq.SoundCheck;
 import org.waterken.serial.PopPushN;
 
@@ -43,8 +46,12 @@ All {
         
         _.log.comment("testing promise resolution");
         final Promise<?> d = PopPushN.make(_, 4);
+        
+        _.log.comment("testing delayed resolution");
+        final Vat<Forwarder> forwarder = _.spawn("delay", ForwarderMaker.class);
+        final Promise<?> e = Relay.make(_, forwarder.top);
 
-        return join(_, a, b, c, d);
+        return join(_, a, b, c, d, e);
     }
     
     // Command line interface
