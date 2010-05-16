@@ -6,7 +6,7 @@ import static org.ref_send.promise.Eventual.ref;
 
 import java.io.Serializable;
 
-import org.ref_send.promise.Channel;
+import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
@@ -39,15 +39,16 @@ Logic {
     }
 
     /**
-     * Creates a promise that resolves when a list of other promises resolve.
-     * @param _     eventual operator
-     * @param tests	each promise
-     * @return promise that is fulfilled iff each of the promises is fulfilled
+     * Fulfills a promise after each listed promise is fulfilled.
+     * @param _ eventual operator
+     * @param tests each promise
+     * @return promise that is fulfilled if each of the listed promises is
+     *         fulfilled; otherwise, the promise is rejected
      */
     static public Promise<?>
     join(final Eventual _, final Promise<?>... tests) {
         if (0 == tests.length) { return ref(true); }
-        final Channel<Object> answer = _.defer();
+        final Deferred<Object> answer = _.defer();
         final int[] todo = { tests.length };
         final Resolver<Object> resolver = answer.resolver;
         for (final Promise<?> test : tests) {
