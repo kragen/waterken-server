@@ -185,6 +185,11 @@ Caller extends Struct implements Serializable {
     private Object
     receive(final String base, final Message<Response> m, final Type R) {
         try {
+            for (final Header header : m.head.headers) {
+                if (Header.equivalent("Warning", header.name)) {
+                    throw new Warning();
+                }
+            }
             if ("200".equals(m.head.status) || "201".equals(m.head.status) ||
                 "202".equals(m.head.status) || "203".equals(m.head.status)) {
                 String contentType = m.head.getContentType();
