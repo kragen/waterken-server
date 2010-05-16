@@ -33,8 +33,8 @@ import javax.crypto.spec.SecretKeySpec;
 import org.joe_e.Immutable;
 import org.joe_e.JoeE;
 import org.joe_e.Struct;
-import org.joe_e.Token;
 import org.joe_e.array.ByteArray;
+import org.joe_e.array.ImmutableArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
 import org.joe_e.file.InvalidFilenameException;
@@ -45,6 +45,7 @@ import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
+import org.ref_send.promise.Scheduler;
 import org.waterken.base32.Base32;
 import org.waterken.cache.CacheReference;
 import org.waterken.db.Creator;
@@ -104,8 +105,9 @@ JODB<S> extends Database<S> {
 
     protected
     JODB(final S session, final Receiver<Service> service,
-         final Receiver<Event> stderr, final Store store) {
-        super(session, service);
+         final Scheduler<Service> scheduler, final Receiver<Event> stderr,
+         final Store store) {
+        super(session, service, scheduler);
         this.stderr = stderr;
         this.store = store;
     }
@@ -148,20 +150,36 @@ JODB<S> extends Database<S> {
     private       Processor tx;     // currently active transaction processor
     
     static private final class
-    Wake implements Transaction<Immutable> {
-        public Immutable
+    Wake<S> implements Transaction<ImmutableArray<Effect<S>>> {
+        public ImmutableArray<Effect<S>>
         apply(final Root root) throws Exception {
-            final Receiver<?> wake = root.fetch(null, Database.wake);
-            if (null != wake) { wake.apply(null); }
-            return new Token();
+            final Promise<ImmutableArray<Effect<S>>> wake =
+                root.fetch(null, Database.wake);
+            if (null != wake) { return wake.call(); }
+            return ImmutableArray.array();
         }
     }
 
     public <R extends Immutable> Promise<R>
     enter(final boolean isQuery, final Transaction<R> body) throws Exception {
         synchronized (store) {
-            if (!awake.is() && !(body instanceof Wake)) {
-                enter(Database.query, new Wake()).call();
+            if (!awake.is() && !(body instanceof Wake<?>)) {
+                // To restart any pending services, use a query transaction that
+                // prevents application objects from detecting restart. Since
+                // its a query transaction, we have to manually schedule the
+                // effects, since the called infrastructure code is prohibited
+                // from calling mutator methods.
+                final ImmutableArray<Effect<S>> effects =
+                    enter(Database.query, new Wake<S>()).call();
+                for (final Effect<S> effect : effects) {
+                    service.apply(new Service() {
+                        public Void
+                        call() throws Exception {
+                            effect.apply(JODB.this);
+                            return null;
+                        }
+                    });
+                }
                 awake.set(true);
             }
             Promise<R> r;
@@ -544,6 +562,10 @@ JODB<S> extends Database<S> {
     final Receiver<Effect<S>> effect = new Receiver<Effect<S>>() {
         public void
         apply(final Effect<S> task) {
+            if (tx.isQuery) {
+                throw new ProhibitedModification(
+                        Reflection.getName(Receiver.class));
+            }
             tx.services.add(new Service() {
                 public Void
                 call() throws Exception {
@@ -587,7 +609,7 @@ JODB<S> extends Database<S> {
                 final byte[] bits = new byte[128 / Byte.SIZE];
                 prng.nextBytes(bits);
                 final ByteArray secretBits = ByteArray.array(bits);
-                final JODB<S> sub = new JODB<S>(null, null,
+                final JODB<S> sub = new JODB<S>(null, null, null,
                     null == stderr ? new Receiver<Event>() {
                         public void
                         apply(final Event value) {}
@@ -627,7 +649,13 @@ JODB<S> extends Database<S> {
     };
     final Receiver<Event> txerr = new Receiver<Event>() {
         public void
-        apply(final Event event) { tx.events.add(event); }
+        apply(final Event event) {
+            if (tx.isQuery) {
+                throw new ProhibitedModification(
+                        Reflection.getName(Receiver.class));
+            }
+            tx.events.add(event);
+        }
     };
     final Log nop = new Log();
 
@@ -698,8 +726,10 @@ JODB<S> extends Database<S> {
             freeMac(mac);
             if (b.created || !version.equals(b.version)) {
                 if (null == bytes) {
+                    final Object mutated = o instanceof SymbolicLink ?
+                            ((SymbolicLink)o).target : o;
                     throw new ProhibitedModification(Reflection.getName(
-                        null != o ? o.getClass() : Void.class));
+                        null != mutated ? mutated.getClass() : Void.class));
                 }
                 final OutputStream fout = m.update.write(f + ext);
                 bytes.writeTo(fout);

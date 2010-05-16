@@ -12,6 +12,7 @@ import org.waterken.db.DatabaseManager;
 import org.waterken.db.Service;
 import org.waterken.store.StoreMaker;
 import org.waterken.thread.Loop;
+import org.waterken.thread.LoopScheduler;
 
 /**
  * A cache of live vats.
@@ -45,9 +46,10 @@ JODBManager<S> implements DatabaseManager<S> {
         synchronized (live) {
             JODB<S> r = live.fetch(null, dir);
             if (null != r) { return r; }
-            final Loop<Service> service = Loop.make("[" + dir.getPath() + "]");            
-            r = new JODB<S>(session, service.foreground, stderr, layout.apply(
-                    service.background, dir.getParentFile(), dir));
+            final Loop<Service> service = Loop.make("[" + dir.getPath() + "]");
+            r = new JODB<S>(session, service.foreground,
+                    LoopScheduler.make(service.foreground), stderr,
+                    layout.apply(service.background, dir.getParentFile(), dir));
             live.put(dir, r);
             return r;
         }

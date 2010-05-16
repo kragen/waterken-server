@@ -6,6 +6,7 @@ import org.joe_e.Immutable;
 import org.ref_send.promise.Log;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
+import org.ref_send.promise.Scheduler;
 import org.waterken.store.DoesNotExist;
 
 /**
@@ -68,7 +69,7 @@ Database<S> {
     static public final String top = ".top";
 
     /**
-     * {@link Database#extend} {@link Receiver task} run when database is opened
+     * {@link Database#extend} {@link Promise task} run when database is opened
      */
     static public final String wake = ".wake";
 
@@ -77,12 +78,16 @@ Database<S> {
     /**
      * indicates a {@linkplain Database#enter transaction} only queries existing
      * state, and does not persist any new selfish objects
+     * <p>
+     * Infrastructure code uses this feature to prevent changes to application
+     * objects during certain transactions.
+     * </p>
      */
     public static final boolean query = true;
 
     /**
-     * indicates a {@linkplain Database#enter transaction} may modify existing
-     * state
+     * indicates a {@linkplain Database#enter transaction} is allowed to modify
+     * existing state
      */
     public static final boolean update = false;
     
@@ -97,12 +102,20 @@ Database<S> {
     public final Receiver<Service> service;
     
     /**
+     * pending timeouts associated with this database
+     */
+    public final Scheduler<Service> scheduler;
+    
+    /**
      * Constructs an instance.
      */
     protected
-    Database(final S session, final Receiver<Service> service) {
+    Database(final S session,
+             final Receiver<Service> service,
+             final Scheduler<Service> timeouts) {
         this.session = session;
         this.service = service;
+        this.scheduler = timeouts;
     }
 
     /**
