@@ -17,6 +17,6 @@ Warning extends Failure {
      */
     public @deserializer
     Warning() {
-        super("400", "state response");
+        super("400", "stale response");
     }
 }
