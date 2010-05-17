@@ -495,7 +495,7 @@ Eventual implements Serializable {
         private final long condition;           // id of this promise
         private       Promise<When<T>> back;    // observer list sentinel
         
-        private       boolean unresolved;           // Is resolved yet?
+        private       boolean unresolved;           // Is not resolved yet?
         private       Class<?> T;                   // concrete referent type
         private       Promise<? extends T> value;   // resolved value
 
