@@ -590,7 +590,9 @@ Eventual implements Serializable {
         reject(final Exception reason) { set(null, new Rejected<T>(reason)); }
 
         public void
-        resolve(final Promise<T> p) { set(null != p ? null : Void.class, p); }
+        resolve(final Promise<? extends T> p) {
+            set(null != p ? null : Void.class, p);
+        }
 
         public void
         apply(final T r) {
@@ -599,12 +601,13 @@ Eventual implements Serializable {
         }
         
         private void
-        set(final Class<?> T, Promise<T> p) {
+        set(final Class<?> T, Promise<? extends T> p) {
             if (p instanceof Fulfilled<?>) {
-                p = ((Fulfilled<T>)p).getState();
+                p = ((Fulfilled<? extends T>)p).getState();
                 log.fulfilled(here + "#p" + condition);
             } else if (p instanceof Rejected<?>) {
-                log.rejected(here + "#p" + condition, ((Rejected<T>)p).reason);
+                log.rejected(here + "#p" + condition,
+                             ((Rejected<? extends T>)p).reason);
             } else {
                 log.resolved(here + "#p" + condition);
             }

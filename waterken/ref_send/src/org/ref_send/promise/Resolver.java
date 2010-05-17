@@ -30,7 +30,7 @@ Resolver<T> extends Receiver<T> {
      * Resolve the corresponding promise to the given promise.
      * @param promise   promise to forward requests to
      */
-    void resolve(Promise<T> promise);
+    void resolve(Promise<? extends T> promise);
 
     /**
      * Resolve the corresponding promise to the given reference.
