@@ -495,13 +495,14 @@ Eventual implements Serializable {
         private final long condition;           // id of this promise
         private       Promise<When<T>> back;    // observer list sentinel
         
-        private       boolean resolved;             // Is resolved yet?
+        private       boolean unresolved;           // Is resolved yet?
         private       Class<?> T;                   // concrete referent type
         private       Promise<? extends T> value;   // resolved value
 
         State(final long condition, final Promise<When<T>> back) {
             this.condition = condition;
             this.back = back;
+            unresolved = true;
         }
 
         protected void
@@ -546,7 +547,7 @@ Eventual implements Serializable {
         public T
         call() throws Exception {
             final State<T> cell = state.call();
-            if (!cell.resolved) { throw new Unresolved(); }
+            if (cell.unresolved) { throw new Unresolved(); }
             return cell.value.call();
         }
 
@@ -610,8 +611,8 @@ Eventual implements Serializable {
             enqueue.apply(new Forward<T>(true, condition, front, T, p));
             try {
                 final State<T> cell = state.call();
-                if (null != cell && !cell.resolved && null == cell.value) {
-                    cell.resolved = true;
+                if (null != cell && cell.unresolved) {
+                    cell.unresolved = false;
                     cell.T = T;
                     cell.value = p;
                 }
