@@ -587,7 +587,7 @@ Eventual implements Serializable {
         progress() { log.progressed(here + "#p" + condition); }
 
         public void
-        reject(final Exception reason) { resolve(new Rejected<T>(reason)); }
+        reject(final Exception reason) { set(null, new Rejected<T>(reason)); }
 
         public void
         resolve(final Promise<T> p) { set(null != p ? null : Void.class, p); }
