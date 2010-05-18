@@ -91,12 +91,12 @@ InternetShortcuts implements Server, Serializable {
         final Scope<?> link = (Scope<?>)args.get(0);
         final String name = link.get("name");
         final File file = Filesystem.file(root,
-                name + ("gnome".equals(format) ? ".desktop" : ".url"));
+                name + ("Linux".equals(format) ? ".desktop" : ".url"));
         file.delete();
         final Ref href = link.get("href");
         if (null != href) {
             final Writer out = UTF8.output(Filesystem.writeNew(file));
-            if ("gnome".equals(format)) {
+            if ("Linux".equals(format)) {
                 out.write("[Desktop Entry]\nType=Link\nName=");
                 out.write(name);
                 out.write("\nURL=");
