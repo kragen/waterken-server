@@ -7,7 +7,6 @@ import static org.joe_e.reflect.Proxies.proxy;
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 
 import org.joe_e.Equatable;
@@ -942,15 +941,17 @@ Eventual implements Serializable {
      * {@linkplain Vat#destruct destructed}.
      * </p>
      * <p>
-     * The <code>maker</code> MUST have a method with signature:
+     * The <code>maker</code> MUST be a <code>public</code>
+     * {@linkplain org.joe_e.IsJoeE Joe-E} class with a method of signature:
      * </p>
      * <pre>
      * static public R
      * make({@link Eventual} _, &hellip;)
      * </pre>
      * <p>
-     * All of the parameters in the make method are optional, but MUST appear
-     * in the order shown if present.
+     * The ellipsis means the method can have any number of additional
+     * arguments. The {@link Eventual} parameter, if present, MUST be the first
+     * parameter.
      * </p>
      * <p>
      * This method will not throw an {@link Exception}. None of the arguments
@@ -970,17 +971,8 @@ Eventual implements Serializable {
          * The default implementation just calls the make method in a separate
          * event loop turn.
          */
-        final Invoke<Class<?>> invoke;
         try {
-            Method make = null;
-            for (final Method m : Reflection.methods(maker)) {
-                if ("make".equals(m.getName()) &&
-                        Modifier.isStatic(m.getModifiers())) {
-                    if (null != make) { throw new NotAMaker(maker); }
-                    make = m;
-                }
-            }
-            if (null == make) { throw new NotAMaker(maker); }
+            final Method make = NotAMaker.dispatch(maker);
             final Class<?>[] paramv = make.getParameterTypes();
             final ConstArray.Builder<Object> argv =
                 ConstArray.builder(paramv.length);
@@ -988,11 +980,11 @@ Eventual implements Serializable {
                 argv.append(this);
             }
             for (final Object x : optional) { argv.append(x); }
-            invoke = new Invoke<Class<?>>(make, argv.snapshot());
+            final @SuppressWarnings("unchecked") R top =
+                (R)when(maker, new Invoke<Class<?>>(make, argv.snapshot()));
+            final Receiver<?> destruct = cast(Receiver.class, null);
+            return new Vat<R>(top, destruct);
         } catch (final Exception e) { throw new Error(e); }
-        final Receiver<?> destruct = cast(Receiver.class, null);
-        final @SuppressWarnings("unchecked") R top = (R)when(maker, invoke);
-        return new Vat<R>(top, destruct);
     }
 
 //  The following convenience overloads are supported under JDK1.6 and early
