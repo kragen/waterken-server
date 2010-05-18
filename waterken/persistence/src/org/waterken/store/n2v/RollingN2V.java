@@ -28,6 +28,7 @@ import org.waterken.archive.ArchiveOutput;
 import org.waterken.archive.n2v.N2V;
 import org.waterken.archive.n2v.N2VOutput;
 import org.waterken.store.DoesNotExist;
+import org.waterken.store.NameCollision;
 import org.waterken.store.Store;
 import org.waterken.store.StoreMaker;
 import org.waterken.store.Update;
@@ -191,11 +192,13 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                         if (committing.is()) { throw new AssertionError(); }
                         
                         final String was = "." + filename + ".was";
-                        if (filename.startsWith(".") || !ok(filename) ||
-                            Filesystem.file(dir, was).isFile() ||
+                        if (filename.startsWith(".") || !ok(filename)) {
+                            throw new InvalidFilenameException();
+                        }
+                        if (Filesystem.file(dir, was).isFile() ||
                             (mutated.is() &&
                                     Filesystem.file(pending, was).isFile())) {
-                            throw new InvalidFilenameException();
+                            throw new NameCollision();
                         }
                         if (!mutated.is()) {
                             mkdir(pending);
