@@ -4,7 +4,6 @@ package org.waterken.remote.http;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
@@ -13,7 +12,6 @@ import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.URLEncoding;
-import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Do;
 import org.ref_send.promise.Eventual;
@@ -71,16 +69,9 @@ HTTP extends Eventual implements Serializable {
 
     public @Override <R> Vat<R>
     spawn(final String label, final Class<?> maker, final Object... argv) {
-        Method make = null;
+        final Method make;
         try {
-            for (final Method m : Reflection.methods(maker)) {
-                if ("make".equals(m.getName()) &&
-                        Modifier.isStatic(m.getModifiers())) {
-                    if (null != make) { throw new NotAMaker(maker); }
-                    make = m;
-                }
-            }
-            if (null == make) { throw new NotAMaker(maker); }
+            make = NotAMaker.dispatch(maker);
         } catch (final Exception e) { throw new Error(e); }
         final Class<?> R = make.getReturnType();
         try {

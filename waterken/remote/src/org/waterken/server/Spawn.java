@@ -2,8 +2,12 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.server;
 
+import java.lang.reflect.Modifier;
+
+import org.joe_e.IsJoeE;
 import org.joe_e.array.ByteArray;
 import org.joe_e.charset.UTF8;
+import org.ref_send.promise.NotAMaker;
 import org.waterken.net.http.HTTPD;
 import org.waterken.project.Project;
 import org.waterken.remote.http.VatInitializer;
@@ -90,6 +94,18 @@ Spawn {
             final String r = VatInitializer.create(Settings.db(""), project,
                                                    here, label, maker, body);
             System.out.println(r);
+        } catch (final NotAMaker e) {
+            System.err.println(
+                "!!! no public static make() method found in: " + maker);
+        } catch (final IllegalAccessException e) {
+            if (!Modifier.isPublic(maker.getModifiers())) {
+                System.err.println("!!! MUST declare public: " + maker);
+            } else if (!maker.getPackage().isAnnotationPresent(IsJoeE.class)) {
+                System.err.println("!!! MUST add org.joe_e.IsJoeE annotation" +
+                                   " to: " + maker.getPackage());
+            } else {
+                throw e;
+            }
         } catch (final NameCollision e) {
             System.err.println(
                 "!!! There previously existed a vat with label: \"" + label +

@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
@@ -18,7 +19,7 @@ import org.ref_send.name;
  * Method dispatch implementation for web_send.
  */
 /* package */ class
-Dispatch extends Struct implements Record, Serializable {
+Dispatch extends Struct implements Record, Powerless, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**

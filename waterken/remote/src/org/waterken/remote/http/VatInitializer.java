@@ -17,6 +17,7 @@ import org.joe_e.reflect.Reflection;
 import org.ref_send.list.List;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Log;
+import org.ref_send.promise.NotAMaker;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
 import org.waterken.db.Creator;
@@ -88,7 +89,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     create(final Database<Server> parent, final String project,
            final String base, final String label,
            final Class<?> maker, final ByteArray body) throws Exception {
-        final Method make = Dispatch.post(maker, "make").declaration;
+        final Method make = NotAMaker.dispatch(maker);
         return parent.enter(Database.update,
                             new Transaction<PowerlessArray<String>>() {
             public PowerlessArray<String>
