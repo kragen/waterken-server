@@ -7,6 +7,7 @@ import org.joe_e.charset.UTF8;
 import org.waterken.net.http.HTTPD;
 import org.waterken.project.Project;
 import org.waterken.remote.http.VatInitializer;
+import org.waterken.store.NameCollision;
 import org.waterken.uri.Header;
 import org.waterken.uri.Hostname;
 
@@ -85,8 +86,16 @@ Spawn {
         // create the database
         final ClassLoader code = Project.connect(project);
         final Class<?> maker = code.loadClass(typename);
-        final String r = VatInitializer.create(Settings.db(""), project,
-                                               here, label, maker, body);
-        System.out.println(r);
+        try {
+            final String r = VatInitializer.create(Settings.db(""), project,
+                                                   here, label, maker, body);
+            System.out.println(r);
+        } catch (final NameCollision e) {
+            System.err.println(
+                "!!! There previously existed a vat with label: \"" + label +
+                "\". If you really want to reuse this name (not recommended)," +
+                " delete the corresponding vat folder *and* the hidden file" +
+                " \"." + label + ".was\".");
+        }
     }
 }
