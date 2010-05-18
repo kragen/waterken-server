@@ -22,7 +22,7 @@
         "class" : [ "org.waterken.shortcut.InternetShortcuts" ],
         "key" : { "@" : "inboxKey" },
         "root" : { "@" : "~/Desktop/" },
-        "format" : { "@" : "desktop" }
+        "format" : { "@" : "os" }
       }
     },
     "next" : {
