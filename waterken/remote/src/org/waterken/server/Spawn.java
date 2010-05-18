@@ -31,8 +31,8 @@ Spawn {
         // extract the arguments
         if (args.length < 2) {
             System.err.println("Creates a new persistent object folder.");
-            System.err.println("use: java -jar spawn.jar " +
-                "<project-name> <maker-typename> <database-label>");
+            System.err.println("use: java -jar spawn.jar <project-name>" +
+                " <maker-typename> <database-label>? <optional-arg>*");
             System.exit(-1);
             return;
         }
