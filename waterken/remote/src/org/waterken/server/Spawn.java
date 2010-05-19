@@ -108,10 +108,13 @@ Spawn {
             }
         } catch (final NameCollision e) {
             System.err.println(
-                "!!! There previously existed a vat with label: \"" + label +
-                "\". If you really want to reuse this name (not recommended)," +
-                " delete the corresponding vat folder *and* the hidden file" +
-                " \"." + label + ".was\".");
+                "!!! There previously existed a vat with label: \""+label+"\"");
+            System.err.println(
+                "    If you really want to reuse this name (not recommended),");
+            System.err.println(
+                "    delete the corresponding vat folder *and* the hidden");
+            System.err.println(
+                "    file: \"." + label + ".was\".");
         }
     }
 }
