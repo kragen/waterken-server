@@ -595,7 +595,8 @@ Eventual implements Serializable {
 
         public void
         apply(final T r) {
-            set(null != r ? r.getClass() : Void.class,
+            set(r instanceof Promise<?> ? null :
+                    null != r ? r.getClass() : Void.class,
                 null != r ? ref(r) : null);
         }
         
