@@ -106,7 +106,7 @@ Slicer extends ObjectOutputStream {
 
     /**
      * Can the object's creation identity be ignored?
-     * @param x candidate object
+     * @param type  candidate object's type
      * @return true if the object's creation identity need not be preserved,
      *         false if it MUST be preserved
      */
@@ -114,6 +114,9 @@ Slicer extends ObjectOutputStream {
     inline(final Class<?> type) {
         return type == Void.class || type == Class.class || type == Fulfilled ||
                type == StackTraceElement.class ||
-               JoeE.isSubtypeOf(type, Selfless.class);
+               (JoeE.isSubtypeOf(type, Selfless.class) &&
+                // The eventual operator is fat and is hard referenced from
+                // everywhere so don't store it inline.
+                !Eventual.class.isAssignableFrom(type));
     }
 }
