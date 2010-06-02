@@ -131,7 +131,7 @@ import org.ref_send.type.Typedef;
  *      Unified Approach to Access Control and Concurrency Control"</a>
  */
 public class
-Eventual implements Serializable {
+Eventual extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
 
     /**

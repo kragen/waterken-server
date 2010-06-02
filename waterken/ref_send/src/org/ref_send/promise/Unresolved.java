@@ -3,19 +3,11 @@
 package org.ref_send.promise;
 
 import org.joe_e.Powerless;
-import org.ref_send.Record;
-import org.ref_send.deserializer;
 
 /**
  * Signals a {@link Promise#call call} to an unresolved promise.
  */
 public final class
-Unresolved extends Exception implements Powerless, Record {
+Unresolved extends Exception implements Powerless {
     static private final long serialVersionUID = 1L;
-    
-    /**
-     * Constructs an instance.
-     */
-    public @deserializer
-    Unresolved() {}
 }

@@ -3,7 +3,6 @@
 package org.ref_send.promise;
 
 import org.joe_e.Powerless;
-import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
 
@@ -11,7 +10,7 @@ import org.ref_send.name;
  * Indicates a failed HTTP request.
  */
 public class
-Failure extends NullPointerException implements Powerless, Record {
+Failure extends NullPointerException implements Powerless {
     static private final long serialVersionUID = 1L;
 
     /**

@@ -7,8 +7,6 @@ import java.lang.reflect.Modifier;
 
 import org.joe_e.Powerless;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.Record;
-import org.ref_send.deserializer;
 
 /**
  * Indicates the class provided to {@link Eventual#spawn spawn} is not a Maker.
@@ -23,13 +21,13 @@ import org.ref_send.deserializer;
  * </ul>
  */
 public class
-NotAMaker extends NullPointerException implements Powerless, Record {
+NotAMaker extends NullPointerException implements Powerless {
     static private final long serialVersionUID = 1L;
+    
+    public
+    NotAMaker() {}
 
-    /**
-     * Constructs an instance.
-     */
-    public @deserializer
+    private
     NotAMaker(final Class<?> maker) {
         super(Reflection.getName(maker));
     }
