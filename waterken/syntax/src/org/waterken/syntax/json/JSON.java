@@ -9,6 +9,7 @@ import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
+import org.ref_send.brand.Brand;
 import org.ref_send.promise.Promise;
 
 /**
@@ -25,7 +26,8 @@ JSON {
      */
     static public PowerlessArray<String>
     upto(final Class<?> bottom, final Class<?> top) {
-        if (Promise.class.isAssignableFrom(bottom)) {
+        if (Promise.class.isAssignableFrom(bottom) ||
+            Brand.class.isAssignableFrom(bottom)) {
             return PowerlessArray.array();
         }
         
