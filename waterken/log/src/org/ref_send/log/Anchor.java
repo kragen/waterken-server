@@ -5,7 +5,6 @@ package org.ref_send.log;
 import java.io.Serializable;
 
 import org.joe_e.Powerless;
-import org.joe_e.Selfless;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
@@ -14,7 +13,7 @@ import org.ref_send.name;
  * A marker for a point in an event loop turn where an event originated.
  */
 public class
-Anchor implements Comparable<Anchor>, Selfless, Powerless, Record, Serializable{
+Anchor implements Comparable<Anchor>, Powerless, Record, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
