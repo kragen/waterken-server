@@ -153,7 +153,7 @@ Callee extends Struct implements Serializable {
                                 syntax.deserializeTuple(exports.getHere(),
                                   exports.connect(), ConstArray.array(lambda.
                                     implementation.getGenericParameterTypes()),
-                                  exports.getCodebase(),m.body.asInputStream());
+                                  exports.code, m.body.asInputStream());
                         } catch (final BadSyntax e) {
                             /*
                              * strip out the parsing information to avoid

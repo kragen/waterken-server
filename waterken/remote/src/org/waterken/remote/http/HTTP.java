@@ -30,6 +30,7 @@ import org.waterken.db.TransactionMonitor;
 import org.waterken.http.Message;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
+import org.waterken.remote.GUID;
 import org.waterken.remote.Messenger;
 import org.waterken.remote.Remote;
 import org.waterken.syntax.BadSyntax;
@@ -112,11 +113,13 @@ HTTP extends Eventual implements Serializable {
         static private final long serialVersionUID = 1L;
         
         public final HTTP _;
+        public final ClassLoader code;
         private final TransactionMonitor tagger;
         
         private
         Exports(final HTTP _) {
             this._ = _;
+            code = _.root.fetch(null, Database.code);
             tagger = _.root.fetch(null, Database.monitor);
         }
         
@@ -185,7 +188,7 @@ HTTP extends Eventual implements Serializable {
                                     _.effect, _.outbound);
                 _.root.assign(peerKey, msgs);
             }
-            return new Caller(_,_.here,getCodebase(), connect(),export(),msgs);
+            return new Caller(_, _.here, code, connect(), export(), msgs);
         }
         
         /**
@@ -194,21 +197,19 @@ HTTP extends Eventual implements Serializable {
         public String
         getHere() { return _.here; }
         
-        public ClassLoader
-        getCodebase() { return _.root.fetch(null, Database.code); }
-        
         /**
          * Constructs a reference importer.
          */
         public Importer
         connect() {
-            final Importer next = Remote.connect(_, _.local, this, _.here);
+            final Importer next = GUID.connect(code, _.root,
+                    Remote.connect(_, _.local, this, _.here));
             class ImporterX extends Struct implements Importer, Serializable {
                 static private final long serialVersionUID = 1L;
 
                 public Object
                 apply(final String href, final String base,
-                                       final Type type) throws Exception {
+                                         final Type type) throws Exception {
                     final String URL=null!=base ? URI.resolve(base,href) : href;
                     return Header.equivalent(URI.resolve(URL, "."), _.here) ?
                             reference(URI.fragment("", URL)) :
@@ -233,7 +234,8 @@ HTTP extends Eventual implements Serializable {
                                 !Fulfilled.isInstance(p) || isPBC(near(p)));
                 }
             }
-            return Remote.export(_.local, new ExporterX());
+            return Remote.export(_.local,
+                                 GUID.export(code, _.root, new ExporterX()));
         }
 
         protected String
