@@ -228,8 +228,8 @@ Eventual extends Struct implements Serializable {
      * <code>promise</code>, nor the <code>observer</code>, argument will be
      * given the opportunity to execute in the current event loop turn.
      * </p>
-     * @param <P> <code>observer</code>'s parameter type
-     * @param <R> <code>observer</code>'s return type
+     * @param <P> parameter type
+     * @param <R> return type
      * @param promise   observed promise
      * @param observer  observer, MUST NOT be <code>null</code>
      * @return promise, or {@linkplain #_ eventual reference}, for the
@@ -250,8 +250,8 @@ Eventual extends Struct implements Serializable {
      * The implementation behavior is the same as that documented for the
      * promise based {@link #when(Promise, Do) when} statement.
      * </p>
-     * @param <P> <code>observer</code>'s parameter type
-     * @param <R> <code>observer</code>'s return type
+     * @param <P> parameter type
+     * @param <R> return type
      * @param reference observed reference
      * @param observer  observer, MUST NOT be <code>null</code>
      * @return promise, or {@linkplain #_ eventual reference}, for the
