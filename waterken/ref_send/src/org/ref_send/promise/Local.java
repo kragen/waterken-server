@@ -9,6 +9,8 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
+import org.joe_e.Equatable;
+import org.joe_e.JoeE;
 import org.joe_e.Selfless;
 import org.joe_e.Token;
 import org.joe_e.array.ConstArray;
@@ -113,6 +115,53 @@ Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
      */
     protected abstract void
     when(Class<?> T, Do<? super T,?> observer);
+
+    /**
+     * Lists the part of an interface that a proxy can implement.
+     * @param r types to mimic
+     */
+    static protected Class<?>[]
+    virtualize(Class<?>... r) {
+        for (int i = r.length; i-- != 0;) {
+            final Class<?> type = r[i];
+            if (type == Serializable.class || !Proxies.isImplementable(type) ||
+                    JoeE.isSubtypeOf(type, Equatable.class)) {
+                // remove the type from the proxy type list 
+                {
+                    final Class<?>[] c = r;
+                    r = new Class<?>[c.length - 1];
+                    System.arraycopy(c, 0, r, 0, i);
+                    System.arraycopy(c, i + 1, r, i, r.length - i);
+                }
+
+                // search the inheritance tree for types that can be implemented
+                for (Class<?> p = type; null != p; p = p.getSuperclass()) {
+                    Class<?>[] x = virtualize(p.getInterfaces());
+
+                    // remove any duplicate types from the replacement type list
+                    for (int j = x.length; 0 != j--;) {
+                        for (int k = r.length; 0 != k--;) {
+                            if (x[j] == r[k]) {
+                                final Class<?>[] c = x;
+                                x = new Class<?>[c.length - 1];
+                                System.arraycopy(c, 0, x, 0, j);
+                                System.arraycopy(c, j + 1, x, j, x.length - j);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // splice in the replacement type list
+                    final Class<?>[] c = r;
+                    r = new Class<?>[c.length + x.length];
+                    System.arraycopy(c, 0, r, 0, i);
+                    System.arraycopy(x, 0, r, i, x.length);
+                    System.arraycopy(c, i, r, i + x.length, c.length - i);
+                }
+            }
+        }
+        return r;
+    }
 
     /**
      * Constructs a pending invocation.
