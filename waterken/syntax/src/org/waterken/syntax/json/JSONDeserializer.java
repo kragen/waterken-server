@@ -33,17 +33,17 @@ JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
     // org.waterken.syntax.Deserializer interface
 
     public Object
-    deserialize(final String base, final Importer connect,
-            final Type type, final ClassLoader code,
-            final InputStream content) throws IOException, BadSyntax {
+    deserialize(final InputStream content, final Importer connect,
+            final String base, final ClassLoader code,
+            final Type type) throws IOException, BadSyntax {
         return new JSONParser(base, connect, code,
             new BufferedReader(UTF8.input(content))).readValue(type);
     }
     
     public ConstArray<?>
-    deserializeTuple(final String base, final Importer connect,
-                     final ConstArray<Type> types, final ClassLoader code,
-                     final InputStream content) throws Exception {
+    deserializeTuple(final InputStream content, final Importer connect,
+                     final String base, final ClassLoader code,
+                     final Type... types) throws Exception {
         return new JSONParser(base, connect, code,
                 new BufferedReader(UTF8.input(content))).readTuple(types);
     }

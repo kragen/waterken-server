@@ -16,28 +16,28 @@ Deserializer extends Powerless {
 
     /**
      * Deserializes an object.
-     * @param base      base URL
+     * @param content   serialized content, will be closed
      * @param connect   reference importer
-     * @param type      expected type
+     * @param base      base URL
      * @param code      class loader
-     * @param content   serialized content input, will be closed
+     * @param type      expected type of the referenced object
      * @return deserialized object
      * @throws Exception    any exception
      */
-    Object deserialize(String base, Importer connect, Type type,
-                       ClassLoader code, InputStream content) throws Exception;
+    Object deserialize(InputStream content, Importer connect, String base,
+                       ClassLoader code, Type type) throws Exception;
 
     /**
-     * Deserializes a tuple.
-     * @param base      base URL
-     * @param connect   reference importer
-     * @param types     each expected type
-     * @param code      class loader
-     * @param content   serialized content input, will be closed
+     * Deserializes an argument list.
+     * @param content       serialized content, will be closed
+     * @param connect       reference importer
+     * @param base          base URL
+     * @param code          class loader
+     * @param parameters    expected type of each argument
      * @return deserialized tuple
      * @throws Exception    any exception
      */
-    ConstArray<?> deserializeTuple(String base, Importer connect,
-                                   ConstArray<Type> types, ClassLoader code,
-                                   InputStream content) throws Exception;
+    ConstArray<?> deserializeTuple(InputStream content, Importer connect,
+                                   String base, ClassLoader code,
+                                   Type... parameters) throws Exception;
 }

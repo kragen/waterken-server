@@ -71,16 +71,16 @@ JSONParser {
      * @throws BadSyntax    invalid JSON text
      */
     public ConstArray<?>
-    readTuple(final ConstArray<Type> parameters) throws IOException, BadSyntax {
+    readTuple(final Type... parameters) throws IOException, BadSyntax {
         try {
             if (null == lexer.next()) { throw new EOFException(); }
             if (!"[".equals(lexer.getHead())) { throw new Exception(); }
             final ConstArray.Builder<Object> r =
-                ConstArray.builder(parameters.length());
+                ConstArray.builder(parameters.length);
             if (!"]".equals(lexer.next())) {
                 while (true) {
-                    r.append(parseValue(r.length() < parameters.length()
-                            ? parameters.get(r.length()) : Object.class));
+                    r.append(parseValue(r.length() < parameters.length ?
+                        parameters[r.length()] : Object.class));
                     if ("]".equals(lexer.getHead())) { break; }
                     if (!",".equals(lexer.getHead())) { throw new Exception(); }
                     lexer.next();
@@ -248,40 +248,61 @@ JSONParser {
          * - declares a public constructor with the deserializer annotation
          * - is a subclass of Throwable and declares a public no-arg constructor
          */
-        
-        // determine the actual type and a corresponding constructor
-        final Class<?> actual;
-              Constructor<?> make = null;
+
         final PowerlessArray.Builder<String> names = PowerlessArray.builder(1);
         final ConstArray.Builder<Object> values = ConstArray.builder(1);
+        
+        // load any explicit type information
+        final Class<?>[] explicit;
         if (null != code && "\"class\"".equals(lexer.getHead())) {
             if (!":".equals(lexer.next())) { throw new Exception(); }
             lexer.next();
-            Class<?> type = null;
             final Object value = parseValue(PowerlessArray.class);
+            names.append("class");
+            values.append(value);
+            Class<?>[] types = null;
             if (value instanceof PowerlessArray<?>) {
                 for (final Object typename : (PowerlessArray<?>)value) {
                     try {
-                        final Class<?> t = JSON.load(code, (String)typename);
-                        if (null == type) { type = t; }
-                        make = Syntax.deserializer(t);
-                        if (null != make) { break; }
+                        final Class<?> type = JSON.load(code, (String)typename);
+                        if (null != types) {
+                            boolean implied = false;
+                            for (final Class<?> prior : types) {
+                                if (type.isAssignableFrom(prior)) {
+                                    implied = true;
+                                    break;
+                                }
+                            }
+                            if (!implied) {
+                                final int n = types.length;
+                                System.arraycopy(
+                                    types, 0, types = new Class<?>[n+1], 0, n);
+                                types[n] = type;
+                            }
+                        } else {
+                            types = new Class<?>[] { type };
+                        }
                     } catch (final ClassCastException e) {
                     } catch (final ClassNotFoundException e) {}
                 }
             }
-            actual = type;
-            names.append("class");
-            values.append(value);
+            explicit = types;
             if (",".equals(lexer.getHead())) { lexer.next(); }
         } else {
-            actual = null;
+            explicit = null;
         }
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
-        final Class<?> concrete = null!=actual ? actual : Typedef.raw(expected);
-        if (null == make && null == actual) {
-            make = Syntax.deserializer(concrete);
+        final Constructor<?> make;
+        if (null == explicit) {
+            make = Syntax.deserializer(Typedef.raw(expected));
+        } else {
+            Constructor<?> c = null;
+            for (final Class<?> type : explicit) {
+                c = Syntax.deserializer(type);
+                if (null != c) { break; }
+            }
+            make = c;
         }
         final String[] namev;
         final Type[] paramv;
@@ -324,7 +345,7 @@ JSONParser {
                 final Type type = -1 != slot ?
                         paramv[slot] :
                     "=".equals(name) ?
-                        (null != actual ? actual : required) :
+                        required :
                     "!".equals(name) ?
                         Exception.class :
                     Object.class;
@@ -353,23 +374,20 @@ JSONParser {
                 reason instanceof String ?
                     new Exception((String)reason) :
                 new Exception();
-            final Promise<?> r = Eventual.reject(e);
-            return null != promised ? r : Eventual.cast(concrete, r);
+            return Eventual.cast(Typedef.raw(required), Eventual.reject(e));
         }
         
         final int remote = find("@", undeclared);
         if (-1 != remote) {
             final String href = (String)values.snapshot().get(remote);
-            final Object r =
-                connect.apply(href, base, null != actual ? actual : required);
+            final Object r = null != explicit ?
+                connect.apply(href, base, explicit) :
+                connect.apply(href, base, required);
             return null != r && null != promised ? ref(r) : r;
         }
         
         final int replacement = find("=", undeclared);
-        if (-1 != replacement) {
-            final Object r = values.snapshot().get(replacement);
-            return null != r && null != promised ? ref(r) : r;
-        }
+        if (-1 != replacement) { return values.snapshot().get(replacement); }
         
         final Object r;
         if (null == make) {

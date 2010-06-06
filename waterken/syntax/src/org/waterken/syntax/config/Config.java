@@ -178,7 +178,7 @@ Config {
     sub(final File root, final String namespace) { return new Importer() {
         public Object
         apply(final String href, final String base,
-                                 final Type type) throws Exception {
+                                 final Type... type) throws Exception {
             if (!namespace.equals(base) || -1 != href.indexOf(':')) {
                 return connect.apply(href, base, type);
             }
@@ -220,8 +220,9 @@ Config {
                 final String filename = name + syntax.ext;
                 final File file = Filesystem.file(folder, filename);
                 if (!file.isFile()) { continue; }
-                r = syntax.deserializer.deserialize(subspace,
-                    sub(folder, subspace), type, code, Filesystem.read(file));
+                r = syntax.deserializer.deserialize(Filesystem.read(file),
+                    sub(folder, subspace), subspace, code,
+                    0 == type.length ? Object.class : type[0]);
                 break;
             }
             cacheKeys = cacheKeys.with(key);
