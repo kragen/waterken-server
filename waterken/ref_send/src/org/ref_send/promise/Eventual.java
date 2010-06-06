@@ -237,8 +237,7 @@ Eventual extends Struct implements Serializable {
      *         <code>observer</code>'s return type is <code>Void</code>
      */
     public final <P,R> R
-    when(final Promise<? extends P> promise,
-         final Do<? super P, ? extends R> observer) {
+    when(final Promise<P> promise, final Do<P,R> observer) {
         try {
             final Class<?> R = Typedef.raw(Local.output(Object.class,observer));
             return cast(R, when(null, R, promise, observer));
@@ -260,7 +259,7 @@ Eventual extends Struct implements Serializable {
      *         <code>observer</code>'s return type is <code>Void</code>
      */
     public final <P,R> R
-    when(final P reference, final Do<? super P, ? extends R> observer) {
+    when(final P reference, final Do<P,R> observer) {
         try {
             final Class<?> P= null!=reference?reference.getClass():Object.class;
             final Class<?> R = Typedef.raw(Local.output(P, observer));
