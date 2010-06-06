@@ -45,7 +45,7 @@ GUID extends Brand<Object> implements Selfless {
 
             public Object
             apply(final String href, final String base,
-                                     final Type type) throws Exception {
+                                     final Type... type) throws Exception {
                 if (!"urn".equals(URI.scheme(href))) {
                     return next.apply(href, base, type);
                 }

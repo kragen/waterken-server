@@ -158,7 +158,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
     static public Importer
     connect(final Server proxy) { return new Importer() {
         public Object
-        apply(final String href, final String base, final Type type) {
+        apply(final String href, final String base, final Type... type) {
             return poster(null != base ? URI.resolve(base, href) : href, proxy);
         }
     }; }

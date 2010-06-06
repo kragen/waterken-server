@@ -76,14 +76,14 @@ InternetShortcuts implements Server, Serializable {
                 this.url = url;
             }
         }
-        final ConstArray<?> args = new JSONDeserializer().deserializeTuple(
-            head.getAbsoluteRequestURI(scheme), new Importer() {
+        final ConstArray<?> args = new JSONDeserializer().deserializeTuple(body,
+            new Importer() {
                 public Object
                 apply(final String href, final String base,
-                      final Type type) throws Exception {
+                      final Type... type) throws Exception {
                     return new Ref(URI.resolve(base, href));
                 }
-            }, ConstArray.array((Type)Object.class), null, body);
+            }, head.getAbsoluteRequestURI(scheme), null, Object.class);
         if (0 == args.length() || !(args.get(0) instanceof Scope<?>)) {
             client.receive(Response.badRequest(), null);
             return;

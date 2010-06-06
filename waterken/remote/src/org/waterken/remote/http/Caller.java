@@ -203,7 +203,7 @@ Caller extends Struct implements Serializable {
                 }
                 return Header.equivalent(FileType.unknown.name, contentType) ?
                     m.body : new JSONDeserializer().deserialize(
-                        base, connect, R, codebase, m.body.asInputStream());
+                        m.body.asInputStream(), connect, base, codebase, R);
             } 
             if ("204".equals(m.head.status) ||
                 "205".equals(m.head.status)) { return true; }

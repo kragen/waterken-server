@@ -64,18 +64,16 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         root.assign(VatInitializer.exports, exports);
         root.assign(VatInitializer.sessions, new SessionMaker(root));
         root.assign(Database.wake, wake(tasks, outbound));
-        final ConstArray<Type> signature =
-            ConstArray.array(make.getGenericParameterTypes());
-        final Object[] argv = new Object[signature.length()];
+        Type[] paramv = make.getGenericParameterTypes();
+        final Object[] argv = new Object[paramv.length];
         int nextArg = 0;
-        ConstArray<Type> parameters = signature;
-        if (0 != parameters.length() && Eventual.class == parameters.get(0)) {
-            parameters = parameters.without(0);
+        if (0 != paramv.length && Eventual.class == paramv[0]) {
+            final int paramc = paramv.length - 1;
+            System.arraycopy(paramv, 1, paramv = new Type[paramc], 0, paramc);
             argv[nextArg++] = exports._;
         }
         final ConstArray<?> optional = new JSONDeserializer().deserializeTuple(
-            base, exports.connect(), parameters, exports.code,
-            body.asInputStream());
+            body.asInputStream(), exports.connect(), base, exports.code,paramv);
         for (final Object arg : optional) { argv[nextArg++] = arg; }
         final Object top = Reflection.invoke(make, null, argv);
         root.assign(Database.top, top);

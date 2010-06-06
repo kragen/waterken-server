@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 
+import org.joe_e.Selfless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.reflect.Proxies;
@@ -60,10 +61,18 @@ Remote extends Local<Object> {
             static private final long serialVersionUID = 1L;
             
             public Object
-            apply(final String href, final String base, final Type type) {
-                final String url = null!=base ? URI.resolve(base, href) : href;
-                return Eventual.cast(Typedef.raw(type),
-                    new Remote(_, local, messenger, URI.relate(here, url)));
+            apply(final String href, final String base, final Type... type) {
+                final Remote p = new Remote(_, local, messenger, URI.relate(
+                    here, null != base ? URI.resolve(base, href) : href));
+                final Class<?>[] types = new Class<?>[type.length + 1];
+                types[type.length] = Selfless.class;
+                boolean implemented = true;
+                for (int i = type.length; 0 != i--;) {
+                    types[i] = Typedef.raw(type[i]);
+                    implemented = implemented && types[i].isInstance(p); 
+                }
+                if (implemented) { return p; }
+                return Proxies.proxy(p, Local.virtualize(types));
             }
         }
         return new ImporterX();

@@ -150,10 +150,10 @@ Callee extends Struct implements Serializable {
                         final ConstArray<?> argv;
                         try {
                             argv = null == syntax ? ConstArray.array(m.body) : 
-                                syntax.deserializeTuple(exports.getHere(),
-                                  exports.connect(), ConstArray.array(lambda.
-                                    implementation.getGenericParameterTypes()),
-                                  exports.code, m.body.asInputStream());
+                                syntax.deserializeTuple(m.body.asInputStream(),
+                                  exports.connect(), exports.getHere(),
+                                  exports.code, lambda.implementation.
+                                      getGenericParameterTypes());
                         } catch (final BadSyntax e) {
                             /*
                              * strip out the parsing information to avoid

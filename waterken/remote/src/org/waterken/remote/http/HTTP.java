@@ -209,7 +209,7 @@ HTTP extends Eventual implements Serializable {
 
                 public Object
                 apply(final String href, final String base,
-                                         final Type type) throws Exception {
+                                         final Type... type) throws Exception {
                     final String URL=null!=base ? URI.resolve(base,href) : href;
                     return Header.equivalent(URI.resolve(URL, "."), _.here) ?
                             reference(URI.fragment("", URL)) :
