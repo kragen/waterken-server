@@ -11,7 +11,7 @@ import org.ref_send.name;
 
 /**
  * A typed <code>long</code> value.
- * @param <T> purpose of the {@linkplain #unit brand}
+ * @param <T> statically checked {@link #unit}
  */
 public class
 Amount<T> implements Comparable<Amount<T>>, Powerless, Record, Serializable {
