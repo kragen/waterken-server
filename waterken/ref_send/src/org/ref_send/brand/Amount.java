@@ -61,7 +61,7 @@ Amount<T> implements Comparable<Amount<T>>, Powerless, Record, Serializable {
     }
     
     public int
-    hashCode() { return (int)(value ^ (value >>> 32)) + 0x10C941CE; }
+    hashCode() { return (int)(value ^ (value >>> 32)) + 0x0FAB4A2D; }
 
     // java.lang.Comparable interface
 
