@@ -39,17 +39,6 @@ Amount<T> implements Comparable<Amount<T>>, Powerless, Record, Serializable {
         this.value = value;
     }
     
-    /**
-     * Constructs an instance.
-     * @param <T> purpose of the {@linkplain #unit brand}
-     * @param unit  {@link #unit}
-     * @param value {@link #value}
-     */
-    static public <T> Amount<T>
-    make(final Brand<T> unit, final long value) {
-        return new Amount<T>(unit, value);
-    }
-    
     // java.lang.Object interface
     
     public boolean
