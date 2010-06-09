@@ -834,8 +834,10 @@ Eventual extends Struct implements Serializable {
     /**
      * Gets a corresponding immediate reference.
      * <p>
-     * This method is the inverse of {@link #_(Object) _}; it gets the
-     * corresponding immediate reference for a given eventual reference.
+     * This method should only be used when the application knows the provided
+     * reference refers to a local object. Any other condition is treated as a
+     * fatal error. Use the {@link Promise#call call} method to check the status
+     * of a promise.
      * </p>
      * <p>
      * This method will not throw an {@link Exception}.
@@ -850,7 +852,10 @@ Eventual extends Struct implements Serializable {
     /**
      * Gets a corresponding immediate reference.
      * <p>
-     * This method is the inverse of {@link #ref ref}.
+     * This method should only be used when the application knows the provided
+     * promise refers to a local object. Any other condition is treated as a
+     * fatal error. Use the {@link Promise#call call} method to check the status
+     * of a promise.
      * </p>
      * <p>
      * This method will not throw an {@link Exception}.
