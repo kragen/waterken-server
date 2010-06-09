@@ -57,7 +57,7 @@ Amount<T> implements Comparable<Amount<T>>, Powerless, Record, Serializable {
         return null != o && Amount.class == o.getClass() &&
             value == ((Amount<?>)o).value &&
             (null != unit ? unit.equals(((Amount<?>)o).unit) :
-                             null == ((Amount<?>)o).unit);
+                            null == ((Amount<?>)o).unit);
     }
     
     public int
@@ -68,7 +68,7 @@ Amount<T> implements Comparable<Amount<T>>, Powerless, Record, Serializable {
     public int
     compareTo(final Amount<T> o) {
         if (!(null != unit ? unit.equals(o.unit) : null == o.unit)) {
-            throw new RuntimeException();
+            throw new WrongBrand(unit, o.unit);
         }
         final long d = value - o.value;
         return d < 0L ? -1 : d == 0L ? 0 : 1;
