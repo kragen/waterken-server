@@ -59,7 +59,7 @@ Turn implements Comparable<Turn>, Powerless, Record, Serializable {
     public int
     compareTo(final Turn o) {
         if (!(null != loop ? loop.equals(o.loop) : null == o.loop)) {
-            throw new RuntimeException();
+            throw new ClassCastException();
         }
         final long d = number - o.number;
         return d < 0L ? -1 : d == 0L ? 0 : 1;
