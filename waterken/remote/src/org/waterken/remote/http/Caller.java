@@ -59,6 +59,8 @@ Caller extends Struct implements Serializable {
     when(final String href, final Class<?> T, final Resolver<Object> resolver) {
         class When extends Operation implements Serializable {
             static private final long serialVersionUID = 1L;
+            
+            When() { super(false, false); }
 
             public Message<Request>
             render(final String x, final long w, final int m) throws Exception {
@@ -115,8 +117,10 @@ Caller extends Struct implements Serializable {
     private void
     get(final String href, final String name, final Object proxy,
             final Method method, final Resolver<Object> resolver) {
-        class GET extends Operation implements QueryOperation, Serializable {
+        class GET extends Operation implements Serializable {
             static private final long serialVersionUID = 1L;
+            
+            GET() { super(true, false); }
 
             public Message<Request>
             render(final String x, final long w, final int m) throws Exception {
@@ -152,8 +156,10 @@ Caller extends Struct implements Serializable {
     post(final String href, final String name,
          final Object proxy, final Method method,
          final ConstArray<?> argv, final Resolver<Object> resolver) {
-        class POST extends Operation implements UpdateOperation, Serializable {
+        class POST extends Operation implements Serializable {
             static private final long serialVersionUID = 1L;
+            
+            POST() { super(false, true); }
             
             public Message<Request>
             render(final String x, final long w, final int m) throws Exception {

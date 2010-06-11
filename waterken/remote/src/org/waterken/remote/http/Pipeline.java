@@ -94,17 +94,17 @@ Pipeline implements Serializable {
         boolean found = false;
         long n = max;
         for (final Operation x : pending) {
-            if (x instanceof UpdateOperation) {
+            if (x.isUpdate) {
                 if (queried) { break; }
                 index += 1;
             }
-            if (x instanceof QueryOperation) { queried = true; }
+            if (x.isQuery) { queried = true; }
             final long mid = sent++;
             found = found || skipTo == mid;
             if (!found) { continue; }
            
             final String guid;
-            if (x instanceof UpdateOperation) {
+            if (x.isUpdate) {
                 guid = name + "-" + activeWindow + "-" + index;
             } else {
                 guid = name + "-0-" + mid;
@@ -196,6 +196,7 @@ Pipeline implements Serializable {
         private final Operation underlying;
         
         Poller(final long retries, final Operation underlying) {
+            super(false, false);
             this.retries = retries;
             this.underlying = underlying;
         }
@@ -271,7 +272,7 @@ Pipeline implements Serializable {
         final long mid = acknowledged + pending.getSize();
         pending.append(operation);
         final String guid;
-        if (operation instanceof UpdateOperation) {
+        if (operation.isUpdate) {
             if (0 != queries) {
                 halts += 1;
                 queries = 0;
@@ -282,7 +283,7 @@ Pipeline implements Serializable {
         } else {
             guid = name + "-0-" + mid;
         }
-        if (operation instanceof QueryOperation) {
+        if (operation.isQuery) {
             queries += 1;
         }
         if (0 == halts) { effect.apply(restartTx(peer, 1, mid)); }
@@ -303,10 +304,10 @@ Pipeline implements Serializable {
             updates = 0;
             if (!isActive()) { Eventual.near(outbound).remove(this); }
         } else {
-            if (front instanceof UpdateOperation) {
+            if (front.isUpdate) {
                 activeIndex += 1;
             }
-            if (front instanceof QueryOperation) {
+            if (front.isQuery) {
                 if (0 == halts) {
                     queries -= 1;
                 } else {
@@ -317,14 +318,14 @@ Pipeline implements Serializable {
                     long max = pending.getSize();
                     long skipTo = acknowledged;
                     for (final Operation x : pending) {
-                        if (x instanceof UpdateOperation) {
+                        if (x.isUpdate) {
                             halts -= 1;
                             activeWindow += 1;
                             activeIndex = -1;
                             effect.apply(restartTx(peer, max, skipTo));
                             break;
                         }
-                        if (x instanceof QueryOperation) { break; }
+                        if (x.isQuery) { break; }
                         --max;
                         ++skipTo;
                     }

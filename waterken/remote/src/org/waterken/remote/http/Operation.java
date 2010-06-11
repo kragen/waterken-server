@@ -14,6 +14,23 @@ import org.waterken.http.Response;
 Operation extends Struct {
     
     /**
+     * Is this an idempotent {@link Operation} whose return might be affected by
+     * a subsequent {@linkplain #isUpdate update} {@link Operation}?
+     */
+    protected final boolean isQuery;
+    
+    /**
+     * Could this {@link Operation} cause side-effects?
+     */
+    protected final boolean isUpdate;
+    
+    protected
+    Operation(final boolean isQuery, final boolean isUpdate) {
+        this.isQuery = isQuery;
+        this.isUpdate = isUpdate;
+    }
+    
+    /**
      * Render the request.
      * @param sessionKey    message session key
      * @param window        messaging window number
