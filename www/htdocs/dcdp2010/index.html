@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>DCDP 2010</title>
+<link rel="StyleSheet" type="text/css" href="../site/style.css">
+<link rel="icon" type="image/gif" href="../site/icon.gif">
+<script type="text/javascript" src="../site/slide.js"></script>
+</head>
+<body>
+<div id="title">
+<h1>Using the Web for decentralized coordination of distributed
+processes.</h1>
+<h1>You <em>can</em> get there from here.</h1>
+<p class="slide">
+Tyler Close<br>
+Google, engineer<br>
+Waterken Server, project leader
+</p>
+</div>
+<div id="decentralized">
+<dl class="slide">
+<dt>decentralized</dt>
+<dd>There is no single authority in the network that everything is vulnerable
+to.</dd>
+</dl>
+</div>
+<div id="web-data-model">
+<h1>Web Data Model</h1>
+<p class="figure"><img
+  alt="origin, resource, URL, GET, POST, response, representation"
+  src="web-data-model.png"></p>
+</div>
+<div id="CA-cookie">
+<h1>CA + Cookie Security</h1>
+<p class="figure"><img alt="single trust domain" src="CA-cookie.png"></p>
+</div>
+<div id="CA-URL">
+<h1>CA URL</h1>
+<div class="slide">
+<p><code>https://example.org</code></p>
+<p><em>(scheme)</em><code>://</code><em>(host)</em><code>:</code><em>(port)</em></p>
+</div>
+</div>
+<div id="y-property">
+<h1>y-property</h1>
+<p class="figure"><img alt="Granovetter Diagram" src="y.gif"></p>
+</div>
+<div id="YURL">
+<h1>YURL</h1>
+<div style="font-size: x-large">
+<p><code>https://sha-256-bcn57qkphyqkjfrt.yurl.net</code></p>
+<p><em>(scheme)</em><code>://</code><em>(algorithm)</em><code>-</code><em>(fingerprint)</em><code>.yurl.net:</code><em>(port)</em></p>
+</div>
+</div>
+<div id="cookie">
+<h1>Cookie jar centralizes the client side</h1>
+<ul class="slide">
+<li>one cookie jar shared by all origins</li>
+<li>requests include ~all of an origin's cookies</li>
+<li>these cookies embody all of the user's authority</li>
+<li>no way to subdivide authority</li>
+</ul>
+</div>
+<div id="web-key">
+<h1>web-key</h1>
+<div class="slide">
+<p><code>./#s=4mrz4gknjpc6zi</code></p>
+<p><code>./#s=</code><em>(permission token)</em></p>
+<p style="font-size: large"><code>https://sha-256-bcn57qkphyqkjfrt.yurl.net/#s=4mrz4gknjpc6zi</code></p>
+</div>
+</div>
+<div id="YURL-web-key">
+<h1>YURL + web-key</h1>
+<p class="figure"><img alt="arbitrary number and size of trust domains"
+src="YURL-web-key.png"></p>
+</div>
+<div id="decentralized-summary">
+<h1>Summary</h1>
+<ul class="slide">
+<li>2 small and compatible tweaks to go from multiply centralized to arbitrarily
+decentralized</li>
+<li>DEMO: create a new <a
+href="https://sha-256-w4tp67lcenwhmxdxdb75pmikgd.yurl.net/">YURL.net</a> host
+and a sample web-key app</li>
+</ul>
+</div>
+<div id="distributed">
+<dl class="slide">
+<dt>distributed</dt>
+<dd>Processes are separated by a potentially unreliable network.</dd>
+</dl>
+</div>
+<div id="repetition">
+<h1>Repetition</h1>
+<ul class="slide">
+<li>fixing unreliability requires repetition</li>
+<li><code>GET</code> is idempotent, great!</li>
+<li><code>POST</code> is not, fix that!</li>
+</ul>
+</div>
+<div id="idempotent-POST">
+<h1>Idempotent <code>POST</code></h1>
+<div class="slide">
+<p><code>?x=4mrz4gknjpc6zi&amp;w=2&amp;m=1</code></p>
+<p><code>?x=</code><em>(session-id)</em><code>&amp;w=</code><em>(window-id)</em><code>&amp;m=</code><em>(message-id)</em></p>
+<p>DEMO: at most one withdrawal</p>
+</div>
+</div>
+<div id="distributed-consistency">
+<h1>Distributed Consistency</h1>
+<p class="figure"><img alt="DB stores outbound message queue"
+src="distributed-consistency.png"></p>
+<p class="slide">DEMO: stop the world</p>
+</div>
+<div id="distributed-summary">
+<h1>Summary</h1>
+<ul class="slide">
+<li>1 small tweak for distributed consistency</li>
+<li>persistently try to fulfill application commands, until the application
+dies</li>
+<li>simple implementation, no rollback, minimal checkpoint, turn key
+startup</li>
+</ul>
+</div>
+<div id="coordinated">
+<dl class="slide">
+<dt>coordinated</dt>
+<dd>Processes need to cooperate to achieve meaningful results, potentially in
+the face of mutual suspicion.</dd>
+</dl>
+</div>
+<div id="application-is-coordination">
+<h1>Application code is coordination code</h1>
+<ul class="slide">
+<li>coordination is an extensive topic</li>
+<li>basic requirements for decoupling<ul>
+  <li>fine grained, global references</li>
+  <li>least privilege</li>
+  <li>asynchronous operations</li>
+</ul></li>
+<li>Powerbox discovery and privilege amplification</li>
+</ul>
+</div>
+<div id="URL-as-promise">
+<h1>URL as promise</h1>
+<div class="slide">
+<p>When responding to a request requires making another request, the response
+must be a promise.</p>
+<p><code>/#<strong>o=</strong>&amp;s=vwvrzxa64rw6bb</code></p>
+</div>
+</div>
+<div id="ref_send">
+<h1>APIs for asynchrony</h1>
+<ul class="slide">
+<li>JavaScript API:<br> <a
+href="http://waterken.sf.net/web_send/#Q"><code>http://waterken.sf.net/web_send/#Q</code></a></li>
+<li>Java API:<br> <a
+href="http://waterken.sourceforge.net/javadoc/org/ref_send/promise/Eventual.html"><code>http://waterken.sf.net/javadoc</code></a></li>
+</ul>
+</div>
+<div id="UMP">
+<h1>Uniform Messaging Policy</h1>
+<ul class="slide">
+<li>Same Origin Policy can prohibit non-same-Origin scenarios, but can't make
+them safe<ul>
+  <li>eg: CSRF, clickjacking</li>
+</ul></li>
+<li>keep other people's filthy URLs out of your cookie jar</li>
+<li><a
+href="http://www.w3.org/TR/UMP/"><code>http://www.w3.org/TR/UMP/</code></a></li>
+</ul>
+</div>
+<div id="powerbox">
+<h1>Powerbox</h1>
+<p><img src="powerbox.png"
+  alt="provided resource &harr; Customer page &harr; Powerbox &harr; Provider"></p>
+<p>DEMO: a sneak peek at a browser powerbox</p>
+</div>
+<div id="conclusion">
+<h1>Conclusion</h1>
+<p class="slide">The existing Web infrastructure provides good support for DCDP
+and is being evolved to provide excellent support. A revolution of our
+perspective might be needed, but not of our tools.</p>
+</div>
+</body>
+</html>

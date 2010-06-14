@@ -1,7 +1,7 @@
 h1 { text-align: center }
 h1 a, h2 a, h3 a, h4 a, .heading {
-    font-family: Arial, Helvetica, sans-serif;
-    color: #007FB2;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #007FB2;
 }
 h2 { text-transform: uppercase }
 h4 { font-style: italic }
@@ -9,45 +9,52 @@ a { text-decoration: none }
 a:hover { color: blue; text-decoration: underline }
 img { border: none }
 sup { font-size: small }
+dfn, dt {
+  font-style: italic;
+  font-weight: bold;
+}
 .rejected { color: red }
 .highlight { background-color: yellow }
 .comment { color: gray; font-style: italic }
 .figure {
-    margin-left: auto;
-    margin-right: auto;
-    width: 20em;
+  margin-left: auto;
+  margin-right: auto;
+  width: 30em;
+}
+.slide {
+  font-size: xx-large;
 }
 caption, .caption {
-    font-size: large;
-    font-weight: bold;
+  font-size: large;
+  font-weight: bold;
 }
 pre {
-    border: 2px dotted gray;
-    padding: 0.5em;
-    width: 44em;
+  border: 2px dotted gray;
+  padding: 0.5em;
+  width: 44em;
 }
 form { padding: 0px; margin: 0px }
 table {
-    margin-left: auto;
-    margin-right: auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 th {
-    background-color: #99CCCC;
-    padding: 0.5em;
+  background-color: #99CCCC;
+  padding: 0.5em;
 }
 td {
-    padding-right: 1em;
+  padding-right: 1em;
 }
 body {
-    max-width: 40em;
-    margin-left: auto;
-    margin-right: auto;
+  max-width: 40em;
+  margin-left: auto;
+  margin-right: auto;
 }
 .navigation {
-    padding-bottom: 2px;
-    border-bottom: 2px solid #007FB2;
+  padding-bottom: 2px;
+  border-bottom: 2px solid #007FB2;
 }
 .footer {
-    border-top: 2px solid #007FB2;
-    padding-top: 2px;
+  border-top: 2px solid #007FB2;
+  padding-top: 2px;
 }
