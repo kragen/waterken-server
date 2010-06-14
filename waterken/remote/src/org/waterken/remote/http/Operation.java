@@ -2,6 +2,8 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
+import java.io.Serializable;
+
 import org.joe_e.Struct;
 import org.waterken.http.Message;
 import org.waterken.http.Request;
@@ -11,7 +13,8 @@ import org.waterken.http.Response;
  * A queued HTTP request.
  */
 /* package */ abstract class
-Operation extends Struct {
+Operation extends Struct implements Serializable {
+    static private final long serialVersionUID = 1L;
     
     /**
      * Is this an idempotent {@link Operation} whose return might be affected by
