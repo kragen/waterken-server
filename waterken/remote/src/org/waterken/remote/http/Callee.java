@@ -103,7 +103,7 @@ Callee extends Struct implements Serializable {
             if (null != failed) { return new Message<Response>(failed, null); }
             Message<Response> r = serialize(
                     m.head.method, "200", "OK", Server.ephemeral,
-                    property.implementation.getGenericReturnType(), value);
+                    property.declaration.getGenericReturnType(), value);
             if (null != etag) {
                 r = new Message<Response>(r.head.with("ETag", etag), r.body);
             }
