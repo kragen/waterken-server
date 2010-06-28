@@ -101,7 +101,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                         client.receive(Response.gone(), null);
                         return null;
                     } catch (final Exception e) {
-                        client.fail(e);
+                        try { client.fail(e); } catch (Exception ignored) {}
                         throw e;
                     }
                     try {
