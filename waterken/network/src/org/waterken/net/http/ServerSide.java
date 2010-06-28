@@ -131,7 +131,7 @@ ServerSide implements Promise<Void> {
                                     new Request(version, method, requestURI,
                                                 headers), body, current);
             } catch (final Exception e) {
-                current.fail(e);
+                try { current.fail(e); } catch (final Exception ignored) {}
                 throw e;
             }
             
