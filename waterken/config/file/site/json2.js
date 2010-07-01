@@ -156,7 +156,8 @@
 // Create a JSON object only if one does not already exist. We create the
 // methods in a closure to avoid creating global variables.
 
-JSON = this.JSON || {};
+// JSON = this.JSON || {};
+JSON = {};  // Firefox JSON implementation is buggy
 
 (function () {
 
