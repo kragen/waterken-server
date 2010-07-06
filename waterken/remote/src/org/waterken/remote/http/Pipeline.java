@@ -46,7 +46,7 @@ Pipeline implements Serializable {
     private   final Receiver<Effect<Server>> effect;
     private   final Promise<Outbound> outbound;
     
-    private   final ConstArray<List<Operation>> pollers;
+    private         ConstArray<List<Operation>> pollers = ConstArray.array();
    
     private         long activeWindow = 1;  // id of on-the-air window
     private         int  activeIndex = -1;  // last acknowledged window index
@@ -71,13 +71,6 @@ Pipeline implements Serializable {
         this.name = name;
         this.effect = effect;
         this.outbound = outbound;
-        
-        final ConstArray.Builder<List<Operation>> b = ConstArray.builder(5);
-        for (int i = 5; 0 != i--;) {
-            final List<Operation> l = List.list();
-            b.append(l);
-        }
-        pollers = b.snapshot();
     }
     
     /**
@@ -186,19 +179,31 @@ Pipeline implements Serializable {
      * @return GUID assigned to request
      */
     protected String
-    poll(final Operation operation) {return enqueue(new Poller(0, operation));}
+    poll(final Operation operation) { return enqueue(new Poller(operation)); }
     
     private final class
     Poller extends Operation implements Serializable {
         static private final long serialVersionUID = 1L;
 
-        private final long retries;
-        private final Operation underlying;
+        private final int a;                    // timeout before last request
+        private final int b;                    // timeout before retry
+        private final int priority;             // poller position for retry
+        private final long attempts;            // number of 404 responses
+        private final Operation underlying;     // request generator
         
-        Poller(final long retries, final Operation underlying) {
+        private
+        Poller(final int a, final int b, final int priority,
+               final long attempts, final Operation underlying) {
             super(false, false);
-            this.retries = retries;
+            this.a = a;
+            this.b = b;
+            this.priority = priority;
+            this.attempts = attempts;
             this.underlying = underlying;
+        }
+        
+        Poller(final Operation underlying) {
+            this(0, 1, 0, 0L, underlying);
         }
         
         protected Message<Request>
@@ -210,15 +215,22 @@ Pipeline implements Serializable {
         protected void
         fulfill(final String request, final Message<Response> response) {
             underlying.fulfill(request, response);
-            if ("404".equals(response.head.status)) {
-                if (!isActive()) { Eventual.near(outbound).add(Pipeline.this); }
-                final int priority = (int)Math.min(pollers.length()-1, retries); 
-                final List<Operation> poller = pollers.get(priority);
-                if (poller.isEmpty()) {
-                    effect.apply(waitTx(peer, priority, 1000L << 3 * priority));
-                }
-                poller.append(new Poller(retries + 1, underlying));
+            if (!"404".equals(response.head.status)) { return; }
+            if (!isActive()) { Eventual.near(outbound).add(Pipeline.this); }
+            final Poller retry = b > 3600 ?
+                new Poller(3600, 3600,  priority,     attempts + 1, underlying):
+                new Poller(b,    b + a, priority + 1, attempts + 1, underlying);
+            final List<Operation> poller;
+            if (priority < pollers.length()) {
+                poller = pollers.get(priority);
+            } else {
+                poller = List.list();
+                pollers = pollers.with(poller);
             }
+            if (poller.isEmpty()) {
+                effect.apply(waitTx(peer, priority, retry.a * 1000L));
+            }
+            poller.append(retry);
         }
 
         protected void
