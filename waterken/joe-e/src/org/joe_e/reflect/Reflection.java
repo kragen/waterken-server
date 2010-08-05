@@ -206,6 +206,14 @@ public final class Reflection {
     }
     
     /**
+     * Clears the stack trace on an exception.
+     * @param e exception to modify
+     */
+    static public void clearStackTrace(final Throwable e) {
+        e.setStackTrace(new StackTraceElement[] {});
+    }
+    
+    /**
      * boot class loader
      */
     // static private final ClassLoader boot = Runnable.class.getClassLoader();
