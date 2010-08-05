@@ -10,8 +10,7 @@ import org.ref_send.promise.Receiver;
 /**
  * Permission to sleep the current thread.
  */
-public final class
-Sleep extends Struct implements Receiver<Long>, Serializable {
+public final class Sleep extends Struct implements Receiver<Long>,Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
@@ -23,7 +22,7 @@ Sleep extends Struct implements Receiver<Long>, Serializable {
     public void
     apply(final Long ms) {
         System.err.println(Thread.currentThread().getName() +
-                           ": " + ms + " sleeping...");
+                           ": " + ms + "ms sleeping...");
         try { Thread.sleep(ms); } catch (final InterruptedException e) {}
         System.err.println(Thread.currentThread().getName() + ": awake");
     }
