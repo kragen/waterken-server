@@ -42,6 +42,7 @@ Callee extends Struct implements Serializable {
 
     protected Message<Response>
     apply(final String query, final Message<Request> m) throws Exception {
+        final ServerSideSession session = exports.getSession(query);
         
         // further dispatch the request based on the accessed member
         final String p = HTTP.predicate(m.head.method, query);
@@ -57,7 +58,8 @@ Callee extends Struct implements Serializable {
             Object value;
             try {
                 // AUDIT: call to untrusted application code
-                value = Eventual.ref(exports.reference(query)).call();
+                value = HTTP.shorten(Eventual.ref(
+                        exports.reference(session, query)));
             } catch (final Unresolved e) {
                 return serialize(m.head.method, "404", "not yet",
                                  Server.ephemeral, Exception.class, e);
@@ -66,20 +68,28 @@ Callee extends Struct implements Serializable {
             }
             final Response failed = m.head.allow("\"\"");
             if (null != failed) { return new Message<Response>(failed, null); }
-            return serialize(m.head.method, "200", "OK", Server.forever,
+            return serialize(m.head.method, "200", "ok", Server.forever,
                              Object.class, value);
         }                                       // member access
 
-        // determine the target object
-        final Object target;
-        try {
-            final Promise<?> subject = Eventual.ref(exports.reference(query));
-            // to preserve message order, only access members on a fulfilled ref
-            if (!Fulfilled.isInstance(subject)) { throw new Unresolved(); }
+        // to preserve message order, only access members on a local,
+        // pass-by-reference object
+        final Object target; {
+            Promise<?> subject;
+            try {
+                subject = Eventual.ref(exports.reference(session, query));
+            } catch (final Exception e) {
+                subject = Eventual.reject(e);
+            }
+            if (!Fulfilled.isInstance(subject)) { 
+                return serialize(m.head.method, "300", "not fulfilled",
+                                 Server.forever, Object.class, subject);
+            }
             target = subject.call();
-        } catch (final Exception e) {
-            return serialize(m.head.method, "404", "never", Server.forever,
-                             Exception.class, e);
+            if (HTTP.isPBC(target)) {
+                return serialize(m.head.method, "300", "pass-by-copy",
+                                 Server.forever, Object.class, target);
+            }
         }
 
         if ("GET".equals(m.head.method) || "HEAD".equals(m.head.method)) {
@@ -98,12 +108,12 @@ Callee extends Struct implements Serializable {
             } catch (final Exception e) {
                 value = Eventual.reject(e);
             }
-            final String etag = exports.getTransactionTag();
+            final String etag = exports.tagger.tag();
             final Response failed = m.head.allow(etag);
             if (null != failed) { return new Message<Response>(failed, null); }
             Message<Response> r = serialize(
-                    m.head.method, "200", "OK", Server.ephemeral,
-                    property.declaration.getGenericReturnType(), value);
+                m.head.method, "200", "ok", Server.ephemeral,
+                property.declaration.getGenericReturnType(), value);
             if (null != etag) {
                 r = new Message<Response>(r.head.with("ETag", etag), r.body);
             }
@@ -113,22 +123,21 @@ Callee extends Struct implements Serializable {
         if ("POST".equals(m.head.method)) {
             final Response failed = m.head.allow(null);
             if (null != failed) { return new Message<Response>(failed, null); }
-            return exports.execute(query, new NonIdempotent() {
-                public Message<Response>
-                apply(final String message) throws Exception {
+            final Dispatch lambda = Dispatch.post(target, p);
+            if (null == lambda) {               // no such method
+                final boolean get = null != Dispatch.get(target, p);
+                return new Message<Response>(Response.notAllowed(
+                    get ? new String[] { "TRACE", "OPTIONS", "GET" } : 
+                          new String[] { "TRACE", "OPTIONS"        }), null);
+            }                                   // method invocation
+            final Object value = exports.execute(session, query,
+                                                 new NonIdempotent() {
+                public Object
+                apply(final String message) {
                     /*
-                     * SECURITY CLAIM: do request processing inside once block
-                     * to ensure application layer cannot detect request replay
+                     * SECURITY CLAIM: application layer cannot detect request
+                     * replay since request processing is done inside once block
                      */
-                    final Dispatch lambda = Dispatch.post(target, p);
-                    if (null == lambda) {       // no such method
-                        exports._.log.got(message, null, null);
-                        exports._.log.returned(message + "-return");
-                        final boolean get = null != Dispatch.get(target, p);
-                        return new Message<Response>(Response.notAllowed(
-                            get ? new String[]{"TRACE","OPTIONS","GET"} : 
-                                  new String[]{"TRACE","OPTIONS"      }), null);
-                    }                           // method invocation
                     if (null != message) {
                         exports._.log.got(message, null, lambda.implementation);
                     }
@@ -151,7 +160,7 @@ Callee extends Struct implements Serializable {
                         try {
                             argv = null == syntax ? ConstArray.array(m.body) : 
                                 syntax.deserializeTuple(m.body.asInputStream(),
-                                  exports.connect(), exports.getHere(),
+                                  exports.connect(session), exports.getHere(),
                                   exports.code, lambda.implementation.
                                       getGenericParameterTypes());
                         } catch (final BadSyntax e) {
@@ -171,16 +180,22 @@ Callee extends Struct implements Serializable {
                     } catch (final Exception e) {
                         value = Eventual.reject(e);
                     }
-                    final Type R = lambda.declaration.getGenericReturnType();
                     if (null != message) {
-                        if (null!=value || (void.class!=R && Void.class!=R)) {
-                            exports._.log.returned(message + "-return");
-                        }
+                        exports._.log.returned(message + "-return");
                     }
-                    return serialize(m.head.method, "200", "OK",
-                                     Server.ephemeral, R, value);
+                    return value;
                 }
             });
+            if (null == value) {
+                final Class<?> R = lambda.implementation.getReturnType();
+                if (void.class == R || Void.class == R) {
+                    return new Message<Response>(new Response(
+                        "HTTP/1.1", "204", "void",
+                        PowerlessArray.array(new Header[] {})), null);
+                }
+            }
+            return serialize(m.head.method, "200", "ok", Server.ephemeral,
+                             lambda.declaration.getGenericReturnType(), value);
         }
         
         final boolean get = null != Dispatch.get(target, p);
@@ -191,7 +206,7 @@ Callee extends Struct implements Serializable {
                    post ? new String[] { "TRACE", "OPTIONS",        "POST" } :
                           new String[] { "TRACE", "OPTIONS"                };
         return "OPTIONS".equals(m.head.method) ?
-                new Message<Response>(Response.options(allow), null) :
+            new Message<Response>(Response.options(allow), null) :
             new Message<Response>(Response.notAllowed(allow), null);
     }
     

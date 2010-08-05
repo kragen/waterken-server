@@ -2,13 +2,9 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
-import org.waterken.http.Message;
-import org.waterken.http.Response;
-
 /**
  * A non-idempotent request handler.
  */
 interface NonIdempotent {
-    Message<Response>
-    apply(String message) throws Exception;
+    Object apply(String message);
 }

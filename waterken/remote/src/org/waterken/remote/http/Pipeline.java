@@ -7,7 +7,10 @@ import static org.ref_send.promise.Failure.maxEntitySize;
 import java.io.InputStream;
 import java.io.Serializable;
 
+import org.joe_e.Equatable;
 import org.joe_e.Immutable;
+import org.joe_e.Powerless;
+import org.joe_e.Struct;
 import org.joe_e.Token;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.ImmutableArray;
@@ -37,12 +40,13 @@ import org.waterken.uri.URI;
  * Manages a pending request queue for a peer vat.
  */
 /* package */ final class
-Pipeline implements Serializable {
+Pipeline implements Equatable, Serializable {
     static private final long serialVersionUID = 1L;
     
     protected final String peer;                    // absolute URI of peer vat
     private   final String key;                     // messaging session key
     private   final String name;                    // messaging session name
+    private   final Receiver<Promise<?>> enqueue;
     private   final Receiver<Effect<Server>> effect;
     private   final Promise<Outbound> outbound;
     
@@ -64,14 +68,28 @@ Pipeline implements Serializable {
 
     protected
     Pipeline(final String peer, final String key, final String name,
+             final Receiver<Promise<?>> enqueue,
              final Receiver<Effect<Server>> effect,
              final Promise<Outbound> outbound) {
         this.peer = peer;
         this.key = key;
         this.name = name;
+        this.enqueue = enqueue;
         this.effect = effect;
         this.outbound = outbound;
     }
+    
+    /**
+     * Gets the id of the currently active window.
+     */
+    protected long
+    getActiveWindow() { return activeWindow; }
+    
+    /**
+     * Gets the id of the currently queuing window.
+     */
+    protected long
+    getCurrentWindow() { return activeWindow + halts; }
     
     /**
      * Serializes requests and enqueues them on the transient HTTP connection.
@@ -102,11 +120,13 @@ Pipeline implements Serializable {
             } else {
                 guid = name + "-0-" + mid;
             }
-            try {
-                r.append(fulfill(peer, guid, mid,
-                                 x.render(key, activeWindow, index)));
-            } catch (final Exception reason) {
-                r.append(reject(peer, guid, mid, reason));
+            if (!(x instanceof Task)) {
+                try {
+                    r.append(fulfill(peer, guid, mid,
+                                     x.render(key, activeWindow, index)));
+                } catch (final Exception reason) {
+                    r.append(reject(peer, guid, mid, reason));
+                }
             }
             
             if (0 == --n) { break; }
@@ -148,7 +168,7 @@ Pipeline implements Serializable {
      * Are there any pending messages in this pipeline?
      */
     private boolean
-    isActive() {
+    isPending() {
         if (!pending.isEmpty()) { return true; }
         for (final List<?> i : pollers) {
             if (!i.isEmpty()) { return true; }
@@ -178,7 +198,7 @@ Pipeline implements Serializable {
      * @param operation operation to enqueue
      * @return GUID assigned to request
      */
-    protected String
+    protected Position
     poll(final Operation operation) { return enqueue(new Poller(operation)); }
     
     private final class
@@ -216,7 +236,7 @@ Pipeline implements Serializable {
         fulfill(final String request, final Message<Response> response) {
             underlying.fulfill(request, response);
             if (!"404".equals(response.head.status)) { return; }
-            if (!isActive()) { Eventual.near(outbound).add(Pipeline.this); }
+            if (!isPending()) { Eventual.near(outbound).add(Pipeline.this); }
             final Poller retry = b > 3600 ?
                 new Poller(3600, 3600,  priority,     attempts + 1, underlying):
                 new Poller(b,    b + a, priority + 1, attempts + 1, underlying);
@@ -278,28 +298,51 @@ Pipeline implements Serializable {
      * @param operation operation to enqueue
      * @return GUID assigned to request
      */
-    protected String
+    protected Position
     enqueue(final Operation operation) {
-        if (!isActive()) { Eventual.near(outbound).add(this); }
+        if (pending.isEmpty() && operation instanceof Task) {
+            enqueue.apply((Task)operation);
+            acknowledged += 1;
+            return new Position(0, 0, name + "-0-" + acknowledged);
+        }
+        if (!isPending()) { Eventual.near(outbound).add(this); }
         final long mid = acknowledged + pending.getSize();
         pending.append(operation);
-        final String guid;
+        final Position r;
         if (operation.isUpdate) {
             if (0 != queries) {
                 halts += 1;
                 queries = 0;
                 updates = 0;
             }
-            guid = name + "-" + (activeWindow + halts) + "-" + updates;
+            r = new Position(activeWindow + halts, updates,
+                             name + "-" + (activeWindow+halts) + "-" + updates);
             updates += 1;
         } else {
-            guid = name + "-0-" + mid;
+            r = new Position(0, 0, name + "-0-" + mid);
         }
         if (operation.isQuery) {
             queries += 1;
         }
-        if (0 == halts) { effect.apply(restartTx(peer, 1, mid)); }
-        return guid;
+        if (0 == halts && !(operation instanceof Task)) {
+            effect.apply(restartTx(peer, 1, mid));
+        }
+        return r;
+    }
+    
+    static protected final class
+    Position extends Struct implements Powerless, Serializable {
+        static private final long serialVersionUID = 1L;
+        
+        public final long window;
+        public final int message;
+        public final String guid;
+        
+        Position(final long window, final int message, final String guid) {
+            this.window = window;
+            this.message = message;
+            this.guid = guid;
+        }
     }
     
     private Operation
@@ -308,13 +351,17 @@ Pipeline implements Serializable {
         
         final Operation front = pending.pop();
         acknowledged += 1;
+        while (!pending.isEmpty() && pending.getFront() instanceof Task) {
+            enqueue.apply((Task)pending.pop());
+            acknowledged += 1;
+        }
         if (pending.isEmpty()) {
             activeWindow += 1;
             activeIndex = -1;
             halts = 0;
             queries = 0;
             updates = 0;
-            if (!isActive()) { Eventual.near(outbound).remove(this); }
+            if (!isPending()) { Eventual.near(outbound).remove(this); }
         } else {
             if (front.isUpdate) {
                 activeIndex += 1;

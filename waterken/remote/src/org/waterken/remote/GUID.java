@@ -9,6 +9,7 @@ import org.joe_e.Selfless;
 import org.joe_e.Struct;
 import org.ref_send.brand.Brand;
 import org.waterken.db.Root;
+import org.waterken.syntax.Export;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Importer;
 import org.waterken.uri.URI;
@@ -76,11 +77,13 @@ GUID extends Brand<Object> implements Selfless {
         class ExporterX extends Struct implements Exporter, Serializable {
             static private final long serialVersionUID = 1L;
 
-            public String
+            public Export
             apply(final Object target) {
-                if (target instanceof GUID) { return ((GUID)target).href; }
+                if (target instanceof GUID) {
+                    return new Export(((GUID)target).href);
+                }
                 if (target instanceof Brand<?>) {
-                    return "urn:guid:" + root.export(target, false);
+                    return new Export("urn:guid:" + root.export(target, false));
                 }
                 return next.apply(target);
             }

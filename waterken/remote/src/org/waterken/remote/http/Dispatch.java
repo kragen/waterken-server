@@ -58,7 +58,8 @@ Dispatch extends Struct implements Record, Powerless, Serializable {
         for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
             final int flags = m.getModifiers();
             if (c == isStatic(flags)) {
-                if (name.equals(property(m))) {
+                if (name.equals(property(m)) &&
+                        (!c || target == m.getDeclaringClass())) {
                     if (null != implementation) { return null; }
                     implementation = m;
                 }
@@ -84,9 +85,9 @@ Dispatch extends Struct implements Record, Powerless, Serializable {
         Method implementation = null;
         Method bridge = null;
         for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
-            final int flags = m.getModifiers();
-            if (c == isStatic(flags)) {
-                if (methodName.equals(m.getName()) && null == property(m)) {
+            if (c == isStatic(m.getModifiers())) {
+                if (methodName.equals(m.getName()) && null == property(m) &&
+                        (!c || target == m.getDeclaringClass())) {
                     if (null != implementation) {
                         if (null != bridge) { return null; }
                         if (implementation.isBridge()) {

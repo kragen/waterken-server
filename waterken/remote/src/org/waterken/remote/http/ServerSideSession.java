@@ -5,11 +5,6 @@ package org.waterken.remote.http;
 import java.io.Serializable;
 
 import org.joe_e.array.ConstArray;
-import org.joe_e.array.PowerlessArray;
-import org.joe_e.reflect.Reflection;
-import org.waterken.http.Message;
-import org.waterken.http.Response;
-import org.waterken.uri.Header;
 
 /**
  * The server-side state associated with a messaging session.
@@ -18,10 +13,23 @@ import org.waterken.uri.Header;
 ServerSideSession implements Serializable {
     static private final long serialVersionUID = 1L;
 
-    private final String name;                  // GUID of this session
+    private final String name;              // GUID of this session
     
-    private long current;                           // current window number
-    private ConstArray<Message<Response>> returns;  // returns in current window
+    private long current;                   // current window number
+    private ConstArray<Return> returns;     // returns in current window
+    
+    static private final class
+    Return implements Serializable {
+        static private final long serialVersionUID = 1L;
+
+        final int message;
+        final Object value;
+        
+        Return(final int message, final Object value) {
+            this.message = message;
+            this.value = value;
+        }
+    }
     
     protected
     ServerSideSession(final String name) {
@@ -31,48 +39,40 @@ ServerSideSession implements Serializable {
         returns = ConstArray.array();
     }
     
-    static protected Message<Response>
-    execute(final String message, final NonIdempotent op) {
-        try {
-            return op.apply(message);
-        } catch (final Exception e) {
-            return new Message<Response>(new Response(
-                "HTTP/1.1", "409", Reflection.getName(e.getClass()),
-                PowerlessArray.array(new Header("Content-Length", "0"))), null);
+    protected Object
+    pipeline(final int message) {
+        for (int i = returns.length(); 0 != i--;) {
+            if (message == returns.get(i).message) {
+                return returns.get(i).value;
+            }
         }
+        return null;
     }
     
-    protected Message<Response>
+    protected Object
     once(final long window, final int message, final NonIdempotent op) {
         if (window != current) {
             returns = ConstArray.array();
             current = window;
         }
-        if (message != returns.length()) {
-            if (message < returns.length()) { return returns.get(message); }
-            
-            /*
-             * Previous requests may have failed at lower levels in the
-             * protocol stack, such as an unknown HTTP method, a failed HTTP
-             * precondition, a too big request entity, or an invocation on a
-             * promise. Our own client side code should never encounter this
-             * condition.
-             */
-            
-            if (message - returns.length() > 10) {
-            	/*
-            	 * Most likely someone's just messing with us.
-            	 */
-            	throw new RuntimeException("missing requests");
+        for (int i = returns.length(); 0 != i--;) {
+            if (message > returns.get(i).message) {
+                if (i + 1 == returns.length()) { break; }
+
+                /*
+                 * Previous requests may have failed at lower levels in the
+                 * protocol stack, such as an unknown HTTP method, a failed HTTP
+                 * precondition, a too big request entity, or an invocation on a
+                 * promise.
+                 */
+                return null;
             }
-            for (int i = returns.length(); i != message; i += 1) {
-                returns = returns.with(new Message<Response>(new Response(
-                    "HTTP/1.1", "404", "never", PowerlessArray.array(
-                    		new Header("Content-Length", "0"))), null));
+            if (message == returns.get(i).message) {
+                return returns.get(i).value;
             }
         }
-        final Message<Response> r = execute(name+"-"+window+"-"+message, op);
-        returns = returns.with(r);
+        final Object r = op.apply(name + "-" + window + "-" + message);
+        returns = returns.with(new Return(message, r));
         return r;
     }
 }
