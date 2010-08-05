@@ -248,7 +248,7 @@ GenKey {
                 final HTTP.Exports exports =
                     local.fetch(null, VatInitializer.exports);
                 claim(exports._, exports.export(), hostname, (Registrar)exports.
-                        connect().apply(redirectoryURL, null, Registrar.class));
+                    connect(null).apply(redirectoryURL, null, Registrar.class));
                 return new Token();
             }
         }).call();
