@@ -401,6 +401,9 @@ JSONParser {
                 }
             }
             r = Reflection.construct(make, argv);
+            if (r instanceof Throwable) {
+                Reflection.clearStackTrace((Throwable)r);
+            }
         }
         return null != promised ? ref(r) : r;
     }

@@ -11,7 +11,7 @@ Exporter {
     /**
      * Exports a reference.
      * @param target    reference to export
-     * @return exported URL
+     * @return exported value
      */
-    String apply(Object target);
+    Export apply(Object target);
 }

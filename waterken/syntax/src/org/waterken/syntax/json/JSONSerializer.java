@@ -25,6 +25,7 @@ import org.ref_send.promise.Promise;
 import org.ref_send.scope.Layout;
 import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
+import org.waterken.syntax.Export;
 import org.waterken.syntax.Exporter;
 import org.waterken.syntax.Serializer;
 
@@ -230,18 +231,23 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
                 }
                 serialize(export, implicit, JSONerror.make(reason), out);
             } else {
-                final Type promised = Typedef.value(R, implicit);
-                final Type expected = null != promised ? promised : implicit;
-                final PowerlessArray<String> types =
-                    JSON.upto(actual, Typedef.raw(expected));
-                if (0 == types.length()) {
-                    out.writeLink(export.apply(value));
+                final Export link = export.apply(value);
+                if (null != link.href) {
+                    final Type promised = Typedef.value(R, implicit);
+                    final Type expected= null != promised ? promised : implicit;
+                    final PowerlessArray<String> types =
+                        JSON.upto(actual, Typedef.raw(expected));
+                    if (0 == types.length()) {
+                        out.writeLink(link.href);
+                    } else {
+                        final JSONWriter.ObjectWriter oout = out.startObject();
+                        serialize(export, PowerlessArray.class,
+                                  types, oout.startMember("class"));
+                        oout.startMember("@").writeString(link.href);
+                        oout.finish();
+                    }
                 } else {
-                    final JSONWriter.ObjectWriter oout = out.startObject();
-                    serialize(export, PowerlessArray.class,
-                              types, oout.startMember("class"));
-                    oout.startMember("@").writeString(export.apply(value));
-                    oout.finish();
+                    serialize(export, implicit, link.replacement, out);
                 }
             }
         }
