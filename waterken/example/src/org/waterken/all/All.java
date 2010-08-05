@@ -18,6 +18,9 @@ import org.waterken.delayed.Forwarder;
 import org.waterken.delayed.ForwarderMaker;
 import org.waterken.delayed.Relay;
 import org.waterken.eq.SoundCheck;
+import org.waterken.pipelined.Pipelined;
+import org.waterken.pipelined.PlugNPlay;
+import org.waterken.pipelined.PlugNPlayMaker;
 import org.waterken.serial.PopPushN;
 
 /**
@@ -50,8 +53,12 @@ All {
         _.log.comment("testing delayed resolution");
         final Vat<Forwarder> forwarder = _.spawn("delay", ForwarderMaker.class);
         final Promise<?> e = Relay.make(_, forwarder.top);
+        
+        _.log.comment("testing promise pipelining");
+        final Vat<PlugNPlay> player = _.spawn("pipeline", PlugNPlayMaker.class);
+        final Promise<?> f = Pipelined.make(player.top);
 
-        return join(_, a, b, c, d, e);
+        return join(_, a, b, c, d, e, f);
     }
     
     // Command line interface
