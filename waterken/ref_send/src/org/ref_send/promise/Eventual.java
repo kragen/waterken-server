@@ -6,8 +6,11 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 
 import org.joe_e.Equatable;
+import org.joe_e.JoeE;
 import org.joe_e.Selfless;
 import org.joe_e.Struct;
 import org.joe_e.Token;
@@ -72,7 +75,7 @@ import org.ref_send.type.Typedef;
  * invariants or because the request is malformed. Unfortunately, throwing an
  * exception may terminate not just the current plan, but also any other
  * currently executing plans. For example, if one of the observers throws a
- * {@link RuntimeException} from its <code>apply()</code> implementation, the
+ * {@link RuntimeException} from its {@code apply()} implementation, the
  * remaining observers are not notified of the new account balance. These other
  * observers may then continue operating using stale data about the account
  * balance.</p>
@@ -83,7 +86,7 @@ import org.ref_send.type.Typedef;
  * resumes its own plan where it left off. Unfortunately, the called method
  * may have changed the application state in such a way that resuming the
  * original plan no longer makes sense.  For example, if one of the observers
- * invokes <code>setBalance()</code> in its <code>apply()</code> implementation,
+ * invokes {@code setBalance()} in its {@code apply()} implementation,
  * the remaining observers will first be notified of the balance after the
  * update, and then be notified of the balance before the update. Again, these
  * other observers may then continue operating using stale data about the
@@ -91,13 +94,13 @@ import org.ref_send.type.Typedef;
  * <h4>Interrupted transition</h4>
  * <p>A called method may also initiate an unanticipated state transition in
  * the calling object, while the current transition is still incomplete.  For
- * example, in the default state, an <code>Account</code> is always ready to
- * accept a new observer; however, this constraint is temporarily not met when
- * the observer list is being iterated over. An observer could catch the
- * <code>Account</code> in this transitional state by invoking
- * <code>observe()</code> in its <code>apply()</code> implementation. As a
- * result, a {@link java.util.ConcurrentModificationException} will be thrown
- * when iteration over the observer list resumes. Again, this exception prevents
+ * example, in the default state, an {@code Account} is always ready to accept a
+ * new observer; however, this constraint is temporarily not met when the
+ * observer list is being iterated over. An observer could catch the
+ * {@code Account} in this transitional state by invoking {@code observe()} in
+ * its {@code apply()} implementation. As a result, a
+ * {@link java.util.ConcurrentModificationException} will be thrown when
+ * iteration over the observer list resumes. Again, this exception prevents
  * notification of the remaining observers.</p>
  * <h3>Plan isolation</h3>
  * <p>The above plan interference problems are only possible because execution
@@ -112,33 +115,32 @@ import org.ref_send.type.Typedef;
  * native control flow constructs in the Java language. To make the difference
  * between eventual and immediate execution readily recognized by programmers
  * when scanning code, some naming conventions are proposed. By convention, an
- * instance of {@link Eventual} is held in a variable named "<code>_</code>".
- * Additional ways of marking eventual operations with the '<code>_</code>'
- * character are specified in the documentation for the methods defined by
- * this class. All of these conventions make eventual control flow
- * statements distinguishable by the character sequence "<code>_.</code>".
- * Example uses are also shown in the method documentation for this class. The
- * '<code>_</code>' character should only be used to identify eventual
- * operations so that a programmer can readily identify operations that are
- * expected to be eventual by looking for the <b><code>_.</code></b>
- * pseudo-operator.</p>
+ * instance of {@link Eventual} is held in a variable named "{@code _}".
+ * Additional ways of marking eventual operations with the '{@code _}' character
+ * are specified in the documentation for the methods defined by this class. All
+ * of these conventions make eventual control flow statements distinguishable by
+ * the character sequence "{@code _.}". Example uses are also shown in the
+ * method documentation for this class. The '{@code _}' character should only be
+ * used to identify eventual operations so that a programmer can readily
+ * identify operations that are expected to be eventual by looking for the
+ * <b>{@code _.}</b> pseudo-operator.</p>
  * @see <a href="http://www.erights.org/talks/thesis/">Section 13.1
  *      "Sequential Interleaving Hazards" of "Robust Composition: Towards a
  *      Unified Approach to Access Control and Concurrency Control"</a>
  */
 public class
-Eventual extends Struct implements Serializable {
+Eventual implements Selfless, Serializable {
     static private final long serialVersionUID = 1L;
 
     /**
-     * {@link Local} permission
+     * trusted promise permission
      */
-    protected final Token local;
+    private   final Token local;
 
     /**
      * raw event loop
      */
-    private   final Receiver<Promise<?>> enqueue;
+    protected final Receiver<Promise<?>> enqueue;
 
     /**
      * URI for the event loop
@@ -153,7 +155,7 @@ Eventual extends Struct implements Serializable {
     /**
      * destruct the vat
      * <p>
-     * call like: <code>destruct.apply(null)</code>
+     * call like: {@code destruct.apply(null)}
      * </p>
      */
     public    final Receiver<?> destruct;
@@ -165,16 +167,15 @@ Eventual extends Struct implements Serializable {
 
     /**
      * Constructs an instance.
-     * @param local     {@link Local} permission
      * @param enqueue   raw event loop
      * @param here      URI for the event loop
      * @param log       {@link #log}
      * @param destruct  {@link #destruct}
      */
     public
-    Eventual(final Token local, final Receiver<Promise<?>> enqueue,
-             final String here, final Log log, final Receiver<?> destruct) {
-        this.local = local;
+    Eventual(final Receiver<Promise<?>> enqueue, final String here,
+             final Log log, final Receiver<?> destruct) {
+        this.local = new Token();
         this.enqueue = enqueue;
         this.here = here;
         this.log = log;
@@ -188,22 +189,32 @@ Eventual extends Struct implements Serializable {
      */
     public
     Eventual(final Receiver<Promise<?>> enqueue) {
-        this(new Token(), enqueue, "", new Log(), cast(Receiver.class,
+        this(enqueue, "", new Log(), cast(Receiver.class,
                 new Rejected<Receiver<?>>(new NullPointerException())));
     }
+    
+    // org.joe_e.Selfless interface
 
+    public int
+    hashCode() { return 0x1A7E4D0D; }
+    
+    public boolean
+    equals(final Object x) {
+        return x instanceof Eventual && local == ((Eventual)x).local;
+    }
+    
     // org.ref_send.promise.Eventual interface
 
     /**
-     * Registers an observer on a promise.
+     * Does an eventual conditional operation on a promise.
      * <p>
-     * The <code>observer</code> will be notified of the <code>promise</code>'s
-     * state at most once, in a future event loop turn. If there is no referent,
-     * the <code>observer</code>'s {@link Do#reject reject} method will be
-     * called with the reason; otherwise, the {@link Do#fulfill fulfill} method
-     * will be called with either an immediate reference for a local referent,
-     * or an {@linkplain #_ eventual reference} for a remote referent. For
-     * example:
+     * The {@code conditional} code block will be notified of the
+     * {@code promise}'s state at most once, in a future event loop turn. If
+     * there is no referent, the {@code conditional}'s {@link Do#reject reject}
+     * method will be called with the reason; otherwise, the
+     * {@link Do#fulfill fulfill} method will be called with either an immediate
+     * reference for a local referent, or an {@linkplain #_ eventual reference}
+     * for a remote referent. For example:
      * </p>
      * <pre>
      * import static org.ref_send.promise.Eventual.ref;
@@ -216,91 +227,291 @@ Eventual extends Struct implements Serializable {
      *     });
      * </pre>
      * <p>
-     * A <code>null</code> <code>promise</code> argument is treated like a
-     * rejected promise with a reason of {@link NullPointerException}.
+     * A {@code null} {@code promise} argument is treated like a rejected
+     * promise with a reason of {@link NullPointerException}.
      * </p>
      * <p>
-     * Multiple observers registered on the same promise will be notified in
-     * the same order as they were registered.
+     * The {@code conditional} in successive calls to this method with the same
+     * {@code promise} will be notified in the same order as the calls were
+     * made.
      * </p>
      * <p>
      * This method will not throw an {@link Exception}. Neither the
-     * <code>promise</code>, nor the <code>observer</code>, argument will be
-     * given the opportunity to execute in the current event loop turn.
+     * {@code promise}, nor the {@code conditional}, argument will be given the
+     * opportunity to execute in the current event loop turn.
      * </p>
      * @param <P> parameter type
      * @param <R> return type
-     * @param promise   observed promise
-     * @param observer  observer, MUST NOT be <code>null</code>
+     * @param promise observed promise
+     * @param conditional conditional code block, MUST NOT be {@code null}
      * @return promise, or {@linkplain #_ eventual reference}, for the
-     *         <code>observer</code>'s return, or <code>null</code> if the
-     *         <code>observer</code>'s return type is <code>Void</code>
+     *         {@code conditional}'s return, or {@code null} if the
+     *         {@code conditional}'s return type is {@code Void}
      */
     public final <P,R> R
-    when(final Promise<P> promise, final Do<P,R> observer) {
+    when(final Promise<P> promise, final Do<P,R> conditional) {
         try {
-            final Class<?> R = Typedef.raw(Local.output(Object.class,observer));
-            return cast(R, when(null, R, promise, observer));
+            final Class<?> R= Typedef.raw(returnType(Object.class,conditional));
+            return cast(R, when(null, R, promise, conditional));
         } catch (final Exception e) { throw new Error(e); }
     }
 
     /**
-     * Registers an observer on an {@linkplain #_ eventual reference}.
+     * Does an eventual conditional operation on an
+     * {@linkplain #_ eventual reference}.
      * <p>
      * The implementation behavior is the same as that documented for the
      * promise based {@link #when(Promise, Do) when} statement.
      * </p>
      * @param <P> parameter type
      * @param <R> return type
-     * @param reference observed reference
-     * @param observer  observer, MUST NOT be <code>null</code>
+     * @param reference     observed reference
+     * @param conditional   conditional code block, MUST NOT be {@code null}
      * @return promise, or {@linkplain #_ eventual reference}, for the
-     *         <code>observer</code>'s return, or <code>null</code> if the
-     *         <code>observer</code>'s return type is <code>Void</code>
+     *         {@code conditional}'s return, or {@code null} if the
+     *         {@code conditional}'s return type is {@code Void}
      */
     public final <P,R> R
-    when(final P reference, final Do<P,R> observer) {
+    when(final P reference, final Do<P,R> conditional) {
         try {
             final Class<?> P= null!=reference?reference.getClass():Object.class;
-            final Class<?> R = Typedef.raw(Local.output(P, observer));
-            return cast(R, when(P, R, ref(reference), observer));
+            final Class<?> R = Typedef.raw(returnType(P, conditional));
+            return cast(R, when(P, R, ref(reference), conditional));
         } catch (final Exception e) { throw new Error(e); }
     }
 
     protected final <P,R> Promise<R>
-    when(final Class<?> P, final Class<?> R, final Promise<? extends P> p,
-         final Do<? super P, ? extends R> observer) {
+    when(final Class<?> P, final Class<?> R, final Promise<? extends P> promise,
+         final Do<? super P, ? extends R> conditional) {
         final Promise<R> r;
         final Do<? super P,?> forwarder;
         if (void.class == R || Void.class == R) {
             r = null;
-            forwarder = observer;
+            forwarder = conditional;
         } else {
             final Deferred<R> x = defer();
             r = x.promise;
-            forwarder = new Compose<P,R>(observer, x.resolver);
+            forwarder = new Compose<P,R>(conditional, x.resolver);
         }
-        trust(p).when(P, forwarder);
+        trust(promise).when(P, forwarder);
         return r;
     }
 
-    private final <T> Local<T>
-    trust(final Promise<T> untrusted) {
-        return null == untrusted ?
-            new Enqueue<T>(this, new Rejected<T>(new NullPointerException())) :
-        Local.trusted(local, untrusted) ?
-            (Local<T>)untrusted :
-        new Enqueue<T>(this, untrusted);
+    /**
+     * Determines a block's return type.
+     * @param P     block's parameter type
+     * @param block block to introspect on
+     * @return {@code block}'s return type
+     */
+    static private Type
+    returnType(final Type P, final Do<?,?> block) {
+        return block instanceof Invoke<?> ?
+            Typedef.bound(((Invoke<?>)block).method.getGenericReturnType(), P) :
+        Typedef.value(R, block.getClass());
     }
 
-    static private final class
+    /**
+     * {@link Do} block return type
+     */
+    static private final TypeVariable<?> R = Typedef.var(Do.class, "R");
+
+    /**
+     * A reified method invocation.
+     * @param <T> target object type
+     */
+    static protected final class
+    Invoke<T> extends Do<T,Object> implements Serializable {
+        static private final long serialVersionUID = 1L;
+        
+        /**
+         * method to invoke
+         */
+        public final Method method;
+        
+        /**
+         * invocation arguments, or {@code null} if none
+         */
+        public final ConstArray<?> argv;
+        
+        /**
+         * Constructs a pending invocation.
+         * @param method    {@link #method}
+         * @param argv      {@link #argv}
+         */
+        public
+        Invoke(final Method method, final ConstArray<?> argv) {
+            this.method = method;
+            this.argv = argv;
+        }
+        
+        public Object
+        fulfill(final T object) throws Exception {
+            // AUDIT: call to untrusted application code
+            return Reflection.invoke(method, object,
+                null == argv ? null : argv.toArray(new Object[argv.length()]));
+        }
+    }
+    
+    /**
+     * A combined {@link Do} block and return value {@link Resolver}.
+     * @param <P> parameter type
+     * @param <R> return type
+     */
+    static protected final class
+    Compose<P,R> extends Do<P,Void> implements Serializable {
+        static private final long serialVersionUID = 1L;
+
+        /**
+         * conditional code block to execute
+         */
+        public final Do<? super P,? extends R> conditional;
+        
+        /**
+         * return value resolver
+         */
+        public final Resolver<R> resolver;
+        
+        /**
+         * Constructs an instance.
+         * @param conditional   {@link #conditional}
+         * @param resolver      {@link #resolver}
+         */
+        public
+        Compose(final Do<? super P, ? extends R> conditional,
+                final Resolver<R> resolver) {
+            this.conditional = conditional;
+            this.resolver = resolver;
+        }
+        
+        // org.ref_send.promise.Do interface
+        
+        public Void
+        fulfill(final P a) {
+            final R r;
+            try {
+                r = conditional.fulfill(a);
+            } catch (final Exception e) {
+                resolver.reject(e);
+                return null;
+            }
+            resolver.apply(r);
+            return null;
+        }
+
+        public Void
+        reject(final Exception reason) {
+            final R r;
+            try {
+                r = conditional.reject(reason);
+            } catch (final Exception e) {
+                resolver.reject(e);
+                return null;
+            }
+            resolver.apply(r);
+            return null;
+        }
+    }
+    
+    private final <T> Local<T>
+    trust(final Promise<T> untrusted) {
+        return trusted(untrusted) ?
+            (Local<T>)untrusted :
+        null == untrusted ?
+            new Enqueue<T>(new Rejected<T>(new NullPointerException())) :
+        new Enqueue<T>(untrusted);
+    }
+    
+    protected final boolean
+    trusted(final Object untrusted) {
+        return untrusted instanceof Local<?> &&
+               local == ((Local<?>)untrusted).getScope().local;
+    }
+    
+    /**
+     * An abstract base class for a promise implementation that is scoped to a
+     * particular event queue.
+     * @param <T> referent type
+     */
+    protected abstract class
+    Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
+        static private final long serialVersionUID = 1L;
+        
+        protected final Eventual
+        getScope() { return Eventual.this; }
+
+        // org.joe_e.Selfless interface
+
+        public abstract boolean
+        equals(Object x);
+
+        public abstract int
+        hashCode();
+
+        // java.lang.reflect.InvocationHandler interface
+
+        /**
+         * Forwards a Java language invocation.
+         * @param proxy     eventual reference
+         * @param method    method to invoke
+         * @param args      each invocation argument
+         * @return eventual reference for the invocation return
+         */
+        public final Object
+        invoke(final Object proxy, final Method method,
+               final Object[] args) throws Exception {
+            if (Object.class == method.getDeclaringClass()) {
+                if ("equals".equals(method.getName())) {
+                    return args[0] instanceof Proxy &&
+                        proxy.getClass() == args[0].getClass() &&
+                        equals(Proxies.getHandler((Proxy)args[0]));
+                } else {
+                    return Reflection.invoke(method, this, args);
+                }
+            }
+            try {
+                final Class<?> T = proxy.getClass();
+                final Class<?> R =
+                    Typedef.raw(Typedef.bound(method.getGenericReturnType(),T));
+                final Tail<?> r =
+                    (Tail<?>)Eventual.this.when(T, R, this, new Invoke<T>(
+                        method, null == args ? null : ConstArray.array(args)));
+                if (null == r) { return null; }
+                
+                // implementation might have already resolved a pipeline promise
+                final State<?> cell = near(r.state);
+                return cast(R, cell.resolved ? cell.value : r);
+            } catch (final Exception e) { throw new Error(e); }
+        }
+
+        // org.ref_send.promise.Promise interface
+
+        public abstract T
+        call() throws Exception;
+
+        // org.ref_send.promise.Local interface
+        
+        /**
+         * Shortens the promise chain by one link.
+         */
+        public abstract Object
+        shorten() throws Unresolved;
+
+        /**
+         * Notifies an observer in a future event loop turn.
+         * @param T         concrete referent type, {@code null} if not known
+         * @param observer  promise observer
+         */
+        public abstract void
+        when(Class<?> T, Do<? super T,?> observer);
+    }
+
+    private final class
     Enqueue<T> extends Local<T> {
         static private final long serialVersionUID = 1L;
 
         final Promise<T> untrusted;
 
-        Enqueue(final Eventual _, final Promise<T> untrusted) {
-            super(_, _.local);
+        Enqueue(final Promise<T> untrusted) {
             this.untrusted = untrusted;
         }
 
@@ -310,18 +521,21 @@ Eventual extends Struct implements Serializable {
         public boolean
         equals(final Object x) {
             return x instanceof Enqueue<?> &&
-                _.equals(((Enqueue<?>)x)._) &&
-                (null != untrusted
-                    ? untrusted.equals(((Enqueue<?>)x).untrusted)
-                    : null == ((Enqueue<?>)x).untrusted);
+                Eventual.this.equals(((Enqueue<?>)x).getScope()) &&
+                (null != untrusted ?
+                    untrusted.equals(((Enqueue<?>)x).untrusted) :
+                    null == ((Enqueue<?>)x).untrusted);
         }
 
         public T
         call() throws Exception { return untrusted.call(); }
+        
+        public Object
+        shorten() { return this; }
 
         public void
-        when(final Class<?> P, final Do<? super T, ?> observer) {
-            final long id = near(_.stats).newTask();
+        when(final Class<?> T, final Do<? super T, ?> observer) {
+            final long id = near(stats).newTask();
             class Sample extends Struct implements Promise<Void>, Serializable {
                 static private final long serialVersionUID = 1L;
 
@@ -329,16 +543,16 @@ Eventual extends Struct implements Serializable {
                 call() throws Exception {
                     // AUDIT: call to untrusted application code
                     try {
-                        sample(untrusted, observer, _.log, _.here + "#t" + id);
+                        sample(untrusted, observer, log, here + "#t" + id);
                     } catch (final Exception e) {
-                        _.log.problem(e);
+                        log.problem(e);
                         throw e;
                     }
                     return null;
                 }
             }
-            _.enqueue.apply(new Sample());
-            _.log.sent(_.here + "#t" + id);
+            enqueue.apply(new Sample());
+            log.sent(here + "#t" + id);
         }
     }
 
@@ -363,11 +577,14 @@ Eventual extends Struct implements Serializable {
         final P a;
         try {
             a = promise.call();
-            ref(a).call();      // ensure the called value is not one that is
-                                // expected to be handled as a rejection
+
+            // ensure the called value is not one that is
+            // expected to be handled as a rejection
+            final Promise<?> p = ref(a);
+            if (p instanceof Rejected<?>) { p.call(); }
         } catch (final Exception reason) {
             final @SuppressWarnings("unchecked") Class<?> c =
-                (observer instanceof Compose ? ((Compose)observer).block :
+                (observer instanceof Compose ? ((Compose)observer).conditional :
                                                observer).getClass();
             log.got(message, c, reject);
             return observer.reject(reason);
@@ -375,7 +592,7 @@ Eventual extends Struct implements Serializable {
         final Method m;
         final Class<?> c; {
             final @SuppressWarnings("unchecked") Do inner =
-                observer instanceof Compose ?((Compose)observer).block:observer;
+                observer instanceof Compose ?((Compose)observer).conditional:observer;
             if (inner instanceof Invoke<?>) {
                 m = ((Invoke<?>)inner).method;
                 c = a.getClass();
@@ -453,7 +670,7 @@ Eventual extends Struct implements Serializable {
             if (null != next) {
                 enqueue.apply(new Forward<T>(false, condition, next, T, value));
                 try {
-                    if (Local.trusted(local, value)) {
+                    if (trusted(value)) {
                         log.got(here + "#w" + message, null, null);
                         ((Local<? extends T>)value).when(T, observer);
                     } else {
@@ -486,17 +703,16 @@ Eventual extends Struct implements Serializable {
     State<T> implements Serializable {
         static private final long serialVersionUID = 1L;
 
-        private final long condition;           // id of this promise
-        private       Promise<When<T>> back;    // observer list sentinel
+        final long condition;               // id of this promise
+              Promise<When<T>> back;        // observer list sentinel
         
-        private       boolean unresolved;           // Is not resolved yet?
-        private       Class<?> T;                   // concrete referent type
-        private       Promise<? extends T> value;   // resolved value
+              boolean resolved;             // Is resolved?
+              Class<?> T;                   // concrete referent type
+              Promise<? extends T> value;   // resolved value
 
         State(final long condition, final Promise<When<T>> back) {
             this.condition = condition;
             this.back = back;
-            unresolved = true;
         }
 
         protected void
@@ -509,24 +725,20 @@ Eventual extends Struct implements Serializable {
             } else {
                 /*
                  * Promise is already resolved and all previously registered
-                 * when blocks run. Start a new when block chain and kick off a
-                 * new when block running task.
+                 * when blocks run. Forward the observer to the resolved value.
                  */
-                back = near(stats).allocWhen(condition);
-                enqueue.apply(new Forward<T>(false, condition, back, T, value));
-                observe(observer);
+                when(T, Void.class, value, observer);
             }
         }
     }
 
-    static private final class
+    private final class
     Tail<T> extends Local<T> {
         static private final long serialVersionUID = 1L;
 
-        private final Promise<State<T>> state;      // promise's mutable state
+        final Promise<State<T>> state;      // promise's mutable state
 
-        Tail(final Eventual _, final State<T> state) {
-            super(_, _.local);
+        Tail(final State<T> state) {
             this.state = new Fulfilled<State<T>>(false, state);
         }
 
@@ -541,8 +753,18 @@ Eventual extends Struct implements Serializable {
         public T
         call() throws Exception {
             final State<T> cell = state.call();
-            if (cell.unresolved) { throw new Unresolved(); }
+            if (!cell.resolved) { throw new Unresolved(); }
             return cell.value.call();
+        }
+        
+        public Object
+        shorten() throws Unresolved {
+            final State<T> cell = near(state);
+            if (!cell.resolved) { throw new Unresolved(); }
+            if (cell.value instanceof Inline<?>) {
+                return ((Inline<?>)cell.value).call();
+            }
+            return cell.value;
         }
 
         public void
@@ -606,15 +828,16 @@ Eventual extends Struct implements Serializable {
             } else {
                 log.resolved(here + "#p" + condition);
             }
-            enqueue.apply(new Forward<T>(true, condition, front, T, p));
             try {
                 final State<T> cell = state.call();
-                if (null != cell && cell.unresolved) {
-                    cell.unresolved = false;
+                if (null != cell) {
+                    if (cell.resolved) { return; }
+                    cell.resolved = true;
                     cell.T = T;
                     cell.value = p;
                 }
             } catch (final Exception e) { log.problem(e); }
+            enqueue.apply(new Forward<T>(true, condition, front, T, p));
         }
     }
 
@@ -644,7 +867,7 @@ Eventual extends Struct implements Serializable {
         final long condition = near(stats).newDeferral();
         final Promise<When<T>> front = near(stats).allocWhen(condition);
         final State<T> state = new State<T>(condition, front);
-        return new Deferred<T>(new Tail<T>(this, state),
+        return new Deferred<T>(new Tail<T>(state),
                                new Head<T>(condition, state, front));
     }
 
@@ -699,21 +922,20 @@ Eventual extends Struct implements Serializable {
      * </pre>
      * <p>
      * By convention, the return from this method is held in a variable whose
-     * name is suffixed with an '<code>_</code>' character. The main part of the
+     * name is suffixed with an '{@code _}' character. The main part of the
      * variable name should use Java's camelCaseConvention. A list of eventual
-     * references is suffixed with "<code>_s</code>". This naming convention
+     * references is suffixed with "{@code _s}". This naming convention
      * creates the appearance of a new operator in the Java language, the
-     * eventual operator: "<code><b>_.</b></code>".
+     * eventual operator: "<b>{@code _.}</b>".
      * </p>
      * <p>
      * If this method returns successfully, the returned eventual reference
      * will not throw an {@link Exception} on invocation of any of the methods
      * defined by its type, provided the invoked method's return type is either
-     * <code>void</code>, an {@linkplain Proxies#isImplementable allowed} proxy
+     * {@code void}, an {@linkplain Proxies#isImplementable allowed} proxy
      * type or assignable from {@link Promise}. Invocations on the eventual
-     * reference will not give the <code>referent</code>, nor any of the
-     * invocation arguments, an opportunity to execute in the current event loop
-     * turn.
+     * reference will not give the {@code referent}, nor any of the invocation
+     * arguments, an opportunity to execute in the current event loop turn.
      * </p>
      * <p>
      * Invocations of methods defined by {@link Object} are <strong>not</strong>
@@ -722,10 +944,10 @@ Eventual extends Struct implements Serializable {
      * @param <T> referent type, MUST be an
      *            {@linkplain Proxies#isImplementable allowed} proxy type
      * @param referent  immediate or eventual reference,
-     *                  MUST be non-<code>null</code>
+     *                  MUST be non-{@code null}
      * @return corresponding eventual reference
-     * @throws NullPointerException <code>null</code> <code>referent</code>
-     * @throws ClassCastException   <code>T</code> not an
+     * @throws NullPointerException {@code null} {@code referent}
+     * @throws ClassCastException   {@code T} not an
      *                  {@linkplain Proxies#isImplementable allowed} proxy type
      */
     public final <T> T
@@ -733,9 +955,9 @@ Eventual extends Struct implements Serializable {
         if (referent instanceof Proxy) {
             final Object handler = Proxies.getHandler((Proxy)referent);
             if ((null != handler && Rejected.class == handler.getClass()) ||
-                Local.trusted(local, handler)) { return referent; }
+                trusted(handler)) { return referent; }
         }
-        return cast(referent.getClass(), new Enqueue<T>(this, ref(referent)));
+        return cast(referent.getClass(), new Enqueue<T>(ref(referent)));
     }
 
     /**
@@ -768,7 +990,7 @@ Eventual extends Struct implements Serializable {
      * @param type      referent type to implement
      * @param promise   promise for the referent
      * @return reference of corresponding type
-     * @throws ClassCastException   no cast to <code>type</code>
+     * @throws ClassCastException   no cast to {@code type}
      */
     static public @SuppressWarnings("unchecked") <T> T
     cast(final Class<?> type,final Promise<T> promise)throws ClassCastException{
@@ -787,7 +1009,54 @@ Eventual extends Struct implements Serializable {
             Selfless.class == type ?
                 Proxies.proxy((InvocationHandler)promise, Selfless.class) :
             Proxies.proxy((InvocationHandler)promise, 
-                          Local.virtualize(type, Selfless.class)));
+                          virtualize(type, Selfless.class)));
+    }
+
+    /**
+     * Lists the part of an interface that a proxy can implement.
+     * @param r types to mimic
+     */
+    static protected Class<?>[]
+    virtualize(Class<?>... r) {
+        for (int i = r.length; i-- != 0;) {
+            final Class<?> type = r[i];
+            if (type == Serializable.class || !Proxies.isImplementable(type) ||
+                    JoeE.isSubtypeOf(type, Equatable.class)) {
+                // remove the type from the proxy type list 
+                {
+                    final Class<?>[] c = r;
+                    r = new Class<?>[c.length - 1];
+                    System.arraycopy(c, 0, r, 0, i);
+                    System.arraycopy(c, i + 1, r, i, r.length - i);
+                }
+
+                // search the inheritance tree for types that can be implemented
+                for (Class<?> p = type; null != p; p = p.getSuperclass()) {
+                    Class<?>[] x = virtualize(p.getInterfaces());
+
+                    // remove any duplicate types from the replacement type list
+                    for (int j = x.length; 0 != j--;) {
+                        for (int k = r.length; 0 != k--;) {
+                            if (x[j] == r[k]) {
+                                final Class<?>[] c = x;
+                                x = new Class<?>[c.length - 1];
+                                System.arraycopy(c, 0, x, 0, j);
+                                System.arraycopy(c, j + 1, x, j, x.length - j);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // splice in the replacement type list
+                    final Class<?>[] c = r;
+                    r = new Class<?>[c.length + x.length];
+                    System.arraycopy(c, 0, r, 0, i);
+                    System.arraycopy(x, 0, r, i, x.length);
+                    System.arraycopy(c, i, r, i + x.length, c.length - i);
+                }
+            }
+        }
+        return r;
     }
     
     /**
@@ -886,7 +1155,7 @@ Eventual extends Struct implements Serializable {
      * {@linkplain Vat#destruct destructed}.
      * </p>
      * <p>
-     * The <code>maker</code> MUST be a <code>public</code>
+     * The {@code maker} MUST be a {@code public}
      * {@linkplain org.joe_e.IsJoeE Joe-E} class with a method of signature:
      * </p>
      * <pre>
@@ -904,11 +1173,11 @@ Eventual extends Struct implements Serializable {
      * </p>
      * @param <R> return type, MUST be either an interface, or a {@link Promise}
      * @param label     optional vat label,
-     *                  if <code>null</code> a label will be generated
+     *                  if {@code null} a label will be generated
      * @param maker     constructor class
-     * @param optional  more arguments for <code>maker</code>'s make method
+     * @param optional  more arguments for {@code maker}'s make method
      * @return sub-vat permissions, including a promise for the object returned
-     *         by the <code>maker</code>
+     *         by the {@code maker}
      */
     public <R> Vat<R>
     spawn(final String label, final Class<?> maker, final Object... optional) {
@@ -942,10 +1211,10 @@ Eventual extends Struct implements Serializable {
 //   * The implementation behavior is the same as that documented for the
 //   * promise based {@link #when(Promise, Do) when} statement.
 //   * </p>
-//   * @param <P> <code>observer</code>'s parameter type
-//   * @param <R> <code>observer</code>'s return type
+//   * @param <P> {@code observer}'s parameter type
+//   * @param <R> {@code observer}'s return type
 //   * @param promise   observed promise
-//   * @param observer  observer, MUST NOT be <code>null</code>
+//   * @param observer  observer, MUST NOT be {@code null}
 //   * @return promise for the observer's return value
 //   */
 //  public final <P,R extends Serializable> Promise<R>
@@ -961,9 +1230,9 @@ Eventual extends Struct implements Serializable {
 //   * The implementation behavior is the same as that documented for the
 //   * promise based {@link #when(Promise, Do) when} statement.
 //   * </p>
-//   * @param <P> <code>observer</code>'s parameter type
+//   * @param <P> {@code observer}'s parameter type
 //   * @param promise   observed promise
-//   * @param observer  observer, MUST NOT be <code>null</code>
+//   * @param observer  observer, MUST NOT be {@code null}
 //   */
 //  public final <P> void
 //  when(final Promise<P> promise, final Do<P,Void> observer) {
@@ -978,10 +1247,10 @@ Eventual extends Struct implements Serializable {
 //   * The implementation behavior is the same as that documented for the
 //   * promise based {@link #when(Promise, Do) when} statement.
 //   * </p>
-//   * @param <P> <code>observer</code>'s parameter type
-//   * @param <R> <code>observer</code>'s return type
+//   * @param <P> {@code observer}'s parameter type
+//   * @param <R> {@code observer}'s return type
 //   * @param reference observed reference
-//   * @param observer  observer, MUST NOT be <code>null</code>
+//   * @param observer  observer, MUST NOT be {@code null}
 //   * @return promise for the observer's return value
 //   */
 //  public final <P,R extends Serializable> Promise<R>
@@ -997,9 +1266,9 @@ Eventual extends Struct implements Serializable {
 //   * The implementation behavior is the same as that documented for the
 //   * promise based {@link #when(Promise, Do) when} statement.
 //   * </p>
-//   * @param <P> <code>observer</code>'s parameter type
+//   * @param <P> {@code observer}'s parameter type
 //   * @param reference observed reference
-//   * @param observer  observer, MUST NOT be <code>null</code>
+//   * @param observer  observer, MUST NOT be {@code null}
 //   */
 //  public final <P> void
 //  when(final P reference, final Do<P,Void> observer) {

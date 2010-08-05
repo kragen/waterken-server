@@ -14,7 +14,7 @@ import org.ref_send.name;
  * <p>
  * This class represents the reified {@linkplain Promise tail} and
  * {@linkplain Resolver head} of a reference:
- * {@link #promise -}<code>-</code>{@link #resolver &gt;}.
+ * {@link #promise -}{@code -}{@link #resolver &gt;}.
  * </p>
  * @param <T> referent type
  */

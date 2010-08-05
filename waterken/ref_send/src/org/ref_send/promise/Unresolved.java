@@ -8,6 +8,6 @@ import org.joe_e.Powerless;
  * Signals a {@link Promise#call call} to an unresolved promise.
  */
 public final class
-Unresolved extends Exception implements Powerless {
+Unresolved extends NullPointerException implements Powerless {
     static private final long serialVersionUID = 1L;
 }

@@ -26,7 +26,7 @@ Fulfilled<T> implements Promise<T>, Serializable {
      * @param isWeak    {@link #isWeak}
      * @param referent  referent
      */
-    /* package */
+    protected
     Fulfilled(final boolean isWeak, final T referent) {
         this.isWeak = isWeak;
         this.state = new Inline<T>(referent);
