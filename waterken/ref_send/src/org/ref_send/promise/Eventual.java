@@ -583,7 +583,7 @@ Eventual implements Selfless, Serializable {
             final Promise<?> p = ref(a);
             if (p instanceof Rejected<?>) { p.call(); }
         } catch (final Exception reason) {
-            final @SuppressWarnings("unchecked") Class<?> c =
+            final @SuppressWarnings("rawtypes") Class<?> c =
                 (observer instanceof Compose ? ((Compose)observer).conditional :
                                                observer).getClass();
             log.got(message, c, reject);
@@ -591,7 +591,7 @@ Eventual implements Selfless, Serializable {
         }
         final Method m;
         final Class<?> c; {
-            final @SuppressWarnings("unchecked") Do inner =
+            final @SuppressWarnings({ "rawtypes" }) Do inner =
                 observer instanceof Compose ?((Compose)observer).conditional:observer;
             if (inner instanceof Invoke<?>) {
                 m = ((Invoke<?>)inner).method;

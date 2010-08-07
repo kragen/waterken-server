@@ -10,7 +10,7 @@ import org.ref_send.promise.Eventual.When;
 /**
  * Keeps statistics about eventual operations.
  */
-final class
+/*package*/ final class
 Stats implements Serializable {
     static private final long serialVersionUID = 1L;
 
@@ -46,7 +46,7 @@ Stats implements Serializable {
      */
     private Promise<When<?>> whenPool;
 
-    protected final @SuppressWarnings("unchecked") <T> Promise<When<T>>
+    protected @SuppressWarnings({"unchecked","rawtypes"}) <T> Promise<When<T>>
     allocWhen(final long condition) {
         final long message = ++whens;
         if (0 == message) { throw new AssertionError(); }
@@ -67,7 +67,7 @@ Stats implements Serializable {
         return r;
     }
 
-    protected final @SuppressWarnings("unchecked") void
+    protected @SuppressWarnings({ "rawtypes", "unchecked" }) void
     freeWhen(final Promise pBlock, final When block) {
         block.condition = 0;
         block.message = 0;
