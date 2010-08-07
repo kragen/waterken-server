@@ -203,7 +203,8 @@ JSONParser {
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
         final Class<?> rawExpected = Typedef.raw(expected);
-        final @SuppressWarnings("unchecked") ConstArray.Builder<Object> builder= 
+        final @SuppressWarnings({ "rawtypes", "unchecked" })
+        ConstArray.Builder<Object> builder= 
             (ConstArray.Builder)(
                 BooleanArray.class == rawExpected ? BooleanArray.builder() :
                 CharArray.class == rawExpected ? CharArray.builder() :

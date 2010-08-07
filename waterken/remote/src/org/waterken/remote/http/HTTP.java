@@ -230,7 +230,7 @@ HTTP extends Eventual implements Serializable {
         }
     }
     
-    static protected @SuppressWarnings("unchecked") Resolver<Object>
+    static protected @SuppressWarnings({"unchecked","rawtypes"})Resolver<Object>
     resolver(final Compose<?,?> outer) { return (Resolver)outer.resolver; }
     
     protected Object
