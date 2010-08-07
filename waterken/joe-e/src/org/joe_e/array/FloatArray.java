@@ -201,7 +201,7 @@ public final class FloatArray extends PowerlessArray<Float> {
     public <T> T[] toArray(T[] prototype) {
         final int len = length();
         if (prototype.length < len) {
-            final Class t = prototype.getClass().getComponentType(); 
+            final Class<?> t = prototype.getClass().getComponentType(); 
             prototype = (T[])Array.newInstance(t, len);
         }
         
