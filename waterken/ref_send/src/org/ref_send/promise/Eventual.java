@@ -672,9 +672,7 @@ Eventual implements Selfless, Serializable {
                 try {
                     if (trusted(value)) {
                         log.got(here + "#w" + message, null, null);
-                        final @SuppressWarnings("unchecked") Local<? extends T>
-                          promise = ((Local<? extends T>)value);
-                        promise.when(T, observer);
+                        ((Local<? extends T>)value).when(T, observer);
                     } else {
                         // AUDIT: call to untrusted application code
                         sample(value, observer, log, here + "#w" + message);
@@ -822,14 +820,11 @@ Eventual implements Selfless, Serializable {
         private void
         set(final Class<?> T, Promise<? extends T> p) {
             if (p instanceof Fulfilled<?>) {
-                final @SuppressWarnings("unchecked") Fulfilled<? extends T>
-                  fulfilled = (Fulfilled<? extends T>)p;
-                p = fulfilled.getState();
+                p = ((Fulfilled<? extends T>)p).getState();
                 log.fulfilled(here + "#p" + condition);
             } else if (p instanceof Rejected<?>) {
-                final @SuppressWarnings("unchecked") Rejected<? extends T>
-                  rejected = (Rejected<? extends T>)p;
-                log.rejected(here + "#p" + condition, rejected.reason);
+                log.rejected(here + "#p" + condition,
+                			 ((Rejected<? extends T>)p).reason);
             } else {
                 log.resolved(here + "#p" + condition);
             }
