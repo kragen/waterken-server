@@ -31,6 +31,6 @@ Task extends Operation implements Promise<Void> {
     protected final void
     reject(final String request, final Exception ignored) { call(); }
     
-    public @Override abstract Void
+    public abstract Void
     call();
 }

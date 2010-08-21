@@ -154,7 +154,7 @@ Pipeline implements Equatable, Serializable {
             }).call();
             for (final Effect<Server> effect : effects) {
                 vat.service.apply(new Service() {
-                    @Override public Void
+                    public Void
                     call() throws Exception {
                         effect.apply(vat);
                         return null;
