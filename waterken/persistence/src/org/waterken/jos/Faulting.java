@@ -34,6 +34,9 @@ Faulting implements Promise<Object>, Selfless, Serializable  {
                name.equals(((Faulting)x).name) &&
                root.equals(((Faulting)x).root);
     }
+    
+    public int
+    hashCode() { return 0xFA017126; }
 
     // org.ref_send.promise.Promise interface
 
