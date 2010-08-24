@@ -11,16 +11,18 @@ import java.lang.reflect.Modifier;
 import org.joe_e.Powerless;
 import org.joe_e.Struct;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.Record;
-import org.ref_send.deserializer;
-import org.ref_send.name;
 
 /**
  * Method dispatch implementation for web_send.
  */
-/* package */ class
-Dispatch extends Struct implements Record, Powerless, Serializable {
+/* package */ final class
+Dispatch extends Struct implements Powerless, Serializable {
     static private final long serialVersionUID = 1L;
+    
+    /**
+     * Is the method name overloaded?
+     */
+    public final boolean overloaded;
     
     /**
      * concrete implementation dispatched to
@@ -37,12 +39,21 @@ Dispatch extends Struct implements Record, Powerless, Serializable {
      * @param implementation    {@link #implementation}
      * @param declaration       {@link #declaration}
      */
-    public @deserializer
-    Dispatch(@name("implementation") final Method implementation,
-             @name("declaration") final Method declaration) {
+    public
+    Dispatch(final Method implementation, final Method declaration) {
+        overloaded = false;
         this.implementation = implementation;
         this.declaration = declaration;
     }
+    
+    private
+    Dispatch() {
+        overloaded = true;
+        implementation = null;
+        declaration = null;
+    }
+    
+    static private final Dispatch Overloaded = new Dispatch();
     
     /**
      * Finds a named property accessor.
@@ -89,15 +100,13 @@ Dispatch extends Struct implements Record, Powerless, Serializable {
                 if (methodName.equals(m.getName()) && null == property(m) &&
                         (!c || target == m.getDeclaringClass())) {
                     if (null != implementation) {
-                        if (null != bridge) { return null; }
+                        if (null != bridge) { return Overloaded; }
                         if (implementation.isBridge()) {
                             bridge = implementation;
                             implementation = m;
                         } else if (m.isBridge()) {
                             bridge = m;
-                        } else {
-                            return null;
-                        }
+                        } else { return Overloaded; }
                     } else {
                         implementation = m;
                     }
