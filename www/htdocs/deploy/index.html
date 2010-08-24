@@ -53,7 +53,7 @@ the Waterken server includes a project named "example", so the
 </dd>
 </dl>
 <p>By default, the server will assume the current working directory is the
-<code>code</code> folder.  The <code>config/</code> folder is then expected to
+<code>code</code> folder.  The <code>config</code> folder is then expected to
 be in an immediate sub-folder.  This folder layout is the one created when you
 unpack the waterken-server distribution.</p>
 <p>This default folder layout can be customized using Java system properties.  A
@@ -64,7 +64,7 @@ Java system property can be defined using a "<code>-D</code>" option to the
 <dd>use the specified folder as the home folder (defaults to the current working
 directory)</dd>
 <dt><code><a name="waterken.config" href="#waterken.config">waterken.config</a></code></dt>
-<dd>use the specified folder as the <code><a href="#config">config/</a></code>
+<dd>use the specified folder as the <code><a href="#config">config</a></code>
 folder (defaults to the "config" sub-folder of the <code>waterken.home</code>
 folder)</dd>
 <dt><code><a name="waterken.code" href="#waterken.code">waterken.code</a></code></dt>
@@ -77,7 +77,7 @@ get the name of the folder, or JAR file, containing the project's class files
 </dl>
 <h3><a name="config_files" href="#config_files"><code>config</code> files</a></h3>
 <p>All remaining configuration is expressed by files in the
-<code><a href="#config">config/</a></code> folder. The various
+<code><a href="#config">config</a></code> folder. The various
 <code>*.json</code> files in this folder are used to initialize the HTTP request
 routing code. For example, settings of interest include:</p>
 <dl>
@@ -148,7 +148,7 @@ command from the root directory of your installation:</p>
 <code>yurl.net</code> nameserver, you will need to <a href="#proxy">include your
 HTTP proxy location</a> if you are behind an HTTP proxy. After the command has
 completed successfully, there will be a <code>keys.jks</code> file, as well as
-some new configuration files, in your <code><a href="#config">config/</a></code>
+some new configuration files, in your <code><a href="#config">config</a></code>
 folder.</p>
 <p>By default, the <code>genkey.jar</code> command generates a 1024 bit RSA key,
 which is thought to be comparable in strength to an 80 bit symmetric key cipher.
