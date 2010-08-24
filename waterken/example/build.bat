@@ -6,6 +6,8 @@ javac -d bin ^
   src\org\waterken\all\*.java ^
   src\org\waterken\bang\*.java ^
   src\org\waterken\bounce\*.java ^
+  src\org\waterken\delayed\*.java ^
   src\org\waterken\eq\*.java ^
   src\org\waterken\factorial\*.java ^
+  src\org\waterken\pipelined\*.java ^
   src\org\waterken\serial\*.java
