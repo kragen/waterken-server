@@ -42,76 +42,76 @@ on using</a> the server if you're content to use the provided setup.</p>
 <p>To bootstrap its configuration, the server needs to know the locations of the
 following folders:</p>
 <dl>
-<dt><code><a name="config" href="#config">config</a></code></dt>
+<dt><a name="config" href="#config">config</a></dt>
 <dd>holds configuration files, such as the SSL key pair</dd>
-<dt><code><a name="code" href="#code">code</a></code></dt>
+<dt><a name="code" href="#code">code</a></dt>
 <dd>holds project specific Java class files
 <p>This folder is expected to contain an entry for each project. For example, in
-the default configuration, the <code>code</code> folder is the root folder of
+the default configuration, the <em>code</em> folder is the root folder of
 the Waterken server installation and it contains a sub-folder named
-<code>example/bin/</code> for a project named "example".</p>
+<kbd>example/bin/</kbd> for a project named "example".</p>
 </dd>
 </dl>
 <p>By default, the server will assume the current working directory is the
-<code>code</code> folder.  The <code>config</code> folder is then expected to
+<em>code</em> folder.  The <em>config</em> folder is then expected to
 be in an immediate sub-folder.  This folder layout is the one created when you
 unpack the waterken-server distribution.</p>
 <p>This default folder layout can be customized using Java system properties.  A
-Java system property can be defined using a "<code>-D</code>" option to the
-<code>java</code> command used to start a JVM.</p>
+Java system property can be defined using a "<kbd>-D</kbd>" option to the
+<kbd>java</kbd> command used to start a JVM.</p>
 <dl>
-<dt><code><a name="waterken.home" href="#waterken.home">waterken.home</a></code></dt>
+<dt><a name="waterken.home" href="#waterken.home">waterken.home</a></dt>
 <dd>use the specified folder as the home folder (defaults to the current working
 directory)</dd>
-<dt><code><a name="waterken.config" href="#waterken.config">waterken.config</a></code></dt>
-<dd>use the specified folder as the <code><a href="#config">config</a></code>
-folder (defaults to the "config" sub-folder of the <code>waterken.home</code>
+<dt><a name="waterken.config" href="#waterken.config">waterken.config</a></dt>
+<dd>use the specified folder as the <em><a href="#config">config</a></em>
+folder (defaults to the "config" sub-folder of the <em>waterken.home</em>
 folder)</dd>
-<dt><code><a name="waterken.code" href="#waterken.code">waterken.code</a></code></dt>
-<dd>use the specified folder as the <code><a href="#code">code</a></code>
-folder (defaults to the <code>waterken.home</code> folder)</dd>
-<dt><code><a name="waterken.bin" href="#waterken.bin">waterken.bin</a></code></dt>
+<dt><a name="waterken.code" href="#waterken.code">waterken.code</a></dt>
+<dd>use the specified folder as the <em><a href="#code">code</a></em>
+folder (defaults to the <em>waterken.home</em> folder)</dd>
+<dt><a name="waterken.bin" href="#waterken.bin">waterken.bin</a></dt>
 <dd>use the specified string as the extension to be added to a project name to
 get the name of the folder, or JAR file, containing the project's class files
 (defaults to "/bin/")
 </dl>
-<h3><a name="config_files" href="#config_files"><code>config</code> files</a></h3>
+<h3><a name="config_files" href="#config_files"><em>config</em> files</a></h3>
 <p>All remaining configuration is expressed by files in the
-<code><a href="#config">config</a></code> folder. The various
-<code>*.json</code> files in this folder are used to initialize the HTTP request
-routing code. For example, settings of interest include:</p>
+<em><a href="#config">config</a></em> folder. The various <kbd>*.json</kbd>
+files in this folder are used to initialize the HTTP request routing code. For
+example, settings of interest include:</p>
 <dl>
 <dt><a name="www" href="#www">static web pages</a></dt>
-<dd>The <code>next.next.next.root</code> setting of <code>server.json</code>
+<dd>The <code>next.next.next.root</code> setting of <kbd>server.json</kbd>
 provides the path to a folder containing files to be served, such as CSS files
-and Javascript.  By default, this setting refers to the
-<code>config/file/</code> folder created by the waterken-server
-distribution.</dd>
+and Javascript.  By default, this setting refers to the <kbd>config/file/</kbd>
+folder created by the waterken-server distribution.</dd>
 <dt><a name="MIME" href="#MIME">known MIME types</a></dt>
 <dd>The <code>mime.json</code> setting provides an array of known MIME types
 consulted when serving static web pages.</dd>
-<dt><a name="vat" href="#vat"><code>vat/</code></a></dt>
-<dd>The <code>vatRootFolder.json</code> setting specifies the root folder for
-all persistent vats.</dd>
+<dt><a name="vat" href="#vat">vat</a></dt>
+<dd>The <kbd>vatRootFolder.json</kbd> setting specifies the root folder for all
+persistent vats.</dd>
 <dt><a name="ports" href="#ports">server ports</a></dt>
 <dd>Service specific configuration options, such as the server port number, are
 specified in a corresponding configuration file. For example, the HTTP server
 port number is specified by the <code>port</code> member in the
-<code>http.json</code> file. See also <code>https.json</code> and
-<code>dns.json</code>.</dd>
+<kbd>http.json</kbd> file. See also <kbd>https.json</kbd> and
+<kbd>dns.json</kbd>.</dd>
 </dl>
 <h2><a name="using" href="#using">Using the server</a></h2>
 <p>The server supports SSL, use of an HTTP proxy and can host two kinds of
 resources: files and Java objects. This section explains how to run the server
 and add resources.</p>
 <h3><a name="start" href="#start">Start the server</a></h3>
-<p>Once compilation is complete, the server can be run using the <code>serve.jar</code> command. For example,</p>
+<p>Once compilation is complete, the server can be run using the
+<kbd>serve.jar</kbd> command. For example,</p>
 <p><kbd>java -jar serve.jar</kbd></p>
 <p>If you are running on Unix, or another operating system that restricts use
 of well-known ports, the above command may fail under the default Waterken server
 configuration which uses the standard port number for the HTTPS service. You
 can <a href="#ports">configure this port number</a> in the
-<code>config/https.json</code> file.</p>
+<kbd>config/https.json</kbd> file.</p>
 <p>The Waterken server is designed as <q>crash-only software</q>, so there is
 no special user interface for stopping the server. Just kill the process, such
 as by hitting <kbd>Ctrl-C</kbd> from the command line.</p>
@@ -120,61 +120,61 @@ as by hitting <kbd>Ctrl-C</kbd> from the command line.</p>
 that requires network access. Each such command checks a set of Java system
 properties for proxy configuration information.</p>
 <dl>
-<dt><code><a name="proxyHost" href="#proxyHost">proxyHost</a></code></dt>
+<dt><a name="proxyHost" href="#proxyHost">proxyHost</a></dt>
 <dd>hostname of the proxy server</dd>
-<dt><code><a name="proxyPort" href="#proxyPort">proxyPort</a></code></dt>
+<dt><a name="proxyPort" href="#proxyPort">proxyPort</a></dt>
 <dd>port number of the proxy server</dd>
-<dt><code><a name="proxySet" href="#proxySet">proxySet</a></code></dt>
+<dt><a name="proxySet" href="#proxySet">proxySet</a></dt>
 <dd>value is "<code>true</code>" when an HTTP proxy is configured</dd>
 </dl>
 <p>For example, to start the server using an HTTP proxy:</p>
 <p><kbd>java -DproxyHost=proxy.example.com -DproxyPort=8088 -DproxySet=true -jar serve.jar</kbd></p>
 <h3><a name="SSL" href="#SSL">Configure an SSL key pair</a></h3>
-<p>The server's SSL key pair must be stored in the <code>config/keys.jks</code>
+<p>The server's SSL key pair must be stored in the <kbd>config/keys.jks</kbd>
 file.  This file is in the default format used by the JDK's keytool program. You
 can use any existing SLL key pair you have by loading it into the
-<code>config/keys.jks</code> file using the keytool program.</p>
+<kbd>config/keys.jks</kbd> file using the keytool program.</p>
 <p>The server must be restarted to begin using a newly configured key pair.</p>
 <h4><a name="genkey" href="#genkey">Generate a hostname and corresponding SSL key pair</a></h4>
 <p>If you don't already have an SSL key pair, you can generate one using the
-<code>genkey.jar</code> command. This command will generate a new self-signed
+<kbd>genkey.jar</kbd> command. This command will generate a new self-signed
 certificate for a sub-domain of <code>yurl.net</code>. The command will also
 register this newly generated hostname with the DNS nameserver for
 <code>yurl.net</code>. When the server is running, it will update this DNS
-record with your computer's current IP address. Run the <code>genkey.jar</code>
+record with your computer's current IP address. Run the <kbd>genkey.jar</kbd>
 command from the root directory of your installation:</p>
 <p><kbd>java -jar genkey.jar</kbd></p>
 <p>Since this command requires network access to contact the
 <code>yurl.net</code> nameserver, you will need to <a href="#proxy">include your
 HTTP proxy location</a> if you are behind an HTTP proxy. After the command has
-completed successfully, there will be a <code>keys.jks</code> file, as well as
-some new configuration files, in your <code><a href="#config">config</a></code>
+completed successfully, there will be a <kbd>keys.jks</kbd> file, as well as
+some new configuration files, in your <em><a href="#config">config</a></em>
 folder.</p>
-<p>By default, the <code>genkey.jar</code> command generates a 1024 bit RSA key,
+<p>By default, the <kbd>genkey.jar</kbd> command generates a 1024 bit RSA key,
 which is thought to be comparable in strength to an 80 bit symmetric key cipher.
 You can specify a higher bit strength with an argument to the
-<code>genkey.jar</code> command.  Specify 112 to get a 2048 bit RSA key, or 128
+<kbd>genkey.jar</kbd> command.  Specify 112 to get a 2048 bit RSA key, or 128
 to get a 3072 bit RSA key.</p>
 <h3><a name="add_file" href="#add_file">Add served files</a></h3>
-<p>The content of any file under the <code><a
-href="#www">config/file/</a></code> folder can be fetched using a URL whose
+<p>The content of any file under the <em><a
+href="#www">config/file/</a></em> folder can be fetched using a URL whose
 path names the file. For example, your site's homepage is at
-<code>config/file/index.html</code> and can be fetched using the URL:
+<kbd>config/file/index.html</kbd> and can be fetched using the URL:
 <code>&lt;<a href="http://localhost:8080/index.html">http://localhost:8080/index.html</a>&gt;</code>.
 </p>
 <p>By convention, the
-<code><a name="www-site" href="#www-site">config/file/site/</a></code> folder is
+<kbd><a name="www-site" href="#www-site">config/file/site/</a></kbd> folder is
 reserved for resources that are shared site-wide, such as stylesheets, images
 and Javascript code.  This folder also provides the content served for HTTP
-error codes. For example, the <code>config/file/site/404.html</code> file
+error codes. For example, the <kbd>config/file/site/404.html</kbd> file
 provides the default content for any HTTP <code>404</code> error pages returned
 by the server.</p>
 <h3><a name="add_vat" href="#add_vat">Add a new vat</a></h3>
 <p>Persistent Java objects hosted by the Waterken server are grouped into
 collections, each of which is called a "vat". The persistent state of each vat
-is held in a sub-folder of the <code><a href="#vat">config/vat/</a></code>
+is held in a sub-folder of the <kbd><a href="#vat">config/vat/</a></kbd>
 folder.  You can create a new vat from the command line using
-<code>spawn.jar</code>:
+<kbd>spawn.jar</kbd>:
 </p>
 <p><kbd>java -jar spawn.jar example org.waterken.bang.DrumFactory bang</kbd></p>
 <p>The above command enables execution of the <code><a
@@ -182,8 +182,8 @@ href="../javadoc/org/ref_send/promise/Eventual.html#spawn(java.lang.String,%20ja
 method from the command line. The last argument is the vat name and the second
 to last is the fully qualified name of the maker class used to construct the
 first application object in the new vat. The web-key for the created object is
-returned on the <code>stdout</code> of the <code>spawn.jar</code> command. The
-first argument to the <code>spawn.jar</code> command is the name of the project
+returned on the <code>stdout</code> of the <kbd>spawn.jar</kbd> command. The
+first argument to the <kbd>spawn.jar</kbd> command is the name of the project
 that defines the maker class.</p>
 <h3><a name="add_project" href="#add_project">Add a new project</a></h3>
 <p>Each vat is associated with a project, which determines the custom Java
@@ -191,25 +191,25 @@ classes used in the vat, as well as the web page served for any web-key exported
 from the vat.</p>
 <h4><a name="configure_project_classes" href="#configure_project_classes">Configure project classes</a></h4>
 <p>When creating a new application, put your Java class files in a sub-folder of
-the <code><a href="#code">code</a></code> folder, using your project name for
+the <em><a href="#code">code</a></em> folder, using your project name for
 the sub-folder name. For example, the waterken-server distribution includes a
 sample application with project name "example" and corresponding class file
-folder <code>example/bin/</code>. To create a new application named "myProject",
-create a new folder at the same level as the existing <code>example/</code>
-folder and put your class files in a <code>bin/</code> sub-folder, so your
-classes are at <code>myProject/bin/</code>.</p>
+folder <kbd>example/bin/</kbd>. To create a new application named "myProject",
+create a new folder at the same level as the existing <kbd>example/</kbd>
+folder and put your class files in a <kbd>bin/</kbd> sub-folder, so your
+classes are at <kbd>myProject/bin/</kbd>.</p>
 <h4><a name="configure_project_web_page" href="#configure_project_web_page">Configure project web page</a></h4>
 <p>Every web-key exported from a given vat references the same web page. This
-web page is stored in a sub-folder of the <code>config/file/site/</code>
+web page is stored in a sub-folder of the <kbd>config/file/site/</kbd>
 folder, again named by the project. For example, the web page for the "example"
-project is at <code>config/file/site/example/index.html</code>. You can
+project is at <kbd>config/file/site/example/index.html</kbd>. You can
 customize this web page for your own application by creating a corresponding
 entry for your project. For example, to setup the web page for the "myProject"
-application, copy the <code>index.html</code> file to a new folder at
-<code>config/file/site/myProject/</code>. You can also use other formats for
+application, copy the <kbd>index.html</kbd> file to a new folder at
+<kbd>config/file/site/myProject/</kbd>. You can also use other formats for
 your application's web page. The server only expects the application's web page
-to be in a file whose name starts with "<code>index.</code>", so a flash web
-page would be named <code>index.swf</code>.</p>
+to be in a file whose name starts with "<kbd>index.</kbd>", so a flash web
+page would be named <kbd>index.swf</kbd>.</p>
 </div>
 <p class="footer">
 </p>
