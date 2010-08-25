@@ -77,7 +77,10 @@ get the name of the folder, or JAR file, containing the project's class files
 </dl>
 <p>For example, the default values for these system properties are equivalent to
 the following explicit properties.</p>
-<p><kbd>java -Dwaterken.home=. -Dwaterken.config=config -Dwaterken.code=. -Dwaterken.bin=/bin/ -jar serve.jar</kbd></p>
+<pre>
+java -Dwaterken.home=. -Dwaterken.config=config -Dwaterken.code=.
+     -Dwaterken.bin=/bin/ -jar serve.jar
+</pre>
 <h3><a name="config_files" href="#config_files"><em>config</em> files</a></h3>
 <p>All remaining configuration is expressed by files in the
 <em><a href="#config">config folder</a></em>. The various <kbd>*.json</kbd>
