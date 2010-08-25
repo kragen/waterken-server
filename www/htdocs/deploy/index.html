@@ -42,20 +42,21 @@ on using</a> the server if you're content to use the provided setup.</p>
 <p>To bootstrap its configuration, the server needs to know the locations of the
 following folders:</p>
 <dl>
-<dt><a name="config" href="#config">config</a></dt>
+<dt><a name="config" href="#config">config folder</a></dt>
 <dd>holds configuration files, such as the SSL key pair</dd>
-<dt><a name="code" href="#code">code</a></dt>
+<dt><a name="code" href="#code">code folder</a></dt>
 <dd>holds project specific Java class files
 <p>This folder is expected to contain an entry for each project. For example, in
-the default configuration, the <em>code</em> folder is the root folder of
+the default configuration, the <em>code folder</em> is the root folder of
 the Waterken server installation and it contains a sub-folder named
 <kbd>example/bin/</kbd> for a project named "example".</p>
 </dd>
 </dl>
 <p>By default, the server will assume the current working directory is the
-<em>code</em> folder.  The <em>config</em> folder is then expected to
-be in an immediate sub-folder.  This folder layout is the one created when you
-unpack the waterken-server distribution.</p>
+<em><a href="#code">code folder</a></em>.  The <em><a href="#config">config
+folder</a></em> is then expected to be an immediate sub-folder named
+<kbd>config/</kbd>.  This folder layout is the one created when you unpack the
+waterken-server distribution.</p>
 <p>This default folder layout can be customized using Java system properties.  A
 Java system property can be defined using a "<kbd>-D</kbd>" option to the
 <kbd>java</kbd> command used to start a JVM.</p>
@@ -64,12 +65,11 @@ Java system property can be defined using a "<kbd>-D</kbd>" option to the
 <dd>use the specified folder as the home folder (defaults to the current working
 directory)</dd>
 <dt><a name="waterken.config" href="#waterken.config">waterken.config</a></dt>
-<dd>use the specified folder as the <em><a href="#config">config</a></em>
-folder (defaults to the "config" sub-folder of the <em>waterken.home</em>
-folder)</dd>
+<dd>use the specified folder as the <em><a href="#config">config folder</a></em>
+(defaults to the "config" sub-folder of the <em>waterken.home</em> folder)</dd>
 <dt><a name="waterken.code" href="#waterken.code">waterken.code</a></dt>
-<dd>use the specified folder as the <em><a href="#code">code</a></em>
-folder (defaults to the <em>waterken.home</em> folder)</dd>
+<dd>use the specified folder as the <em><a href="#code">code folder</a></em>
+(defaults to the <em>waterken.home</em> folder)</dd>
 <dt><a name="waterken.bin" href="#waterken.bin">waterken.bin</a></dt>
 <dd>use the specified string as the extension to be added to a project name to
 get the name of the folder, or JAR file, containing the project's class files
@@ -77,7 +77,7 @@ get the name of the folder, or JAR file, containing the project's class files
 </dl>
 <h3><a name="config_files" href="#config_files"><em>config</em> files</a></h3>
 <p>All remaining configuration is expressed by files in the
-<em><a href="#config">config</a></em> folder. The various <kbd>*.json</kbd>
+<em><a href="#config">config folder</a></em>. The various <kbd>*.json</kbd>
 files in this folder are used to initialize the HTTP request routing code. For
 example, settings of interest include:</p>
 <dl>
@@ -148,8 +148,8 @@ command from the root directory of your installation:</p>
 <code>yurl.net</code> nameserver, you will need to <a href="#proxy">include your
 HTTP proxy location</a> if you are behind an HTTP proxy. After the command has
 completed successfully, there will be a <kbd>keys.jks</kbd> file, as well as
-some new configuration files, in your <em><a href="#config">config</a></em>
-folder.</p>
+some new configuration files, in your <em><a href="#config">config
+folder</a></em>.</p>
 <p>By default, the <kbd>genkey.jar</kbd> command generates a 1024 bit RSA key,
 which is thought to be comparable in strength to an 80 bit symmetric key cipher.
 You can specify a higher bit strength with an argument to the
@@ -191,7 +191,7 @@ classes used in the vat, as well as the web page served for any web-key exported
 from the vat.</p>
 <h4><a name="configure_project_classes" href="#configure_project_classes">Configure project classes</a></h4>
 <p>When creating a new application, put your Java class files in a sub-folder of
-the <em><a href="#code">code</a></em> folder, using your project name for
+the <em><a href="#code">code folder</a></em>, using your project name for
 the sub-folder name. For example, the waterken-server distribution includes a
 sample application with project name "example" and corresponding class file
 folder <kbd>example/bin/</kbd>. To create a new application named "myProject",
