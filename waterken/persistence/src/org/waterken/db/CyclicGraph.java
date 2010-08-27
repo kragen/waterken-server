@@ -26,6 +26,7 @@ CyclicGraph extends RuntimeException implements Powerless, Record {
      */
     public @deserializer
     CyclicGraph(@name("cycle") final PowerlessArray<String> cycle) {
+        super(cycle.toString());
         this.cycle = cycle;
     }
 }
