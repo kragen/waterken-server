@@ -269,9 +269,9 @@ public final class Reflection {
     static public Object get(final Field field, final Object self) 
                                         throws IllegalAccessException {
         if (!Modifier.isPublic(field.getDeclaringClass().getModifiers())) {
-            throw new IllegalAccessException();
+            throw new IllegalAccessException(field.toString());
         }
-        if (!safe(field)) { throw new IllegalAccessException(); }
+        if (!safe(field)) {throw new IllegalAccessException(field.toString());}
         return field.get(self);
     }
 
@@ -285,9 +285,9 @@ public final class Reflection {
     static public void set(final Field field, final Object self, 
                            final Object value) throws IllegalAccessException {
         if (!Modifier.isPublic(field.getDeclaringClass().getModifiers())) {
-            throw new IllegalAccessException();
+            throw new IllegalAccessException(field.toString());
         }
-        if (!safe(field)) { throw new IllegalAccessException(); }
+        if (!safe(field)) {throw new IllegalAccessException(field.toString());}
         field.set(self, value);
     }
 
@@ -304,9 +304,9 @@ public final class Reflection {
     static public <T> T construct(final Constructor<T> ctor, final Object... args)
                                         throws Exception {
         if (!Modifier.isPublic(ctor.getDeclaringClass().getModifiers())) {
-            throw new IllegalAccessException();
+            throw new IllegalAccessException(ctor.toString());
         }
-        if (!safe(ctor)) { throw new IllegalAccessException(); }
+        if (!safe(ctor)) { throw new IllegalAccessException(ctor.toString()); }
         try {
             return ctor.newInstance(args);
         } catch (final IllegalArgumentException e) {
@@ -334,9 +334,11 @@ public final class Reflection {
     static public Object invoke(final Method method, final Object self,
                                 final Object... args) throws Exception {
         if (!Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
-            throw new IllegalAccessException();
+            throw new IllegalAccessException(method.toString());
         }
-        if (!safe(method)) { throw new IllegalAccessException(); }
+        if (!safe(method)) {
+            throw new IllegalAccessException(method.toString());
+        }
         try {
             return method.invoke(self, args);
         } catch (final IllegalArgumentException e) {
