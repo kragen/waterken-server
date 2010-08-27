@@ -727,7 +727,7 @@ Eventual implements Selfless, Serializable {
             } else {
                 /*
                  * Promise is already resolved and all previously registered
-                 * when blocks run. Forward the observer to the resolved value.
+                 * observers run. Register the observer on the resolved value.
                  */
                 when(T, Void.class, value, observer);
             }
