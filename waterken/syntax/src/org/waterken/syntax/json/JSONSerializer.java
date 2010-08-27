@@ -27,6 +27,7 @@ import org.ref_send.scope.Scope;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.Export;
 import org.waterken.syntax.Exporter;
+import org.waterken.syntax.NonFinalRecordField;
 import org.waterken.syntax.Serializer;
 
 /**
@@ -207,10 +208,12 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             for (final Field f : Reflection.fields(actual)) {
                 if (!Modifier.isStatic(f.getModifiers()) &&
                     Modifier.isPublic(f.getDeclaringClass().getModifiers())) {
-                    if (!Modifier.isFinal(f.getModifiers())) {
-                        throw new IllegalAccessException("MUST be final: " + f);
+                    final Object member;
+                    if (Modifier.isFinal(f.getModifiers())) {
+                        member = Reflection.get(f, value);
+                    } else {
+                        member = Eventual.reject(new NonFinalRecordField());
                     }
-                    final Object member = Reflection.get(f, value);
                     if (null != member) {
                         serialize(export,
                                   Typedef.bound(f.getGenericType(), implicit),
