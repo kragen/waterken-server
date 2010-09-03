@@ -410,7 +410,9 @@ Pipeline implements Equatable, Serializable {
                     if (null != body) {
                         try {
                             final int length = head.getContentLength();
-                            if (length > maxEntitySize) { throw new TooBig(); }
+                            if (length > maxEntitySize) {
+                                throw new TooBig(length, maxEntitySize);
+                            }
                             r = new Message<Response>(head, Stream.snapshot(
                                     length >= 0 ? length : 1024,
                                     Limited.input(maxEntitySize + 1, body)));

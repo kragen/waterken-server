@@ -75,7 +75,9 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
             }
 
             final int length = head.getContentLength();
-            if (length > maxEntitySize) { throw new TooBig(); }
+            if (length > maxEntitySize) {
+                throw new TooBig(length, maxEntitySize);
+            }
             if (!head.expect(client, "TRACE","OPTIONS","GET","HEAD","POST")) {
                 return;
             }
