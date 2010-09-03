@@ -34,7 +34,7 @@ Limited {
 
             public int
             read() throws IOException {
-                if (0L == remaining) { throw new TooBig(); }
+                if (0L == remaining) { throw new TooBig(max + 1, max); }
                 final int r = in.read();
                 if (r != -1) { --remaining; }
                 return r;
@@ -42,7 +42,7 @@ Limited {
 
             public int
             read(final byte[] b,final int off,final int len) throws IOException{
-                if (0L == remaining) { throw new TooBig(); }
+                if (0L == remaining) { throw new TooBig(max + len, max); }
                 final int n = in.read(b, off, (int)Math.min(remaining, len));
                 if (n != -1) { remaining -= n; }
                 return n;
