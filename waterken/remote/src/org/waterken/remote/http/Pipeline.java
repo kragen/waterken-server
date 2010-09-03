@@ -86,7 +86,7 @@ Pipeline implements Equatable, Serializable {
     getActiveWindow() { return activeWindow; }
     
     /**
-     * Gets the id of the currently queuing window.
+     * Is the specified window still open for pipelined messages?
      */
     protected boolean
     canPipeline(final long window) {
