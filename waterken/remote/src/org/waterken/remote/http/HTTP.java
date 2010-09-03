@@ -413,12 +413,24 @@ HTTP extends Eventual implements Serializable {
         
         public void
         when(final Class<?> T, final Do<Object,?> observer) {
-            if (window == caller.msgs.getCurrentWindow()) {
+            if (caller.msgs.canPipeline(window)) {
                 final Compose<?,?> outer = observer instanceof Compose<?,?> ?
                         (Compose<?,?>)observer : null;
                 final Do<?,?> inner= null!=outer ? outer.conditional : observer;
                 if (inner instanceof Invoke<?>) {
                     final Invoke<?> op = (Invoke<?>)inner;
+                    if (null != Dispatch.property(op.method)) {
+                        class BreakPipeline extends Task {
+                            static private final long serialVersionUID = 1L;
+                            
+                            BreakPipeline() { super(true, false); }
+
+                            public Void
+                            call() { returned.when(T, observer); return null; }
+                        }
+                        caller.msgs.enqueue(new BreakPipeline());
+                        return;
+                    }
                     caller.invoke(
                         URI.relate(here, caller.msgs.peer + "#p=" + message),
                         null!=T ? T :Typedef.raw(op.method.getDeclaringClass()),
@@ -429,6 +441,8 @@ HTTP extends Eventual implements Serializable {
             }
             class FlushPipeline extends Task {
                 static private final long serialVersionUID = 1L;
+                
+                FlushPipeline() { super(false, false); }
 
                 public Void
                 call() { returned.when(T, observer); return null; }

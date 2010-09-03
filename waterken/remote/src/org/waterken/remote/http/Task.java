@@ -17,7 +17,9 @@ Task extends Operation implements Promise<Void> {
     static private final long serialVersionUID = 1L;
     
     protected
-    Task() { super(false, false); }
+    Task(final boolean isQuery, final boolean isUpdate) {
+        super(isQuery, isUpdate);
+    }
 
     protected final Message<Request>
     render(final String x, final long w, final int m) throws Exception {

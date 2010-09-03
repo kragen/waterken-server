@@ -59,7 +59,7 @@ Pipeline implements Equatable, Serializable {
     private   final List<Operation> pending = List.list();
     private         long halts = 0;     // number of pending pipeline flushes
     private         long queries = 0;   // number of queries after last flush
-    private         int updates = 0;    // number of updates after last flush
+    private         int trailingIndex = -1; // last queued window index
     
     /*
      * Message sending is halted before an Update that follows a Query. Sending
@@ -88,8 +88,10 @@ Pipeline implements Equatable, Serializable {
     /**
      * Gets the id of the currently queuing window.
      */
-    protected long
-    getCurrentWindow() { return activeWindow + halts; }
+    protected boolean
+    canPipeline(final long window) {
+        return 0 == queries && window == activeWindow + halts;
+    }
     
     /**
      * Serializes requests and enqueues them on the transient HTTP connection.
@@ -313,11 +315,11 @@ Pipeline implements Equatable, Serializable {
             if (0 != queries) {
                 halts += 1;
                 queries = 0;
-                updates = 0;
+                trailingIndex = -1;
             }
-            r = new Position(activeWindow + halts, updates,
-                             name + "-" + (activeWindow+halts) + "-" + updates);
-            updates += 1;
+            trailingIndex += 1;
+            r = new Position(activeWindow + halts, trailingIndex,
+                             name+"-"+(activeWindow+halts)+"-"+trailingIndex);
         } else {
             r = new Position(0, 0, name + "-0-" + mid);
         }
@@ -360,7 +362,7 @@ Pipeline implements Equatable, Serializable {
             activeIndex = -1;
             halts = 0;
             queries = 0;
-            updates = 0;
+            trailingIndex = -1;
             if (!isPending()) { Eventual.near(outbound).remove(this); }
         } else {
             if (front.isUpdate) {
