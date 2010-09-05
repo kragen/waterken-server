@@ -19,7 +19,6 @@ import org.joe_e.array.PowerlessArray;
 import org.joe_e.charset.UTF8;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.Record;
-import org.ref_send.deserializer;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
 import org.ref_send.scope.Layout;
@@ -36,14 +35,6 @@ import org.waterken.syntax.Serializer;
 public final class
 JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * Constructs an instance.
-     */
-    public @deserializer
-    JSONSerializer() {}
-
-    // org.waterken.syntax.Serializer interface
 
     public ByteArray
     serialize(final Exporter export,
@@ -121,7 +112,11 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     static private void
     serialize(final Exporter export, final Type implicit,
               final Object value, final JSONWriter out) throws Exception {
-        final Class<?> actual = null != value ? value.getClass() : Void.class;
+    	if (null == value) {
+    		out.writeNull();
+    		return;
+    	}
+        final Class<?> actual = value.getClass();
         if (String.class == actual) {
             out.writeString((String)value);
         } else if (Integer.class == actual) {
@@ -152,8 +147,6 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             out.writeInt((Short)value);
         } else if (Character.class == actual) {
             out.writeString(((Character)value).toString());
-        } else if (Void.class == actual) {
-            out.writeNull();
         } else if (BigInteger.class == actual) {
             final BigInteger num = (BigInteger)value;
             if (num.bitLength() < Integer.SIZE) {

@@ -90,10 +90,10 @@ JSONParser {
             lexer.close();
             return r.snapshot();
         } catch (final IOException e) {
-            try { lexer.close(); } catch (final Exception e2) {}
+            try { lexer.close(); } catch (final Exception e2) { /**/ }
             throw e;
         } catch (final Exception e) {
-            try { lexer.close(); } catch (final Exception e2) {}
+            try { lexer.close(); } catch (final Exception e2) { /**/ }
             throw new BadSyntax(base, lexer.getSpan(), e);           
         }
     }
@@ -114,10 +114,10 @@ JSONParser {
             lexer.close();
             return r;
         } catch (final IOException e) {
-            try { lexer.close(); } catch (final Exception e2) {}
+            try { lexer.close(); } catch (final Exception e2) { /**/ }
             throw e;
         } catch (final Exception e) {
-            try { lexer.close(); } catch (final Exception e2) {}
+            try { lexer.close(); } catch (final Exception e2) { /**/ }
             throw new BadSyntax(base, lexer.getSpan(), e);           
         }
     }
@@ -284,7 +284,10 @@ JSONParser {
                             types = new Class<?>[] { type };
                         }
                     } catch (final ClassCastException e) {
-                    } catch (final ClassNotFoundException e) {}
+                    	// Skip non-string typename in source.
+                    } catch (final ClassNotFoundException e) {
+                    	// Skip unknown type.
+                    }
                 }
             }
             explicit = types;
@@ -311,9 +314,9 @@ JSONParser {
         final boolean[] donev;
         if (null == make) {
             namev = new String[] {};
-            paramv = null;
-            argv = null;
-            donev = null;
+            paramv = new Type[] {};
+            argv = new Object[] {};
+            donev = new boolean[] {};
         } else {
             paramv = make.getGenericParameterTypes(); {
                 int i = 0;
@@ -342,7 +345,7 @@ JSONParser {
                 if (!":".equals(lexer.next())) { throw new Exception(); }
                 lexer.next();
                 int slot = namev.length;
-                while (0 != slot-- && !name.equals(namev[slot])) {}
+                while (0 != slot-- && !name.equals(namev[slot])) { /**/ }
                 final Type type = -1 != slot ?
                         paramv[slot] :
                     "=".equals(name) ?
@@ -412,7 +415,7 @@ JSONParser {
     static private int
     find(final String name, final PowerlessArray<String> names) {
         int r = names.length();
-        while (0 != r-- && !name.equals(names.get(r))) {}
+        while (0 != r-- && !name.equals(names.get(r))) { /**/ }
         return r;
     }
     

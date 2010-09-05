@@ -61,10 +61,13 @@ Syntax extends Struct implements Powerless, Record, Serializable {
             for (final Constructor<?> c : Reflection.constructors(i)) {
                 if (c.isAnnotationPresent(deserializer.class)) { return c; }
             }
-            if (Throwable.class.isAssignableFrom(i)) {
+            if (Throwable.class.isAssignableFrom(i) ||
+            		Record.class.isAssignableFrom(i)) {
                 try { 
                     return Reflection.constructor(i);
-                } catch (final NoSuchMethodException e) {}
+                } catch (final NoSuchMethodException e) {
+                	// Look for one in the superclass.
+                }
             }
         }
         return null;

@@ -68,17 +68,16 @@ Config {
         json
     );
 
-    private final File root;
-    private final ClassLoader code;
-    private final String namespace;
-    private final Importer connect;
-    private final Exporter export;
-    private final File home;
-    private final PowerlessArray<Syntax> supported;
-    private final Syntax output;
+    private   final File root;
+    protected final ClassLoader code;
+    protected final String namespace;
+    protected final Importer connect;
+    protected final File home;
+    protected final PowerlessArray<Syntax> supported;
+    private   final Syntax output;
     
-    private       PowerlessArray<String> cacheKeys;
-    private       ConstArray<Object> cacheValues;
+    protected       PowerlessArray<String> cacheKeys;
+    protected       ConstArray<Object> cacheValues;
     
     /**
      * Constructs an instance.
@@ -86,20 +85,18 @@ Config {
      * @param code      class loader for serialized objects
      * @param namespace global identifier for stored object namespace
      * @param connect   remote reference importer, may be <code>null</code>
-     * @param export    remote reference exporter, may be <code>null</code>
      * @param home      root folder for a path beginning with <code>~</code>
      * @param supported each supported {@linkplain #read input} syntax
      * @param output    {@linkplain #init output} syntax
      */
     public
     Config(final File root, final ClassLoader code, final String namespace,
-    	   final Importer connect, final Exporter export, final File home,
+    	   final Importer connect, final File home,
            final PowerlessArray<Syntax> supported, final Syntax output) {
         this.root = root;
         this.code = code;
         this.namespace = namespace;
         this.connect = connect;
-        this.export = export;
         this.home = home;
         this.supported = supported;
         this.output = output;
@@ -114,13 +111,12 @@ Config {
      * @param code      class loader for serialized objects
      * @param namespace global identifier for stored object namespace
      * @param connect   remote reference importer, may be <code>null</code>
-     * @param export    remote reference exporter, may be <code>null</code>
      * @param home      root folder for a path beginning with <code>~</code>
      */
     public
     Config(final File root, final ClassLoader code, final String namespace,
-    	   final Importer connect, final Exporter export, final File home) {
-        this(root, code, namespace, connect, export, home, known, json);
+    	   final Importer connect, final File home) {
+        this(root, code, namespace, connect, home, known, json);
     }
     
     /**
@@ -130,7 +126,7 @@ Config {
      */
     public
     Config(final File root, final ClassLoader code) {
-        this(root, code, "file:///", null, null, null);
+        this(root, code, "file:///", null, null);
     }
     
     /**
@@ -174,12 +170,12 @@ Config {
         return (T)sub(root, namespace).apply(name, namespace, type);
     }
     
-    private Importer
-    sub(final File root, final String namespace) { return new Importer() {
+    protected Importer
+    sub(final File top, final String topspace) { return new Importer() {
         public Object
         apply(final String href, final String base,
                                  final Type... type) throws Exception {
-            if (!namespace.equals(base) || -1 != href.indexOf(':')) {
+            if (!topspace.equals(base) || -1 != href.indexOf(':')) {
                 return connect.apply(href, base, type);
             }
             
@@ -191,8 +187,8 @@ Config {
                 subspace = Config.this.namespace + "~/";
                 name = name.substring("~/".length());
             } else {
-                folder = root;
-                subspace = namespace;
+                folder = top;
+                subspace = topspace;
             }
 
             // check the cache
@@ -230,17 +226,6 @@ Config {
             return r;
         }
     }; }
-    
-    /**
-     * Initializes a configuration setting.
-     * @param name  setting name
-     * @param value setting value
-     * @throws Exception    any problem persisting the <code>value</code>
-     */
-    public void
-    init(final String name, final Object value) throws Exception {
-        init(name, value, export);
-    }
     
     /**
      * Initializes a configuration setting.

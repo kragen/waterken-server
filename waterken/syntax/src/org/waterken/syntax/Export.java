@@ -8,7 +8,6 @@ import org.joe_e.Struct;
 
 /**
  * A {@linkplain Exporter#apply exported} value.
- *
  */
 public class Export extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;

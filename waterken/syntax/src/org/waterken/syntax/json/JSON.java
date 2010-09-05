@@ -17,7 +17,7 @@ import org.ref_send.promise.Promise;
  */
 /* package */ final class
 JSON {
-    private JSON() {}
+    private JSON() { /**/ }
     
     /**
      * Enumerate an inheritance chain from [ bottom, top ).
@@ -65,7 +65,9 @@ JSON {
                     org.ref_send.Record.class != type &&
                     java.lang.Comparable.class != type &&
                     java.io.Serializable.class != type) {r.append(name(type));}
-            } catch (final Exception e) {}
+            } catch (final Exception e) {
+            	// Skip any type that does not have a deterministic name.
+            }
         }
         for (final Class<?> i : type.getInterfaces()) { ifaces(top, i, r); }
     }

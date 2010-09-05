@@ -12,7 +12,6 @@ import org.joe_e.Struct;
 import org.joe_e.array.ConstArray;
 import org.joe_e.charset.UTF8;
 import org.ref_send.Record;
-import org.ref_send.deserializer;
 import org.waterken.syntax.BadSyntax;
 import org.waterken.syntax.Deserializer;
 import org.waterken.syntax.Importer;
@@ -23,14 +22,6 @@ import org.waterken.syntax.Importer;
 public final class
 JSONDeserializer extends Struct implements Deserializer, Record, Serializable {
     static private final long serialVersionUID = 1L;
-    
-    /**
-     * Constructs an instance.
-     */
-    public @deserializer
-    JSONDeserializer() {}
-    
-    // org.waterken.syntax.Deserializer interface
 
     public Object
     deserialize(final InputStream content, final Importer connect,

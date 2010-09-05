@@ -87,12 +87,12 @@ JSONWriter {
         mark() { marked = true; }
     }
 
-    private final boolean top;          // Is this the top level JSON container?
-    private final String indent;        // indentation for this JSON value
+    protected final boolean top;        // Is this the top level JSON container?
+    protected final String indent;      // indentation for this JSON value
     private final Prize<Writer> output; // claimed by 1st called output method
-    private final Milestone written;    // marked after output method is done  
+    protected final Milestone written;  // marked after output method is done  
 
-    private
+    protected
     JSONWriter(final boolean top, final String indent, final Writer out) {
         this.top = top;
         this.indent = indent;
@@ -316,7 +316,7 @@ JSONWriter {
         written.mark();
     }
 
-    static private void
+    static protected void
     writeStringTo(final String value, final Writer out) throws IOException {
         out.write('\"');
         char previous = '\0';
