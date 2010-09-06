@@ -28,7 +28,7 @@ import org.waterken.serial.PopPushN;
  */
 public final class
 All {
-    private All() {}
+    private All() { /* no instance interface */ }
 
     /**
      * Constructs an instance.

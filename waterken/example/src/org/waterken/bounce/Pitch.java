@@ -20,7 +20,7 @@ import org.ref_send.promise.Promise;
  */
 public final class
 Pitch {
-    private Pitch() {}
+    private Pitch() { /**/ }
     
     /**
      * Runs a unit test.

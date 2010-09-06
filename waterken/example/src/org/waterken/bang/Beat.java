@@ -18,7 +18,7 @@ import org.ref_send.promise.Promise;
  */
 public final class
 Beat {
-    private Beat() {}
+    private Beat() { /* no instance interface */ }
     
     /**
      * Runs a unit test.

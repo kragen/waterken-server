@@ -10,7 +10,7 @@ import org.ref_send.promise.Promise;
  */
 public final class
 Factorial {
-    private Factorial() {}
+    private Factorial() { /* no instance interface */ }
     
     /**
      * Computes a factorial.
@@ -34,9 +34,9 @@ Factorial {
          */
         final Recursion loop_ = _._(new Recursion() {
             public Promise<Integer>
-            apply(final Recursion loop_, final int n, final int acc) {
-                if (n == 0) { return Eventual.ref(acc); }
-                return loop_.apply(loop_, n - 1, n * acc);
+            apply(final Recursion tail_, final int i, final int acc) {
+                if (i == 0) { return Eventual.ref(acc); }
+                return tail_.apply(tail_, i - 1, i * acc);
             }
         });
         return loop_.apply(loop_, n, 1);
@@ -46,5 +46,5 @@ Factorial {
      * The inner loop of a tail recursive factorial implementation.
      */
     static public interface
-    Recursion { Promise<Integer> apply(Recursion loop_, int n, int acc); }
+    Recursion { Promise<Integer> apply(Recursion tail_, int i, int acc); }
 }

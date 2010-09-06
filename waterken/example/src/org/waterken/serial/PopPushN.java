@@ -22,7 +22,7 @@ import org.ref_send.promise.Promise;
  */
 public final class
 PopPushN {
-    private PopPushN() {}
+    private PopPushN() { /**/ }
     
     /**
      * Runs a unit test.

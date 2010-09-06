@@ -15,7 +15,7 @@ import org.ref_send.promise.Promise;
  */
 public final class
 Relay {
-    private Relay() {}
+    private Relay() { /**/ }
     
     static public Promise<?>
     make(final Eventual _, final Forwarder forwarder_) {

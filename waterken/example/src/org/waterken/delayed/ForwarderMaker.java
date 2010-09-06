@@ -14,7 +14,7 @@ import org.ref_send.promise.Promise;
  */
 public final class
 ForwarderMaker {
-    private ForwarderMaker() {}
+    private ForwarderMaker() { /**/ }
     
     static public Forwarder
     make(final Eventual _) {

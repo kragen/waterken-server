@@ -14,7 +14,7 @@ DrumFactory extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
     
     private
-    DrumFactory() {}
+    DrumFactory() { /**/ }
 
     /**
      * Constructs an instance.

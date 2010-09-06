@@ -10,7 +10,7 @@ import org.joe_e.Struct;
  * A {@link PlugNPlay} maker.
  */
 public final class PlugNPlayMaker {
-    private PlugNPlayMaker() {}
+    private PlugNPlayMaker() { /**/ }
     
     static public PlugNPlay
     make() {

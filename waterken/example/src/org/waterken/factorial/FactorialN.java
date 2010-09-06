@@ -13,7 +13,7 @@ import org.ref_send.promise.Promise;
  */
 public final class
 FactorialN {
-    private FactorialN() {}
+    private FactorialN() { /**/ }
     
     /**
      * Runs a unit test.

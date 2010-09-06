@@ -19,7 +19,7 @@ import org.ref_send.promise.Resolver;
  */
 public final class
 Serial {
-    private Serial() {}
+    private Serial() { /**/ }
 
     /**
      * Makes a {@link Series}.
@@ -35,8 +35,8 @@ Serial {
         class SeriesX implements Series<T>, Serializable {
             static private final long serialVersionUID = 1L;
 
-            private Element<T> front_ = cast(Element.class, initial.promise);
-            private Resolver<Element<T>> back = initial.resolver;
+            protected Element<T> front_ = cast(Element.class, initial.promise);
+            private   Resolver<Element<T>> back = initial.resolver;
 
             public Iterator<Promise<T>>
             iterator() {

@@ -19,7 +19,7 @@ import org.ref_send.promise.Receiver;
  */
 public final class
 SoundCheck {
-    private SoundCheck() {}
+    private SoundCheck() { /**/ }
 
     /**
      * Runs a unit test.
@@ -77,7 +77,7 @@ SoundCheck {
         try {
             p.call();
             check(false);
-        } catch (final NullPointerException e) {}
+        } catch (final NullPointerException e) { /* expected */ }
         class NE extends Do<T,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -112,7 +112,7 @@ SoundCheck {
         try {
             p.call();
             check(false);
-        } catch (final ArithmeticException e) {}
+        } catch (final ArithmeticException e) { /* expected */ }
         class ENaN extends Do<T,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -190,7 +190,7 @@ SoundCheck {
         return join(_, a, b, c, d, e);
     }
 
-    static private void
+    static protected void
     check(final boolean valid) throws Exception {
         if (!valid) { throw new Exception(); }
     }
