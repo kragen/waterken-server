@@ -13,7 +13,7 @@ import org.waterken.io.Stream;
  */
 final class
 Main {
-    private Main() {}
+    private Main() { /**/ }
 
     /**
      * Encodes bytes read from <code>stdin</code>.

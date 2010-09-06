@@ -9,7 +9,7 @@ import org.waterken.uri.URI;
  */
 public final class
 Main {
-    private Main() {}
+    private Main() { /**/ }
 
     static public void
     main(final String[] args) throws Exception {
