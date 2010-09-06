@@ -16,7 +16,7 @@ Do<P,R> extends Struct {
      * Constructs an instance.
      */
     protected
-    Do() {}
+    Do() { /**/ }
 
     /**
      * Notification of a fulfilled argument.

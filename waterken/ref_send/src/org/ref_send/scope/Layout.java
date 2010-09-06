@@ -93,7 +93,7 @@ Layout<T> implements Powerless, Record, Serializable {
     public int
     find(final String name) {
         int i = names.length();
-        while (0 != i-- && !names.get(i).equals(name)) {}
+        while (0 != i-- && !names.get(i).equals(name)) { /**/ }
         return i;
     }
 }

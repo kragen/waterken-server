@@ -12,4 +12,4 @@ import org.joe_e.Selfless;
  * </p>
  */
 public interface
-Record extends Selfless {}
+Record extends Selfless { /**/ }

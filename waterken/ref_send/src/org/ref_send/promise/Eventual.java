@@ -163,7 +163,7 @@ Eventual implements Selfless, Serializable {
     /**
      * mutable statistics about eventual operations 
      */
-    private   final Fulfilled<Stats> stats; 
+    protected final Fulfilled<Stats> stats; 
 
     /**
      * Constructs an instance.
@@ -307,13 +307,13 @@ Eventual implements Selfless, Serializable {
     returnType(final Type P, final Do<?,?> block) {
         return block instanceof Invoke<?> ?
             Typedef.bound(((Invoke<?>)block).method.getGenericReturnType(), P) :
-        Typedef.value(R, block.getClass());
+        Typedef.value(DoR, block.getClass());
     }
 
     /**
      * {@link Do} block return type
      */
-    static private final TypeVariable<?> R = Typedef.var(Do.class, "R");
+    static private final TypeVariable<?> DoR = Typedef.var(Do.class, "R");
 
     /**
      * A reified method invocation.
@@ -1087,7 +1087,7 @@ Eventual implements Selfless, Serializable {
                     return handler instanceof Enqueue
                         ? ((Enqueue<T>)handler).untrusted : (Promise<T>)handler;
                 }
-            } catch (final Exception e) {}
+            } catch (final Exception e) { /* treat as normal reference */ }
         }
         try {
             if (null == referent)   { throw new NullPointerException(); }
@@ -1202,8 +1202,8 @@ Eventual implements Selfless, Serializable {
             for (final Object x : optional) { argv.append(x); }
             final @SuppressWarnings("unchecked") R top =
                 (R)when(maker, new Invoke<Class<?>>(make, argv.snapshot()));
-            final Receiver<?> destruct = cast(Receiver.class, null);
-            return new Vat<R>(top, destruct);
+            final Receiver<?> ignore = cast(Receiver.class, null);
+            return new Vat<R>(top, ignore);
         } catch (final Exception e) { throw new Error(e); }
     }
 

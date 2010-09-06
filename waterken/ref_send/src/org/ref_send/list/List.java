@@ -22,23 +22,23 @@ public final class
 List<T> implements Iterable<T>, Serializable {
     static private final long serialVersionUID = 1L;
 
-    static private final class
+    static protected final class
     Link<T> implements Equatable, Serializable {
         static private final long serialVersionUID = 1L;
 
-        Promise<Link<T>> next;
-        T value;
+        protected Promise<Link<T>> next;
+        protected T value;
     }
 
     /**
      * first element link
      */
-    private Promise<Link<T>> first;
+    protected Promise<Link<T>> first;
 
     /**
      * first unused link
      */
-    private Link<T> last;
+    protected Link<T> last;
 
     /**
      * link count
@@ -75,7 +75,7 @@ List<T> implements Iterable<T>, Serializable {
     public final Iterator<T>
     iterator() { return new IteratorX(); }
 
-    private final class
+    protected final class
     IteratorX implements Iterator<T>, Serializable {
         static private final long serialVersionUID = 1L;
 
@@ -160,7 +160,7 @@ List<T> implements Iterable<T>, Serializable {
     public Receiver<T>
     appender() { return new Appender(); }
 
-    private final class
+    protected final class
     Appender extends Struct implements Receiver<T>, Serializable {
         static private final long serialVersionUID = 1L;
 

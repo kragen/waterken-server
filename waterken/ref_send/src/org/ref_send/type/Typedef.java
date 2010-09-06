@@ -13,9 +13,7 @@ import java.lang.reflect.WildcardType;
  */
 public final class
 Typedef {
-
-    private
-    Typedef() {}
+    private Typedef() { /**/ }
 
     /**
      * Gets the named type variable.

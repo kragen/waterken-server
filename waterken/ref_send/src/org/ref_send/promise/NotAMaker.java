@@ -25,7 +25,7 @@ NotAMaker extends NullPointerException implements Powerless {
     static private final long serialVersionUID = 1L;
     
     public
-    NotAMaker() {}
+    NotAMaker() { /**/ }
 
     private
     NotAMaker(final Class<?> maker) {
