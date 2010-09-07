@@ -21,7 +21,7 @@ import org.waterken.menu.TooMany;
  */
 public final class
 HostMaker {
-    private HostMaker() {}
+    private HostMaker() { /* no instance interface */ }
 
     /**
      * maximum number of {@link Resource}s per host

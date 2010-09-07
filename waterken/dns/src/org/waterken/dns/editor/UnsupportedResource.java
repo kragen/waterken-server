@@ -4,7 +4,6 @@ package org.waterken.dns.editor;
 
 import org.joe_e.Powerless;
 import org.ref_send.Record;
-import org.ref_send.deserializer;
 
 /**
  * Signals an unsupported DNS resource.
@@ -12,10 +11,4 @@ import org.ref_send.deserializer;
 public class
 UnsupportedResource extends RuntimeException implements Powerless, Record {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * Constructs an instance.
-     */
-    public @deserializer
-    UnsupportedResource() {}
 }

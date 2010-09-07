@@ -24,9 +24,9 @@ GUID extends Brand<Object> implements Selfless {
     /**
      * globally unique absolute URI
      */
-    private final String href;
+    protected final String href;
     
-    private
+    protected
     GUID(final String href) {
         this.href = href;
     }

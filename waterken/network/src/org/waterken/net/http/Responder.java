@@ -92,7 +92,7 @@ Responder extends Client {
         }
     }
     
-    private synchronized void
+    protected synchronized void
     setResponse(final Response head, InputStream body) throws Exception {
         if (null != body &&
                 !(body instanceof ByteArrayInputStream) && null == connection) {

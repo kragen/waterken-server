@@ -24,7 +24,7 @@ import org.waterken.thread.Sleep;
  */
 public final class
 Settings {
-    private Settings() {}
+    private Settings() { /**/ }
 
     // initialize bootstrap configuration from system properties
     static private   final File configFolder;
@@ -49,7 +49,7 @@ Settings {
      */
     static public    final Config config =
         new Config(configFolder, code, "file:///",
-                   AMP.connect(new Proxy()), null,
+                   AMP.connect(new Proxy()),
                    new File(System.getProperty("user.home")));
     static {
         config.override("fileMetadata", new FilesystemClock());

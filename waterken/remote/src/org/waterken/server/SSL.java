@@ -145,7 +145,7 @@ SSL {
     
     interface Connect { Socket apply() throws Exception; }
     
-    static private Connect
+    static protected Connect
     proxy(final SSLSocketFactory factory,
     	  final String hostname, final int port) { return new Connect() {
         public Socket
@@ -181,14 +181,14 @@ SSL {
         }
     }; }
     
-    static private Connect
+    static protected Connect
     direct(final SSLSocketFactory factory,
            final InetAddress addr, final int port) { return new Connect() {
         public Socket
         apply() throws Exception { return factory.createSocket(addr, port); }
     }; }
     
-    static private void
+    static protected void
     authenticate(final String hostname,
                  final SSLSocket socket) throws Exception {
 
@@ -318,7 +318,7 @@ SSL {
      * Constructs a trust manager that implements the y-property.
      * @param pki   default key verification algorithm
      */
-    static private X509TrustManager
+    static protected X509TrustManager
     y(final X509TrustManager pki) {
         return new X509TrustManager() {
 
@@ -391,7 +391,7 @@ SSL {
      * @param dn    distinguished name
      * @return CN value, or <code>null</code> if not specified
      */
-    static private String
+    static protected String
     CN(final String dn) {
         if (!dn.startsWith("CN=")) { return null; }
         final int startCN = "CN=".length();

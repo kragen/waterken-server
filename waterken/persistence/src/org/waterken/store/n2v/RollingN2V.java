@@ -310,7 +310,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                 }
             }
             
-            private void
+            protected void
             markCommitted() throws IOException {
                 while (true) {
                     try {
@@ -326,7 +326,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
         };
     }
     
-    static private String
+    static protected String
     name(final int n) {
         final StringBuilder r=new StringBuilder(Integer.SIZE/4+".n2v".length());
         for (int i = Integer.SIZE; 0 != i;) {
@@ -340,7 +340,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
     static private char
     toHex(final int b) { return (char)(b < 10 ? '0' + b : 'A' + (b - 10)); }
     
-    static private int
+    static protected int
     id(final File file) {
         final String name = file.getName();
         if (!name.endsWith(".n2v")) { throw new RuntimeException(); }
@@ -366,7 +366,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
         : 1 / 0;
     }
     
-    static private boolean
+    static protected boolean
     ok(final String name)  {
         if (0 == name.length()) { return false; }
         for (int i = name.length(); i-- != 0;) {
@@ -383,7 +383,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
      * @return opened output stream
      * @throws IOException    <code>file</code> could not be created
      */
-    static private OutputStream
+    static protected OutputStream
     writeNew(final File file) throws IOException {
         if (!file.createNewFile()) { throw new IOException(); }
         return new SynchedFileOutputStream(file);
@@ -394,12 +394,12 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
      * @param dir   directory to make
      * @throws IOException  <code>dir</code> could not be created
      */
-    static private void
+    static protected void
     mkdir(final File dir) throws IOException {
         if (!dir.mkdir()) { throw new IOException(); }
     }
     
-    static private void
+    static protected void
     rename(final File from, final File to) throws IOException {
         if (!from.renameTo(to)) { throw new IOException(); }
     }
@@ -410,7 +410,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
      * @param to    destination folder
      * @throws IOException  any I/O problem
      */
-    static private void
+    static protected void
     renameAll(final File from, final File to) throws IOException {
         final File[] e = from.listFiles(new FileFilter() {
             public boolean
@@ -430,7 +430,7 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
      * @param file  entry to recursively delete
      * @throws IOException  any I/O problem
      */
-    static private void
+    static protected void
     deleteRecursively(final File file) throws IOException {
         if (file.isDirectory()) {
             final File[] e = file.listFiles(new FileFilter() {

@@ -67,17 +67,17 @@ Header implements Powerless, Selfless, Record, Serializable {
 
     /**
      * Compares two tokens.
-     * @param a	first token
-     * @param b	second token
+     * @param a first token
+     * @param b second token
      * @return <code>true</code> if equivalent, else <code>false</code>
      */
     static public boolean
     equivalent(final String a, final String b) {
-    	boolean r = a.length() == b.length();
-    	for (int i = a.length(); r && 0 != i--;) {
-    		r = toLower(a.charAt(i)) == toLower(b.charAt(i));
-    	}
-    	return r;
+        boolean r = a.length() == b.length();
+        for (int i = a.length(); r && 0 != i--;) {
+            r = toLower(a.charAt(i)) == toLower(b.charAt(i));
+        }
+        return r;
     }
     
     static private char

@@ -18,7 +18,7 @@ import org.waterken.io.Stream;
  */
 public final class
 Compact {
-    private Compact() {}
+    private Compact() { /* no instance interface */ }
     
     /**
      * command line arguments format: {@value}
@@ -54,7 +54,7 @@ Compact {
         n2v.close();
     }
     
-    static private void
+    static protected void
     append(final ArchiveOutput n2v, final File file) throws IOException {
         if (file.isFile()) {
             final FileInputStream in = new FileInputStream(file);

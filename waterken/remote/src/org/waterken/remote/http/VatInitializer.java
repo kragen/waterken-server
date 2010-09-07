@@ -152,7 +152,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
         return new Wake();
     }
     
-    static private Effect<Server>
+    static protected Effect<Server>
     runTask() {
         return new Effect<Server>() {
             public void

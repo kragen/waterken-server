@@ -116,7 +116,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
         }
     }; }
     
-    static private Transaction<PowerlessArray<String>>
+    static protected Transaction<PowerlessArray<String>>
     projectGetter() {
         return new Transaction<PowerlessArray<String>>() {
             public PowerlessArray<String>
@@ -127,7 +127,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
         };
     }
     
-    static private Transaction<Message<Response>>
+    static protected Transaction<Message<Response>>
     callee(final String q, final Message<Request> m) {
         return new Transaction<Message<Response>>() {
             public Message<Response>
@@ -139,7 +139,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
         };
     }
 
-    static private <T> Receiver<T>
+    static protected <T> Receiver<T>
     poster(final String href, final Server proxy) { return new Receiver<T>() {
         public void
         apply(final Object value) {

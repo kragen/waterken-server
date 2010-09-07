@@ -112,7 +112,7 @@ JODB<S> extends Database<S> {
         this.store = store;
     }
     
-    static private <S> Receiver<Object>
+    static protected <S> Receiver<Object>
     makeDestructor(final Receiver<Effect<S>> effect) {
         class Destruct extends Struct implements Receiver<Object>, Serializable{
             static private final long serialVersionUID = 1L;
@@ -149,7 +149,7 @@ JODB<S> extends Database<S> {
     private       ReferenceQueue<Object> wiped;     // dead cache entries
     private       Processor tx;     // currently active transaction processor
     
-    static private final class
+    static protected final class
     Wake<S> implements Transaction<ImmutableArray<Effect<S>>> {
         public ImmutableArray<Effect<S>>
         apply(final Root root) throws Exception {
@@ -288,7 +288,7 @@ JODB<S> extends Database<S> {
      * @param f	bucket's filename
      * @param o	root object to be stored in the bucket
      */
-    private void
+    protected void
     create(final String f, final Object o) {
         /*
          * to support caching of query responses, forbid export of selfish state
@@ -319,7 +319,7 @@ JODB<S> extends Database<S> {
          * @throws RuntimeException         syntax problem with state
          * @throws Error                    I/O problem
          */
-        private Object
+        protected Object
         load(final String f) throws FileNotFoundException, RuntimeException {
             if ("".equals(f)) { return null; }
             
@@ -776,12 +776,12 @@ JODB<S> extends Database<S> {
     private final ArrayList<Mac> macs = new ArrayList<Mac>();
     private SecretKeySpec master;                   // MAC key generation secret
 
-    private void
+    protected void
     setMaster(final ByteArray bits) {
         master = new SecretKeySpec(bits.toByteArray(), "HmacSHA256");
     }
     
-    private Mac
+    protected Mac
     allocMac(final Root local) throws Exception {
         if (!macs.isEmpty()) { return macs.remove(macs.size() - 1); }
         if (null == master) {
@@ -793,7 +793,7 @@ JODB<S> extends Database<S> {
         return r;
     }
 
-    private void
+    protected void
     freeMac(final Mac h) { macs.add(h); }
     
     /**

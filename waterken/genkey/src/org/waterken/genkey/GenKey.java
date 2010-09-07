@@ -254,7 +254,7 @@ GenKey {
         }).call();
     }
     
-    static private void
+    static protected void
     claim(final Eventual _, final Exporter export,
           final String hostname, final Registrar redirectory_){
         class StoreRegistration extends Do<Vat<Menu<ByteArray>>,Void>

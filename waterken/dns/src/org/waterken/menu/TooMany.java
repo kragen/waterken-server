@@ -4,7 +4,6 @@ package org.waterken.menu;
 
 import org.joe_e.Powerless;
 import org.ref_send.Record;
-import org.ref_send.deserializer;
 
 /**
  * Signals an attempt to {@linkplain Menu#grow add} too many entries to a
@@ -13,10 +12,4 @@ import org.ref_send.deserializer;
 public class
 TooMany extends RuntimeException implements Powerless, Record {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * Constructs an instance.
-     */
-    public @deserializer
-    TooMany() {}
 }

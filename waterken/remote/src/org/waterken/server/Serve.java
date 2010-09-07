@@ -107,7 +107,7 @@ Serve {
                            ": all vats restarted");
     }
     
-    static private void
+    static protected void
     ping(final DatabaseManager<Server> vats, final File dir) {
         dir.listFiles(new FileFilter() {
             public boolean

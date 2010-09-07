@@ -20,7 +20,7 @@ import org.waterken.uri.InvalidLabel;
  */
 public final class
 RegistrarMaker {
-    private RegistrarMaker() {}
+    private RegistrarMaker() { /* no instance interface */ }
     
     /**
      * Constructs an instance.

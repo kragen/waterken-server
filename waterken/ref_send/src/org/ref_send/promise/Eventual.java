@@ -189,8 +189,8 @@ Eventual implements Selfless, Serializable {
      */
     public
     Eventual(final Receiver<Promise<?>> enqueue) {
-        this(enqueue, "", new Log(), cast(Receiver.class,
-                new Rejected<Receiver<?>>(new NullPointerException())));
+        this(enqueue, "", new Log(),
+        	 cast(Receiver.class, new Rejected<Receiver<?>>(null)));
     }
     
     // org.joe_e.Selfless interface
@@ -415,10 +415,7 @@ Eventual implements Selfless, Serializable {
     private final <T> Local<T>
     trust(final Promise<T> untrusted) {
         return trusted(untrusted) ?
-            (Local<T>)untrusted :
-        null == untrusted ?
-            new Enqueue<T>(new Rejected<T>(new NullPointerException())) :
-        new Enqueue<T>(untrusted);
+        		(Local<T>)untrusted : new Enqueue<T>(untrusted);
     }
     
     protected final boolean
@@ -580,6 +577,7 @@ Eventual implements Selfless, Serializable {
 
             // ensure the called value is not one that is
             // expected to be handled as a rejection
+            if (null == a) { throw new NullPointerException(); }
             final Promise<?> p = ref(a);
             if (p instanceof Rejected<?>) { p.call(); }
         } catch (final Exception reason) {
@@ -809,15 +807,12 @@ Eventual implements Selfless, Serializable {
         reject(final Exception reason) { set(null, new Rejected<T>(reason)); }
 
         public void
-        resolve(final Promise<? extends T> p) {
-            set(null != p ? null : Void.class, p);
-        }
+        resolve(final Promise<? extends T> p) { set(null, p); }
 
         public void
         apply(final T r) {
-            set(r instanceof Promise<?> ? null :
-                    null != r ? r.getClass() : Void.class,
-                null != r ? ref(r) : null);
+            set(null == r || r instanceof Promise<?> ? null : r.getClass(),
+            ref(r));
         }
         
         private void
@@ -1000,18 +995,18 @@ Eventual implements Selfless, Serializable {
      */
     static public @SuppressWarnings("unchecked") <T> T
     cast(final Class<?> type,final Promise<T> promise)throws ClassCastException{
-        return (T)(Void.class == type || void.class == type ?
+        return (T)(null == promise ?
+        		null :
+            type.isInstance(promise) ?
+                promise :
+            Fulfilled.class == promise.getClass() ?
+                near(promise) :
+            Void.class == type || void.class == type ?
                 null :
             Float.class == type || float.class == type ?
                 Float.NaN :
             Double.class == type || double.class == type ?
                 Double.NaN :
-            null == promise ?
-                cast(type, new Rejected<T>(new NullPointerException())) :
-            type.isInstance(promise) ?
-                promise :
-            Fulfilled.class == promise.getClass() ?
-                near(promise) :
             Selfless.class == type ?
                 Proxies.proxy((InvocationHandler)promise, Selfless.class) :
             Proxies.proxy((InvocationHandler)promise, 
@@ -1079,6 +1074,7 @@ Eventual implements Selfless, Serializable {
      */
     static public @SuppressWarnings("unchecked") <T> Promise<T>
     ref(final T referent) {
+        if (null == referent) { return null; }
         if (referent instanceof Promise) { return (Promise<T>)referent; }
         if (referent instanceof Proxy) {
             try {
@@ -1090,7 +1086,6 @@ Eventual implements Selfless, Serializable {
             } catch (final Exception e) { /* treat as normal reference */ }
         }
         try {
-            if (null == referent)   { throw new NullPointerException(); }
             if (referent instanceof Double) {
                 final Double d = (Double)referent;
                 if (d.isNaN())      { throw new ArithmeticException(); }
@@ -1202,8 +1197,8 @@ Eventual implements Selfless, Serializable {
             for (final Object x : optional) { argv.append(x); }
             final @SuppressWarnings("unchecked") R top =
                 (R)when(maker, new Invoke<Class<?>>(make, argv.snapshot()));
-            final Receiver<?> ignore = cast(Receiver.class, null);
-            return new Vat<R>(top, ignore);
+            final Promise<Receiver<?>> ignore = reject(null);
+            return new Vat<R>(top, cast(Receiver.class, ignore));
         } catch (final Exception e) { throw new Error(e); }
     }
 

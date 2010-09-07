@@ -98,7 +98,7 @@ Pipeline implements Equatable, Serializable {
      * @param max       maximum number of requests to enqueue
      * @param skipTo    mid of first request to send
      */
-    private ImmutableArray<Effect<Server>>
+    protected ImmutableArray<Effect<Server>>
     restart(final long max, final long skipTo) {
         final ImmutableArray.Builder<Effect<Server>> r=ImmutableArray.builder();
         int index = activeIndex;
@@ -169,7 +169,7 @@ Pipeline implements Equatable, Serializable {
     /**
      * Are there any pending messages in this pipeline?
      */
-    private boolean
+    protected boolean
     isPending() {
         if (!pending.isEmpty()) { return true; }
         for (final List<?> i : pollers) {
@@ -261,7 +261,7 @@ Pipeline implements Equatable, Serializable {
         }
     }
     
-    static private Effect<Server>
+    static protected Effect<Server>
     waitTx(final String peer, final int priority, final long ms) {
         return new Effect<Server>() {
             public void
@@ -285,7 +285,7 @@ Pipeline implements Equatable, Serializable {
         };
     }
     
-    private void
+    protected void
     tick(final int priority) {
         final List<Operation> poller = pollers.get(priority);
         if (0 == halts) {
@@ -347,7 +347,7 @@ Pipeline implements Equatable, Serializable {
         }
     }
     
-    private Operation
+    protected Operation
     dequeue(final long mid) {
         if (mid != acknowledged) { throw new RuntimeException(); }
         
@@ -436,7 +436,7 @@ Pipeline implements Equatable, Serializable {
         }
     }; }
     
-    static private Transaction<Immutable>
+    static protected Transaction<Immutable>
     fulfillTX(final String peer, final String request, final long mid,
               final Message<Response> response) {
         return new Transaction<Immutable>() {
@@ -476,7 +476,7 @@ Pipeline implements Equatable, Serializable {
         }
     }; }
     
-    static private Transaction<Immutable>
+    static protected Transaction<Immutable>
     rejectTX(final String peer, final String request, final long mid,
              final Exception reason) { return new Transaction<Immutable>() {
         public Immutable

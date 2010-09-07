@@ -72,12 +72,7 @@ SoundCheck {
     static private <T extends Receiver<?>> Promise<?>
     testNull(final Eventual _, final T x) throws Exception {
         final Promise<T> p = ref(x);
-        check(p.equals(p));
-        check(!ref(x).equals(p));
-        try {
-            p.call();
-            check(false);
-        } catch (final NullPointerException e) { /* expected */ }
+    	check(null == p);
         class NE extends Do<T,Promise<Boolean>> implements Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -95,10 +90,8 @@ SoundCheck {
         final Promise<?> c = _.when(new Sneaky<T>(x), new NE());
 
         final T x_ = Eventual.cast(Receiver.class, p);
-        check(x_.equals(x_));
-        check(_._(x_).equals(x_));
-        check(Eventual.cast(Receiver.class, p).equals(x_));
-        check(ref(x_).equals(p));
+        check(null == x_);
+        check(null == ref(x_));
         final Promise<?> d = _.when(x_, new NE());
 
         return join(_, a, b, c, d);

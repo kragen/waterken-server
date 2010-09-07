@@ -178,7 +178,7 @@ JSONParser {
             }
         }
         lexer.next();   // pop the keyword from the stream
-        return null != value && null != promised ? ref(value) : value;
+        return null != promised ? ref(value) : value;
     }
     
     private Object
@@ -387,7 +387,7 @@ JSONParser {
             final Object r = null != explicit ?
                 connect.apply(href, base, explicit) :
                 connect.apply(href, base, required);
-            return null != r && null != promised ? ref(r) : r;
+            return null != promised ? ref(r) : r;
         }
         
         final int replacement = find("=", undeclared);

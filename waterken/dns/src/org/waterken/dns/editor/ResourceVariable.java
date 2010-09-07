@@ -12,9 +12,6 @@ ResourceVariable implements Receiver<ByteArray>, Serializable {
     
     private ByteArray value;
     
-    protected
-    ResourceVariable() {}
-    
     protected ByteArray
     get() { return value; }
 

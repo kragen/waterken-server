@@ -77,8 +77,7 @@ Callee extends Struct implements Serializable {
         final Object target; {
             Promise<?> subject;
             try {
-                final Object o = exports.reference(session, query);
-                subject = null != o ? Eventual.ref(o) : null;
+                subject = Eventual.ref(exports.reference(session, query));
             } catch (final Exception e) {
                 subject = Eventual.reject(e);
             }

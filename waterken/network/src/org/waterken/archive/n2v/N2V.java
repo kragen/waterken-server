@@ -263,7 +263,7 @@ N2V implements Archive, Serializable {
         }
     }
     
-    static private long
+    static protected long
     readExtensionLong(final InputStream buffer) throws IOException {
         long r = 0;
         for (int n = Long.SIZE / Byte.SIZE; 0 != n--;) {
@@ -363,7 +363,7 @@ N2V implements Archive, Serializable {
         }
     }
     
-    static private void
+    static protected void
     skip(final InputStream buffer, final long n) throws IOException {
         for (long r = n; r > 0;) {
             final long d = buffer.skip(r);

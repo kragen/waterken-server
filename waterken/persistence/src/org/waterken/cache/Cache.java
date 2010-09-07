@@ -96,6 +96,6 @@ Cache<K,V> implements Serializable {
 	static private @SuppressWarnings("unchecked") <V> V
     nonNull(final V value) { return null != value ? value : (V)new Null(); }
     
-    static private final class
-    Null {}
+    static protected final class
+    Null { /* marker type */ }
 }

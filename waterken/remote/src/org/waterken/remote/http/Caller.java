@@ -192,7 +192,7 @@ Caller extends Struct implements Serializable {
         return r;
     }
     
-    private void
+    protected void
     receive(final String href, final String name, final Message<Response> m, 
             final Class<?> type, final Method method, final ConstArray<?> argv,
             final Resolver<Object> resolver) {

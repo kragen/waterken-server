@@ -93,10 +93,11 @@ HTTP extends Eventual implements Serializable {
             );
         } catch (final Exception e) {
             try {
-                final Promise<R> top =
-                    reject(e instanceof BadSyntax ? (Exception)e.getCause() :e); 
-                final Receiver<?> destruct = cast(Receiver.class, null);
-                return new Vat<R>(cast(R, top), destruct);
+            	final Exception reason =
+                    e instanceof BadSyntax ? (Exception)e.getCause() : e;
+                final Promise<R> top = reject(reason);
+                final Promise<Receiver<?>> ignore = reject(reason);
+                return new Vat<R>(cast(R, top), cast(Receiver.class, ignore));
             } catch (final Exception ee) { throw new Error(ee); }
         }
     }
@@ -550,7 +551,7 @@ HTTP extends Eventual implements Serializable {
      * @param subject   target object key
      * @param isPromise Is the target object a promise? 	 
      */
-    static private String
+    static protected String
     href(final String subject, final boolean isPromise) {
     	return "./#"+(isPromise ? "o=&" : "")+"s="+URLEncoding.encode(subject); 	 
     }
@@ -560,7 +561,7 @@ HTTP extends Eventual implements Serializable {
      * @param q web-key argument string 	 
      * @return <code>true</code> if a promise, else <code>false</code> 	 
      */ 	 
-    static private boolean 	 
+    static protected boolean 	 
     isPromise(final String q) { return null != Query.arg(null, q, "o"); }
 
     /**
@@ -568,7 +569,7 @@ HTTP extends Eventual implements Serializable {
      * @param query web-key argument string
      * @return corresponding subject key
      */
-    static private String
+    static protected String
     subject(final String query) { return Query.arg(null, query, "s"); }
     
     /**
@@ -587,13 +588,13 @@ HTTP extends Eventual implements Serializable {
      * @param query web-key argument string
      * @return corresponding session key
      */
-    static private String
+    static protected String
     session(final String query) { return Query.arg(null, query, "x"); }
     
-    static private long
+    static protected long
     window(final String q) { return Long.parseLong(Query.arg(null, q, "w")); }
     
-    static private int
+    static protected int
     message(final String q) { return Integer.parseInt(Query.arg("0", q, "m")); }
     
     static private final Class<?> Fulfilled = Eventual.ref(0).getClass();

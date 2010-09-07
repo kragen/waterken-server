@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.dns.editor;
 
-import org.ref_send.deserializer;
 import org.waterken.dns.Resource;
 
 /**
@@ -11,10 +10,4 @@ import org.waterken.dns.Resource;
 public class
 BadFormat extends UnsupportedResource {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * Constructs an instance.
-     */
-    public @deserializer
-    BadFormat() {}
 }

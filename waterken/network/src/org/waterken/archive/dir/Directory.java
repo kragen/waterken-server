@@ -68,7 +68,7 @@ Directory extends Struct implements Archive, Serializable {
         };
     }
     
-    static private void
+    static protected void
     list(final ArrayList<Entry> todo, final Entry dir) {
         final ConstArray<File> files;
         try {
