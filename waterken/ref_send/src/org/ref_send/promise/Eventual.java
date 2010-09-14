@@ -190,7 +190,7 @@ Eventual implements Selfless, Serializable {
     public
     Eventual(final Receiver<Promise<?>> enqueue) {
         this(enqueue, "", new Log(),
-        	 cast(Receiver.class, new Rejected<Receiver<?>>(null)));
+           cast(Receiver.class, new Rejected<Receiver<?>>(null)));
     }
     
     // org.joe_e.Selfless interface
@@ -415,7 +415,7 @@ Eventual implements Selfless, Serializable {
     private final <T> Local<T>
     trust(final Promise<T> untrusted) {
         return trusted(untrusted) ?
-        		(Local<T>)untrusted : new Enqueue<T>(untrusted);
+            (Local<T>)untrusted : new Enqueue<T>(untrusted);
     }
     
     protected final boolean
@@ -818,13 +818,13 @@ Eventual implements Selfless, Serializable {
         private void
         set(final Class<?> T, Promise<? extends T> p) {
             if (p instanceof Fulfilled<?>) {
-            	final @SuppressWarnings("unchecked") Fulfilled<? extends T>
-            	  fulfilled = (Fulfilled<? extends T>)p;
+                final @SuppressWarnings("unchecked") Fulfilled<? extends T>
+                    fulfilled = (Fulfilled<? extends T>)p;
                 p = fulfilled.getState();
                 log.fulfilled(here + "#p" + condition);
             } else if (p instanceof Rejected<?>) {
-            	final @SuppressWarnings("unchecked") Rejected<? extends T>
-            	  rejected = (Rejected<? extends T>)p;
+              final @SuppressWarnings("unchecked") Rejected<? extends T>
+                rejected = (Rejected<? extends T>)p;
                 log.rejected(here + "#p" + condition, rejected.reason);
             } else {
                 log.resolved(here + "#p" + condition);
@@ -835,6 +835,9 @@ Eventual implements Selfless, Serializable {
                     if (cell.resolved) { return; }
                     cell.resolved = true;
                     cell.T = T;
+                    if (null == p && !cell.back.equals(front)) {
+                        p = new Rejected<T>(new NullPointerException());
+                    }
                     cell.value = p;
                 }
             } catch (final Exception e) { log.problem(e); }
@@ -996,7 +999,7 @@ Eventual implements Selfless, Serializable {
     static public @SuppressWarnings("unchecked") <T> T
     cast(final Class<?> type,final Promise<T> promise)throws ClassCastException{
         return (T)(null == promise ?
-        		null :
+            null :
             type.isInstance(promise) ?
                 promise :
             Fulfilled.class == promise.getClass() ?
