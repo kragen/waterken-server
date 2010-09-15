@@ -566,6 +566,11 @@ Eventual implements Selfless, Serializable {
             reject = Reflection.method(Do.class, "reject", Exception.class);
         } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
     }
+    
+    /**
+     * A recognizable exception to avoid logging an ignored null resolution.
+     */
+    static private final NullPointerException VOID = new NullPointerException();
 
     static protected <P,R> R
     sample(final Promise<? extends P> promise,
@@ -573,11 +578,12 @@ Eventual implements Selfless, Serializable {
            final Log log, final String message) throws Exception {
         final P a;
         try {
+            if (null == promise) { throw VOID; }
             a = promise.call();
 
             // ensure the called value is not one that is
             // expected to be handled as a rejection
-            if (null == a) { throw new NullPointerException(); }
+            if (null == a) { throw VOID; }
             final Promise<?> p = ref(a);
             if (p instanceof Rejected<?>) { p.call(); }
         } catch (final Exception reason) {
@@ -585,7 +591,12 @@ Eventual implements Selfless, Serializable {
                 (observer instanceof Compose ? ((Compose)observer).conditional :
                                                observer).getClass();
             log.got(message, c, reject);
-            return observer.reject(reason);
+            try {
+                return observer.reject(reason);
+            } catch (final Exception shadow) {
+                if (VOID.equals(shadow) && VOID.equals(reason)) { return null; }
+                throw shadow;
+            }
         }
         final Method m;
         final Class<?> c; {
@@ -672,7 +683,7 @@ Eventual implements Selfless, Serializable {
                     if (trusted(value)) {
                         log.got(here + "#w" + message, null, null);
                         final @SuppressWarnings("unchecked") Local<? extends T>
-                          promise = (Local<? extends T>)value;
+                            promise = (Local<? extends T>)value;
                         promise.when(T, observer);
                     } else {
                         // AUDIT: call to untrusted application code
@@ -812,7 +823,7 @@ Eventual implements Selfless, Serializable {
         public void
         apply(final T r) {
             set(null == r || r instanceof Promise<?> ? null : r.getClass(),
-            ref(r));
+                ref(r));
         }
         
         private void
@@ -823,8 +834,8 @@ Eventual implements Selfless, Serializable {
                 p = fulfilled.getState();
                 log.fulfilled(here + "#p" + condition);
             } else if (p instanceof Rejected<?>) {
-              final @SuppressWarnings("unchecked") Rejected<? extends T>
-                rejected = (Rejected<? extends T>)p;
+                final @SuppressWarnings("unchecked") Rejected<? extends T>
+                    rejected = (Rejected<? extends T>)p;
                 log.rejected(here + "#p" + condition, rejected.reason);
             } else {
                 log.resolved(here + "#p" + condition);
@@ -835,9 +846,6 @@ Eventual implements Selfless, Serializable {
                     if (cell.resolved) { return; }
                     cell.resolved = true;
                     cell.T = T;
-                    if (null == p && !cell.back.equals(front)) {
-                        p = new Rejected<T>(new NullPointerException());
-                    }
                     cell.value = p;
                 }
             } catch (final Exception e) { log.problem(e); }
