@@ -25,7 +25,7 @@ import org.ref_send.promise.Receiver;
  */
 public final class
 EventSender {
-    private EventSender() {}
+    private EventSender() { /**/ }
     
     /**
      * Constructs a log event generator.
@@ -58,7 +58,9 @@ EventSender {
                     try {
                         method = Reflection.method(concrete, method.getName(),
                                                    method.getParameterTypes());
-                    } catch (final NoSuchMethodException e) {}
+                    } catch (final NoSuchMethodException e) {
+                    	// Log abstract method if concrete one cannot be found.
+                    }
                 }
                 stderr.apply(new Got(mark.apply(), tracer.timestamp(),
                     null!=method ? tracer.traceMember(method) : null, message));

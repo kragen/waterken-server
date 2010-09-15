@@ -18,7 +18,7 @@ import org.waterken.trace.Tracer;
  */
 public final class
 ApplicationTracer {
-    private ApplicationTracer() {}
+    private ApplicationTracer() { /**/ }
 
     /**
      * Constructs an instance.
@@ -72,7 +72,9 @@ ApplicationTracer {
                                 }
                             }
                         }
-                    } catch (final ClassNotFoundException e) {}
+                    } catch (final ClassNotFoundException e) {
+                    	// Assume it's not an application code class.
+                    }
                     if (!included) { continue; }
                     
                     // Describe the application stack frame.
