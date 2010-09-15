@@ -47,7 +47,7 @@ import org.waterken.uri.URI;
  */
 /* package */ final class
 GenKey {
-    private GenKey() {}
+    private GenKey() { /**/ }
     
     static private final String defaultSuffix = ".yurl.net";
     static private final String defaultRegistrar =
@@ -343,8 +343,8 @@ GenKey {
                     : length <= 0xFFFFFF
                         ? 3
                     : 4;
-                for (int i = 0; i != bytes; ++i) {
-                    writeByte(length >> (i * Byte.SIZE));
+                for (int j = 0; j != bytes; ++j) {
+                    writeByte(length >> (j * Byte.SIZE));
                 }
                 writeByte(0x80 | bytes);
             }
