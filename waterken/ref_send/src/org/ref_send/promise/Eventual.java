@@ -594,7 +594,7 @@ Eventual implements Selfless, Serializable {
             try {
                 return observer.reject(reason);
             } catch (final NullPointerException shadow) {
-                if (VOID.equals(shadow) && VOID.equals(reason)) { return null; }
+                if (VOID.equals(shadow)) { return null; }
                 throw shadow;
             }
         }
