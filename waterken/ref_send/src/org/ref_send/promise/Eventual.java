@@ -593,7 +593,7 @@ Eventual implements Selfless, Serializable {
             log.got(message, c, reject);
             try {
                 return observer.reject(reason);
-            } catch (final Exception shadow) {
+            } catch (final NullPointerException shadow) {
                 if (VOID.equals(shadow) && VOID.equals(reason)) { return null; }
                 throw shadow;
             }
