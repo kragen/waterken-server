@@ -58,17 +58,22 @@ Syntax extends Struct implements Powerless, Record, Serializable {
     static public Constructor<?>
     deserializer(final Class<?> type) {
         for (Class<?> i = type; null != i; i = i.getSuperclass()) {
+            // Check for an explicit deserializer constructor.
             for (final Constructor<?> c : Reflection.constructors(i)) {
                 if (c.isAnnotationPresent(deserializer.class)) { return c; }
             }
+            // Check for a default constructor of a pass-by-copy type.
             if (Throwable.class.isAssignableFrom(i) ||
             		Record.class.isAssignableFrom(i)) {
                 try { 
                     return Reflection.constructor(i);
                 } catch (final NoSuchMethodException e) {
-                	// Look for one in the superclass.
+                    if (Record.class.isAssignableFrom(i)) {
+                        throw new MissingDeserializer(Reflection.getName(i));
+                    }
                 }
             }
+            // Look for one in the superclass.
         }
         return null;
     }
