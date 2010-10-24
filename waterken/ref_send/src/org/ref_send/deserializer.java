@@ -10,8 +10,10 @@ import java.lang.annotation.Target;
 /**
  * Marks the deserialization constructor.
  * <p>
- * Each parameter of the constructor MUST be {@linkplain name annotated} with
- * the name of the corresponding public final instance field.
+ * This annotation MUST only be put on a single {@code public} constructor of a 
+ * {@code public} class in a {@linkplain org.joe_e.IsJoeE Joe-E package}. Each
+ * parameter of the constructor MUST be {@linkplain name annotated} with the
+ * name of the corresponding {@code public final} instance field.
  * </p>
  */
 @Retention(RetentionPolicy.RUNTIME)
