@@ -5,6 +5,7 @@ package org.ref_send.scope;
 import java.io.Serializable;
 
 import org.joe_e.Powerless;
+import org.joe_e.Selfless;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.ref_send.Record;
@@ -16,7 +17,7 @@ import org.ref_send.name;
  * @param <T> soft type
  */
 public final class
-Layout<T> implements Powerless, Record, Serializable {
+Layout<T> implements Powerless, Record, Selfless, Serializable {
     static private final long serialVersionUID = 1L;
     
     /**
