@@ -41,17 +41,17 @@ Logic {
     /**
      * Fulfills a promise after each listed promise is fulfilled.
      * @param _ eventual operator
-     * @param tests each promise
+     * @param tests each promise to test
      * @return promise that is fulfilled if each of the listed promises is
      *         fulfilled; otherwise, the promise is rejected
      */
     static public Promise<?>
-    join(final Eventual _, final Promise<?>... tests) {
+    join(final Eventual _, final Object... tests) {
         if (0 == tests.length) { return ref(true); }
-        final Deferred<Object> answer = _.defer();
+        final Deferred<Boolean> answer = _.defer();
         final int[] todo = { tests.length };
-        final Resolver<Object> resolver = answer.resolver;
-        for (final Promise<?> test : tests) {
+        final Resolver<Boolean> resolver = answer.resolver;
+        for (final Object test : tests) {
             class Join extends Do<Object,Void> implements Serializable {
                 static private final long serialVersionUID = 1L;
 
