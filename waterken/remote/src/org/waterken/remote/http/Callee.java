@@ -141,7 +141,7 @@ Callee extends Struct implements Serializable {
                     if (null != message) {
                         exports._.log.got(message, null, lambda.implementation);
                     }
-                    if (lambda.overloaded) { throw new OverloadedMethodName(); }
+                    if (lambda.overloaded) {throw new OverloadedMethodName(p);}
                     Object value;
                     try {
                         String contentType = m.head.getContentType();
