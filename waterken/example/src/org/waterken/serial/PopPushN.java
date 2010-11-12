@@ -49,7 +49,7 @@ PopPushN {
             x.produce(ref(i));
         }
         
-        return join(_, r.snapshot().toArray(new Promise<?>[0]));
+        return join(_, r.snapshot().toArray(new Object[0]));
     }
     
     // Command line interface
