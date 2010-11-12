@@ -41,12 +41,12 @@ import org.waterken.syntax.Syntax;
  */
 public final class
 JSONParser {
-    
+
     private final String base;
     private final Importer connect;
     private final ClassLoader code;
     private final JSONLexer lexer;
-    
+
     /**
      * Constructs an instance.
      * @param base      base URL
@@ -62,7 +62,7 @@ JSONParser {
         this.code = code;
         lexer = new JSONLexer(text);
     }
-    
+
     /**
      * Deserializes an array of objects.
      * @param parameters    each expected type
@@ -94,10 +94,10 @@ JSONParser {
             throw e;
         } catch (final Exception e) {
             try { lexer.close(); } catch (final Exception e2) { /**/ }
-            throw new BadSyntax(base, lexer.getSpan(), e);           
+            throw new BadSyntax(base, lexer.getSpan(), e);
         }
     }
-    
+
     /**
      * Deserializes an object.
      * @param type  expected type
@@ -118,13 +118,13 @@ JSONParser {
             throw e;
         } catch (final Exception e) {
             try { lexer.close(); } catch (final Exception e2) { /**/ }
-            throw new BadSyntax(base, lexer.getSpan(), e);           
+            throw new BadSyntax(base, lexer.getSpan(), e);
         }
     }
 
     static private final TypeVariable<?> R = Typedef.var(Promise.class, "T");
     static private final TypeVariable<?> T = Typedef.var(Iterable.class, "T");
-    
+
     private Object
     parseValue(final Type required) throws Exception {
         final String token = lexer.getHead();
@@ -133,7 +133,7 @@ JSONParser {
         : token.startsWith("\"") ? parseString(required)
         : parseKeyword(required);
     }
-    
+
     private Object
     parseKeyword(final Type required) throws Exception {
         final String token = lexer.getHead();
@@ -180,7 +180,7 @@ JSONParser {
         lexer.next();   // pop the keyword from the stream
         return null != promised ? ref(value) : value;
     }
-    
+
     private Object
     parseString(final Type required) throws Exception {
         final String text = string(lexer.getHead());
@@ -196,7 +196,7 @@ JSONParser {
         lexer.next();   // pop the string from the stream
         return null != promised ? ref(value) : value;
     }
-    
+
     private Object
     parseArray(final Type required) throws Exception {
         if (!"[".equals(lexer.getHead())) { throw new Exception(); }
@@ -231,7 +231,7 @@ JSONParser {
         final ConstArray<?> value = builder.snapshot();
         return null != promised ? ref(value) : value;
     }
-    
+
     private Object
     parseObject(final Type required) throws Exception {
         if (!"{".equals(lexer.getHead())) { throw new Exception(); }
@@ -243,7 +243,7 @@ JSONParser {
          * via the ClassLoader, the class will only be used to access a Joe-E
          * constructor. If the loaded class is not a Joe-E class, no Joe-E
          * constructor will be found and deserialization will fail.
-         * 
+         *
          * A "pass-by-construction" Joe-E class is a Joe-E class which either:
          * - declares a public constructor with the deserializer annotation
          * - is a subclass of Throwable and declares a public no-arg constructor
@@ -251,7 +251,7 @@ JSONParser {
 
         final PowerlessArray.Builder<String> names = PowerlessArray.builder(1);
         final ConstArray.Builder<Object> values = ConstArray.builder(1);
-        
+
         // load any explicit type information
         final Class<?>[] explicit;
         if (null != code && "\"class\"".equals(lexer.getHead())) {
@@ -283,9 +283,9 @@ JSONParser {
                             types = new Class<?>[] { type };
                         }
                     } catch (final ClassCastException e) {
-                    	// Skip non-string typename in source.
+                      // Skip non-string typename in source.
                     } catch (final ClassNotFoundException e) {
-                    	// Skip unknown type.
+                      // Skip unknown type.
                     }
                 }
             }
@@ -379,7 +379,7 @@ JSONParser {
                 new Exception();
             return Eventual.cast(Typedef.raw(required), Eventual.reject(e));
         }
-        
+
         final int remote = find("@", undeclared);
         if (-1 != remote) {
             final String href = (String)values.snapshot().get(remote);
@@ -388,14 +388,14 @@ JSONParser {
                 connect.apply(href, base, required);
             return null != promised ? ref(r) : r;
         }
-        
+
         final int replacement = find("=", undeclared);
         if (-1 != replacement) { return values.snapshot().get(replacement); }
-        
+
         final Object r;
         if (null == make) {
             r = new Scope<Object>(new Layout<Object>(undeclared),
-            					  values.snapshot());  
+                                  values.snapshot());
         } else {
             for (int i = donev.length; 0 != i--;) {
                 if (!donev[i]) {
@@ -410,20 +410,20 @@ JSONParser {
         }
         return null != promised ? ref(r) : r;
     }
-    
+
     static private int
     find(final String name, final PowerlessArray<String> names) {
         int r = names.length();
         while (0 != r-- && !name.equals(names.get(r))) { /**/ }
         return r;
     }
-    
+
     static private String
     string(final String token) throws Exception {
         if (!token.startsWith("\"")) { throw new Exception(); }
         return token.substring(1, token.length() - 1);
     }
-    
+
     /*
      * This implementation provides few security properties. In particular,
      * clients of this class should assume:
