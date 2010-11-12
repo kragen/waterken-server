@@ -165,7 +165,9 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
              * so iteration of the value array will not transfer control to
              * application code.
              */
-            final Type elementType = Typedef.bound(T, implicit);
+            final Type promised = Typedef.value(R, implicit);
+            final Type expected = null != promised ? promised : implicit;
+            final Type elementType = Typedef.bound(T, expected);
             final JSONWriter.ArrayWriter aout = out.startArray();
             for (final Object element : (ConstArray<?>)value) {
                 serialize(export, elementType, element, aout.startElement());
