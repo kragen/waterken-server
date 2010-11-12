@@ -24,6 +24,7 @@ import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
+import org.ref_send.promise.Vat;
 
 /**
  * A {@link Wall} implementation.
@@ -67,6 +68,7 @@ Bounce {
                     "a \" \\ / </ < > \b \f \n \r \t \u0085",
                     ConstArray.array(normal, null),
                     ConstArray.array(d.promise, p),
+                    ConstArray.array(new Vat<Deferred<?>>(d, normal)),
                     ConstArray.array(
                         ImmutableArray.array(PowerlessArray.array(true)),
                         10,

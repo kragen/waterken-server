@@ -17,8 +17,10 @@ import org.joe_e.array.ShortArray;
 import org.ref_send.Record;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Promise;
 import org.ref_send.promise.Receiver;
+import org.ref_send.promise.Vat;
 
 /**
  * A record containing a field of each type.
@@ -83,6 +85,11 @@ AllTypes extends Struct implements Record, Serializable {
     public final ConstArray<? extends Promise<?>> p;
     
     /**
+     * known nested type
+     */
+    public final ConstArray<Vat<Deferred<?>>> k;
+    
+    /**
      * unknown type
      */
     public final Object a;
@@ -90,16 +97,18 @@ AllTypes extends Struct implements Record, Serializable {
     /**
      * Constructs an instance.
      * @param b {@link #b}
-     * @param o {@link #o}
      * @param c {@link #c}
-     * @param d {@link #d}
      * @param f {@link #f}
+     * @param d {@link #d}
+     * @param o {@link #o}
+     * @param s {@link #s}
      * @param i {@link #i}
      * @param l {@link #l}
-     * @param s {@link #s}
-     * @param a {@link #a}
      * @param t {@link #t}
      * @param r {@link #r}
+     * @param p {@link #p}
+     * @param k {@link #k}
+     * @param a {@link #a}
      */
     public @deserializer
     AllTypes(@name("b") final BooleanArray b,
@@ -113,6 +122,7 @@ AllTypes extends Struct implements Record, Serializable {
              @name("t") final String t,
              @name("r") final ConstArray<? extends Receiver<?>> r,
              @name("p") final ConstArray<? extends Promise<?>> p,
+             @name("k") final ConstArray<Vat<Deferred<?>>> k,
              @name("a") final Object a) {
         this.b = b;
         this.c = c;
@@ -125,6 +135,7 @@ AllTypes extends Struct implements Record, Serializable {
         this.t = t;
         this.r = r;
         this.p = p;
+        this.k = k;
         this.a = a;
     }
 }
