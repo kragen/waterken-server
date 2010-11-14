@@ -45,9 +45,9 @@ Bounce {
         class WallX extends Struct implements Wall, Serializable {
             static private final long serialVersionUID = 1L;
 
-            public Promise<AllTypes>
+            public Promise<ConstArray<AllTypes>>
             getAll() {
-                return ref(new AllTypes(
+                return ref(ConstArray.array(new AllTypes(
                     BooleanArray.array(true, false),
                     CharArray.array('a', '\"', '\\', '<', '>', '/', '\b',
                                     '\f', '\n', '\r', '\t', '\u0085'),
@@ -74,7 +74,7 @@ Bounce {
                         10,
                         BigInteger.TEN,
                         new BigDecimal("3.14")
-                    )));
+                    ))));
             }
 
             public <A> Promise<A>

@@ -2,6 +2,7 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.waterken.bounce;
 
+import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Promise;
 
 /**
@@ -13,7 +14,7 @@ Wall {
     /**
      * Creates a record of all types.
      */
-    Promise<AllTypes> getAll();
+    Promise<ConstArray<AllTypes>> getAll();
 
     /**
      * Returns the given argument.
