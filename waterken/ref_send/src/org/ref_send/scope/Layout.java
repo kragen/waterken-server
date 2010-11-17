@@ -49,11 +49,11 @@ Layout<T> implements Powerless, Record, Selfless, Serializable {
     /**
      * Defines a new layout.
      * @param <T> soft type
-     * @param names	{@link #names}
+     * @param names {@link #names}
      */
     static public <T> Layout<T>
     define(final String... names) {
-    	return new Layout<T>(PowerlessArray.array(names));
+        return new Layout<T>(PowerlessArray.array(names));
     }
     
     // java.lang.Object interface
