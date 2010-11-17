@@ -64,7 +64,7 @@ Syntax extends Struct implements Powerless, Record, Serializable {
             }
             // Check for a default constructor of a pass-by-copy type.
             if (Throwable.class.isAssignableFrom(i) ||
-            		Record.class.isAssignableFrom(i)) {
+                Record.class.isAssignableFrom(i)) {
                 try { 
                     return Reflection.constructor(i);
                 } catch (final NoSuchMethodException e) {
