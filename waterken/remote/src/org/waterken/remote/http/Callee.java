@@ -7,7 +7,6 @@ import java.lang.reflect.Type;
 
 import org.joe_e.Struct;
 import org.joe_e.array.ByteArray;
-import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
 import org.ref_send.promise.Eventual;
@@ -42,7 +41,6 @@ Callee extends Struct implements Serializable {
 
     protected Message<Response>
     apply(final String query, final Message<Request> m) throws Exception {
-        final ServerSideSession session = exports.getSession(query);
         
         // further dispatch the request based on the accessed member
         final String p = HTTP.predicate(m.head.method, query);
@@ -58,8 +56,7 @@ Callee extends Struct implements Serializable {
             Object value;
             try {
                 // AUDIT: call to untrusted application code
-                value = HTTP.shorten(Eventual.ref(
-                        exports.reference(session, query)));
+                value=HTTP.shorten(Eventual.ref(exports.reference(null,query)));
             } catch (final Unresolved e) {
                 return serialize(m.head.method, "404", "not yet",
                                  Server.ephemeral, Exception.class, e);
@@ -74,6 +71,7 @@ Callee extends Struct implements Serializable {
 
         // to preserve message order, only access members on a local,
         // pass-by-reference object
+        final ServerSideSession session = exports.getSession(query);
         final Object target; {
             Promise<?> subject;
             try {
@@ -141,40 +139,48 @@ Callee extends Struct implements Serializable {
                     if (null != message) {
                         exports._.log.got(message, null, lambda.implementation);
                     }
-                    if (lambda.overloaded) {throw new OverloadedMethodName(p);}
                     Object r;
                     try {
-                        String contentType = m.head.getContentType();
-                        if (null == contentType) {
-                            contentType = FileType.json.name;
-                        } else {
-                            final int end = contentType.indexOf(';');
-                            if (-1 != end) {
-                                contentType = contentType.substring(0, end);
-                            }
+                        if (lambda.overloaded) {
+                        	throw new OverloadedMethodName(p);
                         }
-                        final Deserializer syntax =
-                            Header.equivalent(FileType.json.name, contentType)||
-                            Header.equivalent("text/plain",       contentType) ?
-                                new JSONDeserializer() : null;
-                        final ConstArray<?> argv;
-                        try {
-                            argv = null == syntax ? ConstArray.array(m.body) : 
-                                syntax.deserializeTuple(m.body.asInputStream(),
-                                  exports.connect(session), exports.getHere(),
-                                  exports.code, lambda.implementation.
-                                      getGenericParameterTypes());
-                        } catch (final BadSyntax e) {
-                            /*
-                             * strip out the parsing information to avoid
-                             * leaking information to the application layer
-                             */ 
-                            throw (Exception)e.getCause();
-                        }
+                        final Object[] argv;
+                    	final Type[] paramv =
+                    		lambda.implementation.getGenericParameterTypes();
+                    	if (0 == paramv.length) {
+                    		argv = new Object[] {};
+                    	} else {
+	                        String mime = m.head.getContentType();
+	                        if (null == mime) {
+	                            mime = FileType.json.name;
+	                        } else {
+	                            final int end = mime.indexOf(';');
+	                            if (-1 != end) {
+	                                mime = mime.substring(0, end);
+	                            }
+	                        }
+	                        final Deserializer syntax =
+	                            Header.equivalent(FileType.json.name, mime) ||
+	                            Header.equivalent("text/plain",       mime) ?
+	                                new JSONDeserializer() : null;
+	                        try {
+	                            argv = null == syntax ? new Object[] { m.body }: 
+	                                syntax.deserializeTuple(
+	                                    m.body.asInputStream(),
+	                                    exports.connect(session),
+	                                    exports.getHere(),exports.code, paramv).
+	                                    	toArray(new Object[paramv.length]);
+	                        } catch (final BadSyntax e) {
+	                            /*
+	                             * strip out the parsing information to avoid
+	                             * leaking information to the application layer
+	                             */ 
+	                            throw (Exception)e.getCause();
+	                        }
+                    	}
     
                         // AUDIT: call to untrusted application code
-                        r = Reflection.invoke(lambda.declaration, target,
-                                argv.toArray(new Object[argv.length()]));
+                        r = Reflection.invoke(lambda.declaration, target, argv);
                         if (Fulfilled.isInstance(r)) {
                             r = ((Promise<?>)r).call();
                         }
