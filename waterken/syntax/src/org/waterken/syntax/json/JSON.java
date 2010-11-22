@@ -18,7 +18,7 @@ import org.ref_send.promise.Promise;
 /* package */ final class
 JSON {
     private JSON() {}
-    
+
     /**
      * Enumerate an inheritance chain from [ bottom, top ).
      * @param bottom    bottom of the inheritance chain
@@ -26,13 +26,14 @@ JSON {
      */
     static public PowerlessArray<String>
     upto(final Class<?> bottom, final Class<?> top) {
-        if (Promise.class.isAssignableFrom(bottom) ||
-            Brand.class.isAssignableFrom(bottom)) {
+        if (bottom == top ||                            // fast path
+            Promise.class.isAssignableFrom(bottom) ||   // hide implementation
+            Brand.class.isAssignableFrom(bottom)) {     // hide implementation
             return PowerlessArray.array();
         }
-        
+
         // simplify the knot at the top of the world
-        final Class<?> limit = Struct.class.isAssignableFrom(bottom) ? 
+        final Class<?> limit = Struct.class.isAssignableFrom(bottom) ?
                 Struct.class :
             Proxy.class.isAssignableFrom(bottom) ?
                 Proxy.class :
@@ -43,19 +44,18 @@ JSON {
                 Throwable.class :
             Object.class;
         final PowerlessArray.Builder<String> r = PowerlessArray.builder(4);
-        for (Class<?> i = bottom; limit != i; i = i.getSuperclass()) {
+        for (Class<?> i = bottom; limit != i && top != i; i=i.getSuperclass()) {
             ifaces(top, i, r);
         }
         return r.snapshot();
     }
 
     /**
-     * List all the interfaces implemented by a class.
+     * List a class and all its implemented interfaces.
      */
     static private void
     ifaces(final Class<?> top, final Class<?> type,
            final PowerlessArray.Builder<String> r) {
-        if (top == type) { return; }
         if (Modifier.isPublic(type.getModifiers())) {
             try {
                 if (org.joe_e.Selfless.class != type &&
@@ -66,23 +66,27 @@ JSON {
                     java.lang.Comparable.class != type &&
                     java.io.Serializable.class != type) {r.append(name(type));}
             } catch (final Exception e) {
-            	// Skip any type that does not have a deterministic name.
+                // Skip any type that does not have a deterministic name.
             }
         }
-        for (final Class<?> i : type.getInterfaces()) { ifaces(top, i, r); }
+        for (final Class<?> i : type.getInterfaces()) {
+            if (i != top) {
+                ifaces(top, i, r);
+            }
+        }
     }
-    
+
     static private final class
     Alias extends Struct implements Powerless {
         final Class<?> type;
         final String name;
-        
+
         Alias(final Class<?> type, final String name) {
             this.type = type;
             this.name = name;
         }
     }
-    
+
     /**
      * custom typenames
      */
@@ -99,7 +103,7 @@ JSON {
         new Alias(ArithmeticException.class, "NaN"),
         new Alias(org.joe_e.array.ConstArray.class, "array")
     );
-    
+
     static protected String
     name(final Class<?> type) throws IllegalArgumentException {
         for (final Alias a : custom) {
@@ -107,7 +111,7 @@ JSON {
         }
         return Reflection.getName(type).replace('$', '-');
     }
-    
+
     static protected Class<?>
     load(final ClassLoader code,
          final String name) throws ClassNotFoundException {
