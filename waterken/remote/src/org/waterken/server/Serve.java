@@ -25,9 +25,7 @@ import org.waterken.udp.UDPDaemon;
  */
 final class
 Serve {
-
-    private
-    Serve() {}
+    private Serve() {}
     
     /**
      * @param args  command line arguments

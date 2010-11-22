@@ -19,7 +19,7 @@ public final class BooleanArray extends PowerlessArray<Boolean> {
     
     private /* final */ transient boolean[] booleans;
 
-    private BooleanArray(boolean... booleans) {
+    BooleanArray(boolean... booleans) {
         // Use back door constructor that sets backing store to null.
         // This lets ConstArray's methods know not to use the backing
         // store for accessing this object.

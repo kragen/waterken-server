@@ -13,14 +13,12 @@ import org.joe_e.array.ByteArray;
  */
 public final class
 Stream {
+    private Stream() {}
     
     /**
      * preferred chunk size for writing to an output stream
      */
     static public final int chunkSize = 1280;
-
-    private
-    Stream() {}
     
     /**
      * Copies bytes from a source stream to a destination stream.

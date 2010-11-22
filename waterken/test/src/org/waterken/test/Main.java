@@ -7,7 +7,7 @@ package org.waterken.test;
  */
 public final class
 Main {
-    private Main() { /**/ }
+    private Main() {}
 
     /**
      * Runs all tests.

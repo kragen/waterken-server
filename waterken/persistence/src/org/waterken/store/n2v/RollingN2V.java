@@ -58,11 +58,11 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
         final File pending = Filesystem.file(dir, ".pending");
         final File committed = Filesystem.file(dir, ".committed");
         return new Store() {
-            private int lastId = 0;                 // id of newest archive file
-            private ArrayList<File> files = null;   // un-merged commit files
-            private ArrayList<N2V> versions = null; // un-merged commit archives
+            protected int lastId = 0;               // id of newest archive file
+            protected ArrayList<File> files = null; // un-merged commit files
+            protected ArrayList<N2V> versions = null; // un-merged commit archives
 
-            private Update active = null;           // Is an update in progress?
+            protected Update active = null;         // Is an update in progress?
             private boolean mergeScheduled = false; // Is a merge scheduled?
             
             public void

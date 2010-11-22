@@ -18,7 +18,7 @@ import org.waterken.trace.Tracer;
  */
 public final class
 ApplicationTracer {
-    private ApplicationTracer() { /**/ }
+    private ApplicationTracer() {}
 
     /**
      * Constructs an instance.

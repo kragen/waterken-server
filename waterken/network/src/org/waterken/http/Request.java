@@ -52,7 +52,6 @@ Request extends Struct implements Powerless, Record, Serializable {
      * @param method    {@link #method}
      * @param uri       {@link #uri}
      * @param headers   {@link #headers}
-     * @param body      {@link #body}
      */
     public @deserializer
     Request(@name("version") final String version,

@@ -17,11 +17,11 @@ import org.waterken.archive.ArchiveOutput;
 public final class
 N2VOutput implements ArchiveOutput {
 
-    private final OutputStream out;
-    private       long total = 0;
-    private final ByteArrayBuilder meta = new ByteArrayBuilder(2048);
-    private       Offset[] offsets = new Offset[32];
-    private       int offsetCount = 0;
+    protected final OutputStream out;
+    protected       long total = 0;
+    protected final ByteArrayBuilder meta = new ByteArrayBuilder(2048);
+    protected       Offset[] offsets = new Offset[32];
+    protected       int offsetCount = 0;
     
     static private final class
     Offset {
@@ -45,7 +45,7 @@ N2VOutput implements ArchiveOutput {
     
     // org.waterken.archive.n2v.N2VOutput interface
     
-    private       OutputStream current = null;
+    protected OutputStream current = null;
     
     public OutputStream
     append(final String name) {

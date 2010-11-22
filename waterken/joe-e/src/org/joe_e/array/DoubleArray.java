@@ -19,7 +19,7 @@ public final class DoubleArray extends PowerlessArray<Double> {
     
     private /* final */ transient double[] doubles;
 
-    private DoubleArray(double... doubles) {
+    DoubleArray(double... doubles) {
         // Use back door constructor that sets backing store to null.
         // This lets ConstArray's methods know not to use the backing
         // store for accessing this object.

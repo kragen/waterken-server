@@ -15,18 +15,18 @@ TokenList {
 
     /**
      * Encodes a list of <code>token</code>.
-     * @param token each <code>token</code>
+     * @param tokens	each <code>token</code>
      * @return encoded <code>token</code> list
      */
     static public String
-    encode(final String... token) {
-        if (0 == token.length) { return ""; }
-        if (1 == token.length) { return token[0]; }
+    encode(final String... tokens) {
+        if (0 == tokens.length) { return ""; }
+        if (1 == tokens.length) { return tokens[0]; }
         final StringBuilder r = new StringBuilder();
-        r.append(token[0]);
-        for (int i = 1; i != token.length; ++i) {
+        r.append(tokens[0]);
+        for (int i = 1; i != tokens.length; ++i) {
             r.append(", ");
-            r.append(token[i]);
+            r.append(tokens[i]);
         }
         return r.toString();
     }
@@ -154,17 +154,17 @@ TokenList {
      * Finds the first non-matching character.
      * @param allowed       allowed character set
      * @param disallowed    disallowed character set
-     * @param text          text string to search
+     * @param input         text string to search
      * @param i             initial search position in <code>text</code>
      * @param end           maximum search position in <code>text</code>
      * @return index of the first non-matching character, or <code>end</code>
      */
     static public int
     skip(final String allowed, final String disallowed,
-         final String text, int i, final int end) {
+         final String input, int i, final int end) {
         while (i != end &&
-               allowed.indexOf(text.charAt(i)) != -1 &&
-               disallowed.indexOf(text.charAt(i)) == -1) { ++i; }
+               allowed.indexOf(input.charAt(i)) != -1 &&
+               disallowed.indexOf(input.charAt(i)) == -1) { ++i; }
         return i;
     }
     
@@ -172,14 +172,16 @@ TokenList {
      * Vets a text string.
      * @param allowed       allowed character set
      * @param disallowed    disallowed character set
-     * @param text          text string to search
+     * @param input         text string to search
      * @throws Exception    <code>text</code> is not allowed
      */
     static public void
     vet(final String allowed, final String disallowed,
-                              final String text) throws Exception {
-        final int end = text.length();
-        if (end != skip(allowed,disallowed,text,0,end)) {throw new Exception();}
+                              final String input) throws Exception {
+        final int end = input.length();
+        if (end != skip(allowed, disallowed, input, 0, end)) {
+        	throw new Exception();
+        }
     }
 
     /**
@@ -200,14 +202,14 @@ TokenList {
     
     /**
      * Does a token list include a given token?
-     * @param token     searched for token
+     * @param candidate searched for token
      * @param tokens    token list
      * @return <code>true</code> if included, else <code>false</code>
      */
     static public boolean
-    includes(final String token, final String tokens) {
+    includes(final String candidate, final String tokens) {
         for (final String x : decode(tokens)) {
-            if (Header.equivalent(token, x)) { return true; }
+            if (Header.equivalent(candidate, x)) { return true; }
         }
         return false;
     }

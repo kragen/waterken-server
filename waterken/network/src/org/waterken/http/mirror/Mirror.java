@@ -134,7 +134,7 @@ Mirror extends Struct implements Server, Serializable {
             client.receive(new Response("HTTP/1.1", "200", "OK",
                 headers.snapshot()), "HEAD".equals(head.method) ? null : in);
         } catch (final Exception e) {
-            try { in.close(); } catch (final Exception e2) {}
+            try { in.close(); } catch (final Exception e2) { /* ignore */ }
             throw e;
         }
         in.close();

@@ -19,7 +19,7 @@ public final class FloatArray extends PowerlessArray<Float> {
     
     private /* final */ transient float[] floats;
 
-    private FloatArray(float... floats) {
+    FloatArray(float... floats) {
         // Use back door constructor that sets backing store to null.
         // This lets ConstArray's methods know not to use the backing
         // store for accessing this object.

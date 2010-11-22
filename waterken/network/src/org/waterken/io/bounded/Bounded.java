@@ -12,9 +12,7 @@ import java.io.OutputStream;
  */
 public final class
 Bounded {
-
-    private
-    Bounded() {}
+    private Bounded() {}
 
     /**
      * Bounds an input stream segment.

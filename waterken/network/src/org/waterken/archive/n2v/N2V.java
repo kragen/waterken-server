@@ -34,8 +34,8 @@ N2V implements Archive, Serializable {
     
     static protected final int magicSize = Integer.SIZE / Byte.SIZE;
 
-    private final String etag;      // corresponding ETag for all entries
-    private final Cursor data;      // raw archive data
+    protected final String etag;    // corresponding ETag for all entries
+    protected final Cursor data;    // raw archive data
     
     private final int dataOffsetSize;
     private final long summaryAddress;
@@ -159,7 +159,7 @@ N2V implements Archive, Serializable {
                 }
                 
                 final long beginSummary = names.getPosition();
-                while (0 != names.read()) {}     // skip name and null
+                while (0 != names.read()) { /* skip name and null */ }
                 final long valueLength = readExtensionLong(names);
                 skip(names, readExtensionLong(names));
                 final long endSummary = names.getPosition();
@@ -318,7 +318,7 @@ N2V implements Archive, Serializable {
                         if (-1 == next) { throw new EOFException(); }
                     } 
                     final Entry r = new Entry(address,name.toString("UTF-8"),s);
-                    address += r.length;
+                    address += r.getLength();
                     next = s.read();
                     return r;
                 } catch (final EOFException e) {

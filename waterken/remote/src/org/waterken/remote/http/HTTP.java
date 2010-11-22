@@ -49,8 +49,8 @@ public final class
 HTTP extends Eventual implements Serializable {
     static private final long serialVersionUID = 1L;    
     
-    private   final Root root;                          // vat root
-    private   final Promise<Outbound> outbound;         // active msg pipelines
+    protected final Root root;                          // vat root
+    protected final Promise<Outbound> outbound;         // active msg pipelines
     
     private   final Creator creator;                    // sub-vat factory
     private   final Receiver<Effect<Server>> effect;    // tx effect scheduler
@@ -597,7 +597,7 @@ HTTP extends Eventual implements Serializable {
     static protected int
     message(final String q) { return Integer.parseInt(Query.arg("0", q, "m")); }
     
-    static private final Class<?> Fulfilled = Eventual.ref(0).getClass();
+    static protected final Class<?> Fulfilled = Eventual.ref(0).getClass();
     
     /**
      * Is the given object pass-by-construction? 	 

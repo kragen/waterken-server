@@ -19,7 +19,7 @@ import org.ref_send.promise.Receiver;
  */
 public final class
 SoundCheck {
-    private SoundCheck() { /**/ }
+    private SoundCheck() {}
 
     /**
      * Runs a unit test.

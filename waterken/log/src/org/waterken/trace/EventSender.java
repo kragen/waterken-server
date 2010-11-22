@@ -25,7 +25,7 @@ import org.ref_send.promise.Receiver;
  */
 public final class
 EventSender {
-    private EventSender() { /**/ }
+    private EventSender() {}
     
     /**
      * Constructs a log event generator.

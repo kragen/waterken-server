@@ -17,7 +17,7 @@ import org.ref_send.promise.Resolver;
  */
 public final class
 Logic {
-    private Logic() { /**/ }
+    private Logic() {}
 
     /**
      * Creates a when block that compares against an expected value.

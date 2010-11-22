@@ -86,11 +86,11 @@ ClientSide implements Server {
     static public interface
     Inbound extends Promise<Void> {}
     
-    private final String location;
-    private final Locator locator;
-    private final Receiver<Long> sleep;
-    private final Receiver<Outbound> sender;
-    private final Receiver<Inbound> receiver;
+    protected final String location;
+    protected final Locator locator;
+    protected final Receiver<Long> sleep;
+    protected final Receiver<Outbound> sender;
+    protected final Receiver<Inbound> receiver;
 
     private
     ClientSide(final String location, final Locator locator,
@@ -125,7 +125,7 @@ ClientSide implements Server {
         private         SocketAddress mostRecent;
         private         Outbound retry;
         
-        private         Socket socket;
+        protected       Socket socket;
         protected       InputStream in;
         protected       OutputStream out;
         
@@ -176,15 +176,15 @@ ClientSide implements Server {
         }
     }
     class Exchange extends Client {
-        protected final Request head;
-        protected final InputStream body;
+        protected final Request request;
+        protected final InputStream requestBody;
         private   final Client client;
         private   final Outbound pop;
         
-        Exchange(final Request head, final InputStream body,
+        Exchange(final Request request, final InputStream body,
                  final Client client, final Outbound pop) {
-            this.head = head;
-            this.body = body;
+            this.request = request;
+            this.requestBody = body;
             this.client = client;
             this.pop = pop;
         }
@@ -213,10 +213,10 @@ ClientSide implements Server {
              */ 
             if (null == on.in) { return null; }
             try {
-                if (null == x.head) {
+                if (null == x.request) {
                     x.receive(Response.badRequest(), null);
                 } else {
-                    if (receive(x.head.method, on.in, x)) { on.retry(); }
+                    if (receive(x.request.method, on.in, x)) { on.retry(); }
                 }
             } catch (final Exception e) {
                 if (e instanceof Nap) {
@@ -246,11 +246,11 @@ ClientSide implements Server {
         public Void
         call() throws Exception {
             receiver.apply(new Receive(on, x));
-            if (null == x.head) {
+            if (null == x.request) {
                 // nothing to send since request failed to render
             } else if (null != on.out) {
                 try {
-                    send(x.head, x.body, on.out);
+                    send(x.request, x.requestBody, on.out);
                 } catch (final Exception e) {
                     final OutputStream tmp = on.out;
                     on.out = null;
@@ -262,9 +262,9 @@ ClientSide implements Server {
         }
     }
     class Retry implements Outbound {
-        private       SocketAddress mostRecent = null;
-        private       Connection current = null;
-        private final List<Exchange> pending = List.list();
+        protected       SocketAddress mostRecent = null;
+        protected       Connection current = null;
+        protected final List<Exchange> pending = List.list();
         
         public Void
         call() {
@@ -340,7 +340,7 @@ ClientSide implements Server {
     
     /**
      * Sends an HTTP request.
-     * @param request       request to send
+     * @param head       	request to send
      * @param connection    connection output stream
      * @throws Exception    any problem sending the request
      */
@@ -362,7 +362,6 @@ ClientSide implements Server {
 
         // output the header
         final Milestone<Boolean> selfDelimiting = Milestone.make();
-        if (null == body) { selfDelimiting.set(true); }
         final Milestone<Boolean> contentLengthSpecified = Milestone.make();
         long contentLength = 0;
         for (final Header header : head.headers) {
@@ -394,7 +393,7 @@ ClientSide implements Server {
         }
 
         // output the entity body
-        if (selfDelimiting.is()) {
+        if (null == body || selfDelimiting.is()) {
             hout.write("\r\n");
             hout.flush();
             hout.close();

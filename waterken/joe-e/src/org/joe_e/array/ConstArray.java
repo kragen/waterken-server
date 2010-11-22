@@ -140,11 +140,11 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
             arr = null;
         } else {
             final int length = in.readInt();
-            final Object[] arr = (Object[])Array.newInstance(e, length);
+            final Object[] array = (Object[])Array.newInstance(e, length);
             for (int i = 0; i != length; ++i) {
-                arr[i] = in.readObject();
+                array[i] = in.readObject();
             }
-            this.arr = arr;
+            this.arr = array;
         }
     }
     
@@ -232,8 +232,8 @@ public class ConstArray<E> implements Selfless, Iterable<E>, Serializable {
             
             if (element == null) {
                 text.append("null");
-            }
-            if (element instanceof String || element instanceof ConstArray<?>
+            } else if (element instanceof String
+            	|| element instanceof ConstArray<?>
                 || element instanceof Boolean || element instanceof Byte  
                 || element instanceof Character || element instanceof Double
                 || element instanceof Float || element instanceof Integer

@@ -19,7 +19,7 @@ import org.ref_send.promise.Resolver;
  */
 public final class
 Serial {
-    private Serial() { /**/ }
+    private Serial() {}
 
     /**
      * Makes a {@link Series}.

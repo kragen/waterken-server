@@ -38,10 +38,10 @@ Responder extends Client {
     // response data waiting it's turn for output
     public  final Milestone<Boolean> closing = Milestone.make();
     private       Responder next;
-    private       String version;
-    private       String method;
-    private       Response head;
-    private       InputStream body;
+    private       String requestVersion;
+    private       String requestMethod;
+    private       Response response;
+    private       InputStream responseBody;
 
     private
     Responder(final Server server, final Milestone<Boolean> failed) {
@@ -71,11 +71,12 @@ Responder extends Client {
     public synchronized void
     receive(final Response head, final InputStream body) throws Exception {
         if (null == body && head.status.startsWith("4")) {
-            server.serve("http", new Request(version,"GET","/site/"+head.status,
-                   PowerlessArray.array(new Header[0])), null, new Client() {
+            server.serve("http",
+            	new Request(requestVersion, "GET", "/site/" + head.status,
+            		PowerlessArray.array(new Header[0])), null, new Client() {
                public void
                receive(final Response entity,
-                       final InputStream body) throws Exception {
+                       final InputStream entityBody) throws Exception {
                    // merge response headers with default entity headers
                    PowerlessArray<Header> headers = entity.headers;
                    for (final Header i : head.headers) {
@@ -84,7 +85,7 @@ Responder extends Client {
                        }
                    }
                    setResponse(new Response(head.version, head.status,
-                                            head.phrase, headers), body);
+                                            head.phrase, headers), entityBody);
                }
             });
         } else {
@@ -100,8 +101,8 @@ Responder extends Client {
             final int len = head.getContentLength();
             body = Stream.snapshot(len >= 0 ? len : 512, body).asInputStream();
         }
-        this.head = head;
-        this.body = body;
+        this.response = head;
+        this.responseBody = body;
         
         final OutputStream out = connection;
         if (null != out) {
@@ -112,9 +113,10 @@ Responder extends Client {
     
     private synchronized void
     output(final OutputStream out) throws Exception {
-        if (null != head) { // output already produced response
+        if (null != response) { // output already produced response
             try {
-                write(closing, out, version, method, head, body);
+                write(closing, out, requestVersion, requestMethod,
+                	  response, responseBody);
             } catch (final Exception e) {
                 failed.set(true);
                 closing.set(true);
@@ -126,7 +128,7 @@ Responder extends Client {
                 out.flush();
                 out.close();
             } else {
-                if (head.status.startsWith("1")) {
+                if (response.status.startsWith("1")) {
                     out.flush();
                     connection = out;
                 } else {
@@ -144,8 +146,8 @@ Responder extends Client {
     protected synchronized Responder
     follow(final String version, final String method) {
         next = new Responder(server, failed);
-        this.version = version;
-        this.method = method;
+        this.requestVersion = version;
+        this.requestMethod = method;
         return next;
     }
     
@@ -189,7 +191,8 @@ Responder extends Client {
         hrs.write(head.phrase);
         hrs.write("\r\n");
         
-        hrs.write("Access-Control-Allow-Origin: *\r\n");
+        hrs.write("" +
+        		": *\r\n");
 
         // output the header
         final Milestone<Boolean> selfDelimiting = Milestone.make();

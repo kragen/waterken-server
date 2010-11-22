@@ -18,6 +18,7 @@ import org.joe_e.Selfless;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.var.Milestone;
 import org.ref_send.promise.Eventual;
+import org.ref_send.scope.Layout;
 import org.waterken.db.Root;
 
 /**
@@ -30,6 +31,7 @@ Slicer extends ObjectOutputStream {
     private final Object top;
     private final Root root;
     
+    private final boolean throwableTop;
     private final Milestone<Boolean> unmanaged = Milestone.make();
     private final HashSet<String> splices = new HashSet<String>(8);
     
@@ -39,6 +41,7 @@ Slicer extends ObjectOutputStream {
         this.weakTop = weakTop;
         this.top = top;
         this.root = root;
+        throwableTop = top instanceof Throwable;
         enableReplaceObject(true);
     }
     
@@ -74,6 +77,10 @@ Slicer extends ObjectOutputStream {
         // END: persistence for non-Serializable types
         } else if (top == x) {
         // BEGIN: slicing of the object graph into trees
+        } else if (throwableTop &&
+     		       StackTraceElement.class == type.getComponentType()) {
+			// This must be the contained stack trace array. Just let it go by,
+        	// since it acts like it's selfless.
         } else if (Fulfilled == type) {
             try {
                 final Object p = state.get(x);
@@ -83,16 +90,11 @@ Slicer extends ObjectOutputStream {
                     state.set(x, new Faulting(root, name));
                 }
             } catch (final Exception e) { throw new AssertionError(e); }
-        } else if (!inline(type)) {
-            if (top instanceof Throwable &&
-                StackTraceElement.class == type.getComponentType()) {
-                // This must be the contained stack trace array. Just let it
-                // go by, since it acts like it's selfless.
-            } else {
-                final String name = root.export(x, weakTop);
-                splices.add(name);
-                x = new Splice(name);
-            }
+        } else if (Layout.class == type ||	// intern Layout instances
+        		   !inline(type)) {
+            final String name = root.export(x, weakTop);
+            splices.add(name);
+            x = new Splice(name);
         }
         // END: slicing of the object graph into trees
         return x;
@@ -112,11 +114,11 @@ Slicer extends ObjectOutputStream {
      */
     static protected boolean
     inline(final Class<?> type) {
-        return type == Void.class || type == Class.class || type == Fulfilled ||
-               type == StackTraceElement.class ||
-               (JoeE.isSubtypeOf(type, Selfless.class) &&
+        return (JoeE.isSubtypeOf(type, Selfless.class) &&
                 // The eventual operator is fat and is hard referenced from
                 // everywhere so don't store it inline.
-                !Eventual.class.isAssignableFrom(type));
+                !Eventual.class.isAssignableFrom(type)) ||
+               type == Fulfilled || type == Void.class || type == Class.class ||
+               type == StackTraceElement.class;
     }
 }

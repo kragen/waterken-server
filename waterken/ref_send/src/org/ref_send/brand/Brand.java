@@ -14,7 +14,7 @@ public class
 Brand<T> implements Powerless, Serializable {
     static private final long serialVersionUID = 1L;
     
-    protected Brand() { /**/ }
+    protected Brand() {}
     
     /**
      * Constructs an instance.

@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import org.joe_e.Struct;
-import org.ref_send.deserializer;
 import org.waterken.http.Client;
 import org.waterken.http.Message;
 import org.waterken.http.Request;
@@ -19,14 +18,6 @@ import org.waterken.http.Server;
 public final class
 Trace extends Struct implements Server, Serializable {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * Constructs an instance.
-     */
-    public @deserializer
-    Trace() {}
-    
-    // org.waterken.http.Server interface
 
     public void
     serve(final String scheme, final Request head,

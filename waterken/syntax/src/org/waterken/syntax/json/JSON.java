@@ -17,7 +17,7 @@ import org.ref_send.promise.Promise;
  */
 /* package */ final class
 JSON {
-    private JSON() { /**/ }
+    private JSON() {}
     
     /**
      * Enumerate an inheritance chain from [ bottom, top ).

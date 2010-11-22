@@ -7,9 +7,7 @@ package org.waterken.base32;
  */
 public final class
 Base32 {
-
-    private
-    Base32() {}
+    private Base32() {}
 
     // org.waterken.base32.Base32 interface
 

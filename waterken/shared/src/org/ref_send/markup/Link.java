@@ -10,7 +10,7 @@ import org.ref_send.scope.Scope;
  */
 public final class
 Link {
-    private Link() { /**/ }
+    private Link() {}
 
     /**
      * A {@link Link} maker.

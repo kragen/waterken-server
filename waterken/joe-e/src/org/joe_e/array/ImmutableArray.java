@@ -108,6 +108,16 @@ public class ImmutableArray<E> extends ConstArray<E> implements Immutable {
                                           final T value3, final T value4) {
         return array2(value1, value2, value3, value4);
     }
+    
+    /**
+     * Is this object's equals() implementation known to be reflexive?
+     */
+    private transient boolean reflexive = false;
+
+    public boolean equals(final Object x) {
+    	return this == x ? reflexive || (reflexive = super.equals(x)) :
+    	                   super.equals(x);
+    }
         
     /**
      * Return a new <code>PowerlessArray</code> that contains the same elements

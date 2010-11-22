@@ -10,10 +10,4 @@ import org.joe_e.Powerless;
 public class
 InvalidBase32 extends RuntimeException implements Powerless {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * Constructs an instance.
-     */
-    public
-    InvalidBase32() {}
 }

@@ -19,7 +19,7 @@ public final class ShortArray extends PowerlessArray<Short> {
     
     private /* final */ transient short[] shorts;
 
-    private ShortArray(short... shorts) {
+    ShortArray(short... shorts) {
         // Use back door constructor that sets backing store to null.
         // This lets ConstArray's methods know not to use the backing
         // store for accessing this object.

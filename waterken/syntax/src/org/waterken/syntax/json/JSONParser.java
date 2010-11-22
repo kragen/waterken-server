@@ -31,6 +31,7 @@ import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
 import org.ref_send.scope.Layout;
 import org.ref_send.scope.Scope;
+import org.ref_send.scope.Unavailable;
 import org.ref_send.type.Typedef;
 import org.waterken.syntax.BadSyntax;
 import org.waterken.syntax.Importer;
@@ -90,10 +91,10 @@ JSONParser {
             lexer.close();
             return r.snapshot();
         } catch (final IOException e) {
-            try { lexer.close(); } catch (final Exception e2) { /**/ }
+            try { lexer.close(); } catch (final Exception e2) {}
             throw e;
         } catch (final Exception e) {
-            try { lexer.close(); } catch (final Exception e2) { /**/ }
+            try { lexer.close(); } catch (final Exception e2) {}
             throw new BadSyntax(base, lexer.getSpan(), e);
         }
     }
@@ -114,10 +115,10 @@ JSONParser {
             lexer.close();
             return r;
         } catch (final IOException e) {
-            try { lexer.close(); } catch (final Exception e2) { /**/ }
+            try { lexer.close(); } catch (final Exception e2) {}
             throw e;
         } catch (final Exception e) {
-            try { lexer.close(); } catch (final Exception e2) { /**/ }
+            try { lexer.close(); } catch (final Exception e2) {}
             throw new BadSyntax(base, lexer.getSpan(), e);
         }
     }
@@ -344,7 +345,7 @@ JSONParser {
                 if (!":".equals(lexer.next())) { throw new Exception(); }
                 lexer.next();
                 int slot = namev.length;
-                while (0 != slot-- && !name.equals(namev[slot])) { /**/ }
+                while (0 != slot-- && !name.equals(namev[slot])) {}
                 final Type type = -1 != slot ?
                         paramv[slot] :
                     "=".equals(name) ?
@@ -354,7 +355,7 @@ JSONParser {
                     Object.class;
                 final Object value = parseValue(type);
                 if (-1 != slot) {
-                    if (donev[slot]) { throw new Exception(); }
+                    if (donev[slot]) { throw new Unavailable(name); }
                     donev[slot] = true;
                     argv[slot] = value;
                 } else {
@@ -414,7 +415,7 @@ JSONParser {
     static private int
     find(final String name, final PowerlessArray<String> names) {
         int r = names.length();
-        while (0 != r-- && !name.equals(names.get(r))) { /**/ }
+        while (0 != r-- && !name.equals(names.get(r))) {}
         return r;
     }
 

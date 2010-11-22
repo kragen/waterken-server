@@ -31,7 +31,7 @@ import org.ref_send.promise.Vat;
  */
 public final class
 Bounce {
-    private Bounce() { /**/ }
+    private Bounce() {}
 
     /**
      * Constructs an instance.

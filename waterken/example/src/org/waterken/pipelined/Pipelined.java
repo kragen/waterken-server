@@ -10,7 +10,7 @@ import org.ref_send.promise.Promise;
  * Promise pipelining test.
  */
 public final class Pipelined {
-    private Pipelined() { /**/ }
+    private Pipelined() {}
     
     static public Promise<?>
     make(final PlugNPlay player_) {

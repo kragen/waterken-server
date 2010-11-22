@@ -16,13 +16,13 @@ Log implements Serializable {
      * Logs a comment.
      * @param text  comment text
      */
-    public void comment(String text) { /**/ }
+    public void comment(String text) {}
     
     /**
      * Logs an exception.
      * @param reason    problem reason
      */
-    public void problem(Exception reason) { /**/ }
+    public void problem(Exception reason) {}
     
     /**
      * Logs receipt of a message.
@@ -30,13 +30,13 @@ Log implements Serializable {
      * @param concrete  concrete type of invocation target
      * @param method    declaration of invoked method
      */
-    public void got(String message, Class<?> concrete, Method method) { /**/ }
+    public void got(String message, Class<?> concrete, Method method) {}
     
     /**
      * Logs a message send.
      * @param message   sent message identifier
      */
-    public void sent(String message) { /**/ }
+    public void sent(String message) {}
     
     /**
      * Logs sending of a return value.
@@ -55,7 +55,7 @@ Log implements Serializable {
      * Logs resolution of a promise.
      * @param condition condition identifier
      */
-    protected void resolved(String condition) { /**/ }
+    protected void resolved(String condition) {}
     
     /**
      * Logs fulfillment of a promise.

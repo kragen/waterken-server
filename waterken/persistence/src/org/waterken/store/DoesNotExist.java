@@ -12,10 +12,4 @@ import org.joe_e.Powerless;
 public class
 DoesNotExist extends IOException implements Powerless {
     static private final long serialVersionUID = 1L;
-
-    /**
-     * Constructs an instance.
-     */
-    public
-    DoesNotExist() {}
 }

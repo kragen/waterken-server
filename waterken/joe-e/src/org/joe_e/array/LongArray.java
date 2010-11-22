@@ -19,7 +19,7 @@ public final class LongArray extends PowerlessArray<Long> {
     
     private /* final */ transient long[] longs;
 
-    private LongArray(long... longs) {
+    LongArray(long... longs) {
         // Use back door constructor that sets backing store to null.
         // This lets ConstArray's methods know not to use the backing
         // store for accessing this object.

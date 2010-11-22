@@ -22,7 +22,7 @@ public final class ByteArray extends PowerlessArray<Byte> {
     
     private /* final */ transient byte[] bytes;
 
-    private ByteArray(byte... bytes) {
+    ByteArray(byte... bytes) {
         // Use back door constructor that sets backing store to null.
         // This lets ConstArray's methods know not to use the backing
         // store for accessing this object.

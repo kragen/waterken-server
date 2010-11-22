@@ -108,6 +108,7 @@ SSL {
                                 throw e;
                             }
                         } catch (final Exception e) {
+                        	// Doesn't matter why this racer lost the race.
                         } finally {
                             synchronized (pending) {
                                 if (null != authenticated) {

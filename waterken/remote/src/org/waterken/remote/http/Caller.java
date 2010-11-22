@@ -36,7 +36,7 @@ import org.waterken.uri.URI;
 Caller extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
 
-    private   final HTTP.Exports exports;
+    protected final HTTP.Exports exports;
     protected final Pipeline msgs;          // queued HTTP requests
     
     protected

@@ -49,7 +49,7 @@ Scope<T> implements Selfless, Serializable {
     equals(final Object o) {
         return null != o && Scope.class == o.getClass() &&
                values.equals(((Scope<?>)o).values) &&
-               meta.equals(((Scope<?>)o).meta);
+               meta.names.equals(((Scope<?>)o).meta.names);
     }
     
     /**

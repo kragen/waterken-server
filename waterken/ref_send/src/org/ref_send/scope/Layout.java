@@ -37,9 +37,9 @@ Layout<T> implements Powerless, Record, Selfless, Serializable {
     Layout(@name("names") final PowerlessArray<String> names) {
         for (int i = names.length(); 0 != i--;) {
             final String name = names.get(i); 
-            if (name.equals("@")) { throw new RuntimeException(); }
+            if (name.equals("@")) { throw new Unavailable(name); }
             for (int j = i; 0 != j--;) {
-                if (name.equals(names.get(j))) { throw new RuntimeException(); }
+                if (name.equals(names.get(j))) { throw new Unavailable(name); }
             }
         }
 
@@ -87,6 +87,13 @@ Layout<T> implements Powerless, Record, Selfless, Serializable {
     }
     
     /**
+     * Does a given scope conform to this layout?
+     * @param scope	instance to check
+     */
+    public boolean
+    of(final Scope<T> scope) { return names.equals(scope.meta.names); }
+    
+    /**
      * Finds the index of the named member.
      * @param name  searched for member name
      * @return found index, or <code>-1</code> if not found
@@ -94,7 +101,7 @@ Layout<T> implements Powerless, Record, Selfless, Serializable {
     public int
     find(final String name) {
         int i = names.length();
-        while (0 != i-- && !names.get(i).equals(name)) { /**/ }
+        while (0 != i-- && !names.get(i).equals(name)) {}
         return i;
     }
 }

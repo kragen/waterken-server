@@ -24,7 +24,7 @@ import org.waterken.thread.Sleep;
  */
 public final class
 Settings {
-    private Settings() { /**/ }
+    private Settings() {}
 
     // initialize bootstrap configuration from system properties
     static private   final File configFolder;

@@ -31,14 +31,14 @@ import org.waterken.uri.Header;
 Callee extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
     
-    private final HTTP.Exports exports;
+    protected final HTTP.Exports exports;
 
     protected
     Callee(final HTTP.Exports exports) {
         this.exports = exports;
     }
     
-    static private final Class<?> Fulfilled = Eventual.ref(0).getClass();
+    static protected final Class<?> Fulfilled = Eventual.ref(0).getClass();
 
     protected Message<Response>
     apply(final String query, final Message<Request> m) throws Exception {
@@ -142,7 +142,7 @@ Callee extends Struct implements Serializable {
                         exports._.log.got(message, null, lambda.implementation);
                     }
                     if (lambda.overloaded) {throw new OverloadedMethodName(p);}
-                    Object value;
+                    Object r;
                     try {
                         String contentType = m.head.getContentType();
                         if (null == contentType) {
@@ -173,18 +173,18 @@ Callee extends Struct implements Serializable {
                         }
     
                         // AUDIT: call to untrusted application code
-                        value = Reflection.invoke(lambda.declaration, target,
+                        r = Reflection.invoke(lambda.declaration, target,
                                 argv.toArray(new Object[argv.length()]));
-                        if (Fulfilled.isInstance(value)) {
-                            value = ((Promise<?>)value).call();
+                        if (Fulfilled.isInstance(r)) {
+                            r = ((Promise<?>)r).call();
                         }
                     } catch (final Exception e) {
-                        value = Eventual.reject(e);
+                        r = Eventual.reject(e);
                     }
                     if (null != message) {
                         exports._.log.returned(message + "-return");
                     }
-                    return value;
+                    return r;
                 }
             });
             if (null == value) {

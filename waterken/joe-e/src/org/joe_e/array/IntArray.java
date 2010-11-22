@@ -19,7 +19,7 @@ public final class IntArray extends PowerlessArray<Integer> {
     
     private /* final */ transient int[] ints;
 
-    private IntArray(int... ints) {
+    IntArray(int... ints) {
         // Use back door constructor that sets backing store to null.
         // This lets ConstArray's methods know not to use the backing
         // store for accessing this object.

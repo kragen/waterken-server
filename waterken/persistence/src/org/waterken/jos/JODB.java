@@ -326,10 +326,12 @@ JODB<S> extends Database<S> {
             {
                 // check the cache
                 final Bucket b = f2b.get(f);
-                final Object o = null != b ? b.value.get() : null;
-                if (null != o) {
-                    if (!b.created) { markDirty(o, b); }
-                    return o;
+                if (null != b) {
+	                final Object o = b.value.get();
+	                if (null != o) {
+	                    if (!b.created) { markDirty(o, b); }
+	                    return o;
+	                }
                 }
             }
 
