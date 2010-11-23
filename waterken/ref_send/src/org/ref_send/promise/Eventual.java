@@ -970,9 +970,9 @@ Eventual implements Selfless, Serializable {
                 trusted(handler)) { return referent; }
         }
         final @SuppressWarnings("unchecked") T proxy =
-        	(T)Proxies.proxy(new Enqueue<T>(ref(referent)),
-        					 virtualize(referent.getClass(), Selfless.class));
-		return proxy;
+            (T)Proxies.proxy(new Enqueue<T>(ref(referent)),
+                             virtualize(referent.getClass(), Selfless.class));
+        return proxy;
     }
 
     /**
@@ -1052,14 +1052,14 @@ Eventual implements Selfless, Serializable {
      * @param type      referent type to implement
      * @param promise   promise for the referent
      * @return reference of corresponding type
-     * @throws ClassCastException	no cast to {@code type}
+     * @throws ClassCastException   no cast to {@code type}
      */
     static public @SuppressWarnings("unchecked") <T> T
     cast(final Class<?> type,final Promise<T> promise)throws ClassCastException{
         return (T)(Void.class == type || void.class == type ?
                 null :
             Promise.class == type ?
-            	promise :
+                promise :
             promise instanceof Fulfilled ?
                 near(promise) :
             type.isInstance(promise) ?
@@ -1068,7 +1068,7 @@ Eventual implements Selfless, Serializable {
                 Float.NaN :
             double.class == type ?
                 Double.NaN :
-        	null == promise ?
+            null == promise ?
                 null :
             Float.class == type  ?
                 Float.NaN :
