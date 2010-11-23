@@ -1056,19 +1056,23 @@ Eventual implements Selfless, Serializable {
      */
     static public @SuppressWarnings("unchecked") <T> T
     cast(final Class<?> type,final Promise<T> promise)throws ClassCastException{
-        return (T)(null == promise ?
-                null :
-            Void.class == type || void.class == type ?
+        return (T)(Void.class == type || void.class == type ?
                 null :
             Promise.class == type ?
             	promise :
-            Fulfilled.class == promise.getClass() ?
+            promise instanceof Fulfilled ?
                 near(promise) :
             type.isInstance(promise) ?
                 promise :
-            Float.class == type || float.class == type ?
+            float.class == type ?
                 Float.NaN :
-            Double.class == type || double.class == type ?
+            double.class == type ?
+                Double.NaN :
+        	null == promise ?
+                null :
+            Float.class == type  ?
+                Float.NaN :
+            Double.class == type ?
                 Double.NaN :
             Selfless.class == type ?
                 Proxies.proxy((InvocationHandler)promise, Selfless.class) :
