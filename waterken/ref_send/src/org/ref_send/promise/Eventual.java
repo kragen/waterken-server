@@ -1070,7 +1070,7 @@ Eventual implements Selfless, Serializable {
                 Double.NaN :
             null == promise ?
                 null :
-            Float.class == type  ?
+            Float.class == type ?
                 Float.NaN :
             Double.class == type ?
                 Double.NaN :
