@@ -159,11 +159,11 @@ Eventual implements Selfless, Serializable {
      * </p>
      */
     public    final Receiver<?> destruct;
-    
+
     /**
-     * mutable statistics about eventual operations 
+     * mutable statistics about eventual operations
      */
-    protected final Fulfilled<Stats> stats; 
+    protected final Fulfilled<Stats> stats;
 
     /**
      * Constructs an instance.
@@ -192,17 +192,17 @@ Eventual implements Selfless, Serializable {
         this(enqueue, "", new Log(),
            cast(Receiver.class, new Rejected<Receiver<?>>(null)));
     }
-    
+
     // org.joe_e.Selfless interface
 
     public int
     hashCode() { return 0x1A7E4D0D; }
-    
+
     public boolean
     equals(final Object x) {
         return x instanceof Eventual && local == ((Eventual)x).local;
     }
-    
+
     // org.ref_send.promise.Eventual interface
 
     /**
@@ -274,7 +274,7 @@ Eventual implements Selfless, Serializable {
     public final <P,R> R
     when(final P reference, final Do<P,R> conditional) {
         try {
-            final Class<?> P= null!=reference?reference.getClass():Object.class;
+            final Class<?> P = null!=reference?reference.getClass():Void.class;
             final Class<?> R = Typedef.raw(returnType(P, conditional));
             return cast(R, when(P, R, ref(reference), conditional));
         } catch (final Exception e) { throw new Error(e); }
@@ -322,17 +322,17 @@ Eventual implements Selfless, Serializable {
     static protected final class
     Invoke<T> extends Do<T,Object> implements Serializable {
         static private final long serialVersionUID = 1L;
-        
+
         /**
          * method to invoke
          */
         public final Method method;
-        
+
         /**
          * invocation arguments, or {@code null} if none
          */
         public final ConstArray<?> argv;
-        
+
         /**
          * Constructs a pending invocation.
          * @param method    {@link #method}
@@ -343,7 +343,7 @@ Eventual implements Selfless, Serializable {
             this.method = method;
             this.argv = argv;
         }
-        
+
         public Object
         fulfill(final T object) throws Exception {
             // AUDIT: call to untrusted application code
@@ -351,7 +351,7 @@ Eventual implements Selfless, Serializable {
                 null == argv ? null : argv.toArray(new Object[argv.length()]));
         }
     }
-    
+
     /**
      * A combined {@link Do} block and return value {@link Resolver}.
      * @param <P> parameter type
@@ -365,12 +365,12 @@ Eventual implements Selfless, Serializable {
          * conditional code block to execute
          */
         public final Do<? super P,? extends R> conditional;
-        
+
         /**
          * return value resolver
          */
         public final Resolver<R> resolver;
-        
+
         /**
          * Constructs an instance.
          * @param conditional   {@link #conditional}
@@ -382,9 +382,9 @@ Eventual implements Selfless, Serializable {
             this.conditional = conditional;
             this.resolver = resolver;
         }
-        
+
         // org.ref_send.promise.Do interface
-        
+
         public Void
         fulfill(final P a) {
             final R r;
@@ -411,19 +411,19 @@ Eventual implements Selfless, Serializable {
             return null;
         }
     }
-    
+
     private final <T> Local<T>
     trust(final Promise<T> untrusted) {
         return trusted(untrusted) ?
             (Local<T>)untrusted : new Enqueue<T>(untrusted);
     }
-    
+
     protected final boolean
     trusted(final Object untrusted) {
         return untrusted instanceof Local<?> &&
                local == ((Local<?>)untrusted).getScope().local;
     }
-    
+
     /**
      * An abstract base class for a promise implementation that is scoped to a
      * particular event queue.
@@ -432,7 +432,7 @@ Eventual implements Selfless, Serializable {
     protected abstract class
     Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
         static private final long serialVersionUID = 1L;
-        
+
         protected final Eventual
         getScope() { return Eventual.this; }
 
@@ -473,7 +473,7 @@ Eventual implements Selfless, Serializable {
                     (Tail<?>)Eventual.this.when(T, R, this, new Invoke<T>(
                         method, null == args ? null : ConstArray.array(args)));
                 if (null == r) { return null; }
-                
+
                 // implementation might have already resolved a pipeline promise
                 final State<?> cell = near(r.state);
                 return cast(R, cell.resolved ? cell.value : r);
@@ -486,7 +486,7 @@ Eventual implements Selfless, Serializable {
         call() throws Exception;
 
         // org.ref_send.promise.Local interface
-        
+
         /**
          * Shortens the promise chain by one link.
          */
@@ -526,7 +526,7 @@ Eventual implements Selfless, Serializable {
 
         public T
         call() throws Exception { return untrusted.call(); }
-        
+
         public Object
         shorten() { return this; }
 
@@ -566,7 +566,7 @@ Eventual implements Selfless, Serializable {
             reject = Reflection.method(Do.class, "reject", Exception.class);
         } catch (final NoSuchMethodException e) {throw new NoSuchMethodError();}
     }
-    
+
     /**
      * A recognizable exception to avoid logging an ignored null resolution.
      */
@@ -717,7 +717,7 @@ Eventual implements Selfless, Serializable {
 
         final long condition;               // id of this promise
               Promise<When<T>> back;        // observer list sentinel
-        
+
               boolean resolved;             // Is resolved?
               Class<?> T;                   // concrete referent type
               Promise<? extends T> value;   // resolved value
@@ -768,7 +768,7 @@ Eventual implements Selfless, Serializable {
             if (!cell.resolved) { throw new Unresolved(); }
             return cell.value.call();
         }
-        
+
         public Object
         shorten() throws Unresolved {
             final State<T> cell = near(state);
@@ -825,7 +825,7 @@ Eventual implements Selfless, Serializable {
             set(null == r || r instanceof Promise<?> ? null : r.getClass(),
                 ref(r));
         }
-        
+
         private void
         set(final Class<?> T, Promise<? extends T> p) {
             if (p instanceof Fulfilled<?>) {
@@ -969,7 +969,57 @@ Eventual implements Selfless, Serializable {
             if ((null != handler && Rejected.class == handler.getClass()) ||
                 trusted(handler)) { return referent; }
         }
-        return cast(referent.getClass(), new Enqueue<T>(ref(referent)));
+        final @SuppressWarnings("unchecked") T proxy =
+        	(T)Proxies.proxy(new Enqueue<T>(ref(referent)),
+        					 virtualize(referent.getClass(), Selfless.class));
+		return proxy;
+    }
+
+    /**
+     * Lists the part of an interface that a proxy can implement.
+     * @param r types to mimic
+     */
+    static protected Class<?>[]
+    virtualize(Class<?>... r) {
+        for (int i = r.length; i-- != 0;) {
+            final Class<?> type = r[i];
+            if (type == Serializable.class || !Proxies.isImplementable(type) ||
+                    JoeE.isSubtypeOf(type, Equatable.class)) {
+                // remove the type from the proxy type list
+                {
+                    final Class<?>[] c = r;
+                    r = new Class<?>[c.length - 1];
+                    System.arraycopy(c, 0, r, 0, i);
+                    System.arraycopy(c, i + 1, r, i, r.length - i);
+                }
+
+                // search the inheritance tree for types that can be implemented
+                for (Class<?> p = type; null != p; p = p.getSuperclass()) {
+                    Class<?>[] x = virtualize(p.getInterfaces());
+
+                    // remove any duplicate types from the replacement type list
+                    for (int j = x.length; 0 != j--;) {
+                        for (int k = r.length; 0 != k--;) {
+                            if (x[j] == r[k]) {
+                                final Class<?>[] c = x;
+                                x = new Class<?>[c.length - 1];
+                                System.arraycopy(c, 0, x, 0, j);
+                                System.arraycopy(c, j + 1, x, j, x.length - j);
+                                break;
+                            }
+                        }
+                    }
+
+                    // splice in the replacement type list
+                    final Class<?>[] c = r;
+                    r = new Class<?>[c.length + x.length];
+                    System.arraycopy(c, 0, r, 0, i);
+                    System.arraycopy(x, 0, r, i, x.length);
+                    System.arraycopy(c, i, r, i + x.length, c.length - i);
+                }
+            }
+        }
+        return r;
     }
 
     /**
@@ -1002,75 +1052,29 @@ Eventual implements Selfless, Serializable {
      * @param type      referent type to implement
      * @param promise   promise for the referent
      * @return reference of corresponding type
-     * @throws ClassCastException   no cast to {@code type}
+     * @throws ClassCastException	no cast to {@code type}
      */
     static public @SuppressWarnings("unchecked") <T> T
     cast(final Class<?> type,final Promise<T> promise)throws ClassCastException{
         return (T)(null == promise ?
-            null :
-            type.isInstance(promise) ?
-                promise :
-            Fulfilled.class == promise.getClass() ?
-                near(promise) :
+                null :
             Void.class == type || void.class == type ?
                 null :
+            Promise.class == type ?
+            	promise :
+            Fulfilled.class == promise.getClass() ?
+                near(promise) :
+            type.isInstance(promise) ?
+                promise :
             Float.class == type || float.class == type ?
                 Float.NaN :
             Double.class == type || double.class == type ?
                 Double.NaN :
             Selfless.class == type ?
                 Proxies.proxy((InvocationHandler)promise, Selfless.class) :
-            Proxies.proxy((InvocationHandler)promise, 
-                          virtualize(type, Selfless.class)));
+            Proxies.proxy((InvocationHandler)promise, type, Selfless.class));
     }
 
-    /**
-     * Lists the part of an interface that a proxy can implement.
-     * @param r types to mimic
-     */
-    static protected Class<?>[]
-    virtualize(Class<?>... r) {
-        for (int i = r.length; i-- != 0;) {
-            final Class<?> type = r[i];
-            if (type == Serializable.class || !Proxies.isImplementable(type) ||
-                    JoeE.isSubtypeOf(type, Equatable.class)) {
-                // remove the type from the proxy type list 
-                {
-                    final Class<?>[] c = r;
-                    r = new Class<?>[c.length - 1];
-                    System.arraycopy(c, 0, r, 0, i);
-                    System.arraycopy(c, i + 1, r, i, r.length - i);
-                }
-
-                // search the inheritance tree for types that can be implemented
-                for (Class<?> p = type; null != p; p = p.getSuperclass()) {
-                    Class<?>[] x = virtualize(p.getInterfaces());
-
-                    // remove any duplicate types from the replacement type list
-                    for (int j = x.length; 0 != j--;) {
-                        for (int k = r.length; 0 != k--;) {
-                            if (x[j] == r[k]) {
-                                final Class<?>[] c = x;
-                                x = new Class<?>[c.length - 1];
-                                System.arraycopy(c, 0, x, 0, j);
-                                System.arraycopy(c, j + 1, x, j, x.length - j);
-                                break;
-                            }
-                        }
-                    }
-                    
-                    // splice in the replacement type list
-                    final Class<?>[] c = r;
-                    r = new Class<?>[c.length + x.length];
-                    System.arraycopy(c, 0, r, 0, i);
-                    System.arraycopy(x, 0, r, i, x.length);
-                    System.arraycopy(c, i, r, i + x.length, c.length - i);
-                }
-            }
-        }
-        return r;
-    }
-    
     /**
      * Gets a corresponding {@linkplain Promise promise}.
      * <p>

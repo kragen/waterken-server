@@ -376,9 +376,13 @@ JSONParser {
             final Exception e = reason instanceof Exception ?
                     (Exception)reason :
                 reason instanceof String ?
-                    new Exception((String)reason) :
-                new Exception();
-            return Eventual.cast(Typedef.raw(required), Eventual.reject(e));
+                    new RuntimeException((String)reason) :
+                new RuntimeException();
+            try {
+            	return Eventual.cast(Typedef.raw(required), Eventual.reject(e));
+            } catch (final ClassCastException ignored) {
+            	throw e;
+            }
         }
 
         final int remote = find("@", undeclared);

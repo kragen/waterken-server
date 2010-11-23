@@ -3,6 +3,7 @@
 package org.waterken.remote.http;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
@@ -211,8 +212,8 @@ HTTP extends Eventual implements Serializable {
                  * The href identifies a remote reference, not a remote promise,
                  * so invoke the observer with an eventual reference.
                  */
-                HTTP.this.when(T, Void.class,
-                    new Inline<Object>(Eventual.cast(T, this)), observer);
+                HTTP.this.when(T, Void.class, new Inline<Object>(Proxies.proxy(
+                		this, virtualize(T, Selfless.class))), observer);
             }
         }
         

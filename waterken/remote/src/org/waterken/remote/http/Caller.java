@@ -84,6 +84,8 @@ Caller extends Struct implements Serializable {
         }
         exports._.log.sent(msgs.poll(new When()).guid);
     }
+
+    private static final Class<?> Fulfilled = Eventual.ref(0).getClass();
    
     public void
     invoke(final String href, final Class<?> type, final Method method,
@@ -93,7 +95,6 @@ Caller extends Struct implements Serializable {
             get(href, property, type, method, resolver);
             return;
         }
-        final Class<?> Fulfilled = Eventual.ref(0).getClass();
         if (null == argv) {
             argv = ConstArray.array();
         } else {

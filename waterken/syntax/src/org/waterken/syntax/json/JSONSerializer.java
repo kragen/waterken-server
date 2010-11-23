@@ -48,11 +48,11 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
          * of the provided Exporter is deterministic, always producing the same
          * URL for the same object, then repeated serialization of an object
          * tree produces identical JSON text.
-         * 
+         *
          * SECURITY CLAIM: Iteration of the immutable root is done without
          * causing execution of application code. This constraint ensures that
          * serialization has no effect on the application object tree.
-         * 
+         *
          * SECURITY DEPENDENCY: Application code cannot extend ConstArray, so
          * iteration of the values array will not transfer control to
          * application code.
@@ -62,7 +62,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         write(export, type, value, new BufferedWriter(UTF8.output(buffer)));
         return buffer.snapshot();
     }
-    
+
     public ByteArray
     serializeTuple(final Exporter export, final ConstArray<Type> types,
                    final ConstArray<?> values) throws Exception {
@@ -80,7 +80,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         text.close();
         return buffer.snapshot();
     }
-    
+
     /**
      * Serializes a stream of Java objects to a JSON text stream.
      * @param export    reference exporter
@@ -106,16 +106,15 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
     /**
      * encoding of a rejected promise
      */
-    static private final Layout<?> JSONerror =
-    	new Layout<Object>(PowerlessArray.array("!"));
-    
+    static private final Layout<?> JSONerror = Layout.define("!");
+
     static private void
     serialize(final Exporter export, final Type implicit,
               final Object value, final JSONWriter out) throws Exception {
-    	if (null == value) {
-    		out.writeNull();
-    		return;
-    	}
+        if (null == value) {
+            out.writeNull();
+            return;
+        }
         final Class<?> actual = value.getClass();
         if (String.class == actual) {
             out.writeString((String)value);
@@ -183,11 +182,8 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             final JSONWriter.ObjectWriter oout = out.startObject();
             final int length = scope.values.length();
             for (int i = 0; i != length; ++i) {
-                final Object member = scope.values.get(i);
-                if (null != member) {
-                    serialize(export, Object.class, member,
-                              oout.startMember(scope.meta.names.get(i)));
-                }
+                serialize(export, Object.class, scope.values.get(i),
+                          oout.startMember(scope.meta.names.get(i)));
             }
             oout.finish();
         } else if (value instanceof Record || value instanceof Throwable) {
