@@ -70,7 +70,7 @@ JSON {
             }
         }
         for (final Class<?> i : type.getInterfaces()) {
-            if (i != top) {
+            if (!i.isAssignableFrom(top)) {
                 ifaces(top, i, r);
             }
         }
