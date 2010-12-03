@@ -29,19 +29,19 @@ import org.waterken.uri.Header;
 /* package */ final class
 Callee extends Struct implements Serializable {
     static private final long serialVersionUID = 1L;
-    
+
     protected final HTTP.Exports exports;
 
     protected
     Callee(final HTTP.Exports exports) {
         this.exports = exports;
     }
-    
+
     static protected final Class<?> Fulfilled = Eventual.ref(0).getClass();
 
     protected Message<Response>
     apply(final String query, final Message<Request> m) throws Exception {
-        
+
         // further dispatch the request based on the accessed member
         final String p = HTTP.predicate(m.head.method, query);
         if (null == p) {                        // when block
@@ -79,7 +79,7 @@ Callee extends Struct implements Serializable {
             } catch (final Exception e) {
                 subject = Eventual.reject(e);
             }
-            if (!Fulfilled.isInstance(subject)) { 
+            if (!Fulfilled.isInstance(subject)) {
                 return serialize(m.head.method, "300", "not fulfilled",
                                  Server.forever, Object.class, subject);
             }
@@ -95,7 +95,7 @@ Callee extends Struct implements Serializable {
             if (null == property) {             // no such property
                 final boolean post = null != Dispatch.post(target, p);
                 return new Message<Response>(Response.notAllowed(
-                    post ? new String[] { "TRACE", "OPTIONS", "POST" } : 
+                    post ? new String[] { "TRACE", "OPTIONS", "POST" } :
                            new String[] { "TRACE", "OPTIONS"         }), null);
             }
             Object value;                       // property access
@@ -117,7 +117,7 @@ Callee extends Struct implements Serializable {
             }
             return r;
         }
-        
+
         if ("POST".equals(m.head.method)) {
             final Response failed = m.head.allow(null);
             if (null != failed) { return new Message<Response>(failed, null); }
@@ -125,7 +125,7 @@ Callee extends Struct implements Serializable {
             if (null == lambda) {               // no such method
                 final boolean get = null != Dispatch.get(target, p);
                 return new Message<Response>(Response.notAllowed(
-                    get ? new String[] { "TRACE", "OPTIONS", "GET" } : 
+                    get ? new String[] { "TRACE", "OPTIONS", "GET" } :
                           new String[] { "TRACE", "OPTIONS"        }), null);
             }                                   // method invocation
             final Object value = exports.execute(session, query,
@@ -142,43 +142,43 @@ Callee extends Struct implements Serializable {
                     Object r;
                     try {
                         if (lambda.overloaded) {
-                        	throw new OverloadedMethodName(p);
+                            throw new OverloadedMethodName(p);
                         }
                         final Object[] argv;
-                    	final Type[] paramv =
-                    		lambda.implementation.getGenericParameterTypes();
-                    	if (0 == paramv.length) {
-                    		argv = new Object[] {};
-                    	} else {
-	                        String mime = m.head.getContentType();
-	                        if (null == mime) {
-	                            mime = FileType.json.name;
-	                        } else {
-	                            final int end = mime.indexOf(';');
-	                            if (-1 != end) {
-	                                mime = mime.substring(0, end);
-	                            }
-	                        }
-	                        final Deserializer syntax =
-	                            Header.equivalent(FileType.json.name, mime) ||
-	                            Header.equivalent("text/plain",       mime) ?
-	                                new JSONDeserializer() : null;
-	                        try {
-	                            argv = null == syntax ? new Object[] { m.body }: 
-	                                syntax.deserializeTuple(
-	                                    m.body.asInputStream(),
-	                                    exports.connect(session),
-	                                    exports.getHere(),exports.code, paramv).
-	                                    	toArray(new Object[paramv.length]);
-	                        } catch (final BadSyntax e) {
-	                            /*
-	                             * strip out the parsing information to avoid
-	                             * leaking information to the application layer
-	                             */ 
-	                            throw (Exception)e.getCause();
-	                        }
-                    	}
-    
+                        final Type[] paramv =
+                            lambda.implementation.getGenericParameterTypes();
+                        if (0 == paramv.length) {
+                            argv = new Object[] {};
+                        } else {
+                            String mime = m.head.getContentType();
+                            if (null == mime) {
+                                mime = FileType.json.name;
+                            } else {
+                                final int end = mime.indexOf(';');
+                                if (-1 != end) {
+                                    mime = mime.substring(0, end);
+                                }
+                            }
+                            final Deserializer syntax =
+                                Header.equivalent(FileType.json.name, mime) ||
+                                Header.equivalent("text/plain",       mime) ?
+                                    new JSONDeserializer() : null;
+                            try {
+                                argv = null == syntax ? new Object[] { m.body }:
+                                    syntax.deserializeTuple(
+                                        m.body.asInputStream(),
+                                        exports.connect(session),
+                                        exports.getHere(),exports.code, paramv).
+                                            toArray(new Object[paramv.length]);
+                            } catch (final BadSyntax e) {
+                                /*
+                                 * strip out the parsing information to avoid
+                                 * leaking information to the application layer
+                                 */
+                                throw (Exception)e.getCause();
+                            }
+                        }
+
                         // AUDIT: call to untrusted application code
                         r = Reflection.invoke(lambda.declaration, target, argv);
                         if (Fulfilled.isInstance(r)) {
@@ -204,11 +204,11 @@ Callee extends Struct implements Serializable {
             return serialize(m.head.method, "200", "ok", Server.ephemeral,
                              lambda.declaration.getGenericReturnType(), value);
         }
-        
+
         final boolean get = null != Dispatch.get(target, p);
         final boolean post = null != Dispatch.post(target, p);
         final String[] allow =
-            get && post ? new String[] { "TRACE", "OPTIONS", "GET", "POST" } : 
+            get && post ? new String[] { "TRACE", "OPTIONS", "GET", "POST" } :
             get         ? new String[] { "TRACE", "OPTIONS", "GET"         } :
                    post ? new String[] { "TRACE", "OPTIONS",        "POST" } :
                           new String[] { "TRACE", "OPTIONS"                };
@@ -216,7 +216,7 @@ Callee extends Struct implements Serializable {
             new Message<Response>(Response.options(allow), null) :
             new Message<Response>(Response.notAllowed(allow), null);
     }
-    
+
     private Message<Response>
     serialize(final String method, final String status,
               final String phrase, final int maxAge,
@@ -234,7 +234,7 @@ Callee extends Struct implements Serializable {
             return new Message<Response>(new Response(
                 "HTTP/1.1", status, phrase,
                 PowerlessArray.array(
-                    new Header("Cache-Control", 
+                    new Header("Cache-Control",
                                "must-revalidate, max-age=" + maxAge),
                     new Header("Content-Type", contentType),
                     new Header("Content-Length", "" + content.length())
