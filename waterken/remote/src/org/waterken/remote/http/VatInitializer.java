@@ -48,18 +48,18 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
     
     public PowerlessArray<String>
     apply(final Root root) throws Exception {
-        final Log log = root.fetch(null, Database.log);
+        final Log log_ = root.fetch(null, Database.log);
         final Receiver<Effect<Server>> effect= root.fetch(null,Database.effect);
         
         final List<Promise<?>> tasks = List.list();
         final Receiver<?> destruct = root.fetch(null, Database.destruct);
         final Outbound outbound = new Outbound();
-        final SessionMaker sessions = new SessionMaker(root, log);
+        final SessionMaker sessions = new SessionMaker(root, log_);
         final HTTP.Exports exports = HTTP.make(
                 decouple(Eventual.ref(enqueue(effect,tasks))), root,
-                log, destruct, Eventual.ref(outbound), sessions);
+                log_, destruct, Eventual.ref(outbound), sessions);
         final String mid = exports.getHere() + "#make";
-        log.got(mid, null, make);
+        log_.got(mid, null, make);
         root.assign(VatInitializer.tasks, tasks);
         root.assign(VatInitializer.outbound, outbound);
         root.assign(VatInitializer.exports, exports);

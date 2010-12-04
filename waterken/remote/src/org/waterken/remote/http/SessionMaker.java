@@ -20,12 +20,12 @@ SessionMaker implements Serializable {
     static private final long serialVersionUID = 1L;
 
     private final Root root;
-    private final Log log;
+    private final Log log_;
     
     protected
-    SessionMaker(final Root root, final Log log) {
+    SessionMaker(final Root root, final Log log_) {
         this.root = root;
-        this.log = log;
+        this.log_ = log_;
     }
     
     // org.waterken.remote.http.SessionMaker interface
@@ -36,7 +36,7 @@ SessionMaker implements Serializable {
     open(final String key) {
         ServerSideSession r = root.fetch(null, sessionKeyPrefix + key);
         if (null == r) {
-            r = new ServerSideSession(log, hash(key));
+            r = new ServerSideSession(log_, hash(key));
             root.assign(sessionKeyPrefix + key, r);
         }
         return r;
