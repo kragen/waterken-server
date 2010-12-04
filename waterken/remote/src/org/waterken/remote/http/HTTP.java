@@ -437,8 +437,7 @@ HTTP extends Eventual implements Serializable {
             } else {
             	position = caller.msgs.enqueue(new Flush(false)); 
             }
-            log.sentIf(position.guid,
-            		   caller.msgs.name+"-"+window+"-"+message+"-pipeline");
+            log.sentIf(position.guid, caller.msgs.name+"-"+window+"-"+message);
         }
     }
 

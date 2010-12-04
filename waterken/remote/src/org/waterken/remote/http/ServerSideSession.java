@@ -87,14 +87,14 @@ ServerSideSession implements Serializable {
             final Promise<?> pr = Eventual.ref(r);
             if (Fulfilled.isInstance(pr)) {
                 r = pr.call();
-                log_.fulfilled(null != guid ? guid + "-pipeline" : null);
+                log_.fulfilled(guid);
             } else {
                 if (Rejected.isInstance(pr)) { pr.call(); }
-                log_.resolved(null != guid ? guid + "-pipeline" : null);
+                log_.resolved(guid);
             }
         } catch (final Exception e) {
             r = Eventual.reject(e);
-            log_.rejected(null != guid ? guid + "-pipeline" : null, e);
+            log_.rejected(guid, e);
         }
         returns = returns.with(new Return(message, r));
         if (null != r || void.class != op.method.getReturnType()) {
