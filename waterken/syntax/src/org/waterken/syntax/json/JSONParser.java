@@ -254,34 +254,36 @@ JSONParser {
         final ConstArray.Builder<Object> values = ConstArray.builder(1);
 
         // load any explicit type information
-        final Class<?>[] explicit;
+        final Type promised = Typedef.value(R, required);
+        final Type expected = null != promised ? promised : required;
+        Class<?>[] types = new Class<?>[] { Typedef.raw(expected) };
         if (null != code && "\"class\"".equals(lexer.getHead())) {
             if (!":".equals(lexer.next())) { throw new Exception(); }
             lexer.next();
             final Object value = parseValue(PowerlessArray.class);
             names.append("class");
             values.append(value);
-            Class<?>[] types = null;
             if (value instanceof PowerlessArray<?>) {
                 for (final Object typename : (PowerlessArray<?>)value) {
                     try {
                         final Class<?> type = JSON.load(code, (String)typename);
-                        if (null != types) {
-                            boolean implied = false;
-                            for (final Class<?> prior : types) {
-                                if (type.isAssignableFrom(prior)) {
-                                    implied = true;
-                                    break;
-                                }
+                        boolean implied = false;
+                        for (int i = 0; i != types.length; i += 1) {
+                            if (type.isAssignableFrom(types[i])) {
+                                implied = true;
+                                break;
                             }
-                            if (!implied) {
-                                final int n = types.length;
-                                System.arraycopy(
-                                    types, 0, types = new Class<?>[n+1], 0, n);
-                                types[n] = type;
+                            if (types[i].isAssignableFrom(type)) {
+                            	types[i] = type;
+                            	implied = true;
+                            	break;
                             }
-                        } else {
-                            types = new Class<?>[] { type };
+                        }
+                        if (!implied) {
+                            final int n = types.length;
+                            System.arraycopy(
+                                types, 0, types = new Class<?>[n + 1], 0, n);
+                            types[n] = type;
                         }
                     } catch (final ClassCastException e) {
                       // Skip non-string typename in source.
@@ -290,19 +292,11 @@ JSONParser {
                     }
                 }
             }
-            explicit = types;
             if (",".equals(lexer.getHead())) { lexer.next(); }
-        } else {
-            explicit = null;
         }
-        final Type promised = Typedef.value(R, required);
-        final Type expected = null != promised ? promised : required;
-        final Constructor<?> make;
-        if (null == explicit) {
-            make = Syntax.deserializer(Typedef.raw(expected));
-        } else {
+        final Constructor<?> make; {
             Constructor<?> c = null;
-            for (final Class<?> type : explicit) {
+            for (final Class<?> type : types) {
                 c = Syntax.deserializer(type);
                 if (null != c) { break; }
             }
@@ -388,9 +382,7 @@ JSONParser {
         final int remote = find("@", undeclared);
         if (-1 != remote) {
             final String href = (String)values.snapshot().get(remote);
-            final Object r = null != explicit ?
-                connect.apply(href, base, explicit) :
-                connect.apply(href, base, required);
+            final Object r = connect.apply(href, base, types);
             return null != promised ? ref(r) : r;
         }
 
