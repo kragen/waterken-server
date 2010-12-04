@@ -13,7 +13,7 @@ import org.joe_e.Struct;
 import org.joe_e.reflect.Reflection;
 
 /**
- * Method dispatch implementation for web_send.
+ * Member dispatch for ref_send.
  */
 /* package */ final class
 Dispatch extends Struct implements Powerless, Serializable {
@@ -27,30 +27,25 @@ Dispatch extends Struct implements Powerless, Serializable {
     /**
      * concrete implementation dispatched to
      */
-    public final Method implementation;
+    public final Method impl;
     
     /**
-     * corresponding public declaration for {@link #implementation}
+     * corresponding public declaration for {@link #impl}
      */
-    public final Method declaration;
+    public final Method decl;
     
-    /**
-     * Constructs an instance.
-     * @param implementation    {@link #implementation}
-     * @param declaration       {@link #declaration}
-     */
-    public
-    Dispatch(final Method implementation, final Method declaration) {
+    private
+    Dispatch(final Method impl, final Method decl) {
         overloaded = false;
-        this.implementation = implementation;
-        this.declaration = declaration;
+        this.impl = impl;
+        this.decl = decl;
     }
     
     private
     Dispatch() {
         overloaded = true;
-        implementation = null;
-        declaration = null;
+        impl = null;
+        decl = null;
     }
     
     static private final Dispatch Overloaded = new Dispatch();
@@ -65,21 +60,21 @@ Dispatch extends Struct implements Powerless, Serializable {
     get(final Object target, final String name) {
         final Class<?> type = null != target ? target.getClass() : Void.class;
         final boolean c = Class.class == type;
-        Method implementation = null;
+        Method impl = null;
         for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
             final int flags = m.getModifiers();
             if (c == isStatic(flags)) {
                 if (name.equals(property(m)) &&
                         (!c || target == m.getDeclaringClass())) {
-                    if (null != implementation) { return null; }
-                    implementation = m;
+                    if (null != impl) { return null; }
+                    impl = m;
                 }
             }
         }
-        if (null == implementation) { return null; }
-        final Method declaration = bubble(implementation);
-        if (null == declaration) { return null; }
-        return new Dispatch(implementation, declaration);
+        if (null == impl) { return null; }
+        final Method decl = bubble(impl);
+        if (null == decl) { return null; }
+        return new Dispatch(impl, decl);
     }
 
     /**
@@ -93,30 +88,30 @@ Dispatch extends Struct implements Powerless, Serializable {
         final String methodName= null==name || "".equals(name) ? "apply" : name;
         final Class<?> type = null != target ? target.getClass() : Void.class;
         final boolean c = Class.class == type;
-        Method implementation = null;
+        Method impl = null;
         Method bridge = null;
         for (final Method m : Reflection.methods(c ? (Class<?>)target : type)) {
             if (c == isStatic(m.getModifiers())) {
                 if (methodName.equals(m.getName()) && null == property(m) &&
                         (!c || target == m.getDeclaringClass())) {
-                    if (null != implementation) {
+                    if (null != impl) {
                         if (null != bridge) { return Overloaded; }
-                        if (implementation.isBridge()) {
-                            bridge = implementation;
-                            implementation = m;
+                        if (impl.isBridge()) {
+                            bridge = impl;
+                            impl = m;
                         } else if (m.isBridge()) {
                             bridge = m;
                         } else { return Overloaded; }
                     } else {
-                        implementation = m;
+                        impl = m;
                     }
                 }
             }
         }
-        if (null == implementation) { return null; }
-        final Method declaration=bubble(null!=bridge ? bridge : implementation);
-        if (null == declaration) { return null; }
-        return new Dispatch(implementation, declaration);
+        if (null == impl) { return null; }
+        final Method decl = bubble(null != bridge ? bridge : impl);
+        if (null == decl) { return null; }
+        return new Dispatch(impl, decl);
     }
     
     /**

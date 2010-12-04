@@ -46,17 +46,17 @@ Operation extends Struct implements Serializable {
     
     /**
      * Process the corresponding response.
-     * @param request   GUID for request message
+     * @param guid   	GUID for request message
      * @param response  received HTTP response
      */
     protected abstract void
-    fulfill(String request, Message<Response> response);
+    fulfill(String guid, Message<Response> response);
     
     /**
      * Process the corresponding rejection.
-     * @param request   GUID for request message
+     * @param guid		GUID for request message
      * @param reason    reason response will never be provided
      */
     protected abstract void
-    reject(String request, Exception reason);
+    reject(String guid, Exception reason);
 }

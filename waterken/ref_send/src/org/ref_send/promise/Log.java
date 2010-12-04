@@ -49,25 +49,25 @@ Log implements Serializable {
      * @param message   message identifier
      * @param condition condition identifier
      */
-    protected void sentIf(String message, String condition) { sent(message); }
+    public void sentIf(String message, String condition) { sent(message); }
     
     /**
      * Logs resolution of a promise.
      * @param condition condition identifier
      */
-    protected void resolved(String condition) {}
+    public void resolved(String condition) {}
     
     /**
      * Logs fulfillment of a promise.
      * @param condition condition identifier
      */
-    protected void fulfilled(String condition) { resolved(condition); }
+    public void fulfilled(String condition) { resolved(condition); }
     
     /**
      * Logs rejection of a promise.
      * @param condition condition identifier
      */
-    protected void rejected(String condition, Exception reason) {
+    public void rejected(String condition, Exception reason) {
         resolved(condition);
     }
     
@@ -75,5 +75,5 @@ Log implements Serializable {
      * Logs progress towards fulfillment of a promise.
      * @param condition condition identifier
      */
-    protected void progressed(String condition) { resolved(condition); }
+    public void progressed(String condition) { resolved(condition); }
 }

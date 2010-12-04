@@ -30,7 +30,7 @@ import org.waterken.uri.Header;
 import org.waterken.uri.URI;
 
 /**
- * Client-side of the HTTP web-amp protocol.
+ * Client-side of the HTTP ref_send protocol.
  */
 /* package */ final class
 Caller extends Struct implements Serializable {
@@ -47,7 +47,7 @@ Caller extends Struct implements Serializable {
 
     // org.waterken.remote.http.Caller interface
 
-    public void
+    protected void
     when(final String href, final Class<?> T, final Resolver<Object> resolver) {
         class When extends Operation implements Serializable {
             static private final long serialVersionUID = 1L;
@@ -87,13 +87,12 @@ Caller extends Struct implements Serializable {
 
     private static final Class<?> Fulfilled = Eventual.ref(0).getClass();
    
-    public void
+    protected Pipeline.Position
     invoke(final String href, final Class<?> type, final Method method,
            ConstArray<?> argv, final Resolver<Object> resolver){
         final String property = Dispatch.property(method);
         if (null != property) {
-            get(href, property, type, method, resolver);
-            return;
+            return get(href, property, type, method, resolver);
         }
         if (null == argv) {
             argv = ConstArray.array();
@@ -106,16 +105,16 @@ Caller extends Struct implements Serializable {
             argv = out.snapshot();
         }
         if (null == resolver) {
-            post(href, method.getName(), type, method, argv, null);
-            return;
+            return post(href, method.getName(), type, method, argv, null);
         }
-        final Deferred<Object> r = exports._.defer();
+        final Deferred<Object> out = exports._.defer();
         final Pipeline.Position position = 
-            post(href, method.getName(), type, method, argv, r.resolver);
-        resolver.resolve(exports._.pipeline(r.promise, this, position));
+            post(href, method.getName(), type, method, argv, out.resolver);
+        resolver.resolve(exports._.pipeline(out.promise, this, position));
+        return position;
     }
     
-    private void
+    private Pipeline.Position
     get(final String href, final String name, final Class<?> type,
             final Method method, final Resolver<Object> resolver) {
         class GET extends Operation implements Serializable {
@@ -148,7 +147,7 @@ Caller extends Struct implements Serializable {
                 if (null != resolver) { resolver.reject(reason); }
             }
         }
-        exports._.log.sent(msgs.enqueue(new GET()).guid);
+        return msgs.enqueue(new GET());
     }
     
     private Pipeline.Position
@@ -171,26 +170,24 @@ Caller extends Struct implements Serializable {
             }
 
             public void
-            fulfill(final String request, final Message<Response> response) {
+            fulfill(final String guid, final Message<Response> response) {
                 if ("204".equals(response.head.status) ||
                     "205".equals(response.head.status)) { return; }
                 if (response.head.status.startsWith("2")) {
-                    exports._.log.got(request + "-return", null, null);
+                    exports._.log.got(guid + "-return", null, null);
                 } else {
-                    exports._.log.got(request, null, null);
+                    exports._.log.got(guid, null, null);
                 }
                 receive(href, name, response, type, method, argv, resolver);
             }
             
             public void
-            reject(final String request, final Exception reason) {
-                exports._.log.got(request, null, null);
+            reject(final String guid, final Exception reason) {
+                exports._.log.got(guid, null, null);
                 if (null != resolver) { resolver.reject(reason); }
             }
         }
-        final Pipeline.Position r = msgs.enqueue(new POST()); 
-        exports._.log.sent(r.guid);
-        return r;
+        return msgs.enqueue(new POST()); 
     }
     
     protected void
@@ -202,7 +199,7 @@ Caller extends Struct implements Serializable {
                 return;
             }
             if (null != TokenList.find(null, "Warning", m.head.headers)) {
-                throw new Warning();
+                throw new Failure("400", "stale response");
             }
             final String base =
                 HTTP.get(URI.resolve(exports.getHere(), href), name);

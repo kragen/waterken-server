@@ -3,7 +3,6 @@
 package org.waterken.remote.http;
 
 import org.joe_e.array.PowerlessArray;
-import org.ref_send.promise.Promise;
 import org.waterken.http.Message;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
@@ -13,7 +12,7 @@ import org.waterken.uri.Header;
  * A task to be executed in message order, but with no corresponding message.
  */
 /* package */ abstract class
-Task extends Operation implements Promise<Void> {
+Task extends Operation {
     static private final long serialVersionUID = 1L;
     
     protected
@@ -21,18 +20,18 @@ Task extends Operation implements Promise<Void> {
         super(isQuery, isUpdate);
     }
 
-    protected final Message<Request>
-    render(final String x, final long w, final int m) throws Exception {
+    protected final @Override Message<Request>
+    render(final String x, final long w, final int m) {
         return new Message<Request>(new Request("HTTP/1.1", "OPTIONS", "*",
             PowerlessArray.array(new Header[] {})), null);
     }
 
-    protected final void
-    fulfill(final String request, final Message<Response> ignored) { call(); }
+    protected final @Override void
+    fulfill(final String guid, final Message<Response> ignored) {resolve(guid);}
 
-    protected final void
-    reject(final String request, final Exception ignored) { call(); }
+    protected final @Override void
+    reject(final String guid, final Exception ignored) { resolve(guid); }
     
-    public abstract Void
-    call();
+    protected abstract void
+    resolve(final String guid);
 }

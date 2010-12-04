@@ -3,7 +3,6 @@
 package org.waterken.remote.http;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
@@ -48,26 +47,29 @@ import org.waterken.uri.URI;
  */
 public final class
 HTTP extends Eventual implements Serializable {
-    static private final long serialVersionUID = 1L;    
-    
+    static private final long serialVersionUID = 1L;
+
     protected final Root root;                          // vat root
     protected final Promise<Outbound> outbound;         // active msg pipelines
-    
+    protected final SessionMaker sessions;
+
     private   final Creator creator;                    // sub-vat factory
     private   final Receiver<Effect<Server>> effect;    // tx effect scheduler
 
     private
     HTTP(final Receiver<Promise<?>> enqueue,
          final String here, final Log log, final Receiver<?> destruct,
-         final Root root, final Promise<Outbound> outbound) {
+         final Root root, final Promise<Outbound> outbound,
+         final SessionMaker sessions) {
         super(enqueue, here, log, destruct);
         this.root = root;
         this.outbound = outbound;
-        
+        this.sessions = sessions;
+
         creator = root.fetch(null, Database.creator);
         effect = root.fetch(null, Database.effect);
     }
-    
+
     // org.ref_send.promise.Eventual interface
 
     public @Override <R> Vat<R>
@@ -82,7 +84,7 @@ HTTP extends Eventual implements Serializable {
             final ByteArray body = new JSONSerializer().serializeTuple(
                 exports.export(),
                 ConstArray.array(make.getGenericParameterTypes()),
-                ConstArray.array(argv)); 
+                ConstArray.array(argv));
             final PowerlessArray<String> rd = creator.apply(null, here, label,
                 new VatInitializer(make, here, body)).call();
             log.sent(rd.get(0));
@@ -94,7 +96,7 @@ HTTP extends Eventual implements Serializable {
             );
         } catch (final Exception e) {
             try {
-            	final Exception reason =
+                final Exception reason =
                     e instanceof BadSyntax ? (Exception)e.getCause() : e;
                 final Promise<R> top = reject(reason);
                 final Promise<Receiver<?>> ignore = reject(reason);
@@ -102,16 +104,18 @@ HTTP extends Eventual implements Serializable {
             } catch (final Exception ee) { throw new Error(ee); }
         }
     }
-    
+
     // org.waterken.remote.http.HTTP interface
-    
+
     static protected HTTP.Exports
     make(final Receiver<Promise<?>> enqueue, final Root root, final Log log,
-         final Receiver<?> destruct, final Promise<Outbound> outbound) {
+         final Receiver<?> destruct, final Promise<Outbound> outbound,
+         final SessionMaker sessions) {
         final String here = root.fetch(null, Database.here);
-        return new Exports(new HTTP(enqueue,here,log,destruct,root,outbound));
+        return new Exports(new HTTP(enqueue, here, log, destruct, root,
+        							outbound, sessions));
     }
-    
+
     static protected Object
     shorten(final Promise<?> p) throws Exception {
         return p instanceof Local<?> ? ((Local<?>)p).shorten() : p.call();
@@ -121,7 +125,7 @@ HTTP extends Eventual implements Serializable {
      * Do block parameter type
      */
     static protected final TypeVariable<?> P = Typedef.var(Do.class, "P");
-    
+
     /**
      * A remote reference.
      */
@@ -139,7 +143,7 @@ HTTP extends Eventual implements Serializable {
             if (null == href) { throw new NullPointerException(); }
             this.href = href;
         }
-        
+
         // java.lang.Object interface
 
         /**
@@ -153,7 +157,7 @@ HTTP extends Eventual implements Serializable {
                    href.equals(((Remote)x).href) &&
                    HTTP.this.equals(((Remote)x).getScope());
         }
-        
+
         /**
          * Calculates the hash code.
          */
@@ -170,9 +174,9 @@ HTTP extends Eventual implements Serializable {
             if (null == promise) { throw new Unresolved(); }
             return promise.call();
         }
-        
+
         // org.ref_send.promise.Local interface
-        
+
         public Remote
         shorten() { return this; }
 
@@ -205,25 +209,25 @@ HTTP extends Eventual implements Serializable {
                 HTTP.this.when(T, Void.class, promise, observer);
             } else if (inner instanceof Invoke<?>) {
                 final Invoke<?> op = (Invoke<?>)inner;
-                peer().invoke(href, T, op.method, op.argv,
-                              null != outer ? resolver(outer) : null);
+                log.sent(peer().invoke(href, T, op.method, op.argv,
+                            		   null!=outer?resolver(outer):null).guid);
             } else {
                 /*
                  * The href identifies a remote reference, not a remote promise,
                  * so invoke the observer with an eventual reference.
                  */
                 HTTP.this.when(T, Void.class, new Inline<Object>(Proxies.proxy(
-                		this, virtualize(T, Selfless.class))), observer);
+                        this, virtualize(T, Selfless.class))), observer);
             }
         }
-        
+
         private Caller
         peer() {
             final String peer = URI.resolve(URI.resolve(here, href), ".");
             final String peerKey = ".peer-" + URLEncoding.encode(peer);
             Pipeline msgs = root.fetch(null, peerKey);
             if (null == msgs) {
-                final SessionInfo s = new SessionMaker(root).getFresh();
+                final SessionInfo s = sessions.getFresh();
                 msgs = new Pipeline(peer, s.sessionKey, s.sessionName,
                                     enqueue, effect, outbound);
                 root.assign(peerKey, msgs);
@@ -231,10 +235,10 @@ HTTP extends Eventual implements Serializable {
             return new Caller(new Exports(HTTP.this), msgs);
         }
     }
-    
+
     static protected @SuppressWarnings({"unchecked","rawtypes"})Resolver<Object>
     resolver(final Compose<?,?> outer) { return (Resolver)outer.resolver; }
-    
+
     protected Object
     remote(final String URL, final Type... type) {
         final Remote p = new Remote(URI.relate(here, URL));
@@ -243,43 +247,43 @@ HTTP extends Eventual implements Serializable {
         boolean implemented = true;
         for (int i = type.length; 0 != i--;) {
             types[i] = Typedef.raw(type[i]);
-            implemented = implemented && types[i].isInstance(p); 
+            implemented = implemented && types[i].isInstance(p);
         }
         if (implemented) { return p; }
         return Proxies.proxy(p, virtualize(types));
     }
-    
+
     /**
      * A web-key interface to a {@link Root}.
      */
     static public final class
     Exports extends Struct implements Serializable {
-        static private final long serialVersionUID = 1L;    
-        
+        static private final long serialVersionUID = 1L;
+
         public final HTTP _;
         protected final ClassLoader code;
         protected final TransactionMonitor tagger;
-        
+
         protected
         Exports(final HTTP _) {
             this._ = _;
             tagger = _.root.fetch(null, Database.monitor);
             code = _.root.fetch(null, Database.code);
         }
-        
+
         /**
          * Gets the base URL for this URL space.
          */
         protected String
         getHere() { return _.here; }
-        
+
         protected ServerSideSession
         getSession(final String query) {
             final String key = session(query);
-            if (null == key) { return null; }
-            return new SessionMaker(_.root).open(key);
+            return null != key ? _.sessions.open(key) :
+            	new ServerSideSession(_.log, null); 
         }
-        
+
         /**
          * Constructs a reference importer.
          */
@@ -320,21 +324,7 @@ HTTP extends Eventual implements Serializable {
             }
             return GUID.export(code, _.root, new ExporterX());
         }
-        
-        /**
-         * Receives an operation.
-         * @param session   messaging session
-         * @param query     request query string
-         * @param op        operation to run
-         * @return <code>op</code> return value
-         */
-        protected Object
-        execute(final ServerSideSession session,
-                final String query, final NonIdempotent op) {
-            if (null == session) { return op.apply(null); }
-            return session.once(window(query), message(query), op);
-        }
-        
+
         /**
          * Fetches a message target.
          * @param session   server-side session, or <code>null</code> if none
@@ -348,10 +338,10 @@ HTTP extends Eventual implements Serializable {
                 return s.startsWith(".") ? null : _.root.fetch(null, s);
             }
             if (null == session) { return null; }
-            
+
             // check for a pipeline reference
             final String p = Query.arg(null, query, "p");
-            if (null == p) { return null; } 
+            if (null == p) { return null; }
             return session.pipeline(Integer.parseInt(p));
         }
     }
@@ -376,7 +366,7 @@ HTTP extends Eventual implements Serializable {
             this.window = position.window;
             this.message = position.message;
         }
-        
+
         // java.lang.Object interface
 
         /**
@@ -393,7 +383,7 @@ HTTP extends Eventual implements Serializable {
                    returned.equals(((PipelinePromise)x).returned) &&
                    HTTP.this.equals(((PipelinePromise)x).getScope());
         }
-        
+
         /**
          * Calculates the hash code.
          */
@@ -407,49 +397,48 @@ HTTP extends Eventual implements Serializable {
          */
         public Object
         call() throws Exception { return returned.call(); }
-        
+
         // org.ref_send.promise.Local interface
 
         public Object
         shorten() throws Unresolved { return returned.shorten(); }
-        
+
         public void
         when(final Class<?> T, final Do<Object,?> observer) {
+            class Flush extends Task {
+                static private final long serialVersionUID = 1L;
+
+                Flush(final boolean isQuery) { super(isQuery, false); }
+
+                public void
+                resolve(final String guid) {
+                	log.got(guid, null, null);
+                	returned.when(T, observer);
+                }
+            }
+        	final Pipeline.Position position;
             if (caller.msgs.canPipeline(window)) {
                 final Compose<?,?> outer = observer instanceof Compose<?,?> ?
                         (Compose<?,?>)observer : null;
                 final Do<?,?> inner= null!=outer ? outer.conditional : observer;
                 if (inner instanceof Invoke<?>) {
-                    final Invoke<?> op = (Invoke<?>)inner;
-                    if (null != Dispatch.property(op.method)) {
-                        class BreakPipeline extends Task {
-                            static private final long serialVersionUID = 1L;
-                            
-                            BreakPipeline() { super(true, false); }
-
-                            public Void
-                            call() { returned.when(T, observer); return null; }
-                        }
-                        caller.msgs.enqueue(new BreakPipeline());
-                        return;
+                    final Invoke<?> x = (Invoke<?>)inner;
+                    if (null != Dispatch.property(x.method)) {
+                        position = caller.msgs.enqueue(new Flush(true));
+                    } else {
+	                    position = caller.invoke(
+	                        URI.relate(here, caller.msgs.peer+"#p="+message),
+	                        null!=T?T:Typedef.raw(x.method.getDeclaringClass()),
+	                        x.method, x.argv, null!=outer?resolver(outer):null);
                     }
-                    caller.invoke(
-                        URI.relate(here, caller.msgs.peer + "#p=" + message),
-                        null!=T ? T :Typedef.raw(op.method.getDeclaringClass()),
-                        op.method, op.argv,
-                        null != outer ? resolver(outer) : null);
-                    return;
+                } else {
+                	position = caller.msgs.enqueue(new Flush(false)); 
                 }
+            } else {
+            	position = caller.msgs.enqueue(new Flush(false)); 
             }
-            class FlushPipeline extends Task {
-                static private final long serialVersionUID = 1L;
-                
-                FlushPipeline() { super(false, false); }
-
-                public Void
-                call() { returned.when(T, observer); return null; }
-            }
-            caller.msgs.enqueue(new FlushPipeline());
+            log.sentIf(position.guid,
+            		   caller.msgs.name+"-"+window+"-"+message+"-pipeline");
         }
     }
 
@@ -458,12 +447,12 @@ HTTP extends Eventual implements Serializable {
              final Pipeline.Position position) {
         return new PipelinePromise((Local<Object>)returned, caller, position);
     }
-    
+
     static protected Exporter
     export(final Pipeline msgs, final Exporter next) {
         class ExporterX extends Struct implements Exporter, Serializable {
             static private final long serialVersionUID = 1L;
-            
+
             public Export
             apply(final Object target) {
                 final Object handler = target instanceof Proxy
@@ -483,7 +472,7 @@ HTTP extends Eventual implements Serializable {
         }
         return new ExporterX();
     }
-    
+
     /*
      * web-key parameters
      * x:   message session secret
@@ -494,7 +483,7 @@ HTTP extends Eventual implements Serializable {
      * q:   message query, typically the method name
      * o:   present if web-key is a promise
      */
-    
+
     /**
      * Constructs a live web-key for a POST request.
      * @param href          web-key
@@ -536,7 +525,7 @@ HTTP extends Eventual implements Serializable {
         }
         return URI.resolve(href, r.toString());
     }
-    
+
     /**
      * Constructs a live web-key for a GET request.
      * @param href      web-key
@@ -546,23 +535,23 @@ HTTP extends Eventual implements Serializable {
     get(final String href, final String predicate) {
         return post(href, predicate, null, 0, 0);
     }
-    
+
     /**
      * Constructs a web-key.
      * @param subject   target object key
-     * @param isPromise Is the target object a promise? 	 
+     * @param isPromise Is the target object a promise?
      */
     static protected String
     href(final String subject, final boolean isPromise) {
-    	return "./#"+(isPromise ? "o=&" : "")+"s="+URLEncoding.encode(subject); 	 
+        return "./#"+(isPromise ? "o=&" : "")+"s="+URLEncoding.encode(subject);
     }
-    
+
     /**
-     * Does the given web-key refer to a promise? 	 
-     * @param q web-key argument string 	 
-     * @return <code>true</code> if a promise, else <code>false</code> 	 
-     */ 	 
-    static protected boolean 	 
+     * Does the given web-key refer to a promise?
+     * @param q web-key argument string
+     * @return <code>true</code> if a promise, else <code>false</code>
+     */
+    static protected boolean
     isPromise(final String q) { return null != Query.arg(null, q, "o"); }
 
     /**
@@ -572,7 +561,7 @@ HTTP extends Eventual implements Serializable {
      */
     static protected String
     subject(final String query) { return Query.arg(null, query, "s"); }
-    
+
     /**
      * Extracts the predicate string from a web-key.
      * @param method    HTTP request method
@@ -583,7 +572,7 @@ HTTP extends Eventual implements Serializable {
     predicate(final String method, final String query) {
         return Query.arg("POST".equals(method) ? "apply" : null, query, "q");
     }
-    
+
     /**
      * Extracts the session key.
      * @param query web-key argument string
@@ -591,43 +580,43 @@ HTTP extends Eventual implements Serializable {
      */
     static protected String
     session(final String query) { return Query.arg(null, query, "x"); }
-    
+
     static protected long
-    window(final String q) { return Long.parseLong(Query.arg(null, q, "w")); }
-    
+    window(final String q) { return Long.parseLong(Query.arg("0", q, "w")); }
+
     static protected int
     message(final String q) { return Integer.parseInt(Query.arg("0", q, "m")); }
-    
+
     static protected final Class<?> Fulfilled = Eventual.ref(0).getClass();
-    
+
     /**
-     * Is the given object pass-by-construction? 	 
-     * @param object  candidate object 	 
+     * Is the given object pass-by-construction?
+     * @param object  candidate object
      * @return <code>true</code> if pass-by-construction, else
-     *  	   <code>false</code> 	 
-     */ 	 
-    static protected boolean 	 
-    isPBC(final Object object) { 	 
-    	final Class<?> type = null != object ? object.getClass() : Void.class; 	 
-        return String.class == type || 	 
-            Integer.class == type || 	 
-            Boolean.class == type || 	 
-            Long.class == type || 	 
-            Byte.class == type || 	 
-            Short.class == type || 	 
-            Character.class == type || 	 
-            Double.class == type || 	 
-            Float.class == type || 	 
-            Void.class == type || 	 
-            java.math.BigInteger.class == type || 	 
-            java.math.BigDecimal.class == type || 	 
-            org.ref_send.scope.Scope.class == type || 	 
-            org.ref_send.Record.class.isAssignableFrom(type) || 	 
-            Throwable.class.isAssignableFrom(type) || 	 
-            org.joe_e.array.ConstArray.class.isAssignableFrom(type) || 	 
-            org.ref_send.promise.Promise.class.isAssignableFrom(type); 	 
+     *         <code>false</code>
+     */
+    static protected boolean
+    isPBC(final Object object) {
+        final Class<?> type = null != object ? object.getClass() : Void.class;
+        return String.class == type ||
+            Integer.class == type ||
+            Boolean.class == type ||
+            Long.class == type ||
+            Byte.class == type ||
+            Short.class == type ||
+            Character.class == type ||
+            Double.class == type ||
+            Float.class == type ||
+            Void.class == type ||
+            java.math.BigInteger.class == type ||
+            java.math.BigDecimal.class == type ||
+            org.ref_send.scope.Scope.class == type ||
+            org.ref_send.Record.class.isAssignableFrom(type) ||
+            Throwable.class.isAssignableFrom(type) ||
+            org.joe_e.array.ConstArray.class.isAssignableFrom(type) ||
+            org.ref_send.promise.Promise.class.isAssignableFrom(type);
     }
-    
+
     /**
      * Changes the base URI.
      * @param here      current base URI

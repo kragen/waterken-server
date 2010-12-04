@@ -1,5 +1,5 @@
-// Copyright 2007 Waterken Inc. under the terms of the MIT X license
-// found at http://www.opensource.org/licenses/mit-license.html
+// Copyright 2007 Waterken Inc. under the terms of the MIT X license found at
+// http://www.opensource.org/licenses/mit-license.html
 package org.waterken.remote.http;
 
 import static org.ref_send.promise.Failure.maxEntitySize;
@@ -45,7 +45,7 @@ Pipeline implements Equatable, Serializable {
     
     protected final String peer;                    // absolute URI of peer vat
     private   final String key;                     // messaging session key
-    private   final String name;                    // messaging session name
+    protected final String name;                    // messaging session name
     private   final Receiver<Promise<?>> enqueue;
     private   final Receiver<Effect<Server>> effect;
     private   final Promise<Outbound> outbound;
@@ -303,9 +303,10 @@ Pipeline implements Equatable, Serializable {
     protected Position
     enqueue(final Operation operation) {
         if (pending.isEmpty() && operation instanceof Task) {
-            enqueue.apply((Task)operation);
+            final String guid = name + "-0-" + acknowledged;
+            enqueue.apply(new ResolveTask((Task)operation, guid));
             acknowledged += 1;
-            return new Position(0, 0, name + "-0-" + acknowledged);
+            return new Position(0, 0, guid);
         }
         if (!isPending()) { Eventual.near(outbound).add(this); }
         final long mid = acknowledged + pending.getSize();
@@ -354,7 +355,8 @@ Pipeline implements Equatable, Serializable {
         final Operation front = pending.pop();
         acknowledged += 1;
         while (!pending.isEmpty() && pending.getFront() instanceof Task) {
-            enqueue.apply((Task)pending.pop());
+            enqueue.apply(new ResolveTask((Task)pending.pop(),
+            							  name + "-0-" + acknowledged));
             acknowledged += 1;
         }
         if (pending.isEmpty()) {

@@ -24,7 +24,7 @@ import org.waterken.syntax.json.JSONSerializer;
 import org.waterken.uri.Header;
 
 /**
- * Server-side of the web-key protocol.
+ * Server-side of the HTTP ref_send protocol.
  */
 /* package */ final class
 Callee extends Struct implements Serializable {
@@ -43,6 +43,7 @@ Callee extends Struct implements Serializable {
     apply(final String query, final Message<Request> m) throws Exception {
 
         // further dispatch the request based on the accessed member
+    	// TODO: Use "o" instead of "q" to distinguish a when block
         final String p = HTTP.predicate(m.head.method, query);
         if (null == p) {                        // when block
             if ("OPTIONS".equals(m.head.method)) {
@@ -101,7 +102,7 @@ Callee extends Struct implements Serializable {
             Object value;                       // property access
             try {
                 // AUDIT: call to untrusted application code
-                final Object r = Reflection.invoke(property.declaration,target);
+                final Object r = Reflection.invoke(property.decl,target);
                 value = Fulfilled.isInstance(r) ? ((Promise<?>)r).call() : r;
             } catch (final Exception e) {
                 value = Eventual.reject(e);
@@ -111,7 +112,7 @@ Callee extends Struct implements Serializable {
             if (null != failed) { return new Message<Response>(failed, null); }
             Message<Response> r = serialize(
                 m.head.method, "200", "ok", Server.ephemeral,
-                property.declaration.getGenericReturnType(), value);
+                property.decl.getGenericReturnType(), value);
             if (null != etag) {
                 r = new Message<Response>(r.head.with("ETag", etag), r.body);
             }
@@ -128,81 +129,62 @@ Callee extends Struct implements Serializable {
                     get ? new String[] { "TRACE", "OPTIONS", "GET" } :
                           new String[] { "TRACE", "OPTIONS"        }), null);
             }                                   // method invocation
-            final Object value = exports.execute(session, query,
-                                                 new NonIdempotent() {
+            final Object value = session.once(HTTP.window(query),
+            								  HTTP.message(query),
+            								  new NonIdempotent(lambda.impl) {
                 public Object
-                apply(final String message) {
+                apply() throws Exception {
                     /*
                      * SECURITY CLAIM: application layer cannot detect request
                      * replay since request processing is done inside once block
                      */
-                    if (null != message) {
-                        exports._.log.got(message, null, lambda.implementation);
+                    if (lambda.overloaded) {
+                        throw new OverloadedMethodName(p);
                     }
-                    Object r;
-                    try {
-                        if (lambda.overloaded) {
-                            throw new OverloadedMethodName(p);
-                        }
-                        final Object[] argv;
-                        final Type[] paramv =
-                            lambda.implementation.getGenericParameterTypes();
-                        if (0 == paramv.length) {
-                            argv = new Object[] {};
+                    final Object[] argv;
+                    final Type[] paramv = method.getGenericParameterTypes();
+                    if (0 == paramv.length) {
+                        argv = new Object[] {};
+                    } else {
+                        String mime = m.head.getContentType();
+                        if (null == mime) {
+                            mime = FileType.json.name;
                         } else {
-                            String mime = m.head.getContentType();
-                            if (null == mime) {
-                                mime = FileType.json.name;
-                            } else {
-                                final int end = mime.indexOf(';');
-                                if (-1 != end) {
-                                    mime = mime.substring(0, end);
-                                }
-                            }
-                            final Deserializer syntax =
-                                Header.equivalent(FileType.json.name, mime) ||
-                                Header.equivalent("text/plain",       mime) ?
-                                    new JSONDeserializer() : null;
-                            try {
-                                argv = null == syntax ? new Object[] { m.body }:
-                                    syntax.deserializeTuple(
-                                        m.body.asInputStream(),
-                                        exports.connect(session),
-                                        exports.getHere(),exports.code, paramv).
-                                            toArray(new Object[paramv.length]);
-                            } catch (final BadSyntax e) {
-                                /*
-                                 * strip out the parsing information to avoid
-                                 * leaking information to the application layer
-                                 */
-                                throw (Exception)e.getCause();
+                            final int end = mime.indexOf(';');
+                            if (-1 != end) {
+                                mime = mime.substring(0, end);
                             }
                         }
+                        final Deserializer syntax =
+                            Header.equivalent(FileType.json.name, mime) ||
+                            Header.equivalent("text/plain",       mime) ?
+                                new JSONDeserializer() : null;
+                        try {
+                            argv = null == syntax ? new Object[] { m.body } :
+                                syntax.deserializeTuple(m.body.asInputStream(),
+                                    exports.connect(session), exports.getHere(),
+                                    exports.code, paramv).toArray(
+                                        new Object[paramv.length]);
+                        } catch (final BadSyntax e) {
+                            /*
+                             * strip out the parsing information to avoid
+                             * leaking information to the application layer
+                             */
+                            throw (Exception)e.getCause();
+                        }
+                    }
 
-                        // AUDIT: call to untrusted application code
-                        r = Reflection.invoke(lambda.declaration, target, argv);
-                        if (Fulfilled.isInstance(r)) {
-                            r = ((Promise<?>)r).call();
-                        }
-                    } catch (final Exception e) {
-                        r = Eventual.reject(e);
-                    }
-                    if (null != message) {
-                        exports._.log.returned(message + "-return");
-                    }
-                    return r;
+                    // AUDIT: call to untrusted application code
+                    return Reflection.invoke(lambda.decl, target, argv);
                 }
             });
-            if (null == value) {
-                final Class<?> R = lambda.implementation.getReturnType();
-                if (void.class == R || Void.class == R) {
-                    return new Message<Response>(new Response(
-                        "HTTP/1.1", "204", "void",
-                        PowerlessArray.array(new Header[] {})), null);
-                }
+            final Type R = lambda.decl.getGenericReturnType();
+            if (null == value && void.class == R) {
+                return new Message<Response>(new Response(
+                    "HTTP/1.1", "204", "void",
+                    PowerlessArray.array(new Header[] {})), null);
             }
-            return serialize(m.head.method, "200", "ok", Server.ephemeral,
-                             lambda.declaration.getGenericReturnType(), value);
+            return serialize(m.head.method,"200","ok",Server.ephemeral,R,value);
         }
 
         final boolean get = null != Dispatch.get(target, p);

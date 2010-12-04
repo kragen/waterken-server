@@ -78,31 +78,31 @@ EventSender {
                                           null, message));
             }
 
-            protected @Override void
+            public @Override void
             sentIf(final String message, final String condition) {
                 stderr.apply(new SentIf(mark.apply(), tracer.timestamp(),
                                         tracer.traceHere(),message, condition));
             }
 
-            protected @Override void
+            public @Override void
             resolved(final String condition) {
                 stderr.apply(new Resolved(mark.apply(), tracer.timestamp(),
                                           tracer.traceHere(), condition));
             }
 
-            protected @Override void
+            public @Override void
             fulfilled(final String condition) {
                 stderr.apply(new Fulfilled(mark.apply(), tracer.timestamp(),
                                            tracer.traceHere(), condition));
             }
             
-            protected @Override void
+            public @Override void
             rejected(final String condition, final Exception reason) {
                 stderr.apply(new Rejected(mark.apply(), tracer.timestamp(),
                                           tracer.traceHere(),condition,reason));
             }
             
-            protected @Override void
+            public @Override void
             progressed(final String condition) {
                 stderr.apply(new Progressed(mark.apply(), tracer.timestamp(),
                                             tracer.traceHere(), condition));

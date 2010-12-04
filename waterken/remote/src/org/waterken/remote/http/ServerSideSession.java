@@ -5,6 +5,9 @@ package org.waterken.remote.http;
 import java.io.Serializable;
 
 import org.joe_e.array.ConstArray;
+import org.ref_send.promise.Eventual;
+import org.ref_send.promise.Log;
+import org.ref_send.promise.Promise;
 
 /**
  * The server-side state associated with a messaging session.
@@ -13,32 +16,34 @@ import org.joe_e.array.ConstArray;
 ServerSideSession implements Serializable {
     static private final long serialVersionUID = 1L;
 
+    private final Log log_;
     private final String name;              // GUID of this session
-    
+
     private long current;                   // current window number
     private ConstArray<Return> returns;     // returns in current window
-    
+
     static private final class
     Return implements Serializable {
         static private final long serialVersionUID = 1L;
 
         final int message;
         final Object value;
-        
+
         Return(final int message, final Object value) {
             this.message = message;
             this.value = value;
         }
     }
-    
+
     protected
-    ServerSideSession(final String name) {
+    ServerSideSession(final Log log_, final String name) {
+        this.log_ = log_;
         this.name = name;
-        
+
         current = -1;
         returns = ConstArray.array();
     }
-    
+
     protected Object
     pipeline(final int message) {
         for (int i = returns.length(); 0 != i--;) {
@@ -48,7 +53,10 @@ ServerSideSession implements Serializable {
         }
         return null;
     }
-    
+
+    static protected final Class<?> Fulfilled = Eventual.ref(0).getClass();
+    static private final Class<?> Rejected = Eventual.reject(null).getClass();
+
     protected Object
     once(final long window, final int message, final NonIdempotent op) {
         if (window != current) {
@@ -71,8 +79,27 @@ ServerSideSession implements Serializable {
                 return returns.get(i).value;
             }
         }
-        final Object r = op.apply(name + "-" + window + "-" + message);
+        final String guid = null != name ? name+"-"+window+"-"+message : null;
+        log_.got(guid, null, op.method);
+        Object r;
+        try {
+            r = op.apply();
+            final Promise<?> pr = Eventual.ref(r);
+            if (Fulfilled.isInstance(pr)) {
+                r = pr.call();
+                log_.fulfilled(null != guid ? guid + "-pipeline" : null);
+            } else {
+                if (Rejected.isInstance(pr)) { pr.call(); }
+                log_.resolved(null != guid ? guid + "-pipeline" : null);
+            }
+        } catch (final Exception e) {
+            r = Eventual.reject(e);
+            log_.rejected(null != guid ? guid + "-pipeline" : null, e);
+        }
         returns = returns.with(new Return(message, r));
+        if (null != r || void.class != op.method.getReturnType()) {
+            log_.returned(null != guid ? guid + "-return" : null);
+        }
         return r;
     }
 }
