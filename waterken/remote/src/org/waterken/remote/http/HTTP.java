@@ -354,17 +354,15 @@ HTTP extends Eventual implements Serializable {
         static private final long serialVersionUID = 1L;
 
         private final Local<Object> returned;
-        private final Caller caller;
-        private final long window;
-        private final int message;
+        private final Pipeline msgs;
+        private final Pipeline.Position msg;
 
         protected
-        PipelinePromise(final Local<Object> returned, final Caller caller,
-                        final Pipeline.Position position) {
+        PipelinePromise(final Local<Object> returned, final Pipeline msgs,
+                        final Pipeline.Position msg) {
             this.returned = returned;
-            this.caller = caller;
-            this.window = position.window;
-            this.message = position.message;
+            this.msgs = msgs;
+            this.msg = msg;
         }
 
         // java.lang.Object interface
@@ -377,9 +375,8 @@ HTTP extends Eventual implements Serializable {
         public boolean
         equals(final Object x) {
             return x instanceof PipelinePromise &&
-                   message == ((PipelinePromise)x).message &&
-                   window == ((PipelinePromise)x).window &&
-                   caller.equals(((PipelinePromise)x).caller) &&
+                   msg.equals(((PipelinePromise)x).msg) &&
+                   msgs.equals(((PipelinePromise)x).msgs) &&
                    returned.equals(((PipelinePromise)x).returned) &&
                    HTTP.this.equals(((PipelinePromise)x).getScope());
         }
@@ -416,35 +413,35 @@ HTTP extends Eventual implements Serializable {
                 	returned.when(T, observer);
                 }
             }
-        	final Pipeline.Position position;
-            if (caller.msgs.canPipeline(window)) {
+        	final Pipeline.Position sent;
+            if (msgs.canPipeline(msg.window)) {
                 final Compose<?,?> outer = observer instanceof Compose<?,?> ?
                         (Compose<?,?>)observer : null;
                 final Do<?,?> inner= null!=outer ? outer.conditional : observer;
                 if (inner instanceof Invoke<?>) {
                     final Invoke<?> x = (Invoke<?>)inner;
                     if (null != Dispatch.property(x.method)) {
-                        position = caller.msgs.enqueue(new Flush(true));
+                        sent = msgs.enqueue(new Flush(true));
                     } else {
-	                    position = caller.invoke(
-	                        URI.relate(here, caller.msgs.peer+"#p="+message),
+	                    sent = new Caller(new Exports(HTTP.this), msgs).invoke(
+	                        URI.relate(here, msgs.peer + "#p=" + msg.message),
 	                        null!=T?T:Typedef.raw(x.method.getDeclaringClass()),
 	                        x.method, x.argv, null!=outer?resolver(outer):null);
                     }
                 } else {
-                	position = caller.msgs.enqueue(new Flush(false)); 
+                	sent = msgs.enqueue(new Flush(false)); 
                 }
             } else {
-            	position = caller.msgs.enqueue(new Flush(false)); 
+            	sent = msgs.enqueue(new Flush(false)); 
             }
-            log.sentIf(position.guid, caller.msgs.name+"-"+window+"-"+message);
+            log.sentIf(sent.guid, msg.guid);
         }
     }
 
     protected Promise<Object>
-    pipeline(final Promise<Object> returned, final Caller caller,
+    pipeline(final Promise<Object> returned, final Pipeline msgs,
              final Pipeline.Position position) {
-        return new PipelinePromise((Local<Object>)returned, caller, position);
+        return new PipelinePromise((Local<Object>)returned, msgs, position);
     }
 
     static protected Exporter
@@ -458,9 +455,9 @@ HTTP extends Eventual implements Serializable {
                     ? Proxies.getHandler((Proxy)target) : target;
                 if (handler instanceof PipelinePromise) {
                     final PipelinePromise x = (PipelinePromise)handler;
-                    if (msgs == x.caller.msgs) {
-                        if (x.window == msgs.getActiveWindow()) {
-                            return new Export("#p=" + x.message);
+                    if (msgs == x.msgs) {
+                        if (x.msg.window == msgs.getActiveWindow()) {
+                            return new Export("#p=" + x.msg.message);
                         } else {
                             return new Export(x.returned.shorten());
                         }

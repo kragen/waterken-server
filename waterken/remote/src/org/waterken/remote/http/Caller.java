@@ -110,7 +110,7 @@ Caller extends Struct implements Serializable {
         final Deferred<Object> out = exports._.defer();
         final Pipeline.Position position = 
             post(href, method.getName(), type, method, argv, out.resolver);
-        resolver.resolve(exports._.pipeline(out.promise, this, position));
+        resolver.resolve(exports._.pipeline(out.promise, msgs, position));
         return position;
     }
     

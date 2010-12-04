@@ -10,7 +10,7 @@ import java.io.Serializable;
 import org.joe_e.Equatable;
 import org.joe_e.Immutable;
 import org.joe_e.Powerless;
-import org.joe_e.Struct;
+import org.joe_e.Selfless;
 import org.joe_e.Token;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.ImmutableArray;
@@ -45,7 +45,7 @@ Pipeline implements Equatable, Serializable {
     
     protected final String peer;                    // absolute URI of peer vat
     private   final String key;                     // messaging session key
-    protected final String name;                    // messaging session name
+    private   final String name;                    // messaging session name
     private   final Receiver<Promise<?>> enqueue;
     private   final Receiver<Effect<Server>> effect;
     private   final Promise<Outbound> outbound;
@@ -334,7 +334,7 @@ Pipeline implements Equatable, Serializable {
     }
     
     static protected final class
-    Position extends Struct implements Powerless, Serializable {
+    Position implements Powerless, Selfless, Serializable {
         static private final long serialVersionUID = 1L;
         
         public final long window;
@@ -346,6 +346,17 @@ Pipeline implements Equatable, Serializable {
             this.message = message;
             this.guid = guid;
         }
+        
+        public boolean
+        equals(final Object x) {
+        	return x instanceof Position &&
+        	       message == ((Position)x).message &&
+        	       window == ((Position)x).window &&
+        	       guid.equals(((Position)x).guid);
+        }
+        
+        public int
+        hashCode() { return guid.hashCode(); }
     }
     
     protected Operation
