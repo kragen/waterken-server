@@ -74,8 +74,7 @@ VatInitializer extends Struct implements Transaction<PowerlessArray<String>> {
             argv[nextArg++] = exports._;
         }
         final ConstArray<?> optional = new JSONDeserializer().deserializeTuple(
-            body.asInputStream(), exports.connect(null), base,
-            exports.code, paramv);
+            body.asInputStream(), exports.connect(), base, exports.code,paramv);
         for (final Object arg : optional) { argv[nextArg++] = arg; }
         final Object top = Reflection.invoke(make, null, argv);
         root.assign(Database.top, top);

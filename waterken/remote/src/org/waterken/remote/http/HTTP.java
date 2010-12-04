@@ -88,7 +88,7 @@ HTTP extends Eventual implements Serializable {
             final PowerlessArray<String> rd = creator.apply(null, here, label,
                 new VatInitializer(make, here, body)).call();
             log.sent(rd.get(0));
-            final Importer connect = exports.connect(null);
+            final Importer connect = exports.connect();
             final @SuppressWarnings("unchecked") R top =
                 (R)connect.apply(rd.get(1), here, R);
             return new Vat<R>(top,
@@ -209,7 +209,7 @@ HTTP extends Eventual implements Serializable {
                 HTTP.this.when(T, Void.class, promise, observer);
             } else if (inner instanceof Invoke<?>) {
                 final Invoke<?> op = (Invoke<?>)inner;
-                log.sent(peer().invoke(href, T, op.method, op.argv,
+                log.sent(peer().invoke(href, -1, T, op.method, op.argv,
                             		   null!=outer?resolver(outer):null).guid);
             } else {
                 /*
@@ -280,15 +280,15 @@ HTTP extends Eventual implements Serializable {
         protected ServerSideSession
         getSession(final String query) {
             final String key = session(query);
-            return null != key ? _.sessions.open(key) :
-            	new ServerSideSession(_.log, null); 
+            return "".equals(key) ? new ServerSideSession(_.log, null) :
+            						_.sessions.open(key);
         }
 
         /**
          * Constructs a reference importer.
          */
         public Importer
-        connect(final ServerSideSession session) {
+        connect() {
             class ImporterX extends Struct implements Importer, Serializable {
                 static private final long serialVersionUID = 1L;
 
@@ -297,8 +297,7 @@ HTTP extends Eventual implements Serializable {
                                          final Type... type) throws Exception {
                     final String URL=null!=base ? URI.resolve(base,href) : href;
                     return Header.equivalent(URI.resolve(URL, "."), _.here) ?
-                        reference(session, URI.fragment("", URL)) :
-                        _.remote(URL, type);
+                        reference(URI.fragment("", URL)) : _.remote(URL, type);
                 }
             }
             return GUID.connect(code, _.root, new ImporterX());
@@ -327,22 +326,22 @@ HTTP extends Eventual implements Serializable {
 
         /**
          * Fetches a message target.
-         * @param session   server-side session, or <code>null</code> if none
          * @param query web-key argument string
          * @return target reference
          */
         protected Object
-        reference(final ServerSideSession session, final String query) {
+        reference(final String query) {
             final String s = subject(query);
             if (null != s) {
                 return s.startsWith(".") ? null : _.root.fetch(null, s);
             }
-            if (null == session) { return null; }
 
             // check for a pipeline reference
-            final String p = Query.arg(null, query, "p");
-            if (null == p) { return null; }
-            return session.pipeline(Integer.parseInt(p));
+            final String x = session(query);
+            if ("".equals(x)) { return null; }
+            final String p = Query.arg("", query, "p");
+            if ("".equals(p)) { return null; }
+            return _.sessions.open(x).pipeline(Integer.parseInt(p));
         }
     }
 
@@ -424,7 +423,7 @@ HTTP extends Eventual implements Serializable {
                         sent = msgs.enqueue(new Flush(true));
                     } else {
 	                    sent = new Caller(new Exports(HTTP.this), msgs).invoke(
-	                        URI.relate(here, msgs.peer + "#p=" + msg.message),
+	                        URI.relate(here, msgs.peer), msg.message,
 	                        null!=T?T:Typedef.raw(x.method.getDeclaringClass()),
 	                        x.method, x.argv, null!=outer?resolver(outer):null);
                     }
@@ -457,7 +456,8 @@ HTTP extends Eventual implements Serializable {
                     final PipelinePromise x = (PipelinePromise)handler;
                     if (msgs == x.msgs) {
                         if (x.msg.window == msgs.getActiveWindow()) {
-                            return new Export("#p=" + x.msg.message);
+                            return new Export("#x=" + x.msgs.key +
+                            				  "&p=" + x.msg.message);
                         } else {
                             return new Export(x.returned.shorten());
                         }
@@ -482,28 +482,32 @@ HTTP extends Eventual implements Serializable {
 
     /**
      * Constructs a live web-key for a POST request.
-     * @param href          web-key
-     * @param predicate     predicate string, or <code>null</code> if none
-     * @param sessionKey    message session key
-     * @param window        message window number
-     * @param message       intra-window message number
+     * @param href      web-key
+     * @param q     	query predicate, or <code>null</code> if none
+     * @param session	message session key
+     * @param window    message window number
+     * @param message   intra-window message number
      */
     static protected String
-    post(final String href, final String predicate,
-         final String sessionKey, final long window, final int message) {
+    post(final String href, final String q, final String session,
+         final long window, final int message, final int pipeline) {
         final StringBuilder r = new StringBuilder();
-        if (null != predicate) {
+        if (null != q) {
             r.append("?q=");
-            r.append(URLEncoding.encode(predicate));
+            r.append(URLEncoding.encode(q));
         }
-        if (null != sessionKey) {
+        if (null != session) {
             r.append(0 == r.length() ? '?' : '&');
             r.append("x=");
-            r.append(URLEncoding.encode(sessionKey));
+            r.append(URLEncoding.encode(session));
             r.append("&w=");
             r.append(window);
             r.append("&m=");
             r.append(message);
+            r.append("&p=");
+            if (pipeline >= 0) {
+            	r.append(pipeline);
+            }
         }
         final String query = URI.query("", href);
         if (!"".equals(query)) {
@@ -525,11 +529,11 @@ HTTP extends Eventual implements Serializable {
     /**
      * Constructs a live web-key for a GET request.
      * @param href      web-key
-     * @param predicate predicate string, or <code>null</code> if none
+     * @param q     	query predicate, or <code>null</code> if none
      */
     static protected String
-    get(final String href, final String predicate) {
-        return post(href, predicate, null, 0, 0);
+    get(final String href, final String q) {
+        return post(href, q, null, 0, 0, -1);
     }
 
     /**
@@ -572,10 +576,10 @@ HTTP extends Eventual implements Serializable {
     /**
      * Extracts the session key.
      * @param query web-key argument string
-     * @return corresponding session key
+     * @return corresponding session key, or empty string if none
      */
     static protected String
-    session(final String query) { return Query.arg(null, query, "x"); }
+    session(final String query) { return Query.arg("", query, "x"); }
 
     static protected long
     window(final String q) { return Long.parseLong(Query.arg("0", q, "w")); }

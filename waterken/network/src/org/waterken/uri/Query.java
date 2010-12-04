@@ -9,16 +9,14 @@ import org.joe_e.charset.URLEncoding;
  */
 public final class
 Query {
-
-    private
-    Query() {}
+    private Query() { /**/ }
 
     /**
      * Extracts a query argument.
      * @param otherwise default value
      * @param query     query string
      * @param name      parameter name
-     * @return unescaped argument
+     * @return escaped value of first matching parameter
      */
     static public String
     arg(final String otherwise, final String query, final String name) {

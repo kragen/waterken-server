@@ -88,8 +88,9 @@ Caller extends Struct implements Serializable {
     private static final Class<?> Fulfilled = Eventual.ref(0).getClass();
    
     protected Pipeline.Position
-    invoke(final String href, final Class<?> type, final Method method,
-           ConstArray<?> argv, final Resolver<Object> resolver){
+    invoke(final String href, final int p,
+    	   final Class<?> type, final Method method,
+           ConstArray<?> argv, final Resolver<Object> resolver) {
         final String property = Dispatch.property(method);
         if (null != property) {
             return get(href, property, type, method, resolver);
@@ -105,11 +106,11 @@ Caller extends Struct implements Serializable {
             argv = out.snapshot();
         }
         if (null == resolver) {
-            return post(href, method.getName(), type, method, argv, null);
+            return post(href, p, method.getName(), type, method, argv, null);
         }
         final Deferred<Object> out = exports._.defer();
         final Pipeline.Position position = 
-            post(href, method.getName(), type, method, argv, out.resolver);
+            post(href, p, method.getName(), type, method, argv, out.resolver);
         resolver.resolve(exports._.pipeline(out.promise, msgs, position));
         return position;
     }
@@ -151,8 +152,8 @@ Caller extends Struct implements Serializable {
     }
     
     private Pipeline.Position
-    post(final String href, final String name,
-         final Class<?> type, final Method method,
+    post(final String href, final int p,
+    	 final String q, final Class<?> type, final Method method,
          final ConstArray<?> argv, final Resolver<Object> resolver) {
         class POST extends Operation implements Serializable {
             static private final long serialVersionUID = 1L;
@@ -163,7 +164,7 @@ Caller extends Struct implements Serializable {
             render(final String x, final long w, final int m) throws Exception {
                 final String here = exports.getHere();
                 final String requestURI =
-                    HTTP.post(URI.resolve(here, href), name, x, w, m); 
+                    HTTP.post(URI.resolve(here, href), q, x, w, m, p); 
                 return serialize(requestURI, HTTP.export(msgs,
                         HTTP.changeBase(here, exports.export(), requestURI)), 
                     ConstArray.array(method.getGenericParameterTypes()), argv);
@@ -178,7 +179,7 @@ Caller extends Struct implements Serializable {
                 } else {
                     exports._.log.got(guid, null, null);
                 }
-                receive(href, name, response, type, method, argv, resolver);
+                receive(href, q, response, type, method, argv, resolver);
             }
             
             public void
@@ -208,7 +209,7 @@ Caller extends Struct implements Serializable {
                 final String location =
                     TokenList.find(null, "Location", m.head.headers);
                 final Object target = null != location ?
-                    exports.connect(null).apply(location, base, type) :
+                    exports.connect().apply(location, base, type) :
                     deserialize(type, base, m);
                 final Object value = null==method ? target : Reflection.invoke(
                     method, target, argv.toArray(new Object[argv.length()]));
@@ -222,7 +223,7 @@ Caller extends Struct implements Serializable {
                     final String location =
                         TokenList.find(null, "Location", m.head.headers);
                     resolver.apply(null != location ?
-                        exports.connect(null).apply(location, base, R) :
+                        exports.connect().apply(location, base, R) :
                         deserialize(R, base, m));
                 }
                 return;
@@ -258,7 +259,7 @@ Caller extends Struct implements Serializable {
         }
         return Header.equivalent(FileType.unknown.name, contentType) ? m.body :
             new JSONDeserializer().deserialize(m.body.asInputStream(),
-                exports.connect(null), base, exports.code, expected);
+                exports.connect(), base, exports.code, expected);
     }
     
     static protected Message<Request>

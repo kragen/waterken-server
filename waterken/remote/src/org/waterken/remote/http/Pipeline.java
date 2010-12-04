@@ -44,7 +44,7 @@ Pipeline implements Equatable, Serializable {
     static private final long serialVersionUID = 1L;
     
     protected final String peer;                    // absolute URI of peer vat
-    private   final String key;                     // messaging session key
+    protected final String key;                     // messaging session key
     private   final String name;                    // messaging session name
     private   final Receiver<Promise<?>> enqueue;
     private   final Receiver<Effect<Server>> effect;

@@ -144,7 +144,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
         public void
         apply(final Object value) {
             try {
-                final String target = HTTP.post(href, "apply", null, 0, 0);
+                final String target = HTTP.post(href, "apply", null, 0, 0, -1);
                 final Message<Request> q = Caller.serialize(target, null,
                      ConstArray.array((Type)Object.class),
                      ConstArray.array(value));

@@ -57,7 +57,7 @@ Callee extends Struct implements Serializable {
             Object value;
             try {
                 // AUDIT: call to untrusted application code
-                value=HTTP.shorten(Eventual.ref(exports.reference(null,query)));
+                value = HTTP.shorten(Eventual.ref(exports.reference(query)));
             } catch (final Unresolved e) {
                 return serialize(m.head.method, "404", "not yet",
                                  Server.ephemeral, Exception.class, e);
@@ -72,11 +72,10 @@ Callee extends Struct implements Serializable {
 
         // to preserve message order, only access members on a local,
         // pass-by-reference object
-        final ServerSideSession session = exports.getSession(query);
         final Object target; {
             Promise<?> subject;
             try {
-                subject = Eventual.ref(exports.reference(session, query));
+                subject = Eventual.ref(exports.reference(query));
             } catch (final Exception e) {
                 subject = Eventual.reject(e);
             }
@@ -129,9 +128,9 @@ Callee extends Struct implements Serializable {
                     get ? new String[] { "TRACE", "OPTIONS", "GET" } :
                           new String[] { "TRACE", "OPTIONS"        }), null);
             }                                   // method invocation
-            final Object value = session.once(HTTP.window(query),
-            								  HTTP.message(query),
-            								  new NonIdempotent(lambda.impl) {
+            final Object value = exports.getSession(query).once(
+            		HTTP.window(query), HTTP.message(query),
+            		new NonIdempotent(lambda.impl) {
                 public Object
                 apply() throws Exception {
                     /*
@@ -162,7 +161,7 @@ Callee extends Struct implements Serializable {
                         try {
                             argv = null == syntax ? new Object[] { m.body } :
                                 syntax.deserializeTuple(m.body.asInputStream(),
-                                    exports.connect(session), exports.getHere(),
+                                    exports.connect(), exports.getHere(),
                                     exports.code, paramv).toArray(
                                         new Object[paramv.length]);
                         } catch (final BadSyntax e) {
