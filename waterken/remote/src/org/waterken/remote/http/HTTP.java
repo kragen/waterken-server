@@ -456,8 +456,8 @@ HTTP extends Eventual implements Serializable {
                     final PipelinePromise x = (PipelinePromise)handler;
                     if (msgs == x.msgs) {
                         if (x.msg.window == msgs.getActiveWindow()) {
-                            return new Export("#x=" + x.msgs.key +
-                            				  "&p=" + x.msg.message);
+                            return new Export("./#x=" + x.msgs.key +
+                            				    "&p=" + x.msg.message);
                         } else {
                             return new Export(x.returned.shorten());
                         }
