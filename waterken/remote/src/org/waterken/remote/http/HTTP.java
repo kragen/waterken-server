@@ -548,38 +548,38 @@ HTTP extends Eventual implements Serializable {
 
     /**
      * Does the given web-key refer to a promise?
-     * @param q web-key argument string
+     * @param args	web-key argument string
      * @return <code>true</code> if a promise, else <code>false</code>
      */
     static protected boolean
-    isPromise(final String q) { return null != Query.arg(null, q, "o"); }
+    isPromise(final String args) { return null != Query.arg(null, args, "o"); }
 
     /**
      * Extracts the subject key from a web-key.
-     * @param query web-key argument string
+     * @param args	web-key argument string
      * @return corresponding subject key
      */
     static protected String
-    subject(final String query) { return Query.arg(null, query, "s"); }
+    subject(final String args) { return Query.arg(null, args, "s"); }
 
     /**
      * Extracts the predicate string from a web-key.
      * @param method    HTTP request method
-     * @param query     web-key argument string
+     * @param args  	web-key argument string
      * @return corresponding predicate string
      */
     static protected String
-    predicate(final String method, final String query) {
-        return Query.arg("POST".equals(method) ? "apply" : null, query, "q");
+    predicate(final String method, final String args) {
+        return Query.arg("POST".equals(method) ? "apply" : null, args, "q");
     }
 
     /**
      * Extracts the session key.
-     * @param query web-key argument string
+     * @param args	web-key argument string
      * @return corresponding session key, or empty string if none
      */
     static protected String
-    session(final String query) { return Query.arg("", query, "x"); }
+    session(final String args) { return Query.arg("", args, "x"); }
 
     static protected long
     window(final String q) { return Long.parseLong(Query.arg("0", q, "w")); }

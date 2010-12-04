@@ -43,9 +43,8 @@ Callee extends Struct implements Serializable {
     apply(final String query, final Message<Request> m) throws Exception {
 
         // further dispatch the request based on the accessed member
-    	// TODO: Use "o" instead of "q" to distinguish a when block
-        final String p = HTTP.predicate(m.head.method, query);
-        if (null == p) {                        // when block
+        final String q = HTTP.predicate(m.head.method, query);
+        if (null == q) {                        // when block
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
                     Response.options("TRACE", "OPTIONS", "GET", "HEAD"), null);
@@ -91,9 +90,9 @@ Callee extends Struct implements Serializable {
         }
 
         if ("GET".equals(m.head.method) || "HEAD".equals(m.head.method)) {
-            final Dispatch property = Dispatch.get(target, p);
+            final Dispatch property = Dispatch.get(target, q);
             if (null == property) {             // no such property
-                final boolean post = null != Dispatch.post(target, p);
+                final boolean post = null != Dispatch.post(target, q);
                 return new Message<Response>(Response.notAllowed(
                     post ? new String[] { "TRACE", "OPTIONS", "POST" } :
                            new String[] { "TRACE", "OPTIONS"         }), null);
@@ -121,9 +120,9 @@ Callee extends Struct implements Serializable {
         if ("POST".equals(m.head.method)) {
             final Response failed = m.head.allow(null);
             if (null != failed) { return new Message<Response>(failed, null); }
-            final Dispatch lambda = Dispatch.post(target, p);
+            final Dispatch lambda = Dispatch.post(target, q);
             if (null == lambda) {               // no such method
-                final boolean get = null != Dispatch.get(target, p);
+                final boolean get = null != Dispatch.get(target, q);
                 return new Message<Response>(Response.notAllowed(
                     get ? new String[] { "TRACE", "OPTIONS", "GET" } :
                           new String[] { "TRACE", "OPTIONS"        }), null);
@@ -138,7 +137,7 @@ Callee extends Struct implements Serializable {
                      * replay since request processing is done inside once block
                      */
                     if (lambda.overloaded) {
-                        throw new OverloadedMethodName(p);
+                        throw new OverloadedMethodName(q);
                     }
                     final Object[] argv;
                     final Type[] paramv = method.getGenericParameterTypes();
@@ -186,8 +185,8 @@ Callee extends Struct implements Serializable {
             return serialize(m.head.method,"200","ok",Server.ephemeral,R,value);
         }
 
-        final boolean get = null != Dispatch.get(target, p);
-        final boolean post = null != Dispatch.post(target, p);
+        final boolean get = null != Dispatch.get(target, q);
+        final boolean post = null != Dispatch.post(target, q);
         final String[] allow =
             get && post ? new String[] { "TRACE", "OPTIONS", "GET", "POST" } :
             get         ? new String[] { "TRACE", "OPTIONS", "GET"         } :
