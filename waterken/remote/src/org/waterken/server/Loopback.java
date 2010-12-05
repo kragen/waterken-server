@@ -3,7 +3,6 @@
 package org.waterken.server;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.net.ConnectException;
 import java.net.InetAddress;
@@ -30,7 +29,7 @@ Loopback {
     }
     
     static protected Locator
-    client(final int standardPort, final PrintStream log) {
+    client(final int standardPort) {
         class ClientX implements Locator, Serializable {
             static private final long serialVersionUID = 1L;
 
@@ -46,9 +45,6 @@ Loopback {
             locate(final String authority,
                    final SocketAddress mostRecent) throws IOException {
                 final String location = Authority.location(authority);
-                
-                log.println("connecting to <" + location + ">...");
-                
                 if (!"localhost".equals(Location.hostname(location))) {
                     throw new ConnectException();
                 }

@@ -24,11 +24,11 @@ import org.waterken.uri.Header;
 /* package */ final class
 TCP implements Runnable {
     
-    private final String service;
-    private final TCPDaemon daemon;
-    private final String hostname;
-    private final ServerSocket port;
-    private final Receiver<ByteArray> updateDNS;
+    private   final String service;
+    protected final TCPDaemon daemon;
+    protected final String hostname;
+    private   final ServerSocket port;
+    private   final Receiver<ByteArray> updateDNS;
     
     private       InetAddress lastKnownAddress = null;
     
@@ -55,7 +55,6 @@ TCP implements Runnable {
                     public void
                     run() {
                         try {
-                            System.out.println(client + ": open...");
                             daemon.accept(hostname, socket).call();
                         } catch (final SocketTimeoutException e) {
                             // normal end to a TCP connection
@@ -65,7 +64,6 @@ TCP implements Runnable {
                         } finally {
                             try { socket.close(); } catch (final Exception e) {}
                         }
-                        System.out.println(client + ": closed");
                     }
                 });
             } catch (final SocketTimeoutException e) {
