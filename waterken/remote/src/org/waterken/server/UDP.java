@@ -14,12 +14,13 @@ import org.waterken.udp.UDPDaemon;
 /**
  * A UDP daemon.
  */
-final class
+/* package */ final class
 UDP extends Struct implements Runnable {
 
-    private final UDPDaemon daemon;
-    private final DatagramSocket port;
+    private   final UDPDaemon daemon;
+    protected final DatagramSocket port;
     
+    protected
     UDP(final UDPDaemon daemon, final DatagramSocket port) {
         this.daemon = daemon;
         this.port = port;
