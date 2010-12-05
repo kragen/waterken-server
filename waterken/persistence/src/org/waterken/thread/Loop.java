@@ -26,8 +26,7 @@ Loop<T extends Promise<?>> {
     public final Receiver<Promise<?>> background;
     
     private
-    Loop(final Receiver<T> foreground,
-               final Receiver<Promise<?>> background) {
+    Loop(final Receiver<T> foreground, final Receiver<Promise<?>> background) {
         this.foreground = foreground;
         this.background = background;
     }
@@ -53,7 +52,9 @@ Loop<T extends Promise<?>> {
             public void
             run() {
                 // System.out.println(name + ": processing...");
+            	final String originalName = Thread.currentThread().getName();
                 try {
+                	Thread.currentThread().setName(name);
                     while (true) {
                         final Promise<?> todo;
                         synchronized (lock) {
@@ -78,6 +79,8 @@ Loop<T extends Promise<?>> {
                 } catch (final Throwable e) {
                     System.err.println(name + ":");
                     e.printStackTrace(System.err);
+                } finally {
+                	Thread.currentThread().setName(originalName);
                 }
                 // System.out.println(name + ": idling...");
             }
