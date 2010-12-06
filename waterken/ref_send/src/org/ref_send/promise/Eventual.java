@@ -984,6 +984,7 @@ Eventual implements Selfless, Serializable {
         for (int i = r.length; i-- != 0;) {
             final Class<?> type = r[i];
             if (type == Serializable.class || !Proxies.isImplementable(type) ||
+                    JoeE.isSubtypeOf(type, Immutable.class) ||
                     JoeE.isSubtypeOf(type, Equatable.class)) {
                 // remove the type from the proxy type list
                 {
