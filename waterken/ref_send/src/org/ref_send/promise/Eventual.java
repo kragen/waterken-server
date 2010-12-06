@@ -10,6 +10,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
 import org.joe_e.Equatable;
+import org.joe_e.Immutable;
 import org.joe_e.JoeE;
 import org.joe_e.Selfless;
 import org.joe_e.Struct;
