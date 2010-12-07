@@ -738,9 +738,23 @@ Eventual implements Selfless, Serializable {
             } else {
                 /*
                  * Promise is already resolved and all previously registered
-                 * observers run. Register the observer on the resolved value.
+                 * observers run. Register the observer on the resolved value,
+                 * but using a separate turn so that we don't lose the causality
+                 * chain from this promise to the resolved value.
                  */
-                when(T, Void.class, value, observer);
+                final long task = near(stats).newTask();
+                class Fwd extends Struct implements Promise<Void>, Serializable{
+                    static private final long serialVersionUID = 1L;
+
+                    public Void
+                    call() {
+                        log.got(here + "#t" + task, null, null);
+                        when(T, Void.class, value, observer);
+                        return null;
+                    }
+                }
+                enqueue.apply(new Fwd());
+                log.sentIf(here + "#t" + task, here + "#p" + condition);
             }
         }
     }

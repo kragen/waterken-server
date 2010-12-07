@@ -7,6 +7,5 @@ else
 fi
 
 echo 'Testing example project...'
-java -classpath $CLASSPATH org.waterken.all.All
 java -classpath $CLASSPATH org.waterken.factorial.FactorialN 4
 java -classpath $CLASSPATH org.waterken.delayed.Relay
