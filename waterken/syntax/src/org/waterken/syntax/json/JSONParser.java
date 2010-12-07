@@ -382,7 +382,9 @@ JSONParser {
         final int remote = find("@", undeclared);
         if (-1 != remote) {
             final String href = (String)values.snapshot().get(remote);
-            final Object r = connect.apply(href, base, types);
+            final Object r = null != promised ?
+            	connect.apply(href, base, required) :
+            	connect.apply(href, base, types);
             return null != promised ? ref(r) : r;
         }
 
