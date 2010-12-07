@@ -80,8 +80,11 @@ JSONParser {
                 ConstArray.builder(parameters.length);
             if (!"]".equals(lexer.next())) {
                 while (true) {
-                    r.append(parseValue(r.length() < parameters.length ?
-                        parameters[r.length()] : Object.class));
+                    if (r.length() < parameters.length) {
+                        r.append(parseValue(parameters[r.length()]));
+                    } else {
+                        parseValue(Object.class);
+                    }
                     if ("]".equals(lexer.getHead())) { break; }
                     if (!",".equals(lexer.getHead())) { throw new Exception(); }
                     lexer.next();
@@ -89,6 +92,9 @@ JSONParser {
             }
             if (null != lexer.next()) { throw new Exception(); }
             lexer.close();
+            while (r.length() < parameters.length) {
+                r.append(Syntax.defaultValue(parameters[r.length()]));
+            }
             return r.snapshot();
         } catch (final IOException e) {
             try { lexer.close(); } catch (final Exception e2) {}
