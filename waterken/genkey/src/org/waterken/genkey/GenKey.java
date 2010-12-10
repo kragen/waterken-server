@@ -278,7 +278,7 @@ GenKey {
                         System.out.println("Restart your server and visit:");
                         System.out.println("https://" + hostname + port + "/");
                         
-                        _.destruct.apply(null);
+                        // TODO: _.destruct.apply(null);
                         Loop.pool.shutdown();
                         
                         return null;
