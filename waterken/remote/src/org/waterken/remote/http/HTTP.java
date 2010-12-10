@@ -245,7 +245,7 @@ HTTP extends Eventual implements Serializable {
         final Class<?>[] types = new Class<?>[type.length + 1];
         types[type.length] = Selfless.class;
         boolean implemented = true;
-        for (int i = type.length - 1; 0 != i--;) {
+        for (int i = type.length; 0 != i--;) {
             types[i] = Typedef.raw(type[i]);
             implemented = implemented && types[i].isInstance(p);
         }
