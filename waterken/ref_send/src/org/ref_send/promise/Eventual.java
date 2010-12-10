@@ -884,7 +884,7 @@ Eventual implements Selfless, Serializable {
      * fulfill}, {@link Resolver#reject reject} or {@link Resolver#resolve
      * resolve} are silently ignored. Any {@linkplain Do observer}
      * {@linkplain #when registered} on the promise will only be notified after
-     * the promise is resolved.
+     * the promise is either fulfilled or rejected.
      * </p>
      * @param <T> referent type
      * @return ( {@linkplain Promise promise}, {@linkplain Resolver resolver} )
