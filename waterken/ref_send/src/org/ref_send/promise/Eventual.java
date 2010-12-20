@@ -306,9 +306,9 @@ Eventual implements Selfless, Serializable {
      */
     static private Type
     returnType(final Type P, final Do<?,?> block) {
-        return block instanceof Invoke<?> ?
+        return block instanceof Invoke ?
             Typedef.bound(((Invoke<?>)block).method.getGenericReturnType(), P) :
-        Typedef.value(DoR, block.getClass());
+            Typedef.value(DoR, block.getClass());
     }
 
     /**
@@ -421,7 +421,7 @@ Eventual implements Selfless, Serializable {
 
     protected final boolean
     trusted(final Object untrusted) {
-        return untrusted instanceof Local<?> &&
+        return untrusted instanceof Local &&
                local == ((Local<?>)untrusted).getScope().local;
     }
 
@@ -518,7 +518,7 @@ Eventual implements Selfless, Serializable {
 
         public boolean
         equals(final Object x) {
-            return x instanceof Enqueue<?> &&
+            return x instanceof Enqueue &&
                 Eventual.this.equals(((Enqueue<?>)x).getScope()) &&
                 (null != untrusted ?
                     untrusted.equals(((Enqueue<?>)x).untrusted) :
@@ -586,7 +586,7 @@ Eventual implements Selfless, Serializable {
             // expected to be handled as a rejection
             if (null == a) { throw VOID; }
             final Promise<?> p = ref(a);
-            if (p instanceof Rejected<?>) { p.call(); }
+            if (p instanceof Rejected) { p.call(); }
         } catch (final Exception reason) {
             final @SuppressWarnings({ "rawtypes", "unchecked" }) Class<?> c =
                 (observer instanceof Compose ? ((Compose)observer).conditional :
@@ -604,7 +604,7 @@ Eventual implements Selfless, Serializable {
             final @SuppressWarnings({ "rawtypes", "unchecked" }) Do inner =
                 observer instanceof Compose ?
                         ((Compose)observer).conditional : observer;
-            if (inner instanceof Invoke<?>) {
+            if (inner instanceof Invoke) {
                 m = ((Invoke<?>)inner).method;
                 c = a.getClass();
             } else {
@@ -694,7 +694,7 @@ Eventual implements Selfless, Serializable {
                     log.problem(e);
                     throw e;
                 }
-            } else if (ignored && value instanceof Rejected<?>) {
+            } else if (ignored && value instanceof Rejected) {
                 /*
                  * No when block has been queued on this promise, so this
                  * rejection will go unnoticed by the application code. To make
@@ -730,7 +730,7 @@ Eventual implements Selfless, Serializable {
 
         protected void
         observe(final Do<? super T,?> observer) {
-            final boolean call = observer instanceof Compose<?,?> &&
+            final boolean call = observer instanceof Compose &&
                 ((Compose<?,?>)observer).conditional instanceof Invoke;
             final When<T> block = near(back);
             if (condition == block.condition) {
@@ -776,7 +776,7 @@ Eventual implements Selfless, Serializable {
 
         public boolean
         equals(final Object x) {
-            return x instanceof Tail<?> && state.equals(((Tail<?>)x).state);
+            return x instanceof Tail && state.equals(((Tail<?>)x).state);
         }
 
         public T
@@ -790,7 +790,7 @@ Eventual implements Selfless, Serializable {
         shorten() throws Unresolved {
             final State<T> cell = near(state);
             if (!cell.resolved) { throw new Unresolved(); }
-            if (cell.value instanceof Inline<?>) {
+            if (cell.value instanceof Inline) {
                 return ((Inline<?>)cell.value).call();
             }
             return cell.value;
@@ -839,18 +839,17 @@ Eventual implements Selfless, Serializable {
 
         public void
         apply(final T r) {
-            set(null == r || r instanceof Promise<?> ? null : r.getClass(),
-                ref(r));
+            set(null==r || r instanceof Promise ? null : r.getClass(), ref(r));
         }
 
         private void
         set(final Class<?> T, Promise<? extends T> p) {
-            if (p instanceof Fulfilled<?>) {
+            if (p instanceof Fulfilled) {
                 final @SuppressWarnings("unchecked") Fulfilled<? extends T>
                     fulfilled = (Fulfilled<? extends T>)p;
                 p = fulfilled.getState();
                 log.fulfilled(here + "#p" + condition);
-            } else if (p instanceof Rejected<?>) {
+            } else if (p instanceof Rejected) {
                 final @SuppressWarnings("unchecked") Rejected<? extends T>
                     rejected = (Rejected<? extends T>)p;
                 log.rejected(here + "#p" + condition, rejected.reason);
