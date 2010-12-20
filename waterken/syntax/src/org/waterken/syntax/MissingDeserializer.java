@@ -5,6 +5,7 @@ package org.waterken.syntax;
 import org.joe_e.Powerless;
 import org.ref_send.deserializer;
 import org.ref_send.name;
+import org.ref_send.Record;
 
 /**
  * Signals a {@link Record} that does not have a constructor meeting all of the
