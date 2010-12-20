@@ -16,13 +16,13 @@ public class Unavailable extends RuntimeException implements Powerless {
      * name that is unavailable
      */
     public final String name;
-    
+
     /**
      * Constructs an instance.
-     * @param name	{@link #name}
+     * @param name  {@link #name}
      */
     public @deserializer
     Unavailable(@name("name") final String name) {
-    	this.name = name;
+      this.name = name;
     }
 }

@@ -730,8 +730,8 @@ Eventual implements Selfless, Serializable {
 
         protected void
         observe(final Do<? super T,?> observer) {
-        	final boolean call = observer instanceof Compose<?,?> &&
-                ((Compose<?,?>)observer).conditional instanceof Invoke<?>;
+            final boolean call = observer instanceof Compose<?,?> &&
+                ((Compose<?,?>)observer).conditional instanceof Invoke;
             final When<T> block = near(back);
             if (condition == block.condition) {
                 log.sentIf(call, here+"#w"+block.message, here+"#p"+condition);

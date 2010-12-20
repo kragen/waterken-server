@@ -10,13 +10,13 @@ OK {
     private OK() { /**/ }
 
     /**
-     * An {@link OK} maker.
+     * The {@link OK} type.
      */
-    static public final Layout<OK> Maker = Layout.define();
+    static public final Layout<OK> meta = Layout.define();
 
     /**
      * Constructs an instance.
      */
     static public Scope<OK>
-    ok() { return Maker.make(); }
+    ok() { return meta.make(); }
 }

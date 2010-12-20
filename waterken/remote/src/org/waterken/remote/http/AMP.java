@@ -62,7 +62,7 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                 final String project;
                 try {
                     project = vat.enter(Database.query,
-                            projectGetter()).call().get(0);
+                                        projectGetter()).call().get(0);
                 } catch (final DoesNotExist e) {
                     client.receive(Response.gone(), null);
                     return;
@@ -81,9 +81,9 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
             if (!head.expect(client, "TRACE","OPTIONS","GET","HEAD","POST")) {
                 return;
             }
-            final Message<Request> m = new Message<Request>(head, null == body
-                ? null : Stream.snapshot(length >= 0 ? length : 512,
-                                         Limited.input(maxEntitySize+1, body)));
+            final Message<Request> m = new Message<Request>(head, null == body ?
+                null : Stream.snapshot(length >= 0 ? length : 512,
+                                       Limited.input(maxEntitySize + 1, body)));
             vat.service.apply(new Service() {
                 public Void
                 call() throws Exception {
