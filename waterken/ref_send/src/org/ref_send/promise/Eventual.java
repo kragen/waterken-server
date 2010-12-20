@@ -704,7 +704,7 @@ Eventual implements Selfless, Serializable {
                  */
                 final Exception e = ((Rejected<?>)value).reason;
                 log.got(here + "#w" + message, null, null);
-                log.sentIf(here + "#w" + message, here + "#p" + condition);
+                log.sentIf(false, here+"#w"+message, here+"#p"+condition);
                 log.problem(e);
                 throw e;
             }
@@ -730,9 +730,11 @@ Eventual implements Selfless, Serializable {
 
         protected void
         observe(final Do<? super T,?> observer) {
+        	final boolean call = observer instanceof Compose<?,?> &&
+                ((Compose<?,?>)observer).conditional instanceof Invoke<?>;
             final When<T> block = near(back);
             if (condition == block.condition) {
-                log.sentIf(here+"#w"+block.message, here+"#p"+condition);
+                log.sentIf(call, here+"#w"+block.message, here+"#p"+condition);
                 block.observer = observer;
                 back = block.next = near(stats).allocWhen(condition);
             } else {
@@ -754,7 +756,7 @@ Eventual implements Selfless, Serializable {
                     }
                 }
                 enqueue.apply(new Fwd());
-                log.sentIf(here + "#t" + task, here + "#p" + condition);
+                log.sentIf(call, here + "#t" + task, here + "#p" + condition);
             }
         }
     }

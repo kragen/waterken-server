@@ -46,10 +46,12 @@ Log implements Serializable {
 
     /**
      * Logs a conditional message send.
+     * @param pipelined	Is the message processed at the callee's site?
      * @param message   message identifier
      * @param condition condition identifier
      */
-    public void sentIf(String message, String condition) { sent(message); }
+    public void sentIf(boolean pipelined,
+    				   String message, String condition) { sent(message); }
     
     /**
      * Logs resolution of a promise.

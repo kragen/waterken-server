@@ -412,28 +412,25 @@ HTTP extends Eventual implements Serializable {
                 	returned.when(T, observer);
                 }
             }
+            final Compose<?,?> outer = observer instanceof Compose<?,?> ?
+                (Compose<?,?>)observer : null;
+            final Do<?,?> inner = null != outer ? outer.conditional : observer;
+            final boolean call = inner instanceof Invoke<?>;
         	final Pipeline.Position sent;
-            if (msgs.canPipeline(msg.window)) {
-                final Compose<?,?> outer = observer instanceof Compose<?,?> ?
-                        (Compose<?,?>)observer : null;
-                final Do<?,?> inner= null!=outer ? outer.conditional : observer;
-                if (inner instanceof Invoke<?>) {
-                    final Invoke<?> x = (Invoke<?>)inner;
-                    if (null != Dispatch.property(x.method)) {
-                        sent = msgs.enqueue(new Flush(true));
-                    } else {
-	                    sent = new Caller(new Exports(HTTP.this), msgs).invoke(
-	                        URI.relate(here, msgs.peer), msg.message,
-	                        null!=T?T:Typedef.raw(x.method.getDeclaringClass()),
-	                        x.method, x.argv, null!=outer?resolver(outer):null);
-                    }
+            if (call && msgs.canPipeline(msg.window)) {
+                final Invoke<?> x = (Invoke<?>)inner;
+                if (null != Dispatch.property(x.method)) {
+                    sent = msgs.enqueue(new Flush(true));
                 } else {
-                	sent = msgs.enqueue(new Flush(false)); 
+                    sent = new Caller(new Exports(HTTP.this), msgs).invoke(
+                        URI.relate(here, msgs.peer), msg.message,
+                        null!=T ? T : Typedef.raw(x.method.getDeclaringClass()),
+                        x.method, x.argv, null!=outer ? resolver(outer) : null);
                 }
             } else {
             	sent = msgs.enqueue(new Flush(false)); 
             }
-            log.sentIf(sent.guid, msg.guid);
+            log.sentIf(call, sent.guid, msg.guid);
         }
     }
 

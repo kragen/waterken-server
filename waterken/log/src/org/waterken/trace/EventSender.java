@@ -10,6 +10,7 @@ import org.ref_send.log.Comment;
 import org.ref_send.log.Event;
 import org.ref_send.log.Fulfilled;
 import org.ref_send.log.Got;
+import org.ref_send.log.Pipelined;
 import org.ref_send.log.Problem;
 import org.ref_send.log.Progressed;
 import org.ref_send.log.Rejected;
@@ -79,9 +80,17 @@ EventSender {
             }
 
             public @Override void
-            sentIf(final String message, final String condition) {
-                stderr.apply(new SentIf(mark.apply(), tracer.timestamp(),
-                                        tracer.traceHere(),message, condition));
+            sentIf(final boolean pipelined,
+            	   final String message, final String condition) {
+            	if (pipelined) {
+                    stderr.apply(new Pipelined(mark.apply(), tracer.timestamp(),
+					                           tracer.traceHere(),
+					                           message, condition));
+            	} else {
+	                stderr.apply(new SentIf(mark.apply(), tracer.timestamp(),
+				                            tracer.traceHere(),
+				                            message, condition));
+            	}
             }
 
             public @Override void
