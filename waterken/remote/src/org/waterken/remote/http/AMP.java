@@ -25,6 +25,7 @@ import org.waterken.http.Message;
 import org.waterken.http.Request;
 import org.waterken.http.Response;
 import org.waterken.http.Server;
+import org.waterken.http.WithHeader;
 import org.waterken.io.Stream;
 import org.waterken.io.limited.Limited;
 import org.waterken.io.limited.TooBig;
@@ -74,11 +75,15 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                 return;
             }
 
+            final Client cors =
+            	WithHeader.make("Access-Control-Allow-Origin", "*", client);
             final int length = head.getContentLength();
             if (length > maxEntitySize) {
-                throw new TooBig(length, maxEntitySize);
+                final TooBig reason = new TooBig(length, maxEntitySize);
+                cors.fail(reason);
+                throw reason;
             }
-            if (!head.expect(client, "TRACE","OPTIONS","GET","HEAD","POST")) {
+            if (!head.expect(cors, "TRACE","OPTIONS","GET","HEAD","POST")) {
                 return;
             }
             final Message<Request> m = new Message<Request>(head, null == body ?
@@ -87,8 +92,8 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
             vat.service.apply(new Service() {
                 public Void
                 call() throws Exception {
-                    if (!client.isStillWaiting()) {
-                        client.fail(new Exception());
+                    if (!cors.isStillWaiting()) {
+                        cors.fail(new Exception());
                         return null;
                     }
                     
@@ -100,14 +105,14 @@ AMP extends Struct implements Remoting<Server>, Powerless, Serializable {
                                       "TRACE".equals(head.method),
                                       callee(q, m)).call();
                     } catch (final DoesNotExist e) {
-                        client.receive(Response.gone(), null);
+                        cors.receive(Response.gone(), null);
                         return null;
                     } catch (final Exception e) {
-                        try { client.fail(e); } catch (Exception ignored) {}
+                        try { cors.fail(e); } catch (Exception ignored) {}
                         throw e;
                     }
                     try {
-                        client.receive(r.head, null != r.body ?
+                        cors.receive(r.head, null != r.body ?
                                                 r.body.asInputStream() : null);
                     } catch (final IOException e) {}
                     return null;
