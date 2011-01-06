@@ -155,7 +155,7 @@
  * </pre>
  * <p>An instance of the above class would produce JSON like:</p>
  * <pre>
- * [ {
+ * {
  *   "class": [ "org.example.membership.MailingLoyaltyCard", "org.example.membership.LoyaltyCard" ],
  *   "name": "Tyler Close",
  *   "year": 2008,
@@ -167,7 +167,7 @@
  *     "zip": "94304"
  *     },
  *   "preferences": [ "2-day-shipping", "monthly" ]
- *   } ]
+ * }
  * </pre>
  * <p>The value of the <code>"class"</code> member is an array listing the
  * name of every type implemented by the object, ordered from most specific to
@@ -187,5 +187,6 @@
  * exchanged documents by defining a set of {@link org.ref_send.Record} types.
  * Each exchanged document is then created by composing an object tree from
  * these {@link org.ref_send.Record} types.</p>
+ * @see	org.ref_send.scope
  */
 @org.joe_e.IsJoeE package org.ref_send;
