@@ -27,9 +27,9 @@ BOTTOM='<a href="https://lists.sourceforge.net/lists/listinfo/waterken-server">S
     -public \
     -linksource \
     -use \
-    -group 'Core API' 'org.joe_e:org.ref_send:org.ref_send.promise' \
+    -group 'Core API' 'org.joe_e:org.ref_send:org.ref_send.scope:org.ref_send.promise' \
     -group 'Example Applications' 'org.ref_send.test:org.waterken.*' \
-    -group 'Collection' 'org.joe_e.array:org.joe_e.var:org.ref_send.list:org.ref_send.scope' \
+    -group 'Collection' 'org.joe_e.array:org.joe_e.var:org.ref_send.list' \
     -group 'Reflection' 'org.joe_e.reflect:org.joe_e.taming:org.ref_send.type' \
     -group 'I/O' 'org.joe_e.charset:org.joe_e.file' \
     -group 'Logging' 'org.ref_send.log:org.waterken.trace*' \

@@ -48,5 +48,6 @@
  *   "preferences" : [ "2-day-shipping", "monthly" ]
  * }
  * </pre>
+ * @see org.ref_send
  */
 @org.joe_e.IsJoeE package org.ref_send.scope;

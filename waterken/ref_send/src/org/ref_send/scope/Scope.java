@@ -8,7 +8,7 @@ import org.joe_e.Selfless;
 import org.joe_e.array.ConstArray;
 
 /**
- * A <code>{ name: value }</code> record.
+ * A <code>{ name : value }</code> record.
  * @param <T> nominal type
  */
 public final class

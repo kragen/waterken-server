@@ -96,10 +96,10 @@
  * <a href="http://json.org/">JSON</a> data:</p>
  * <pre>
  * [ {
- *   "class": [ "org.example.membership.LoyaltyCard" ],
- *   "name": "Tyler Close",
- *   "year": 2008,
- *   "premium": true
+ *   "class" : [ "org.example.membership.LoyaltyCard" ],
+ *   "name" : "Tyler Close",
+ *   "year" : 2008,
+ *   "premium" : true
  *   } ]
  * </pre>
  * <p>The networking code in the Waterken Server automatically recognizes which
@@ -156,17 +156,17 @@
  * <p>An instance of the above class would produce JSON like:</p>
  * <pre>
  * {
- *   "class": [ "org.example.membership.MailingLoyaltyCard", "org.example.membership.LoyaltyCard" ],
- *   "name": "Tyler Close",
- *   "year": 2008,
- *   "premium": true,
- *   "mailto": {
- *     "street": "1501 Page Mill Road",
- *     "city": "Palo Alto",
- *     "state": "CA",
- *     "zip": "94304"
+ *   "class" : [ "org.example.membership.MailingLoyaltyCard", "org.example.membership.LoyaltyCard" ],
+ *   "name" : "Tyler Close",
+ *   "year" : 2008,
+ *   "premium" : true,
+ *   "mailto" : {
+ *     "street" : "1501 Page Mill Road",
+ *     "city" : "Palo Alto",
+ *     "state" : "CA",
+ *     "zip" : "94304"
  *     },
- *   "preferences": [ "2-day-shipping", "monthly" ]
+ *   "preferences" : [ "2-day-shipping", "monthly" ]
  * }
  * </pre>
  * <p>The value of the <code>"class"</code> member is an array listing the
