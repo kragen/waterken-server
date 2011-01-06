@@ -27,10 +27,12 @@ Brand<T> implements Powerless, Serializable {
      * Requires that this brand is the same as another.
      * @param expected  expected brand
      * @param actual    brand to compare against  
-     * @throws WrongBrand   <code>actual</code> not <code>expected</code>
+     * @throws WrongBrand   <code>actual</code> is not <code>expected</code>
      */
     static public void
     require(final Brand<?> expected, final Brand<?> actual) throws WrongBrand {
-        if (!expected.equals(actual)) { throw new WrongBrand(expected,actual); }
+        if (!(null != expected ? expected.equals(actual) : null == actual)) {
+            throw new WrongBrand(expected, actual);
+        }
     }
 }
