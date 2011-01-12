@@ -52,8 +52,10 @@ Pitch {
         final ByteArray maxPayload =
         	ByteArray.array(new byte[Failure.maxEntitySize]);
         final Promise<?> d = _.when(x_.bounce(maxPayload), was(maxPayload));
+        
+        final Promise<?> e = _.when(x_.sum(1, 2, 3), was(6));
 
-        return join(_, a, b, c, d);
+        return join(_, a, b, c, d, e);
     }
     
     // Command line interface

@@ -79,6 +79,15 @@ Bounce {
 
             public <A> Promise<A>
             bounce(final A a) { return ref(a); }
+
+            public Promise<Integer>
+            sum(int... num) {
+                int total = 0;
+                for (int a : num) {
+                    total += a;
+                }
+                return ref(total);
+            }
         }
         return new WallX();
     }

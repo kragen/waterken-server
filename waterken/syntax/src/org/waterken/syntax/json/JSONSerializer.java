@@ -5,7 +5,9 @@ package org.waterken.syntax.json;
 import java.io.BufferedWriter;
 import java.io.Serializable;
 import java.io.Writer;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -72,7 +74,20 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
         final JSONWriter top = JSONWriter.make(text);
         final JSONWriter.ArrayWriter aout = top.startArray();
         for (int i = 0; i != values.length(); ++i) {
-            serialize(export, types.get(i), values.get(i), aout.startElement());
+            final Type type = i < types.length() ? types.get(i) : Object.class;
+            final Object value = values.get(i);
+            if (i + 1 == values.length() && type instanceof GenericArrayType &&
+                null != value && value.getClass().isArray()) {
+                final Type vparam =
+                    ((GenericArrayType)type).getGenericComponentType();
+                final int length = Array.getLength(value);
+                for (int j = 0; j != length; ++j) {
+                    serialize(export, vparam, Array.get(value, j),
+                              aout.startElement());
+                }
+                break;
+            }
+            serialize(export, type, value, aout.startElement());
         }
         aout.finish();
         if (!top.isWritten()) { throw new RuntimeException(); }

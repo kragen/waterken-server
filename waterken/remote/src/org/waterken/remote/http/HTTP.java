@@ -80,11 +80,15 @@ HTTP extends Eventual implements Serializable {
         } catch (final Exception e) { throw new Error(e); }
         final Class<?> R = make.getReturnType();
         try {
+            Type[] paramv = make.getGenericParameterTypes();
+            if (0 != paramv.length && Eventual.class == paramv[0]) {
+                final int paramc = paramv.length - 1;
+                System.arraycopy(paramv, 1, paramv=new Type[paramc], 0, paramc);
+            }
             final Exports exports = new Exports(this);
             final ByteArray body = new JSONSerializer().serializeTuple(
-                exports.export(),
-                ConstArray.array(make.getGenericParameterTypes()),
-                ConstArray.array(argv));
+                exports.export(), ConstArray.array(paramv),
+                                  ConstArray.array(argv));
             final PowerlessArray<String> rd = creator.apply(null, here, label,
                 new VatInitializer(make, here, body)).call();
             log.sent(rd.get(0));

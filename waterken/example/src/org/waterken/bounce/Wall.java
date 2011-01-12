@@ -22,4 +22,10 @@ Wall {
      * @return <code>a</code>
      */
     <A> Promise<A> bounce(A a);
+    
+    /**
+     * Sends a variable argument list.
+     * @param num   each vararg
+     */
+    Promise<Integer> sum(int... num);
 }

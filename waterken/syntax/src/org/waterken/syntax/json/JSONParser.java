@@ -8,7 +8,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
@@ -81,7 +83,28 @@ JSONParser {
             if (!"]".equals(lexer.next())) {
                 while (true) {
                     if (r.length() < parameters.length) {
-                        r.append(parseValue(parameters[r.length()]));
+                        final Type parameter = parameters[r.length()];
+                        if (r.length() == parameters.length - 1 &&
+                            parameter instanceof GenericArrayType) {
+                            final Type vparam = ((GenericArrayType)parameter).
+                                getGenericComponentType();
+                            final Class<?> vclass = Typedef.raw(vparam);
+                            Object vargs = Array.newInstance(vclass, 1);
+                            for (int i = 0; true; ++i) {
+                                Array.set(vargs, i, parseValue(vparam));
+                                if ("]".equals(lexer.getHead())) { break; }
+                                if (!",".equals(lexer.getHead())) {
+                                    throw new Exception();
+                                }
+                                lexer.next();
+                                System.arraycopy(vargs, 0,
+                                    vargs = Array.newInstance(vclass, i + 2), 0,
+                                    i + 1);
+                            }
+                            r.append(vargs);
+                            break;
+                        }
+                        r.append(parseValue(parameter));
                     } else {
                         parseValue(Object.class);
                     }
@@ -93,7 +116,14 @@ JSONParser {
             if (null != lexer.next()) { throw new Exception(); }
             lexer.close();
             while (r.length() < parameters.length) {
-                r.append(Syntax.defaultValue(parameters[r.length()]));
+                final Type parameter = parameters[r.length()];
+                if (r.length() == parameters.length - 1 &&
+                    parameter instanceof GenericArrayType) {
+                    r.append(Array.newInstance(Typedef.raw(((GenericArrayType)
+                            parameter).getGenericComponentType()), 0));
+                } else {
+                    r.append(Syntax.defaultValue(parameter));
+                }
             }
             return r.snapshot();
         } catch (final IOException e) {
