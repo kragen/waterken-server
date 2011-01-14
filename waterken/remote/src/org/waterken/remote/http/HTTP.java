@@ -565,14 +565,11 @@ HTTP extends Eventual implements Serializable {
 
     /**
      * Extracts the predicate string from a web-key.
-     * @param method    HTTP request method
      * @param args  	web-key argument string
      * @return corresponding predicate string
      */
     static protected String
-    predicate(final String method, final String args) {
-        return Query.arg("POST".equals(method) ? "apply" : null, args, "q");
-    }
+    predicate(final String args) { return Query.arg(null, args, "q"); }
 
     /**
      * Extracts the session key.

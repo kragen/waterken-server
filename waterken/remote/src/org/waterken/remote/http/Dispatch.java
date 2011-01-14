@@ -85,7 +85,7 @@ Dispatch extends Struct implements Powerless, Serializable {
      */
     static public Dispatch
     post(final Object target, final String name) {
-        final String methodName= null==name || "".equals(name) ? "apply" : name;
+        final String methodName = "".equals(name) ? "apply" : name;
         final Class<?> type = null != target ? target.getClass() : Void.class;
         final boolean c = Class.class == type;
         Method impl = null;

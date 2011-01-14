@@ -43,7 +43,7 @@ Callee extends Struct implements Serializable {
     apply(final String query, final Message<Request> m) throws Exception {
 
         // further dispatch the request based on the accessed member
-        final String q = HTTP.predicate(m.head.method, query);
+        final String q = HTTP.predicate(query);
         if (null == q) {                        // when block
             if ("OPTIONS".equals(m.head.method)) {
                 return new Message<Response>(
