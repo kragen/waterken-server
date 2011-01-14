@@ -165,7 +165,7 @@
  *     "city" : "Palo Alto",
  *     "state" : "CA",
  *     "zip" : "94304"
- *     },
+ *   },
  *   "preferences" : [ "2-day-shipping", "monthly" ]
  * }
  * </pre>
