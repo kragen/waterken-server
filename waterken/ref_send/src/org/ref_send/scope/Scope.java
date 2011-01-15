@@ -41,9 +41,9 @@ Scope<T> implements Selfless, Serializable {
     // java.lang.Object interface
 
     /**
-     * Is the given object the same?
+     * Is the given object equal to this one?
      * @param o compared to object
-     * @return <code>true</code> if the same, else <code>false</code>
+     * @return {@code true} if equal, else {@code false}
      */
     public boolean
     equals(final Object o) {

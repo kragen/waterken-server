@@ -45,19 +45,17 @@ Amount<T> implements Comparable<Amount<T>>, Powerless, Record, Serializable {
     equals(final Object o) {
         return null != o && Amount.class == o.getClass() &&
             value == ((Amount<?>)o).value &&
-            (null != unit ? unit.equals(((Amount<?>)o).unit) :
-                            null == ((Amount<?>)o).unit);
+            Brand.equal(unit, ((Amount<?>)o).unit);
     }
     
     public int
-    hashCode() { return (int)(value ^ (value >>> 32)) + 0x0FAB4A2D; }
+    hashCode() { return (int)(value ^ (value >>> Integer.SIZE)) + 0x0FAB4A2D; }
 
     // java.lang.Comparable interface
 
     public int
-    compareTo(final Amount<T> o) {
+    compareTo(final Amount<T> o) throws WrongBrand {
         Brand.require(unit, o.unit);
-        final long d = value - o.value;
-        return d < 0L ? -1 : d == 0L ? 0 : 1;
+        return value < o.value ? -1 : value == o.value ? 0 : 1;
     }
 }

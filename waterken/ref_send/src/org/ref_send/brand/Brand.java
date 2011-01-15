@@ -24,15 +24,25 @@ Brand<T> implements Powerless, Serializable {
     make() { return new Brand<T>(); }
     
     /**
-     * Requires that this brand is the same as another.
-     * @param expected  expected brand
-     * @param actual    brand to compare against  
-     * @throws WrongBrand   <code>actual</code> is not <code>expected</code>
+     * Is one object {@link Object#equals equal} to another?
+     * @param <P>   compared object type
+     * @param a object compared against
+     * @param b object compared to 
+     * @return {@code true} if {@code a} claims {@code b} is
+     *         {@link Object#equals equal}, else {@code false}
      */
-    static public void
-    require(final Brand<?> expected, final Brand<?> actual) throws WrongBrand {
-        if (!(null != expected ? expected.equals(actual) : null == actual)) {
-            throw new WrongBrand(expected, actual);
-        }
+    static public <P> boolean
+    equal(final P a, final P b) { return null != a ? a.equals(b) : null == b; }
+    
+    /**
+     * Requires that one brand is the same as another.
+     * @param <T> purpose of this brand
+     * @param expected  brand compared against
+     * @param actual    brand compared to 
+     * @throws WrongBrand   {@code actual} is not {@code expected}
+     */
+    static public <T> void
+    require(final Brand<T> expected, final Brand<T> actual) throws WrongBrand {
+        if (!equal(expected, actual)) { throw new WrongBrand(expected,actual); }
     }
 }
