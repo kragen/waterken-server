@@ -78,34 +78,49 @@ JSONParser {
         try {
             if (null == lexer.next()) { throw new EOFException(); }
             if (!"[".equals(lexer.getHead())) { throw new Exception(); }
+            
+            // Check for varargs.
+            final Type vparam;
+            final Class<?> vclass;
+            if (0 == parameters.length) {
+                vparam = vclass = null;
+            } else {
+                final Type last = parameters[parameters.length - 1];
+                if (last instanceof GenericArrayType) {
+                    vparam = ((GenericArrayType)last).getGenericComponentType();
+                    vclass = Typedef.raw(vparam);
+                } else if (last instanceof Class && ((Class<?>)last).isArray()){
+                    vparam = vclass = ((Class<?>)last).getComponentType();
+                } else {
+                    vparam = vclass = null;
+                }
+            }
+            
+            // Parse the received data.
             final ConstArray.Builder<Object> r =
                 ConstArray.builder(parameters.length);
             if (!"]".equals(lexer.next())) {
                 while (true) {
-                    if (r.length() < parameters.length) {
-                        final Type parameter = parameters[r.length()];
-                        if (r.length() == parameters.length - 1 &&
-                            parameter instanceof GenericArrayType) {
-                            final Type vparam = ((GenericArrayType)parameter).
-                                getGenericComponentType();
-                            final Class<?> vclass = Typedef.raw(vparam);
-                            Object vargs = Array.newInstance(vclass, 1);
-                            for (int i = 0; true; ++i) {
-                                Array.set(vargs, i, parseValue(vparam));
-                                if ("]".equals(lexer.getHead())) { break; }
-                                if (!",".equals(lexer.getHead())) {
-                                    throw new Exception();
-                                }
-                                lexer.next();
-                                System.arraycopy(vargs, 0,
-                                    vargs = Array.newInstance(vclass, i + 2), 0,
-                                    i + 1);
+                    if (null != vclass && r.length() == parameters.length - 1) {
+                        Object vargs = Array.newInstance(vclass, 1);
+                        for (int j = 0; true; ++j) {
+                            Array.set(vargs, j, parseValue(vparam));
+                            if ("]".equals(lexer.getHead())) { break; }
+                            if (!",".equals(lexer.getHead())) {
+                                throw new Exception();
                             }
-                            r.append(vargs);
-                            break;
+                            lexer.next();
+                            System.arraycopy(vargs, 0,
+                                vargs = Array.newInstance(vclass, j + 2), 0,
+                                j + 1);
                         }
-                        r.append(parseValue(parameter));
+                        r.append(vargs);
+                        break;
+                    }
+                    if (r.length() < parameters.length) {
+                        r.append(parseValue(parameters[r.length()]));
                     } else {
+                        // Discard extra arguments.
                         parseValue(Object.class);
                     }
                     if ("]".equals(lexer.getHead())) { break; }
@@ -115,14 +130,13 @@ JSONParser {
             }
             if (null != lexer.next()) { throw new Exception(); }
             lexer.close();
+            
+            // Fill out any remaining parameters with default values.
             while (r.length() < parameters.length) {
-                final Type parameter = parameters[r.length()];
-                if (r.length() == parameters.length - 1 &&
-                    parameter instanceof GenericArrayType) {
-                    r.append(Array.newInstance(Typedef.raw(((GenericArrayType)
-                            parameter).getGenericComponentType()), 0));
+                if (null != vclass && r.length() == parameters.length - 1) {
+                    r.append(Array.newInstance(vclass, 0));
                 } else {
-                    r.append(Syntax.defaultValue(parameter));
+                    r.append(Syntax.defaultValue(parameters[r.length()]));
                 }
             }
             return r.snapshot();
