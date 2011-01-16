@@ -468,6 +468,7 @@ JSONParser {
 
     static private String
     string(final String token) throws Exception {
+        if (null == token) { throw new EOFException(); }
         if (!token.startsWith("\"")) { throw new WrongToken("\""); }
         return token.substring(1, token.length() - 1);
     }
