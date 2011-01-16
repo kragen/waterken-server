@@ -62,8 +62,8 @@ Pipeline implements Equatable, Serializable {
     private         int trailingIndex = -1; // last queued window index
     
     /*
-     * Message sending is halted before an Update that follows a Query. Sending
-     * resumes once the response to the Query has been received.
+     * Message sending is halted before an update that follows a query. Sending
+     * resumes once the response to the query has been received.
      */
 
     protected
@@ -363,12 +363,19 @@ Pipeline implements Equatable, Serializable {
     dequeue(final long mid) {
         if (mid != acknowledged) { throw new RuntimeException(); }
         
+        int completedQueries = 0;
         final Operation front = pending.pop();
         acknowledged += 1;
+        if (front.isQuery) {
+            completedQueries += 1;
+        }
         while (!pending.isEmpty() && pending.getFront() instanceof Task) {
-            enqueue.apply(new ResolveTask((Task)pending.pop(),
-            							  name + "-0-" + acknowledged));
+            final Task task = (Task)pending.pop();
+            enqueue.apply(new ResolveTask(task, name + "-0-" + acknowledged));
             acknowledged += 1;
+            if (task.isQuery) {
+                completedQueries += 1;
+            }
         }
         if (pending.isEmpty()) {
             activeWindow += 1;
@@ -381,9 +388,9 @@ Pipeline implements Equatable, Serializable {
             if (front.isUpdate) {
                 activeIndex += 1;
             }
-            if (front.isQuery) {
+            if (0 != completedQueries) {
                 if (0 == halts) {
-                    queries -= 1;
+                    queries -= completedQueries;
                 } else {
                     /*
                      * restart message sending if this was the last query we

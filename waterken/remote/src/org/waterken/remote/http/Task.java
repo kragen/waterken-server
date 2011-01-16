@@ -16,8 +16,8 @@ Task extends Operation {
     static private final long serialVersionUID = 1L;
     
     protected
-    Task(final boolean isQuery, final boolean isUpdate) {
-        super(isQuery, isUpdate);
+    Task(final boolean isQuery) {
+        super(isQuery, false);
     }
 
     protected final @Override Message<Request>

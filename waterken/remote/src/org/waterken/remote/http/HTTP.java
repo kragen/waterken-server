@@ -408,7 +408,7 @@ HTTP extends Eventual implements Serializable {
             class Flush extends Task {
                 static private final long serialVersionUID = 1L;
 
-                Flush(final boolean isQuery) { super(isQuery, false); }
+                Flush(final boolean isQuery) { super(isQuery); }
 
                 public void
                 resolve(final String guid) {
