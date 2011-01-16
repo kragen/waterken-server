@@ -78,9 +78,6 @@ JSONParser {
     public ConstArray<?>
     readTuple(final Type... parameters) throws IOException, BadSyntax {
         try {
-            if (null == lexer.next()) { throw new EOFException(); }
-            require("[", lexer.getHead());
-            
             // Check for varargs.
             final Type vparam;
             final Class<?> vclass;
@@ -101,6 +98,7 @@ JSONParser {
             // Parse the received data.
             final ConstArray.Builder<Object> r =
                 ConstArray.builder(parameters.length);
+            require("[", lexer.next());
             if (!"]".equals(lexer.next())) {
                 while (true) {
                     if (null != vclass && r.length() == parameters.length - 1) {
@@ -159,7 +157,7 @@ JSONParser {
     public Object
     readValue(final Type type) throws IOException, BadSyntax {
         try {
-            if (null == lexer.next()) { throw new EOFException(); }
+            lexer.next();
             final Object r = parseValue(type);
             require(null, lexer.next());
             lexer.close();
@@ -179,6 +177,7 @@ JSONParser {
     private Object
     parseValue(final Type required) throws Exception {
         final String token = lexer.getHead();
+        if (null == token) { throw new EOFException(); }
         return "[".equals(token) ? parseArray(required)
         : "{".equals(token) ? parseObject(required)
         : token.startsWith("\"") ? parseString(required)
