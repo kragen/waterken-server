@@ -4,6 +4,7 @@ package org.waterken.syntax;
 
 import org.joe_e.Powerless;
 import org.ref_send.deserializer;
+import org.ref_send.name;
 import org.ref_send.brand.Brand;
 
 /**
@@ -22,7 +23,7 @@ public class WrongToken extends RuntimeException implements Powerless {
      * @param expected  {@link #expected}
      */
     public @deserializer
-    WrongToken(final String expected) {
+    WrongToken(@name("expected") final String expected) {
         super(expected);
         this.expected = expected;
     }
