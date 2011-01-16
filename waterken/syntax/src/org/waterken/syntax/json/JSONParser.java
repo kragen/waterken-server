@@ -3,6 +3,7 @@
 package org.waterken.syntax.json;
 
 import static org.ref_send.promise.Eventual.ref;
+import static org.waterken.syntax.WrongToken.require;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -38,6 +39,7 @@ import org.ref_send.type.Typedef;
 import org.waterken.syntax.BadSyntax;
 import org.waterken.syntax.Importer;
 import org.waterken.syntax.Syntax;
+import org.waterken.syntax.WrongToken;
 
 /**
  * Deserializes a JSON text stream.
@@ -77,7 +79,7 @@ JSONParser {
     readTuple(final Type... parameters) throws IOException, BadSyntax {
         try {
             if (null == lexer.next()) { throw new EOFException(); }
-            if (!"[".equals(lexer.getHead())) { throw new Exception(); }
+            require("[", lexer.getHead());
             
             // Check for varargs.
             final Type vparam;
@@ -106,9 +108,7 @@ JSONParser {
                         for (int j = 0; true; ++j) {
                             Array.set(vargs, j, parseValue(vparam));
                             if ("]".equals(lexer.getHead())) { break; }
-                            if (!",".equals(lexer.getHead())) {
-                                throw new Exception();
-                            }
+                            require(",", lexer.getHead());
                             lexer.next();
                             System.arraycopy(vargs, 0,
                                 vargs = Array.newInstance(vclass, j + 2), 0,
@@ -124,11 +124,11 @@ JSONParser {
                         parseValue(Object.class);
                     }
                     if ("]".equals(lexer.getHead())) { break; }
-                    if (!",".equals(lexer.getHead())) { throw new Exception(); }
+                    require(",", lexer.getHead());
                     lexer.next();
                 }
             }
-            if (null != lexer.next()) { throw new Exception(); }
+            require(null, lexer.next());
             lexer.close();
             
             // Fill out any remaining parameters with default values.
@@ -161,7 +161,7 @@ JSONParser {
         try {
             if (null == lexer.next()) { throw new EOFException(); }
             final Object r = parseValue(type);
-            if (null != lexer.next()) { throw new Exception(); }
+            require(null, lexer.next());
             lexer.close();
             return r;
         } catch (final IOException e) {
@@ -239,7 +239,7 @@ JSONParser {
         final Type expected = null != promised ? promised : required;
         final Object value;
         if (char.class == expected || Character.class == expected) {
-            if (1 != text.length()) { throw new Exception(); }
+            if (1 != text.length()) { throw new WrongToken("\""); }
             value = Character.valueOf(text.charAt(0));          // intern value
         } else {
             value = text;
@@ -250,7 +250,7 @@ JSONParser {
 
     private Object
     parseArray(final Type required) throws Exception {
-        if (!"[".equals(lexer.getHead())) { throw new Exception(); }
+        require("[", lexer.getHead());
         final Type promised = Typedef.value(R, required);
         final Type expected = null != promised ? promised : required;
         final Class<?> rawExpected = Typedef.raw(expected);
@@ -274,7 +274,7 @@ JSONParser {
             while (true) {
                 builder.append(parseValue(elementT));
                 if ("]".equals(lexer.getHead())) { break; }
-                if (!",".equals(lexer.getHead())) { throw new Exception(); }
+                require(",", lexer.getHead());
                 lexer.next();
             }
         }
@@ -285,7 +285,7 @@ JSONParser {
 
     private Object
     parseObject(final Type required) throws Exception {
-        if (!"{".equals(lexer.getHead())) { throw new Exception(); }
+        require("{", lexer.getHead());
         lexer.next();       // skip past the opening curly
 
         /*
@@ -308,7 +308,7 @@ JSONParser {
         final Type expected = null != promised ? promised : required;
         Class<?>[] types = new Class<?>[] { Typedef.raw(expected) };
         if (null != code && "\"class\"".equals(lexer.getHead())) {
-            if (!":".equals(lexer.next())) { throw new Exception(); }
+            require(":", lexer.next());
             lexer.next();
             final Object value = parseValue(PowerlessArray.class);
             names.append("class");
@@ -386,7 +386,7 @@ JSONParser {
         if (!"}".equals(lexer.getHead())) {
             while (true) {
                 final String name = string(lexer.getHead());
-                if (!":".equals(lexer.next())) { throw new Exception(); }
+                require(":", lexer.next());
                 lexer.next();
                 int slot = namev.length;
                 while (0 != slot-- && !name.equals(namev[slot])) {}
@@ -407,7 +407,7 @@ JSONParser {
                     values.append(value);
                 }
                 if ("}".equals(lexer.getHead())) { break; }
-                if (!",".equals(lexer.getHead())) { throw new Exception(); }
+                require(",", lexer.getHead());
                 lexer.next();
             }
         }
@@ -469,7 +469,7 @@ JSONParser {
 
     static private String
     string(final String token) throws Exception {
-        if (!token.startsWith("\"")) { throw new Exception(); }
+        if (!token.startsWith("\"")) { throw new WrongToken("\""); }
         return token.substring(1, token.length() - 1);
     }
 
