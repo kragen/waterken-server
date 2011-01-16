@@ -108,8 +108,8 @@ JSONWriter {
     make(final Writer out) { return new JSONWriter(true, "", out); }
 
     /**
-     * @return <code>true</code> if a single JSON value was successfully
-     *         written, else <code>false</code>
+     * @return {@code true} if a single JSON value was successfully written,
+     *         else {@code false}
      */
     public boolean
     isWritten() { return written.is(); }
@@ -178,9 +178,9 @@ JSONWriter {
          * recently created child value and only writing to the output stream if
          * that child has been written and the container itself has not been
          * finished. At any time, there may be multiple unfinished containers,
-         * but only one of them could have a written child, since a JSON
-         * structure is a tree and an unfinished container value is not marked
-         * as written.
+         * but only one of them could have a written child but not itself be
+         * finished, since a JSON structure is a tree and an unfinished
+         * container value is not marked as written.
          */
     }
 
@@ -260,30 +260,35 @@ JSONWriter {
     }
     
     /**
-     * maximum magnitude of a Javascript number: {@value}
+     * maximum magnitude of a JavaScript number: {@value}
      */
-    static public final long maxMagnitude = (1L << 53) - 1; // = 2^53 - 1
+    static public final long maxMagnitude = 1L << 53;   // = 2^53
+    
+    /**
+     * Signals a number that cannot be represented in JavaScript.
+     */
+    static public final ArithmeticException NaN = new ArithmeticException();
 
     public void
     writeLong(final long value) throws ArithmeticException, IOException {
-        if (value > maxMagnitude) { throw new ArithmeticException(); }
-        if (value < -maxMagnitude) { throw new ArithmeticException(); }
+        if (value > maxMagnitude) { throw NaN; }
+        if (value < -maxMagnitude) { throw NaN; }
 
         writePrimitive(Long.toString(value));
     }
 
     public void
     writeFloat(final float value) throws ArithmeticException, IOException {
-        if (Float.isNaN(value)) { throw new ArithmeticException(); }
-        if (Float.isInfinite(value)) { throw new ArithmeticException(); }
+        if (Float.isNaN(value)) { throw NaN; }
+        if (Float.isInfinite(value)) { throw NaN; }
         
         writePrimitive(Float.toString(value));
     }
 
     public void
     writeDouble(final double value) throws ArithmeticException, IOException {
-        if (Double.isNaN(value)) { throw new ArithmeticException(); }
-        if (Double.isInfinite(value)) { throw new ArithmeticException(); }
+        if (Double.isNaN(value)) { throw NaN; }
+        if (Double.isInfinite(value)) { throw NaN; }
         
         writePrimitive(Double.toString(value));
     }

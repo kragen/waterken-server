@@ -168,8 +168,7 @@ JSONSerializer extends Struct implements Serializer, Record, Serializable {
             } else if (num.bitLength() < Long.SIZE) {
                 serialize(export, implicit, num.longValue(), out);
             } else {
-                serialize(export, implicit,
-                          JSONerror.make(new ArithmeticException()), out);
+                serialize(export, implicit, JSONerror.make(JSONWriter.NaN),out);
             }
         } else if (BigDecimal.class == actual) {
             serialize(export, implicit, ((BigDecimal)value).doubleValue(), out);
