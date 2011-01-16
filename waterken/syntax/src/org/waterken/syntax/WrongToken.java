@@ -30,6 +30,13 @@ public class WrongToken extends RuntimeException implements Powerless {
         this.expected = expected;
     }
     
+    /**
+     * Requires a token to have an expected value.
+     * @param expected  expected token
+     * @param actual    actual token
+     * @throws WrongToken   {@code actual} is not {@code expected}
+     * @throws EOFException {@code actual) is {@code null}
+     */
     static public void
     require(final String expected, final String actual) throws WrongToken,
                                                                EOFException {
