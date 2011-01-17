@@ -6,19 +6,16 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
 
-import org.joe_e.array.IntArray;
-import org.joe_e.array.PowerlessArray;
-import org.waterken.syntax.TextStream;
-import org.waterken.syntax.WrongToken;
+import org.waterken.syntax.SourceReader;
 
 /**
  * A JSON token reader.
  */
 public final class
 JSONLexer {
-    private final TextStream s;
-    private       int line;     // start line of the head token
-    private       int column;   // start column of the head token
+    private final SourceReader s;
+    private       int line;
+    private       int column;
     private       String head;
     
     /**
@@ -27,7 +24,7 @@ JSONLexer {
      */
     public
     JSONLexer(final Reader in) {
-        s = new TextStream(in);
+        s = new SourceReader(in);
         line = s.getLine();
         column = s.getColumn();
         head = "";              // empty token indicates start of token stream
@@ -36,14 +33,16 @@ JSONLexer {
     // org.waterken.syntax.json.JSONLexer interface
     
     /**
-     * Gets the location of the most recently {@linkplain #next read} token.
+     * Gets the line number of the {@linkplain #getHead head} token.
      */
-    public PowerlessArray<IntArray>
-    getSpan() {
-        return PowerlessArray.array(
-            IntArray.array(line, column),
-            IntArray.array(s.getLine(), s.getColumn()));
-    }
+    public int
+    getLine() { return line; }
+    
+    /**
+     * Gets the column number of the {@linkplain #getHead head} token.
+     */
+    public int
+    getColumn() { return column; }
     
     /**
      * Gets the most recently {@linkplain #next read} token.
@@ -107,15 +106,15 @@ JSONLexer {
         line = s.getLine();
         column = s.getColumn();
         s.close();
-        if (-1 != c) { throw new WrongToken(null); }
+        if (-1 != c) { throw new IllegalStateException(); }
     }
     
     // rest of implementation consists of static helper functions
     
-    static private final String whitespace = " \t" + TextStream.newLine;
+    static private final String whitespace = " \t" + SourceReader.newLine;
     
     static private int
-    skipWhitespace(final TextStream s) throws IOException {
+    skipWhitespace(final SourceReader s) throws IOException {
         int c = s.getHead();
         while (whitespace.indexOf(c) != -1) {
             c = s.read();
@@ -126,7 +125,7 @@ JSONLexer {
     static private final String delimiter = whitespace + ",{:}[]\"";
     
     static private String
-    readKeyword(final TextStream s) throws IOException {
+    readKeyword(final SourceReader s) throws IOException {
         final StringBuilder r = new StringBuilder();
         int c = s.getHead();
         do {
@@ -137,7 +136,7 @@ JSONLexer {
     }
     
     static private String
-    readString(final TextStream s) throws Exception {
+    readString(final SourceReader s) throws Exception {
         final StringBuilder r = new StringBuilder();
         r.append((char)s.getHead());
         while (true) {
@@ -155,7 +154,7 @@ JSONLexer {
     }
     
     static private char
-    readEscape(final TextStream s) throws Exception {
+    readEscape(final SourceReader s) throws Exception {
         switch (s.read()) {
         case '\"': return '\"';
         case '\\': return '\\';
@@ -171,7 +170,7 @@ JSONLexer {
     }
     
     static private char
-    readUnicodeEscape(final TextStream s) throws Exception {
+    readUnicodeEscape(final SourceReader s) throws Exception {
         return (char)((hex(s.read()) << 12) |
                       (hex(s.read()) <<  8) |
                       (hex(s.read()) <<  4) |

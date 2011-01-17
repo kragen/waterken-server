@@ -141,7 +141,8 @@ JSONParser {
             throw e;
         } catch (final Exception e) {
             try { lexer.close(); } catch (final Exception e2) {}
-            throw new BadSyntax(base, lexer.getSpan(), e);
+            throw new BadSyntax(base, PowerlessArray.array(
+                IntArray.array(lexer.getLine(), lexer.getColumn())), e);
         }
     }
 
@@ -164,7 +165,8 @@ JSONParser {
             throw e;
         } catch (final Exception e) {
             try { lexer.close(); } catch (final Exception e2) {}
-            throw new BadSyntax(base, lexer.getSpan(), e);
+            throw new BadSyntax(base, PowerlessArray.array(
+                IntArray.array(lexer.getLine(), lexer.getColumn())), e);
         }
     }
 

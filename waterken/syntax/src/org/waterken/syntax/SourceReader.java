@@ -11,7 +11,7 @@ import java.io.Reader;
  * as the most recent character {@linkplain #read read}.
  */
 public final class
-TextStream {
+SourceReader {
     private final Reader in;
     private       int line; 
     private       int column;
@@ -22,7 +22,7 @@ TextStream {
      * @param in    underlying character stream
      */
     public
-    TextStream(final Reader in) {
+    SourceReader(final Reader in) {
         this.in = in;
         line = 0;       // position (0, 0) means nothing has been read yet
         column = 0;
@@ -30,13 +30,13 @@ TextStream {
     }
     
     /**
-     * Gets the line number of the {@linkplain #getHead head} character
+     * Gets the line number of the {@linkplain #getHead head} character.
      */
     public int
     getLine() { return line; }
     
     /**
-     * Gets the column number of the {@linkplain #getHead head} character
+     * Gets the column number of the {@linkplain #getHead head} character.
      */
     public int
     getColumn() { return column; }
