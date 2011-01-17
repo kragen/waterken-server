@@ -8,74 +8,18 @@ import java.io.Reader;
 
 import org.joe_e.array.IntArray;
 import org.joe_e.array.PowerlessArray;
+import org.waterken.syntax.TextStream;
+import org.waterken.syntax.WrongToken;
 
 /**
  * A JSON token reader.
  */
 public final class
 JSONLexer {
-    
-    /**
-     * A text reader that keeps track of the current line and column number, as
-     * well as the most recent character {@linkplain #read read}.
-     */
-    static private final class
-    Stream {
-        private final Reader in;
-        private       int line;     // line number of the head character
-        private       int column;   // column number of the head character
-        private       int head;     // most recent character read, or -1 for EOF
-        
-        protected
-        Stream(final Reader in) {
-            this.in = in;
-            line = 0;       // position (0, 0) means nothing has been read yet
-            column = 0;
-            head = '\n';    // will put the stream at (1, 1) on first read op
-        }
-        
-        protected int
-        getLine() { return line; }
-        
-        protected int
-        getColumn() { return column; }
-        
-        protected int
-        getHead() { return head; }
-        
-        /**
-         * all Unicode line terminators
-         */
-        static protected final String newLine = "\n\r\u0085\u000C\u2028\u2029";
-        
-        protected int
-        read() throws IOException {
-            if (-1 == head) { throw new EOFException(); }
-            
-            final int next = in.read();
-            if (-1 == newLine.indexOf(head) || ('\r' == head && '\n' == next)) {
-                ++column;
-            } else {
-                ++line;
-                column = 1;
-            }
-            return head = next;
-        }
-        
-        public void
-        close() throws IOException {
-            if (-1 != head) {
-                ++column;
-                head = -1;
-            }
-            in.close();
-        }
-    }
-    
-    private final Stream s;
+    private final TextStream s;
     private       int line;     // start line of the head token
     private       int column;   // start column of the head token
-    private       String head;  // most recent token read, or null for EOF
+    private       String head;
     
     /**
      * Constructs an instance.
@@ -83,7 +27,7 @@ JSONLexer {
      */
     public
     JSONLexer(final Reader in) {
-        s = new Stream(in);
+        s = new TextStream(in);
         line = s.getLine();
         column = s.getColumn();
         head = "";              // empty token indicates start of token stream
@@ -97,32 +41,33 @@ JSONLexer {
     public PowerlessArray<IntArray>
     getSpan() {
         return PowerlessArray.array(
-                IntArray.array(line, column),
-                IntArray.array(s.getLine(), s.getColumn()));
+            IntArray.array(line, column),
+            IntArray.array(s.getLine(), s.getColumn()));
     }
     
     /**
      * Gets the most recently {@linkplain #next read} token.
-     * @return most recent token, or <code>null</code> if EOF
+     * @return most recent token, or {@code null} if EOF
      */
     public String
     getHead() { return head; }
     
     /**
      * Move to the next token in the input stream.
-     * @return newly read token, or <code>null</code> if EOF
+     * @return newly read token
+     * @throws EOFException EOF
      * @throws IOException  any I/O error
      * @throws Exception    invalid character escape
      */
     public String
-    next() throws IOException, Exception {
+    next() throws EOFException, IOException, Exception {
         final int c = skipWhitespace(s);
         line = s.getLine();
         column = s.getColumn();
         switch (c) {
         case -1:
             head = null;
-            break;
+            throw new EOFException();
         case ',':
             head = ",";
             s.read();
@@ -158,15 +103,19 @@ JSONLexer {
     
     public void
     close() throws IOException {
+        final int c = skipWhitespace(s);
+        line = s.getLine();
+        column = s.getColumn();
         s.close();
+        if (-1 != c) { throw new WrongToken(null); }
     }
     
     // rest of implementation consists of static helper functions
     
-    static private final String whitespace = " \t" + Stream.newLine;
+    static private final String whitespace = " \t" + TextStream.newLine;
     
     static private int
-    skipWhitespace(final Stream s) throws IOException {
+    skipWhitespace(final TextStream s) throws IOException {
         int c = s.getHead();
         while (whitespace.indexOf(c) != -1) {
             c = s.read();
@@ -177,7 +126,7 @@ JSONLexer {
     static private final String delimiter = whitespace + ",{:}[]\"";
     
     static private String
-    readKeyword(final Stream s) throws IOException {
+    readKeyword(final TextStream s) throws IOException {
         final StringBuilder r = new StringBuilder();
         int c = s.getHead();
         do {
@@ -188,7 +137,7 @@ JSONLexer {
     }
     
     static private String
-    readString(final Stream s) throws Exception {
+    readString(final TextStream s) throws Exception {
         final StringBuilder r = new StringBuilder();
         r.append((char)s.getHead());
         while (true) {
@@ -206,7 +155,7 @@ JSONLexer {
     }
     
     static private char
-    readEscape(final Stream s) throws Exception {
+    readEscape(final TextStream s) throws Exception {
         switch (s.read()) {
         case '\"': return '\"';
         case '\\': return '\\';
@@ -222,7 +171,7 @@ JSONLexer {
     }
     
     static private char
-    readUnicodeEscape(final Stream s) throws Exception {
+    readUnicodeEscape(final TextStream s) throws Exception {
         return (char)((hex(s.read()) << 12) |
                       (hex(s.read()) <<  8) |
                       (hex(s.read()) <<  4) |
@@ -231,9 +180,9 @@ JSONLexer {
     
     static private int
     hex(final int c) throws Exception {
-        if ('0' <= c && '9' >= c) {        return (c - '0'     ) & 0x0F; }
-        else if ('A' <= c && 'F' >= c) {   return (c - 'A' + 10) & 0x0F; }
-        else if ('a' <= c && 'f' >= c) {   return (c - 'a' + 10) & 0x0F; }
+        if ('0' <= c && '9' >= c) {        return c - '0'     ; }
+        else if ('A' <= c && 'F' >= c) {   return c - 'A' + 10; }
+        else if ('a' <= c && 'f' >= c) {   return c - 'a' + 10; }
         else { throw new Exception("0x" + Integer.toHexString(c)); }
     }
 }

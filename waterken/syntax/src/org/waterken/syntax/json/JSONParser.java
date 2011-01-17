@@ -5,7 +5,6 @@ package org.waterken.syntax.json;
 import static org.ref_send.promise.Eventual.ref;
 import static org.waterken.syntax.WrongToken.require;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
@@ -105,7 +104,7 @@ JSONParser {
                         Object vargs = Array.newInstance(vclass, 1);
                         for (int j = 0; true; ++j) {
                             Array.set(vargs, j, parseValue(vparam));
-                            if ("]".equals(lexer.getHead())) { break; }
+                            if ("]".equals(lexer.next())) { break; }
                             require(",", lexer.getHead());
                             lexer.next();
                             System.arraycopy(vargs, 0,
@@ -121,12 +120,11 @@ JSONParser {
                         // Discard extra arguments.
                         parseValue(Object.class);
                     }
-                    if ("]".equals(lexer.getHead())) { break; }
+                    if ("]".equals(lexer.next())) { break; }
                     require(",", lexer.getHead());
                     lexer.next();
                 }
             }
-            require(null, lexer.next());
             lexer.close();
             
             // Fill out any remaining parameters with default values.
@@ -159,7 +157,6 @@ JSONParser {
         try {
             lexer.next();
             final Object r = parseValue(type);
-            require(null, lexer.next());
             lexer.close();
             return r;
         } catch (final IOException e) {
@@ -177,7 +174,6 @@ JSONParser {
     private Object
     parseValue(final Type required) throws Exception {
         final String token = lexer.getHead();
-        if (null == token) { throw new EOFException(); }
         return "[".equals(token) ? parseArray(required)
         : "{".equals(token) ? parseObject(required)
         : token.startsWith("\"") ? parseString(required)
@@ -227,7 +223,6 @@ JSONParser {
                 value = x;
             }
         }
-        lexer.next();   // pop the keyword from the stream
         return null != promised ? ref(value) : value;
     }
 
@@ -243,7 +238,6 @@ JSONParser {
         } else {
             value = text;
         }
-        lexer.next();   // pop the string from the stream
         return null != promised ? ref(value) : value;
     }
 
@@ -272,12 +266,11 @@ JSONParser {
             final Type elementT = Typedef.value(T, expected);
             while (true) {
                 builder.append(parseValue(elementT));
-                if ("]".equals(lexer.getHead())) { break; }
+                if ("]".equals(lexer.next())) { break; }
                 require(",", lexer.getHead());
                 lexer.next();
             }
         }
-        lexer.next();   // skip past the closing bracket
         final ConstArray<?> value = builder.snapshot();
         return null != promised ? ref(value) : value;
     }
@@ -341,7 +334,7 @@ JSONParser {
                     }
                 }
             }
-            if (",".equals(lexer.getHead())) { lexer.next(); }
+            if (",".equals(lexer.next())) { lexer.next(); }
         }
         final Constructor<?> make; {
             Constructor<?> c = null;
@@ -405,12 +398,11 @@ JSONParser {
                     names.append(name);
                     values.append(value);
                 }
-                if ("}".equals(lexer.getHead())) { break; }
+                if ("}".equals(lexer.next())) { break; }
                 require(",", lexer.getHead());
                 lexer.next();
             }
         }
-        lexer.next();       // skip past the closing curly
 
         final PowerlessArray<String> undeclared = names.snapshot();
         final int rejected = find("!", undeclared);
@@ -468,7 +460,6 @@ JSONParser {
 
     static private String
     string(final String token) throws Exception {
-        if (null == token) { throw new EOFException(); }
         if (!token.startsWith("\"")) { throw new WrongToken("\""); }
         return token.substring(1, token.length() - 1);
     }

@@ -2,12 +2,9 @@
 // http://www.opensource.org/licenses/mit-license.html
 package org.waterken.syntax;
 
-import java.io.EOFException;
-
 import org.joe_e.Powerless;
 import org.ref_send.deserializer;
 import org.ref_send.name;
-import org.ref_send.brand.Brand;
 
 /**
  * Signals parsed data did not contain an expected token at a required position.
@@ -35,14 +32,9 @@ public class WrongToken extends RuntimeException implements Powerless {
      * @param expected  expected token
      * @param actual    actual token
      * @throws WrongToken   {@code actual} is not {@code expected}
-     * @throws EOFException {@code actual} is {@code null}
      */
     static public void
-    require(final String expected, final String actual) throws WrongToken,
-                                                               EOFException {
-        if (!Brand.equal(expected, actual)) {
-            if (null == actual) { throw new EOFException(); }
-            throw new WrongToken(expected);
-        }
+    require(final String expected, final String actual) throws WrongToken {
+        if (!expected.equals(actual)) { throw new WrongToken(expected); }
     }
 }
