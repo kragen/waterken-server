@@ -2,7 +2,6 @@
 // found at http://www.opensource.org/licenses/mit-license.html
 package org.ref_send.type;
 
-import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -41,21 +40,20 @@ Typedef {
     value(final TypeVariable<?> p, final Type a) {
         Type r;
         final Class<?> template = raw(a);
-        final GenericDeclaration declaration = p.getGenericDeclaration();
-        if (declaration.equals(template)) {
+        final Class<?> declaration = (Class<?>)p.getGenericDeclaration();
+        if (declaration == template) {
             r = p;
-        } else {
+        } else if (declaration.isAssignableFrom(template)) {
             r = null;
             for (final Type i : template.getGenericInterfaces()) {
                 r = value(p, i);
                 if (null != r) { break; }
             }
             if (null == r) {
-                final Type extended = template.getGenericSuperclass();
-                if (null != extended) {
-                    r = value(p, extended);
-                }
+                r = value(p, template.getGenericSuperclass());
             }
+        } else {
+            return null;
         }
         if (r instanceof TypeVariable<?>) {
             if (a instanceof ParameterizedType) {
