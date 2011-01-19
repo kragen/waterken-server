@@ -11,7 +11,7 @@ import org.joe_e.array.ConstArray;
  * A <code>{ name : value }</code> record.
  * @param <T> nominal type
  */
-public final class
+public class
 Scope<T> implements Selfless, Serializable {
     static private final long serialVersionUID = 1L;
 
@@ -25,17 +25,21 @@ Scope<T> implements Selfless, Serializable {
      */
     public final ConstArray<?> values;
 
-    /**
-     * Constructs an instance.
-     * @param meta      {@link #meta}
-     * @param values    {@link #values}
-     */
-    public
     Scope(final Layout<T> meta, final ConstArray<?> values) {
         if (meta.names.length()!=values.length()){throw new RuntimeException();}
 
         this.meta = meta;
         this.values = values;
+    }
+    
+    /**
+     * Constructs an instance.
+     * @param meta      {@link #meta}
+     * @param values    {@link #values}
+     */
+    static public <T> Scope<T>
+    make(final Layout<T> meta, final ConstArray<?> values) {
+        return new Scope<T>(meta, values);
     }
 
     // java.lang.Object interface
@@ -47,7 +51,7 @@ Scope<T> implements Selfless, Serializable {
      */
     public boolean
     equals(final Object o) {
-        return null != o && Scope.class == o.getClass() &&
+        return o instanceof Scope &&
                values.equals(((Scope<?>)o).values) &&
                meta.names.equals(((Scope<?>)o).meta.names);
     }
@@ -63,7 +67,7 @@ Scope<T> implements Selfless, Serializable {
     /**
      * Gets the corresponding value.
      * @param name  name to lookup
-     * @return corresponding value, or <code>null</code> if none
+     * @return corresponding value, or {@code null} if none
      */
     public <R> R
     get(final String name) {

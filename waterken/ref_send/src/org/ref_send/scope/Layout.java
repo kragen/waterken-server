@@ -96,7 +96,7 @@ Layout<T> implements Powerless, Record, Selfless, Serializable {
     /**
      * Finds the index of the named member.
      * @param name  searched for member name
-     * @return found index, or <code>-1</code> if not found
+     * @return found index, or {@code -1} if not found
      */
     public int
     find(final String name) {

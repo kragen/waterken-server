@@ -436,8 +436,7 @@ JSONParser {
 
         final Object r;
         if (null == make) {
-            r = new Scope<Object>(new Layout<Object>(undeclared),
-                                  values.snapshot());
+            r = Scope.make(new Layout<Object>(undeclared), values.snapshot());
         } else {
             for (int i = donev.length; 0 != i--;) {
                 if (!donev[i]) {
