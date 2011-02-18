@@ -419,9 +419,12 @@ HTTP extends Eventual implements Serializable {
             final Compose<?,?> outer = observer instanceof Compose<?,?> ?
                 (Compose<?,?>)observer : null;
             final Do<?,?> inner = null != outer ? outer.conditional : observer;
-            final boolean call = inner instanceof Invoke<?>;
+            if (!(inner instanceof Invoke<?>)) {
+                returned.when(T, observer);
+                return;
+            }
         	final Pipeline.Position sent;
-            if (call && msgs.canPipeline(msg.window)) {
+            if (msgs.canPipeline(msg.window)) {
                 final Invoke<?> x = (Invoke<?>)inner;
                 if (null != Dispatch.property(x.method)) {
                     sent = msgs.enqueue(new Flush(true));
@@ -434,7 +437,7 @@ HTTP extends Eventual implements Serializable {
             } else {
             	sent = msgs.enqueue(new Flush(false)); 
             }
-            log.sentIf(call, sent.guid, msg.guid);
+            log.sentIf(true, sent.guid, msg.guid);
         }
     }
 
