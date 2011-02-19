@@ -4,6 +4,7 @@ package org.waterken.remote.http;
 
 import java.io.Serializable;
 
+import org.joe_e.Struct;
 import org.joe_e.array.ConstArray;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Log;
@@ -23,7 +24,7 @@ ServerSideSession implements Serializable {
     private ConstArray<Return> returns;     // returns in current window
 
     static private final class
-    Return implements Serializable {
+    Return extends Struct implements Serializable {
         static private final long serialVersionUID = 1L;
 
         final int message;
