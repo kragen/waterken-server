@@ -136,7 +136,7 @@ Eventual implements Selfless, Serializable {
     /**
      * trusted promise permission
      */
-    private   final Token local;
+    protected final Token local;
 
     /**
      * raw event loop
@@ -191,7 +191,7 @@ Eventual implements Selfless, Serializable {
     public
     Eventual(final Receiver<Promise<?>> enqueue) {
         this(enqueue, "", new Log(),
-           cast(Receiver.class, new Rejected<Receiver<?>>(null)));
+             cast(Receiver.class, new Rejected<Receiver<?>>(null)));
     }
 
     // org.joe_e.Selfless interface
@@ -420,7 +420,8 @@ Eventual implements Selfless, Serializable {
         protected final Eventual _;
         
         protected
-        Local(final Eventual _) {
+        Local(final Eventual _, final Token local) {
+            if (_.local != local) { throw new RuntimeException("forgery"); }
             this._ = _;
         }
 
@@ -508,7 +509,7 @@ Eventual implements Selfless, Serializable {
         final Promise<T> untrusted;
 
         Enqueue(final Eventual _, final Promise<T> untrusted) {
-            super(_);
+            super(_, _.local);
             this.untrusted = untrusted;
         }
 
@@ -769,7 +770,7 @@ Eventual implements Selfless, Serializable {
         final Promise<State<T>> state;      // promise's mutable state
 
         Tail(final Eventual _, final State<T> state) {
-            super(_);
+            super(_, _.local);
             this.state = new Fulfilled<State<T>>(false, state);
         }
 

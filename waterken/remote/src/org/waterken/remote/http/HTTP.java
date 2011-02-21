@@ -144,7 +144,7 @@ HTTP extends Eventual implements Serializable {
 
         protected
         Remote(final HTTP _, final String href) {
-            super(_);
+            super(_, _.local);
             if (null == href) { throw new NullPointerException(); }
             this.href = href;
         }
@@ -385,7 +385,7 @@ HTTP extends Eventual implements Serializable {
         protected
         PipelinePromise(final HTTP _, final Pipeline msgs,
                         final Pipeline.Position msg, final Local<T> returned) {
-            super(_);
+            super(_, _.local);
             this.msgs = msgs;
             this.msg = msg;
             this.returned = returned;
