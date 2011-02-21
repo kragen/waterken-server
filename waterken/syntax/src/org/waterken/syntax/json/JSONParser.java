@@ -213,8 +213,8 @@ JSONParser {
         } else if (token.indexOf('.') != -1 ||
                    token.indexOf('e') != -1 || token.indexOf('E') != -1) {
             // accepts a superset of JSON
-            final float fvalue = Float.parseFloat(token);
             final double dvalue = Double.parseDouble(token);
+            final float fvalue = (float)dvalue;
             if (fvalue == dvalue) {
                 // Since widening conversion does not lose information, enable
                 // compatibility with both float and double parameters.
