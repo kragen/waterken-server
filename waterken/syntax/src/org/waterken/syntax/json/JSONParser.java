@@ -212,7 +212,16 @@ JSONParser {
             value = new BigDecimal(token);
         } else if (token.indexOf('.') != -1 ||
                    token.indexOf('e') != -1 || token.indexOf('E') != -1) {
-            value = Double.valueOf(token);  // accepts a superset of JSON
+            // accepts a superset of JSON
+            final float fvalue = Float.parseFloat(token);
+            final double dvalue = Double.parseDouble(token);
+            if (fvalue == dvalue) {
+                // Since widening conversion does not lose information, enable
+                // compatibility with both float and double parameters.
+                value = Float.valueOf(fvalue); 
+            } else {
+                value = Double.valueOf(dvalue);
+            }
         } else {
             final BigInteger x = new BigInteger(token);
             int bits = x.bitLength();
