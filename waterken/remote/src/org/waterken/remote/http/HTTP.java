@@ -133,7 +133,7 @@ HTTP extends Eventual implements Serializable {
     /**
      * A remote reference.
      */
-    protected final class
+    static protected final class
     Remote extends Local<Object> {
         static private final long serialVersionUID = 1L;
 
@@ -143,7 +143,8 @@ HTTP extends Eventual implements Serializable {
         protected final String href;
 
         protected
-        Remote(final String href) {
+        Remote(final HTTP _, final String href) {
+            super(_);
             if (null == href) { throw new NullPointerException(); }
             this.href = href;
         }
@@ -159,7 +160,7 @@ HTTP extends Eventual implements Serializable {
         equals(final Object x) {
             return x instanceof Remote &&
                    href.equals(((Remote)x).href) &&
-                   HTTP.this.equals(((Remote)x).getScope());
+                   _.equals(((Remote)x)._);
         }
 
         /**
@@ -174,7 +175,7 @@ HTTP extends Eventual implements Serializable {
         call() throws Exception {
             if (!isPromise(URI.fragment("", href))) { throw new Unresolved(); }
             final String promiseKey = ".promise-" + URLEncoding.encode(href);
-            final Promise<?> promise = root.fetch(null, promiseKey);
+            final Promise<?> promise = ((HTTP)_).root.fetch(null, promiseKey);
             if (null == promise) { throw new Unresolved(); }
             return promise.call();
         }
@@ -184,16 +185,14 @@ HTTP extends Eventual implements Serializable {
         public Remote
         shorten() { return this; }
 
-        public void
-        when(Class<?> T, final Do<Object,?> observer) {
-            final Compose<?,?> outer =
-                observer instanceof Compose<?,?> ? (Compose<?,?>)observer :null;
-            final Do<?,?> inner = null != outer ? outer.conditional : observer;
+        public @Override <R> Promise<R>
+        when(Class<?> T, final Class<?> R,
+             final Do<? super Object, ? extends R> conditional) {
             if (null == T) {
                 // no type information provided, so extract hint from observer
-                T = Typedef.raw(inner instanceof Invoke<?> ?
-                        ((Invoke<?>)inner).method.getDeclaringClass() :
-                        Typedef.value(P, inner.getClass()));
+                T = Typedef.raw(conditional instanceof Invoke<?> ?
+                        ((Invoke<?>)conditional).method.getDeclaringClass() :
+                        Typedef.value(P, conditional.getClass()));
             }
             if (isPromise(URI.fragment("", href))) {
                 /*
@@ -204,39 +203,62 @@ HTTP extends Eventual implements Serializable {
                  * notified in the same order they were registered.
                  */
                 final String promiseKey = ".promise-"+URLEncoding.encode(href);
-                Promise<?> promise = root.fetch(null, promiseKey);
+                Local<?> promise = ((HTTP)_).root.fetch(null, promiseKey);
                 if (null == promise) {
-                    final Deferred<Object> local = defer();
-                    root.assign(promiseKey, promise = local.promise);
+                    final Deferred<Object> local = _.defer();
+                    promise = (Local<?>)local.promise;
+                    ((HTTP)_).root.assign(promiseKey, promise);
                     peer().when(href, T, local.resolver);
                 }
-                HTTP.this.when(T, Void.class, promise, observer);
-            } else if (inner instanceof Invoke<?>) {
-                final Invoke<?> op = (Invoke<?>)inner;
-                log.sent(peer().invoke(href, -1, T, op.method, op.argv,
-                            		   null!=outer?resolver(outer):null).guid);
+                return promise.when(T, R, conditional);
+            }
+            if (conditional instanceof Invoke<?>) {
+                final Invoke<?> op = (Invoke<?>)conditional;
+                final Deferred<R> r;
+                if (void.class == R || Void.class == R) {
+                    r = null;
+                } else {
+                    r = _.defer();
+                }
+                final Caller peer = peer();
+                final Pipeline.Position sent = peer.invoke(href, -1, T,
+                    op.method, op.argv, null==r ? null : (Resolver)r.resolver);
+                _.log.sent(sent.guid);
+                return null == r ? null : sent.canPipeline() ?
+                    new PipelinePromise<R>((HTTP)_, peer.msgs, sent,
+                                           (Local<R>)r.promise) : r.promise;
+            }
+            /*
+             * The href identifies a remote reference, not a remote promise,
+             * so invoke the observer with an eventual reference.
+             */
+            return ((HTTP)_).trust(new Inline<Object>(Proxies.proxy(this,
+                virtualize(T, Selfless.class)))).when(T, R, conditional);
+        }
+        
+        public void
+        when(Class<?> T, final Do<Object,?> observer) {
+            if (observer instanceof Compose<?,?>) {
+                final Compose<Object,?> x = (Compose<Object,?>)observer;
+                x.resolver.resolve((Promise)when(T,Object.class,x.conditional));
             } else {
-                /*
-                 * The href identifies a remote reference, not a remote promise,
-                 * so invoke the observer with an eventual reference.
-                 */
-                HTTP.this.when(T, Void.class, new Inline<Object>(Proxies.proxy(
-                        this, virtualize(T, Selfless.class))), observer);
+                when(T, Void.class, observer);
             }
         }
 
         private Caller
         peer() {
-            final String peer = URI.resolve(URI.resolve(here, href), ".");
+            final HTTP http = (HTTP)this._;
+            final String peer = URI.resolve(URI.resolve(http.here, href), ".");
             final String peerKey = ".peer-" + URLEncoding.encode(peer);
-            Pipeline msgs = root.fetch(null, peerKey);
+            Pipeline msgs = ((HTTP)_).root.fetch(null, peerKey);
             if (null == msgs) {
-                final SessionInfo s = sessions.getFresh();
+                final SessionInfo s = http.sessions.getFresh();
                 msgs = new Pipeline(peer, s.sessionKey, s.sessionName,
-                                    enqueue, effect, outbound);
-                root.assign(peerKey, msgs);
+                                    http.enqueue, http.effect, http.outbound);
+                http.root.assign(peerKey, msgs);
             }
-            return new Caller(new Exports(HTTP.this), msgs);
+            return new Caller(new Exports(http), msgs);
         }
     }
 
@@ -245,7 +267,7 @@ HTTP extends Eventual implements Serializable {
 
     protected Object
     remote(final String URL, final Type... type) {
-        final Remote p = new Remote(URI.relate(here, URL));
+        final Remote p = new Remote(this, URI.relate(here, URL));
         final Class<?>[] types = new Class<?>[type.length + 1];
         types[type.length] = Selfless.class;
         boolean implemented = true;
@@ -352,20 +374,21 @@ HTTP extends Eventual implements Serializable {
     /**
      * A pipelined remote promise.
      */
-    protected final class
-    PipelinePromise extends Local<Object> {
+    static protected final class
+    PipelinePromise<T> extends Local<T> {
         static private final long serialVersionUID = 1L;
 
-        private final Local<Object> returned;
         private final Pipeline msgs;
         private final Pipeline.Position msg;
+        private final Local<T> returned;
 
         protected
-        PipelinePromise(final Local<Object> returned, final Pipeline msgs,
-                        final Pipeline.Position msg) {
-            this.returned = returned;
+        PipelinePromise(final HTTP _, final Pipeline msgs,
+                        final Pipeline.Position msg, final Local<T> returned) {
+            super(_);
             this.msgs = msgs;
             this.msg = msg;
+            this.returned = returned;
         }
 
         // java.lang.Object interface
@@ -378,10 +401,10 @@ HTTP extends Eventual implements Serializable {
         public boolean
         equals(final Object x) {
             return x instanceof PipelinePromise &&
-                   msg.equals(((PipelinePromise)x).msg) &&
-                   msgs.equals(((PipelinePromise)x).msgs) &&
-                   returned.equals(((PipelinePromise)x).returned) &&
-                   HTTP.this.equals(((PipelinePromise)x).getScope());
+                   msg.equals(((PipelinePromise<?>)x).msg) &&
+                   msgs.equals(((PipelinePromise<?>)x).msgs) &&
+                   returned.equals(((PipelinePromise<?>)x).returned) &&
+                   _.equals(((PipelinePromise<?>)x)._);
         }
 
         /**
@@ -395,7 +418,7 @@ HTTP extends Eventual implements Serializable {
         /**
          * Forwards the call to the local copy of the promise.
          */
-        public Object
+        public T
         call() throws Exception { return returned.call(); }
 
         // org.ref_send.promise.Local interface
@@ -403,8 +426,21 @@ HTTP extends Eventual implements Serializable {
         public Object
         shorten() throws Unresolved { return returned.shorten(); }
 
-        public void
-        when(final Class<?> T, final Do<Object,?> observer) {
+        public @Override <R> Promise<R>
+        when(final Class<?> T, final Class<?> R,
+             final Do<? super T, ? extends R> conditional) {
+            if (!(conditional instanceof Invoke<?>)) {
+                return returned.when(T, R, conditional);
+            }
+            final Deferred<R> r;
+            final Do<? super T,?> forwarder;
+            if (void.class == R || Void.class == R) {
+                r = null;
+                forwarder = conditional;
+            } else {
+                r = _.defer();
+                forwarder = new Compose<T,R>(conditional, r.resolver);
+            }
             class Flush extends Task {
                 static private final long serialVersionUID = 1L;
 
@@ -412,39 +448,46 @@ HTTP extends Eventual implements Serializable {
 
                 public void
                 resolve(final String guid) {
-                	log.got(guid, null, null);
-                	returned.when(T, observer);
+                    _.log.got(guid, null, null);
+                    returned.when(T, forwarder);
                 }
             }
-            final Compose<?,?> outer = observer instanceof Compose<?,?> ?
-                (Compose<?,?>)observer : null;
-            final Do<?,?> inner = null != outer ? outer.conditional : observer;
-            if (!(inner instanceof Invoke<?>)) {
-                returned.when(T, observer);
-                return;
-            }
-        	final Pipeline.Position sent;
+            final Promise<R> rp;
+            final Pipeline.Position sent;
             if (msgs.canPipeline(msg.window)) {
-                final Invoke<?> x = (Invoke<?>)inner;
+                final Invoke<?> x = (Invoke<?>)conditional;
                 if (null != Dispatch.property(x.method)) {
+                    // A GET request has no associated session, so queue the
+                    // request on the local promise, after all preceding
+                    // requests have been delivered.
                     sent = msgs.enqueue(new Flush(true));
+                    rp = null == r ? null : r.promise;
                 } else {
-                    sent = new Caller(new Exports(HTTP.this), msgs).invoke(
-                        URI.relate(here, msgs.peer), msg.message,
+                    final HTTP http = (HTTP)_;
+                    sent = new Caller(new Exports(http), msgs).invoke(
+                        URI.relate(http.here, msgs.peer), msg.message,
                         null!=T ? T : Typedef.raw(x.method.getDeclaringClass()),
-                        x.method, x.argv, null!=outer ? resolver(outer) : null);
+                        x.method,x.argv, null==r ? null : (Resolver)r.resolver);
+                    rp = null == r ? null : new PipelinePromise<R>(http, msgs,
+                            sent, (Local<R>)r.promise);
                 }
             } else {
-            	sent = msgs.enqueue(new Flush(false)); 
+                sent = msgs.enqueue(new Flush(false));
+                rp = null == r ? null : r.promise;
             }
-            log.sentIf(true, sent.guid, msg.guid);
+            _.log.sentIf(true, sent.guid, msg.guid);
+            return rp;
         }
-    }
 
-    protected Promise<Object>
-    pipeline(final Promise<Object> returned, final Pipeline msgs,
-             final Pipeline.Position position) {
-        return new PipelinePromise((Local<Object>)returned, msgs, position);
+        public void
+        when(final Class<?> T, final Do<? super T,?> observer) {
+            if (observer instanceof Compose<?,?>) {
+                final Compose<? super T,?> x = (Compose<? super T,?>)observer;
+                x.resolver.resolve((Promise)when(T,Object.class,x.conditional));
+            } else {
+                when(T, Void.class, observer);
+            }
+        }
     }
 
     static protected Exporter

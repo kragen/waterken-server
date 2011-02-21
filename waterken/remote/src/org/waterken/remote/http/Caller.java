@@ -11,7 +11,6 @@ import org.joe_e.array.ByteArray;
 import org.joe_e.array.ConstArray;
 import org.joe_e.array.PowerlessArray;
 import org.joe_e.reflect.Reflection;
-import org.ref_send.promise.Deferred;
 import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Failure;
 import org.ref_send.promise.Resolver;
@@ -105,14 +104,7 @@ Caller extends Struct implements Serializable {
             }
             argv = out.snapshot();
         }
-        if (null == resolver) {
-            return post(href, p, method.getName(), type, method, argv, null);
-        }
-        final Deferred<Object> out = exports._.defer();
-        final Pipeline.Position position = 
-            post(href, p, method.getName(), type, method, argv, out.resolver);
-        resolver.resolve(exports._.pipeline(out.promise, msgs, position));
-        return position;
+        return post(href, p, method.getName(), type, method, argv, resolver);
     }
     
     private Pipeline.Position

@@ -357,6 +357,9 @@ Pipeline implements Equatable, Serializable {
         
         public int
         hashCode() { return guid.hashCode(); }
+        
+        protected boolean
+        canPipeline() { return 0 != window; }
     }
     
     protected Operation

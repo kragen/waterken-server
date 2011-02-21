@@ -253,7 +253,7 @@ Eventual implements Selfless, Serializable {
     when(final Promise<P> promise, final Do<P,R> conditional) {
         try {
             final Class<?> R= Typedef.raw(returnType(Object.class,conditional));
-            return cast(R, when(null, R, promise, conditional));
+            return cast(R, trust(promise).when(null, R, conditional));
         } catch (final Exception e) { throw new Error(e); }
     }
 
@@ -277,25 +277,8 @@ Eventual implements Selfless, Serializable {
         try {
             final Class<?> P = null!=reference?reference.getClass():Void.class;
             final Class<?> R = Typedef.raw(returnType(P, conditional));
-            return cast(R, when(P, R, ref(reference), conditional));
+            return cast(R, trust(ref(reference)).when(P, R, conditional));
         } catch (final Exception e) { throw new Error(e); }
-    }
-
-    protected final <P,R> Promise<R>
-    when(final Class<?> P, final Class<?> R, final Promise<? extends P> promise,
-         final Do<? super P, ? extends R> conditional) {
-        final Promise<R> r;
-        final Do<? super P,?> forwarder;
-        if (void.class == R || Void.class == R) {
-            r = null;
-            forwarder = conditional;
-        } else {
-            final Deferred<R> x = defer();
-            r = x.promise;
-            forwarder = new Compose<P,R>(conditional, x.resolver);
-        }
-        trust(promise).when(P, forwarder);
-        return r;
     }
 
     /**
@@ -413,16 +396,16 @@ Eventual implements Selfless, Serializable {
         }
     }
 
-    private final <T> Local<T>
+    protected final <T> Local<T>
     trust(final Promise<T> untrusted) {
         return trusted(untrusted) ?
-            (Local<T>)untrusted : new Enqueue<T>(untrusted);
+            (Local<T>)untrusted : new Enqueue<T>(this, untrusted);
     }
 
     protected final boolean
     trusted(final Object untrusted) {
         return untrusted instanceof Local &&
-               local == ((Local<?>)untrusted).getScope().local;
+               local == ((Local<?>)untrusted)._.local;
     }
 
     /**
@@ -430,12 +413,16 @@ Eventual implements Selfless, Serializable {
      * particular event queue.
      * @param <T> referent type
      */
-    protected abstract class
+    static protected abstract class
     Local<T> implements Promise<T>, InvocationHandler, Selfless, Serializable {
         static private final long serialVersionUID = 1L;
 
-        protected final Eventual
-        getScope() { return Eventual.this; }
+        protected final Eventual _;
+        
+        protected
+        Local(final Eventual _) {
+            this._ = _;
+        }
 
         // org.joe_e.Selfless interface
 
@@ -470,14 +457,8 @@ Eventual implements Selfless, Serializable {
                 final Class<?> T = proxy.getClass();
                 final Class<?> R =
                     Typedef.raw(Typedef.bound(method.getGenericReturnType(),T));
-                final Tail<?> r =
-                    (Tail<?>)Eventual.this.when(T, R, this, new Invoke<T>(
-                        method, null == args ? null : ConstArray.array(args)));
-                if (null == r) { return null; }
-
-                // implementation might have already resolved a pipeline promise
-                final State<?> cell = near(r.state);
-                return cast(R, cell.resolved ? cell.value : r);
+                return cast(R, when(T, R, new Invoke<T>(
+                    method, null == args ? null : ConstArray.array(args))));
             } catch (final Exception e) { throw new Error(e); }
         }
 
@@ -494,6 +475,23 @@ Eventual implements Selfless, Serializable {
         public abstract Object
         shorten() throws Unresolved;
 
+        public <R> Promise<R>
+        when(final Class<?> T, final Class<?> R,
+             final Do<? super T, ? extends R> conditional) {
+            final Promise<R> r;
+            final Do<? super T,?> forwarder;
+            if (void.class == R || Void.class == R) {
+                r = null;
+                forwarder = conditional;
+            } else {
+                final Deferred<R> x = _.defer();
+                r = x.promise;
+                forwarder = new Compose<T,R>(conditional, x.resolver);
+            }
+            when(T, forwarder);
+            return r;
+        }
+
         /**
          * Notifies an observer in a future event loop turn.
          * @param T         concrete referent type, {@code null} if not known
@@ -503,13 +501,14 @@ Eventual implements Selfless, Serializable {
         when(Class<?> T, Do<? super T,?> observer);
     }
 
-    private final class
+    static private final class
     Enqueue<T> extends Local<T> {
         static private final long serialVersionUID = 1L;
 
         final Promise<T> untrusted;
 
-        Enqueue(final Promise<T> untrusted) {
+        Enqueue(final Eventual _, final Promise<T> untrusted) {
+            super(_);
             this.untrusted = untrusted;
         }
 
@@ -519,7 +518,7 @@ Eventual implements Selfless, Serializable {
         public boolean
         equals(final Object x) {
             return x instanceof Enqueue &&
-                Eventual.this.equals(((Enqueue<?>)x).getScope()) &&
+                _.equals(((Enqueue<?>)x)._) &&
                 (null != untrusted ?
                     untrusted.equals(((Enqueue<?>)x).untrusted) :
                     null == ((Enqueue<?>)x).untrusted);
@@ -533,7 +532,7 @@ Eventual implements Selfless, Serializable {
 
         public void
         when(final Class<?> T, final Do<? super T, ?> observer) {
-            final long id = near(stats).newTask();
+            final long id = near(_.stats).newTask();
             class Sample extends Struct implements Promise<Void>, Serializable {
                 static private final long serialVersionUID = 1L;
 
@@ -541,16 +540,16 @@ Eventual implements Selfless, Serializable {
                 call() throws Exception {
                     // AUDIT: call to untrusted application code
                     try {
-                        sample(untrusted, observer, log, here + "#t" + id);
+                        sample(untrusted, observer, _.log, _.here + "#t" + id);
                     } catch (final Exception e) {
-                        log.problem(e);
+                        _.log.problem(e);
                         throw e;
                     }
                     return null;
                 }
             }
-            enqueue.apply(new Sample());
-            log.sent(here + "#t" + id);
+            _.enqueue.apply(new Sample());
+            _.log.sent(_.here + "#t" + id);
         }
     }
 
@@ -712,7 +711,7 @@ Eventual implements Selfless, Serializable {
         }
     }
 
-    private final class
+    static private final class
     State<T> implements Serializable {
         static private final long serialVersionUID = 1L;
 
@@ -729,14 +728,15 @@ Eventual implements Selfless, Serializable {
         }
 
         protected void
-        observe(final Do<? super T,?> observer) {
+        observe(final Eventual _, final Do<? super T,?> observer) {
             final boolean call = observer instanceof Compose &&
                 ((Compose<?,?>)observer).conditional instanceof Invoke;
             final When<T> block = near(back);
             if (condition == block.condition) {
-                log.sentIf(call, here+"#w"+block.message, here+"#p"+condition);
+                _.log.sentIf(call, _.here + "#w" + block.message,
+                                   _.here + "#p" + condition);
                 block.observer = observer;
-                back = block.next = near(stats).allocWhen(condition);
+                back = block.next = near(_.stats).allocWhen(condition);
             } else {
                 /*
                  * Promise is already resolved and all previously registered
@@ -744,30 +744,32 @@ Eventual implements Selfless, Serializable {
                  * but using a separate turn so that we don't lose the causality
                  * chain from this promise to the resolved value.
                  */
-                final long task = near(stats).newTask();
+                final long task = near(_.stats).newTask();
+                _.log.sentIf(call, _.here + "#t" + task,
+                                   _.here + "#p" + condition);
                 class Fwd extends Struct implements Promise<Void>, Serializable{
                     static private final long serialVersionUID = 1L;
 
                     public Void
                     call() {
-                        log.got(here + "#t" + task, null, null);
-                        when(T, Void.class, value, observer);
+                        _.log.got(_.here + "#t" + task, null, null);
+                        _.trust(value).when(T, Void.class, observer);
                         return null;
                     }
                 }
-                enqueue.apply(new Fwd());
-                log.sentIf(call, here + "#t" + task, here + "#p" + condition);
+                _.enqueue.apply(new Fwd());
             }
         }
     }
 
-    private final class
+    static private final class
     Tail<T> extends Local<T> {
         static private final long serialVersionUID = 1L;
 
         final Promise<State<T>> state;      // promise's mutable state
 
-        Tail(final State<T> state) {
+        Tail(final Eventual _, final State<T> state) {
+            super(_);
             this.state = new Fulfilled<State<T>>(false, state);
         }
 
@@ -798,7 +800,7 @@ Eventual implements Selfless, Serializable {
 
         public void
         when(final Class<?> T, final Do<? super T,?> observer) {
-            near(state).observe(observer);
+            near(state).observe(_, observer);
         }
     }
 
@@ -895,7 +897,7 @@ Eventual implements Selfless, Serializable {
         final long condition = near(stats).newDeferral();
         final Promise<When<T>> front = near(stats).allocWhen(condition);
         final State<T> state = new State<T>(condition, front);
-        return new Deferred<T>(new Tail<T>(state),
+        return new Deferred<T>(new Tail<T>(this, state),
                                new Head<T>(condition, state, front));
     }
 
@@ -986,7 +988,7 @@ Eventual implements Selfless, Serializable {
                 trusted(handler)) { return referent; }
         }
         final @SuppressWarnings("unchecked") T proxy =
-            (T)Proxies.proxy(new Enqueue<T>(ref(referent)),
+            (T)Proxies.proxy(new Enqueue<T>(this, ref(referent)),
                              virtualize(referent.getClass(), Selfless.class));
         return proxy;
     }
