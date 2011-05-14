@@ -42,25 +42,26 @@ import org.waterken.uri.URI;
 /* package */ final class
 Pipeline implements Equatable, Serializable {
     static private final long serialVersionUID = 1L;
-    
+
     protected final String peer;                    // absolute URI of peer vat
     protected final String key;                     // messaging session key
-    private   final String name;                    // messaging session name
+    protected final String name;                    // messaging session name
     private   final Receiver<Promise<?>> enqueue;
     private   final Receiver<Effect<Server>> effect;
     private   final Promise<Outbound> outbound;
-    
+
     private         ConstArray<List<Operation>> pollers = ConstArray.array();
-   
-    private         long activeWindow = 1;  // id of on-the-air window
-    private         int  activeIndex = -1;  // last acknowledged window index
-    private         long acknowledged = 0;  // total acknowledged operations 
-    
+
+    private         ConstArray<Object> returns; // active window returns
+    private         long activeWindow = 1;    // on-the-air window id
+    private         int  priorIndex = -1;     // last acknowledged window index
+    private         long acknowledged = 0;    // total acknowledged operations
+
     private   final List<Operation> pending = List.list();
     private         long halts = 0;     // number of pending pipeline flushes
     private         long queries = 0;   // number of queries after last flush
     private         int trailingIndex = -1; // last queued window index
-    
+
     /*
      * Message sending is halted before an update that follows a query. Sending
      * resumes once the response to the query has been received.
@@ -78,13 +79,13 @@ Pipeline implements Equatable, Serializable {
         this.effect = effect;
         this.outbound = outbound;
     }
-    
+
     /**
      * Gets the id of the currently active window.
      */
     protected long
     getActiveWindow() { return activeWindow; }
-    
+
     /**
      * Is the specified window still open for pipelined messages?
      */
@@ -92,7 +93,22 @@ Pipeline implements Equatable, Serializable {
     canPipeline(final long window) {
         return 0 == queries && window == activeWindow + halts;
     }
-    
+
+    /**
+     * Get a prior return value in the active window.
+     */
+    protected Object
+    follow(final int message) { return returns.get(message); }
+
+    /**
+     * Append a return value to the active window.
+     */
+    protected void
+    lead(final int message, final Object value) {
+        if (message != returns.length()) { throw new Error(); }
+        returns = returns.with(value);
+    }
+
     /**
      * Serializes requests and enqueues them on the transient HTTP connection.
      * @param max       maximum number of requests to enqueue
@@ -101,7 +117,7 @@ Pipeline implements Equatable, Serializable {
     protected ImmutableArray<Effect<Server>>
     restart(final long max, final long skipTo) {
         final ImmutableArray.Builder<Effect<Server>> r=ImmutableArray.builder();
-        int index = activeIndex;
+        int index = priorIndex;
         boolean queried = false;
         long sent = acknowledged;
         boolean found = false;
@@ -115,27 +131,25 @@ Pipeline implements Equatable, Serializable {
             final long mid = sent++;
             found = found || skipTo == mid;
             if (!found) { continue; }
-           
-            final String guid;
-            if (x.isUpdate) {
-                guid = name + "-" + activeWindow + "-" + index;
-            } else {
-                guid = name + "-0-" + mid;
-            }
+
             if (!(x instanceof Task)) {
+                final Position position = x.isUpdate ?
+                    new Position(activeWindow, index,
+                                 name + "-" + activeWindow + "-" + index) :
+                    new Position(0, 0, name + "-0-" + mid);
                 try {
-                    r.append(fulfill(peer, guid, mid,
+                    r.append(fulfill(peer, position, mid,
                                      x.render(key, activeWindow, index)));
                 } catch (final Exception reason) {
-                    r.append(reject(peer, guid, mid, reason));
+                    r.append(reject(peer, position, mid, reason));
                 }
             }
-            
+
             if (0 == --n) { break; }
         }
         return r.snapshot();
     }
-    
+
     /**
      * Creates a query transaction to serialize a request.
      */
@@ -165,7 +179,7 @@ Pipeline implements Equatable, Serializable {
             }
         }
     }; }
-    
+
     /**
      * Are there any pending messages in this pipeline?
      */
@@ -194,7 +208,7 @@ Pipeline implements Equatable, Serializable {
         }
         return r;
     }
-    
+
     /**
      * Enqueue an operation to retry until a non-404 response is received.
      * @param operation operation to enqueue
@@ -202,7 +216,7 @@ Pipeline implements Equatable, Serializable {
      */
     protected Position
     poll(final Operation operation) { return enqueue(new Poller(operation)); }
-    
+
     private final class
     Poller extends Operation implements Serializable {
         static private final long serialVersionUID = 1L;
@@ -212,7 +226,7 @@ Pipeline implements Equatable, Serializable {
         private final int priority;             // poller position for retry
         private final long attempts;            // number of 404 responses
         private final Operation underlying;     // request generator
-        
+
         private
         Poller(final int a, final int b, final int priority,
                final long attempts, final Operation underlying) {
@@ -223,11 +237,11 @@ Pipeline implements Equatable, Serializable {
             this.attempts = attempts;
             this.underlying = underlying;
         }
-        
+
         Poller(final Operation underlying) {
             this(0, 1, 0, 0L, underlying);
         }
-        
+
         protected Message<Request>
         render(final String sessionKey,
                final long window, final int index) throws Exception {
@@ -235,8 +249,8 @@ Pipeline implements Equatable, Serializable {
         }
 
         protected void
-        fulfill(final String request, final Message<Response> response) {
-            underlying.fulfill(request, response);
+        fulfill(final Position position, final Message<Response> response) {
+            underlying.fulfill(position, response);
             if (!"404".equals(response.head.status)) { return; }
             if (!isPending()) { Eventual.near(outbound).add(Pipeline.this); }
             final Poller retry = b > 3600 ?
@@ -256,11 +270,11 @@ Pipeline implements Equatable, Serializable {
         }
 
         protected void
-        reject(final String request, final Exception reason) {
-            underlying.reject(request, reason);
+        reject(final Position position, final Exception reason) {
+            underlying.reject(position, reason);
         }
     }
-    
+
     static protected Effect<Server>
     waitTx(final String peer, final int priority, final long ms) {
         return new Effect<Server>() {
@@ -284,7 +298,7 @@ Pipeline implements Equatable, Serializable {
             }
         };
     }
-    
+
     protected void
     tick(final int priority) {
         final List<Operation> poller = pollers.get(priority);
@@ -294,7 +308,7 @@ Pipeline implements Equatable, Serializable {
         }
         while (!poller.isEmpty()) { pending.append(poller.pop()); }
     }
-    
+
     /**
      * Enqueue an operation.
      * @param operation operation to enqueue
@@ -303,10 +317,11 @@ Pipeline implements Equatable, Serializable {
     protected Position
     enqueue(final Operation operation) {
         if (pending.isEmpty() && operation instanceof Task) {
-            final String guid = name + "-0-" + acknowledged;
-            enqueue.apply(new ResolveTask((Task)operation, guid));
+            final Position position =
+                new Position(0, 0, name + "-0-" + acknowledged);
+            enqueue.apply(new ResolveTask((Task)operation, position));
             acknowledged += 1;
-            return new Position(0, 0, guid);
+            return position;
         }
         if (!isPending()) { Eventual.near(outbound).add(this); }
         final long mid = acknowledged + pending.getSize();
@@ -332,40 +347,45 @@ Pipeline implements Equatable, Serializable {
         }
         return r;
     }
-    
+
     static protected final class
     Position implements Powerless, Selfless, Serializable {
         static private final long serialVersionUID = 1L;
-        
+
         public final long window;
         public final int message;
         public final String guid;
-        
+
         Position(final long window, final int message, final String guid) {
             this.window = window;
             this.message = message;
             this.guid = guid;
         }
-        
+
         public boolean
         equals(final Object x) {
-        	return x instanceof Position &&
-        	       message == ((Position)x).message &&
-        	       window == ((Position)x).window &&
-        	       guid.equals(((Position)x).guid);
+            return x instanceof Position &&
+                   message == ((Position)x).message &&
+                   window == ((Position)x).window &&
+                   guid.equals(((Position)x).guid);
         }
-        
+
         public int
         hashCode() { return guid.hashCode(); }
-        
+
         protected boolean
         canPipeline() { return 0 != window; }
     }
-    
+
     protected Operation
     dequeue(final long mid) {
         if (mid != acknowledged) { throw new RuntimeException(); }
-        
+
+        // clear all cached returns if processing a new messaging window
+        if (-1 == priorIndex) {
+          returns = ConstArray.array();
+        }
+
         int completedQueries = 0;
         final Operation front = pending.pop();
         acknowledged += 1;
@@ -374,7 +394,8 @@ Pipeline implements Equatable, Serializable {
         }
         while (!pending.isEmpty() && pending.getFront() instanceof Task) {
             final Task task = (Task)pending.pop();
-            enqueue.apply(new ResolveTask(task, name + "-0-" + acknowledged));
+            enqueue.apply(new ResolveTask(task,
+                new Position(0, 0, name + "-0-" + acknowledged)));
             acknowledged += 1;
             if (task.isQuery) {
                 completedQueries += 1;
@@ -382,14 +403,14 @@ Pipeline implements Equatable, Serializable {
         }
         if (pending.isEmpty()) {
             activeWindow += 1;
-            activeIndex = -1;
+            priorIndex = -1;
             halts = 0;
             queries = 0;
             trailingIndex = -1;
             if (!isPending()) { Eventual.near(outbound).remove(this); }
         } else {
             if (front.isUpdate) {
-                activeIndex += 1;
+                priorIndex += 1;
             }
             if (0 != completedQueries) {
                 if (0 == halts) {
@@ -405,7 +426,7 @@ Pipeline implements Equatable, Serializable {
                         if (x.isUpdate) {
                             halts -= 1;
                             activeWindow += 1;
-                            activeIndex = -1;
+                            priorIndex = -1;
                             effect.apply(restartTx(peer, max, skipTo));
                             break;
                         }
@@ -418,9 +439,9 @@ Pipeline implements Equatable, Serializable {
         }
         return front;
     }
-    
+
     static private Effect<Server>
-    fulfill(final String peer, final String request, final long mid,
+    fulfill(final String peer, final Position position, final long mid,
             final Message<Request> q) { return new Effect<Server>() {
         public void
         apply(final Database<Server> vat) throws Exception {
@@ -449,8 +470,8 @@ Pipeline implements Equatable, Serializable {
                     vat.service.apply(new Service() {
                         public Void
                         call() throws Exception {
-                            vat.enter(Database.update,
-                                fulfillTX(peer, request, mid, response)).call();
+                            vat.enter(Database.update, fulfillTX(
+                                peer, position, mid, response)).call();
                             return null;
                         }
                     });
@@ -458,23 +479,23 @@ Pipeline implements Equatable, Serializable {
             });
         }
     }; }
-    
+
     static protected Transaction<Immutable>
-    fulfillTX(final String peer, final String request, final long mid,
+    fulfillTX(final String peer, final Position position, final long mid,
               final Message<Response> response) {
         return new Transaction<Immutable>() {
             public Immutable
             apply(final Root local) throws Exception {
                 final Outbound outbound =
                     local.fetch(null, VatInitializer.outbound);
-                outbound.find(peer).dequeue(mid).fulfill(request, response);
+                outbound.find(peer).dequeue(mid).fulfill(position, response);
                 return new Token();
             }
         };
     }
-    
+
     static private Effect<Server>
-    reject(final String peer, final String request, final long mid,
+    reject(final String peer, final Position position, final long mid,
            final Exception reason) { return new Effect<Server>() {
         public void
         apply(final Database<Server> vat) throws Exception {
@@ -490,7 +511,7 @@ Pipeline implements Equatable, Serializable {
                         public Void
                         call() throws Exception {
                             vat.enter(Database.update,
-                                      rejectTX(peer, request, mid, reason));
+                                      rejectTX(peer, position, mid, reason));
                             return null;
                         }
                     });
@@ -498,14 +519,14 @@ Pipeline implements Equatable, Serializable {
             });
         }
     }; }
-    
+
     static protected Transaction<Immutable>
-    rejectTX(final String peer, final String request, final long mid,
+    rejectTX(final String peer, final Position position, final long mid,
              final Exception reason) { return new Transaction<Immutable>() {
         public Immutable
         apply(final Root local) throws Exception {
             final Outbound outbound = local.fetch(null,VatInitializer.outbound);
-            outbound.find(peer).dequeue(mid).reject(request, reason);
+            outbound.find(peer).dequeue(mid).reject(position, reason);
             return new Token();
         }
     }; }

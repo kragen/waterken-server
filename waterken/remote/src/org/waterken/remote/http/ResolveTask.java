@@ -12,16 +12,16 @@ import org.ref_send.promise.Promise;
  */
 /* package */ final class
 ResolveTask extends Struct implements Promise<Void>, Serializable {
-	static private final long serialVersionUID = 1L;
-	
-	private final Task task;
-	private final String guid;
-	
-	protected
-	ResolveTask(final Task task, final String guid) {
-		this.task = task;
-		this.guid = guid;
-	}
+    static private final long serialVersionUID = 1L;
 
-	public Void call() { task.resolve(guid); return null; }
+    private final Task task;
+    private final Pipeline.Position position;
+
+    protected
+    ResolveTask(final Task task, final Pipeline.Position position) {
+        this.task = task;
+        this.position = position;
+    }
+
+    public Void call() { task.resolve(position); return null; }
 }

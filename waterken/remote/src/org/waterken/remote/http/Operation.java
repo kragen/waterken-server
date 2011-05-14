@@ -46,17 +46,17 @@ Operation extends Struct implements Serializable {
     
     /**
      * Process the corresponding response.
-     * @param guid   	GUID for request message
+     * @param position  pipeline position
      * @param response  received HTTP response
      */
     protected abstract void
-    fulfill(String guid, Message<Response> response);
+    fulfill(Pipeline.Position position, Message<Response> response);
     
     /**
      * Process the corresponding rejection.
-     * @param guid		GUID for request message
+     * @param position  pipeline position
      * @param reason    reason response will never be provided
      */
     protected abstract void
-    reject(String guid, Exception reason);
+    reject(Pipeline.Position position, Exception reason);
 }

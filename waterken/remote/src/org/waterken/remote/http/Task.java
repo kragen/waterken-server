@@ -14,7 +14,7 @@ import org.waterken.uri.Header;
 /* package */ abstract class
 Task extends Operation {
     static private final long serialVersionUID = 1L;
-    
+
     protected
     Task(final boolean isQuery) {
         super(isQuery, false);
@@ -27,11 +27,15 @@ Task extends Operation {
     }
 
     protected final @Override void
-    fulfill(final String guid, final Message<Response> ignored) {resolve(guid);}
+    fulfill(final Pipeline.Position position, final Message<Response> ignored) {
+        resolve(position);
+    }
 
     protected final @Override void
-    reject(final String guid, final Exception ignored) { resolve(guid); }
-    
+    reject(final Pipeline.Position position, final Exception ignored) {
+        resolve(position);
+    }
+
     protected abstract void
-    resolve(final String guid);
+    resolve(final Pipeline.Position position);
 }

@@ -190,8 +190,8 @@ HTTP extends Eventual implements Serializable {
              final Do<? super Object, ? extends R> conditional) {
             if (null == T) {
                 // no type information provided, so extract hint from observer
-                T = Typedef.raw(conditional instanceof Invoke<?> ?
-                        ((Invoke<?>)conditional).method.getDeclaringClass() :
+                T = Typedef.raw(conditional instanceof Invoke ?
+                        ((Invoke)conditional).method.getDeclaringClass() :
                         Typedef.value(P, conditional.getClass()));
             }
             if (isPromise(URI.fragment("", href))) {
@@ -212,8 +212,8 @@ HTTP extends Eventual implements Serializable {
                 }
                 return promise.when(T, R, conditional);
             }
-            if (conditional instanceof Invoke<?>) {
-                final Invoke<?> op = (Invoke<?>)conditional;
+            if (conditional instanceof Invoke) {
+                final Invoke<?> op = (Invoke)conditional;
                 final Deferred<R> r;
                 if (void.class == R || Void.class == R) {
                     r = null;
@@ -429,7 +429,7 @@ HTTP extends Eventual implements Serializable {
         public @Override <R> Promise<R>
         when(final Class<?> T, final Class<?> R,
              final Do<? super T, ? extends R> conditional) {
-            if (!(conditional instanceof Invoke<?>)) {
+            if (!(conditional instanceof Invoke)) {
                 return returned.when(T, R, conditional);
             }
             final Deferred<R> r;
@@ -447,15 +447,15 @@ HTTP extends Eventual implements Serializable {
                 Flush(final boolean isQuery) { super(isQuery); }
 
                 public void
-                resolve(final String guid) {
-                    _.log.got(guid, null, null);
+                resolve(final Pipeline.Position position) {
+                    _.log.got(position.guid, null, null);
                     returned.when(T, forwarder);
                 }
             }
             final Promise<R> rp;
             final Pipeline.Position sent;
             if (msgs.canPipeline(msg.window)) {
-                final Invoke<?> x = (Invoke<?>)conditional;
+                final Invoke<?> x = (Invoke)conditional;
                 if (null != Dispatch.property(x.method)) {
                     // A GET request has no associated session, so queue the
                     // request on the local promise, after all preceding

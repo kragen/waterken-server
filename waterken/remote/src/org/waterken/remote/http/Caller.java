@@ -37,7 +37,7 @@ Caller extends Struct implements Serializable {
 
     protected final HTTP.Exports exports;
     protected final Pipeline msgs;          // queued HTTP requests
-    
+
     protected
     Caller(final HTTP.Exports exports, final Pipeline msgs) {
         this.exports = exports;
@@ -50,7 +50,7 @@ Caller extends Struct implements Serializable {
     when(final String href, final Class<?> T, final Resolver<Object> resolver) {
         class When extends Operation implements Serializable {
             static private final long serialVersionUID = 1L;
-            
+
             When() { super(false, false); }
 
             public Message<Request>
@@ -66,18 +66,23 @@ Caller extends Struct implements Serializable {
             }
 
             public void
-            fulfill(final String request, final Message<Response> response) {
-                exports._.log.got(request, null, null);
+            fulfill(final Pipeline.Position position,
+                    final Message<Response> response) {
+                exports._.log.got(position.guid, null, null);
                 if ("404".equals(response.head.status)) {
                     resolver.progress();
                 } else {
-                    receive(href, null, response, T, null, null, resolver);
+                    try {
+                        resolver.apply(receive(href,null,response,T,null,null));
+                    } catch (final Exception reason) {
+                        resolver.reject(reason);
+                    }
                 }
             }
-            
+
             public void
-            reject(final String request, final Exception reason) {
-                exports._.log.got(request, null, null);
+            reject(final Pipeline.Position position, final Exception reason) {
+                exports._.log.got(position.guid, null, null);
                 resolver.reject(reason);
             }
         }
@@ -85,10 +90,10 @@ Caller extends Struct implements Serializable {
     }
 
     private static final Class<?> Fulfilled = Eventual.ref(0).getClass();
-   
+
     protected Pipeline.Position
     invoke(final String href, final int p,
-    	   final Class<?> type, final Method method,
+           final Class<?> type, final Method method,
            ConstArray<?> argv, final Resolver<Object> resolver) {
         final String property = Dispatch.property(method);
         if (null != property) {
@@ -106,13 +111,13 @@ Caller extends Struct implements Serializable {
         }
         return post(href, p, method.getName(), type, method, argv, resolver);
     }
-    
+
     private Pipeline.Position
     get(final String href, final String name, final Class<?> type,
             final Method method, final Resolver<Object> resolver) {
         class GET extends Operation implements Serializable {
             static private final long serialVersionUID = 1L;
-            
+
             GET() { super(true, false); }
 
             public Message<Request>
@@ -128,68 +133,99 @@ Caller extends Struct implements Serializable {
             }
 
             public void
-            fulfill(final String request, final Message<Response> response) {
-                exports._.log.got(request, null, null);
-                receive(href, name, response,
-                        type, method, ConstArray.array(), resolver);
+            fulfill(final Pipeline.Position position,
+                    final Message<Response> response) {
+                exports._.log.got(position.guid, null, null);
+                try {
+                    resolver.apply(receive(href, name, response, type, method,
+                                           ConstArray.array()));
+                } catch (final Exception reason) {
+                    resolver.reject(reason);
+                }
             }
-            
+
             public void
-            reject(final String request, final Exception reason) {
-                exports._.log.got(request, null, null);
+            reject(final Pipeline.Position position, final Exception reason) {
+                exports._.log.got(position.guid, null, null);
                 if (null != resolver) { resolver.reject(reason); }
             }
         }
         return msgs.enqueue(new GET());
     }
-    
+
     private Pipeline.Position
     post(final String href, final int p,
-    	 final String q, final Class<?> type, final Method method,
+         final String q, final Class<?> type, final Method method,
          final ConstArray<?> argv, final Resolver<Object> resolver) {
         class POST extends Operation implements Serializable {
             static private final long serialVersionUID = 1L;
-            
+
             POST() { super(false, true); }
-            
+
             public Message<Request>
             render(final String x, final long w, final int m) throws Exception {
                 final String here = exports.getHere();
                 final String requestURI =
-                    HTTP.post(URI.resolve(here, href), q, x, w, m, p); 
+                    HTTP.post(URI.resolve(here, href), q, x, w, m, p);
                 return serialize(requestURI, HTTP.export(msgs,
-                        HTTP.changeBase(here, exports.export(), requestURI)), 
+                        HTTP.changeBase(here, exports.export(), requestURI)),
                     ConstArray.array(method.getGenericParameterTypes()), argv);
             }
 
             public void
-            fulfill(final String guid, final Message<Response> response) {
+            fulfill(final Pipeline.Position position,
+                    final Message<Response> response) {
                 if ("204".equals(response.head.status) ||
                     "205".equals(response.head.status)) { return; }
                 if (response.head.status.startsWith("2")) {
-                    exports._.log.got(guid + "-return", null, null);
+                    exports._.log.got(position.guid + "-return", null, null);
                 } else {
-                    exports._.log.got(guid, null, null);
+                    exports._.log.got(position.guid, null, null);
                 }
-                receive(href, q, response, type, method, argv, resolver);
+                Object value;
+                try {
+                    value = -1 != p && "300".equals(response.head.status) ?
+                        Reflection.invoke(method, msgs.follow(p),
+                            argv.toArray(new Object[argv.length()])) :
+                        receive(href, q, response, type, method, argv);
+                } catch (final Exception reason) {
+                    try {
+                        value = Eventual.cast(Typedef.raw(
+                          Typedef.bound(method.getGenericReturnType(), type)),
+                          Eventual.reject(reason));
+                    } catch (final Exception notEventualizable) {
+                        value = null;
+                    }
+                }
+                msgs.lead(position.message, value);
+                if (null != resolver) { resolver.apply(value); }
             }
-            
+
             public void
-            reject(final String guid, final Exception reason) {
-                exports._.log.got(guid, null, null);
+            reject(final Pipeline.Position position, final Exception reason) {
+                exports._.log.got(position.guid, null, null);
+                Object value;
+                try {
+                    value = Eventual.cast(Typedef.raw(
+                      Typedef.bound(method.getGenericReturnType(), type)),
+                      Eventual.reject(reason));
+                } catch (final Exception notEventualizable) {
+                    value = null;
+                }
+                msgs.lead(position.message, value);
                 if (null != resolver) { resolver.reject(reason); }
             }
         }
-        return msgs.enqueue(new POST()); 
+        return msgs.enqueue(new POST());
     }
-    
-    protected void
-    receive(final String href, final String name, final Message<Response> m, 
-            final Class<?> type, final Method method, final ConstArray<?> argv,
-            final Resolver<Object> resolver) {
+
+    protected Object
+    receive(final String href, final String name, final Message<Response> m,
+            final Class<?> type, final Method method,
+            final ConstArray<?> argv) throws Exception {
         try {
             if ("204".equals(m.head.status) || "205".equals(m.head.status)) {
-                return;
+                return null;
             }
             if (null != TokenList.find(null, "Warning", m.head.headers)) {
                 throw new Failure("400", "stale response");
@@ -203,40 +239,32 @@ Caller extends Struct implements Serializable {
                 final Object target = null != location ?
                     exports.connect().apply(location, base, type) :
                     deserialize(type, base, m);
-                final Object value = null==method ? target : Reflection.invoke(
+                return null == method ? target : Reflection.invoke(
                     method, target, argv.toArray(new Object[argv.length()]));
-                if (null != resolver) { resolver.apply(value); }
-                return;
             }
             final Type R = null == method ? type :
                 Typedef.bound(method.getGenericReturnType(), type);
             if ("303".equals(m.head.status)) {
-                if (null != resolver) {
-                    final String location =
-                        TokenList.find(null, "Location", m.head.headers);
-                    resolver.apply(null != location ?
-                        exports.connect().apply(location, base, R) :
-                        deserialize(R, base, m));
-                }
-                return;
-            } 
+                final String location =
+                    TokenList.find(null, "Location", m.head.headers);
+                return null != location ?
+                    exports.connect().apply(location, base, R) :
+                    deserialize(R, base, m);
+            }
             if ("200".equals(m.head.status) || "201".equals(m.head.status) ||
                 "202".equals(m.head.status) || "203".equals(m.head.status)) {
-                if (null != resolver) {resolver.apply(deserialize(R, base, m));}
-                return;
-            } 
+                return deserialize(R, base, m);
+            }
             throw new Failure(m.head.status, m.head.phrase);
         } catch (final BadSyntax e) {
             /*
              * strip out the parsing information to avoid leaking information to
              * the application layer
              */
-            if (null != resolver) { resolver.reject((Exception)e.getCause()); }
-        } catch (final Exception e) {
-            if (null != resolver) { resolver.reject(e); }
+            throw (Exception)e.getCause();
         }
     }
-    
+
     private Object
     deserialize(final Type expected,
                 final String base, final Message<Response> m) throws Exception {
@@ -253,7 +281,7 @@ Caller extends Struct implements Serializable {
             new JSONDeserializer().deserialize(m.body.asInputStream(),
                 exports.connect(), base, exports.code, expected);
     }
-    
+
     static protected Message<Request>
     serialize(final String requestURI, final Exporter export,
               final ConstArray<Type> types,
@@ -273,6 +301,6 @@ Caller extends Struct implements Serializable {
               new Header("Host", Authority.location(URI.authority(requestURI))),
               new Header("Content-Type", contentType),
               new Header("Content-Length", "" + content.length())
-            )), content);        
+            )), content);
     }
 }
