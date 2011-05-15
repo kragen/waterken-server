@@ -188,7 +188,9 @@ Caller extends Struct implements Serializable {
                         Reflection.invoke(method, msgs.follow(p),
                             argv.toArray(new Object[argv.length()])) :
                         receive(href, q, response, type, method, argv);
+                    if (null != resolver) { resolver.apply(value); }
                 } catch (final Exception reason) {
+                    if (null != resolver) { resolver.reject(reason); }
                     try {
                         value = Eventual.cast(Typedef.raw(
                           Typedef.bound(method.getGenericReturnType(), type)),
@@ -198,12 +200,12 @@ Caller extends Struct implements Serializable {
                     }
                 }
                 msgs.lead(position.message, value);
-                if (null != resolver) { resolver.apply(value); }
             }
 
             public void
             reject(final Pipeline.Position position, final Exception reason) {
                 exports._.log.got(position.guid, null, null);
+                if (null != resolver) { resolver.reject(reason); }
                 Object value;
                 try {
                     value = Eventual.cast(Typedef.raw(
@@ -213,7 +215,6 @@ Caller extends Struct implements Serializable {
                     value = null;
                 }
                 msgs.lead(position.message, value);
-                if (null != resolver) { resolver.reject(reason); }
             }
         }
         return msgs.enqueue(new POST());
