@@ -55,8 +55,7 @@ All {
         final Promise<?> e = Relay.make(_, forwarder.top);
         
         _.log.comment("testing promise pipelining");
-        final Vat<PlugNPlay> player = _.spawn("pipeline", PlugNPlayMaker.class);
-        final Promise<?> f = Pipelined.make(player.top);
+        final Promise<?> f = Pipelined.make(_);
 
         return join(_, a, b, c, d, e, f);
     }

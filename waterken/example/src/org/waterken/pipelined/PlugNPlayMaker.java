@@ -4,8 +4,6 @@ package org.waterken.pipelined;
 
 import java.io.Serializable;
 
-import org.joe_e.Struct;
-
 /**
  * A {@link PlugNPlay} maker.
  */
@@ -14,14 +12,19 @@ public final class PlugNPlayMaker {
     
     static public PlugNPlay
     make() {
-        class PlugNPlayX extends Struct implements PlugNPlay, Serializable {
+        class PlugNPlayX implements PlugNPlay, Serializable {
             static private final long serialVersionUID = 1L;
+            
+            private PlugNPlay player = this;
+
+            public PlugNPlay
+            play() { return player; }
 
             public PlugNPlayX
-            play() { return this; }
-
-            public PlugNPlayX
-            plug(final PlugNPlay player) { return (PlugNPlayX)player; }
+            plug(final PlugNPlay player) {
+              this.player = player;
+              return (PlugNPlayX)player;
+            }
         }
         return new PlugNPlayX();
     }

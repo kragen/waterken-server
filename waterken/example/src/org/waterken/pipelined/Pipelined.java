@@ -4,7 +4,10 @@ package org.waterken.pipelined;
 
 import static org.ref_send.promise.Eventual.ref;
 
+import org.ref_send.promise.Eventual;
 import org.ref_send.promise.Promise;
+import org.ref_send.promise.Vat;
+import org.ref_send.test.Logic;
 
 /**
  * Promise pipelining test.
@@ -13,7 +16,12 @@ public final class Pipelined {
     private Pipelined() {}
     
     static public Promise<?>
-    make(final PlugNPlay player_) {
-        return ref(player_.plug(player_.play().play()));
+    make(final Eventual _) {
+        final Vat<PlugNPlay> far = _.spawn("pipeline", PlugNPlayMaker.class);
+        final Promise<?> a = ref(far.top.plug(far.top.play().play()));
+        final PlugNPlay near = PlugNPlayMaker.make();
+        far.top.plug(near);
+        final Promise<?> b = ref(far.top.play().play().play().plug(near)); 
+        return Logic.join(_, a, b);
     }
 }
