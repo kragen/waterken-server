@@ -286,8 +286,8 @@ RollingN2V extends Struct implements StoreMaker, Serializable {
                     versions = null;
 
                     final String name = name(++lastId);
-                    final FileOutputStream sout =
-                        new FileOutputStream(Filesystem.file(pending, name));
+                    final FileOutputStream sout = new FileOutputStream(
+                        Filesystem.file(pending, name), true);
                     final FileChannel out = sout.getChannel();
                     final List<N2V> sub = prior.subList(i, n);
                     N2V.merge(out, sub);
