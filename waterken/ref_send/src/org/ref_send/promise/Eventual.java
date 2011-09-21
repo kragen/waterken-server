@@ -572,6 +572,7 @@ Eventual implements Selfless, Serializable {
      * A recognizable exception to avoid logging an ignored null resolution.
      */
     static private final NullPointerException VOID = new NullPointerException();
+    static { Reflection.clearStackTrace(VOID); }
 
     static protected <P,R> R
     sample(final Promise<? extends P> promise,
