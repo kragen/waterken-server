@@ -42,7 +42,7 @@ NotAMaker extends NullPointerException implements Powerless {
     dispatch(final Class<?> maker) throws NotAMaker {
         Method make = null;
         for (final Method m : Reflection.methods(maker)) {
-            if ("make".equals(m.getName()) &&
+            if ("make".equals(m.getName()) && maker == m.getDeclaringClass() &&
                     Modifier.isStatic(m.getModifiers())) {
                 if (null != make) { throw new NotAMaker(maker); }
                 make = m;
