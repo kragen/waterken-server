@@ -8,10 +8,8 @@ import java.security.SecureRandom;
 import org.k2v.K2V;
 import org.k2v.test.Testing;
 
-/**
- * 
- */
-public final class Test {
+final class Test {
+  private Test() {}
 
   /**
    * @param args
