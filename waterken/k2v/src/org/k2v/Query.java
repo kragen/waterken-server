@@ -41,7 +41,7 @@ public abstract class Query implements Closeable {
    * version of the {@link Folder} or a subsequent update of it.
    * @param folder  {@link Folder} to search
    * @param key     key to search for
-   * @return corresponding {@link Value}, or {@link MissingValue} if none
+   * @return corresponding {@link Value}, or {@link Null} if none
    */
   public abstract Value find(Folder folder, byte[] key) throws IOException;
 }

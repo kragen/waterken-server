@@ -190,11 +190,11 @@ public final class GenTrie implements K2V {
         for (int i = 0; i != current.length; ++i) {
           if (version >= current[i].firstVersion) {
             final Value r = base[i].find(folder, key);
-            if (!(r instanceof Trie.MissingValue)) { return r; }
-            if (((Trie.MissingValue)r).absolute)   { return r; }
+            if (!(r instanceof Trie.Null)) { return r; }
+            if (((Trie.Null)r).absolute)   { return r; }
           }
         }
-        return new Trie.MissingValue(false);
+        return new Trie.Null(false);
       }
     };
   }

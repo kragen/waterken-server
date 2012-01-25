@@ -5,4 +5,4 @@ package org.k2v;
 /**
  * Indicates a {@linkplain Query#find searched for} key had no {@link Value}.
  */
-public class MissingValue implements Value {}
+public class Null implements Value {}

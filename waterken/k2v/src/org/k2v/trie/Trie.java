@@ -501,7 +501,7 @@ public final class Trie implements org.k2v.K2V {
     return new Query(committed.root);
   }
 
-  static public final class MissingValue extends org.k2v.MissingValue {
+  static public final class Null extends org.k2v.Null {
     
     /**
      * a prior incarnation might exist
@@ -511,7 +511,7 @@ public final class Trie implements org.k2v.K2V {
     /**
      * @param absolute  {@link #absolute}
      */
-    public MissingValue(final boolean absolute) {
+    public Null(final boolean absolute) {
       this.absolute = absolute;
     }
   }
@@ -567,7 +567,7 @@ public final class Trie implements org.k2v.K2V {
       if (closed) { throw new IOException(); }
       final Value owned = own(folder);
       if (!(owned instanceof Folder)) {
-        return owned instanceof MissingValue ? owned : new MissingValue(true);
+        return owned instanceof Null ? owned : new Null(true);
       }
       long ref = ((Folder)owned).getTop();
       if (Null != ref) {
@@ -606,7 +606,7 @@ public final class Trie implements org.k2v.K2V {
           }
         }
       }
-      return new MissingValue(((Folder)owned).isAbsolute());
+      return new Null(((Folder)owned).isAbsolute());
     }
 
     Value readEntry(final Folder folder, final ByteBuffer child,

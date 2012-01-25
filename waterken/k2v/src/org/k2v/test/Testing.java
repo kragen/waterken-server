@@ -12,7 +12,7 @@ import java.util.Random;
 import org.k2v.Document;
 import org.k2v.Folder;
 import org.k2v.K2V;
-import org.k2v.MissingValue;
+import org.k2v.Null;
 import org.k2v.Query;
 import org.k2v.Update;
 import org.k2v.trie.Trie;
@@ -49,7 +49,7 @@ public final class Testing {
     final byte[] docKey = {};
     final Query pre = db.query();
     try {
-      ((MissingValue)pre.find(pre.root, folderKey)).getClass();
+      ((Null)pre.find(pre.root, folderKey)).getClass();
     } finally {
       pre.close();
     }
@@ -102,9 +102,9 @@ public final class Testing {
               
               final Query pre = db.query();
               try {
-                ((MissingValue)pre.find(pre.root,
+                ((Null)pre.find(pre.root,
                                         new byte[] { (byte)key })).getClass();
-                ((MissingValue)pre.find(pre.root,
+                ((Null)pre.find(pre.root,
                                         new byte[] { (byte)~key })).getClass();
               } finally {
                 pre.close();
