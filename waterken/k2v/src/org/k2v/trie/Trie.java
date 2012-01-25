@@ -611,22 +611,22 @@ public final class Trie implements org.k2v.K2V {
 
     Value readEntry(final Folder folder, final ByteBuffer child,
                     final short type, final long at) throws IOException {
-      switch (type) {
-        case TypeOfFolder: {return folder.nest(child, read(SizeOfFolder, at));}
-        case TypeOfDocument: {
-          final long length = ref(type, at) == folder.getTop() ?
-            folder.getBytes() - SizeOfFolder - DocumentLength :
-            read(DocumentLength, at).getLong();
-          return new Document(length, at - DocumentLength - length);
-        }
-        default: {
-          if (isAMicroDocument(type)) {
-            return new MicroDocument(lengthOfMicroDocument(type), at);
-          } else {
-            final long length = lengthOfSmallDocument(type);
-            return new Document(length, at - length);
-          }
-        }
+      if (isASmallDocument(type)) {
+        final long length = lengthOfSmallDocument(type);
+        return new Document(length, at - length);
+      } else if (isAMicroDocument(type)) {
+        return new MicroDocument(lengthOfMicroDocument(type), at);
+      } else if (TypeOfDocument == type) {
+        final long length = ref(type, at) == folder.getTop() ?
+          folder.getBytes() - SizeOfFolder - DocumentLength :
+          read(DocumentLength, at).getLong();
+        return new Document(length, at - DocumentLength - length);
+      } else if (TypeOfFolder == type) {
+        return folder.nest(child, read(SizeOfFolder, at));
+      } else if (TypeOfNull == type) {
+        return new Null(true);
+      } else {
+        throw new AssertionError();
       }
     }
 
@@ -1218,22 +1218,6 @@ public final class Trie implements org.k2v.K2V {
             // overwrite a Leaf-less child
           }
           break;
-        } else if (TypeOfNull == type) {
-          // create a new Run to store remaining key bytes
-          final int length = Math.min(key.limit() - depth, RunMaxLength);
-          final ByteBuffer segment = key.duplicate();
-          segment.position(depth);
-          segment.limit(depth + length);
-          final ByteBuffer run = allocateRun(segment);
-          var.putLong(0, newRef(typeOfRun(length),
-                                new Slot(folderSlot, var, run)));
-          delta += run.limit();
-          var = var(run, RunBranch);
-          depth += length;
-        } else if (TypeOfLeaf == type) {
-          // proceed down the Leaf branch
-          final Slot leaf = cache(folderSlot, SizeOfLeaf, SizeOfLeaf, var);
-          var = var(leaf.record, LeafBranch);
         } else if (isAMap(type)) {
           // insert into an existing Map
           final int arity = arityOfMap(type);
@@ -1331,6 +1315,22 @@ public final class Trie implements org.k2v.K2V {
             }
             break;
           }
+        } else if (TypeOfLeaf == type) {
+          // proceed down the Leaf branch
+          final Slot leaf = cache(folderSlot, SizeOfLeaf, SizeOfLeaf, var);
+          var = var(leaf.record, LeafBranch);
+        } else if (TypeOfNull == type) {
+          // create a new Run to store remaining key bytes
+          final int length = Math.min(key.limit() - depth, RunMaxLength);
+          final ByteBuffer segment = key.duplicate();
+          segment.position(depth);
+          segment.limit(depth + length);
+          final ByteBuffer run = allocateRun(segment);
+          var.putLong(0, newRef(typeOfRun(length),
+                                new Slot(folderSlot, var, run)));
+          delta += run.limit();
+          var = var(run, RunBranch);
+          depth += length;
         } else {
           // put the existing child in a Leaf and continue with a Null Branch
           final long child = var.getLong(0);
