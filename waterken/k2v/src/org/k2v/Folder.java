@@ -3,9 +3,9 @@
 package org.k2v;
 
 /**
- * A set of {@link Entry} keyed by byte string.
+ * A set of {@link Value} keyed by byte string.
  * <p>A {@link Folder} can be reused across {@linkplain K2V#query() queries} and
  * {@linkplain K2V#update() updates} to avoid repeatedly
  * {@linkplain Query#find finding} it.
  */
-public interface Folder extends Entry {}
+public interface Folder extends Value {}

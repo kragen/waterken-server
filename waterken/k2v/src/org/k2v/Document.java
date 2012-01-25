@@ -7,7 +7,7 @@ import java.io.InputStream;
 /**
  * A byte stream.
  */
-public abstract class Document extends InputStream implements Entry {
+public abstract class Document extends InputStream implements Value {
   
   /**
    * stream length in bytes

@@ -10,7 +10,7 @@ import java.io.InterruptedIOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 
-import org.k2v.Entry;
+import org.k2v.Value;
 import org.k2v.Folder;
 import org.k2v.K2V;
 import org.k2v.Query;
@@ -178,23 +178,23 @@ public final class GenTrie implements K2V {
 
   public Query query() throws IOException {
     final Trie[] current = generations;
-    final Trie.Query[] base = new Trie.Query[current.length];
+    final Query[] base = new Query[current.length];
     for (int i = base.length; 0 != i--;) {
       base[i] = current[i].query();
     }
     return new Query(base[0].root) {
-      public void close() { for (final Trie.Query x : base) { x.close(); } }
-      public Entry
+      public void close() { for (final Query x : base) { x.close(); } }
+      public Value
       find(final Folder folder, final byte[] key) throws IOException {
-        final long version = ((Trie.Folder)folder).version;
+        final long version = ((Trie.Folder)folder).getVersion();
         for (int i = 0; i != current.length; ++i) {
           if (version >= current[i].firstVersion) {
-            final Entry r = base[i].find(folder, key);
-            if (!(r instanceof Trie.MissingEntry)) { return r; }
-            if (((Trie.MissingEntry)r).absolute)   { return r; }
+            final Value r = base[i].find(folder, key);
+            if (!(r instanceof Trie.MissingValue)) { return r; }
+            if (((Trie.MissingValue)r).absolute)   { return r; }
           }
         }
-        return new Trie.MissingEntry(false);
+        return new Trie.MissingValue(false);
       }
     };
   }

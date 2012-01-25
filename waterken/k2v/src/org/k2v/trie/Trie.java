@@ -21,7 +21,7 @@ import java.util.concurrent.Semaphore;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedOutputStream;
 
-import org.k2v.Entry;
+import org.k2v.Value;
 import org.k2v.K2V;
 
 /**
@@ -211,11 +211,11 @@ public final class Trie implements org.k2v.K2V {
   }
   
   /**
-   * long entryCount
-   * long totalBytes
-   * long topReference
+   * long count
+   * long bytes
+   * long top
    * long version
-   * byte isAbsolute == 1 or 0
+   * byte flags
    */
   static final short TypeOfFolder       = TypeOfLeaf - 1;
   static final byte FolderDefaultFlags  = 0;
@@ -231,8 +231,47 @@ public final class Trie implements org.k2v.K2V {
       putLong(0).putLong(SizeOfFolder).putLong(Null).
       putLong(version).put(flags);
   }
-  static boolean isAbsoluteFolder(final ByteBuffer folder) {
-    return 0 != (folder.get(SizeOfFolder - FolderFlags) & FolderAbsoluteFlag);
+  static public final class Folder implements org.k2v.Folder {
+    protected final Folder parent;
+    protected final ByteBuffer key;
+    protected final Object brand;
+    private   final ByteBuffer record;
+
+    private
+    Folder(final Folder parent, final ByteBuffer key,
+           final Object brand, final ByteBuffer record) {
+      this.parent = parent;
+      this.key = null != key ? key.asReadOnlyBuffer() : null;
+      this.brand = brand;
+      this.record = record.asReadOnlyBuffer();
+    }
+
+    Folder(final ByteBuffer record) {
+      this.parent = null;
+      this.key = null;
+      this.brand = new Object();
+      this.record = record.asReadOnlyBuffer();
+    }
+
+    /**
+     * Gets the version number.
+     * <p>Each version has a number that is greater than the prior one.
+     */
+    public long getVersion(){return record.getLong(SizeOfFolder-FolderVersion);}
+    protected long getBytes(){return record.getLong(SizeOfFolder-FolderBytes);}
+    protected long getTop() {return record.getLong(SizeOfFolder-FolderTop);}
+    protected boolean isAbsolute() {
+      return 0 != (record.get(SizeOfFolder - FolderFlags) & FolderAbsoluteFlag);
+    }
+    
+    Folder nest(final ByteBuffer k, final ByteBuffer v) {
+      return new Folder(this, ByteBuffer.allocate(k.remaining()).put(k),
+                        brand, ByteBuffer.allocate(v.remaining()).put(v));
+    }
+    
+    Folder version(final Object newBrand, final ByteBuffer newRecord) {
+      return new Folder(parent, key, newBrand, newRecord);
+    }
   }
   
   /**
@@ -304,23 +343,22 @@ public final class Trie implements org.k2v.K2V {
    */
   static final class Version {
     final long fileLength;
-    final long totalBytes;
     final long rootRef;
     final Folder root;
     
-    Version(final long fileLength, final long rootBytes, final Folder root) {
+    Version(final long fileLength, final Folder root) {
       this.fileLength = fileLength;
-      this.totalBytes = sizeOfVersion(rootBytes);
       this.rootRef = ref(TypeOfFolder, fileLength - SizeOfCommit);
       this.root = root;
     }
     
     Version(final long firstVersion) {
       this.fileLength = 0;
-      this.totalBytes = SizeOfHeader;
       this.rootRef = Null;
-      this.root = new Folder(Null, firstVersion);
+      this.root = new Folder(allocateFolder(FolderDefaultFlags, firstVersion));
     }
+    
+    protected long getBytes() { return sizeOfVersion(root.getBytes()); } 
   }
 
   protected final    File file;
@@ -420,9 +458,7 @@ public final class Trie implements org.k2v.K2V {
       cursor.seek(length - SizeOfCommit - SizeOfFolder);
       cursor.readFully(root.array());
       return new Trie(file, cursor, separator, firstVersion, length != capacity,
-                      new Version(length, value(root, FolderBytes),
-                                  new Folder(value(root, FolderTop),
-                                             value(root, FolderVersion))));
+                      new Version(length, new Folder(root)));
     }
   }
   
@@ -455,18 +491,17 @@ public final class Trie implements org.k2v.K2V {
   /** Gets the fraction of the file that is storing current data. */
   public float getLoadFactor() {
     final Version current = committed;
-    return current.totalBytes / (float)current.fileLength;
+    return current.getBytes() / (float)current.fileLength;
   }
   
   /** Gets the last version number. */
-  private long getLastVersion() { return committed.root.version; }
+  private long getLastVersion() { return committed.root.getVersion(); }
 
-  public Query query() throws IOException { return new Query(committed.root); }
+  public org.k2v.Query query() throws IOException {
+    return new Query(committed.root);
+  }
 
-  /**
-   * A {@linkplain Trie.Query#find searched for} {@link Entry} was not found.
-   */
-  static public final class MissingEntry extends org.k2v.MissingEntry {
+  static public final class MissingValue extends org.k2v.MissingValue {
     
     /**
      * a prior incarnation might exist
@@ -476,54 +511,8 @@ public final class Trie implements org.k2v.K2V {
     /**
      * @param absolute  {@link #absolute}
      */
-    public MissingEntry(final boolean absolute) {
+    public MissingValue(final boolean absolute) {
       this.absolute = absolute;
-    }
-  }
-  
-  /**
-   * A version of a {@link org.k2v.Folder}.
-   */
-  static public final class Folder implements org.k2v.Folder {
-    protected final Folder parent;
-    protected final ByteBuffer key;
-    protected final Object brand;
-    protected final boolean isAbsolute;
-    protected final ByteBuffer top;
-
-    /**
-     * version number
-     * <p>Each version has a number that is greater than the prior one.
-     */
-    public final long version;
-
-    private
-    Folder(final Folder parent, final ByteBuffer key, final Object brand,
-           final boolean isAbsolute, final ByteBuffer top, final long version) {
-      this.parent = parent;
-      this.key = null != key ? key.asReadOnlyBuffer() : null;
-      this.brand = brand;
-      this.isAbsolute = isAbsolute;
-      this.top = top.asReadOnlyBuffer();
-      this.version = version;
-    }
-
-    Folder(final long top, final long version) {
-      this(null, null, new Object(),
-           false, ByteBuffer.allocate(8).putLong(0, top), version);
-    }
-    
-    Folder nest(final ByteBuffer sKey, final boolean sAbsolute,
-                final ByteBuffer sTop, final long sVer) {
-      final byte[] b = new byte[sKey.limit()];
-      sKey.position(0);
-      sKey.get(b);
-      return new Folder(this, ByteBuffer.wrap(b), brand, sAbsolute, sTop, sVer);
-    }
-    
-    Folder version(final Object newBrand, final boolean newAbsolute,
-                   final ByteBuffer newTop, final long newVersion) {
-      return new Folder(parent, key, newBrand, newAbsolute, newTop, newVersion);
     }
   }
 
@@ -542,14 +531,14 @@ public final class Trie implements org.k2v.K2V {
     }
   }
   
-  public final class Query extends org.k2v.Query {
+  protected final class Query extends org.k2v.Query {
     /** most recent version included in this query */
-    public    final long lastVersion;
+    protected final long lastVersion;
     protected       boolean closed = false;
     
     Query(final Folder root) {
       super(root);
-      lastVersion = root.version;
+      lastVersion = root.getVersion();
       synchronized (queryLock) {
         querying += 1;
       }
@@ -570,17 +559,17 @@ public final class Trie implements org.k2v.K2V {
       }
     }
 
-    public Entry
+    public Value
     find(final org.k2v.Folder folder, final byte[] child) throws IOException {
       return find((Folder)folder, child);
     }
-    Entry find(final Folder folder, final byte[] child) throws IOException {
+    Value find(final Folder folder, final byte[] child) throws IOException {
       if (closed) { throw new IOException(); }
-      final Entry owned = own(folder);
+      final Value owned = own(folder);
       if (!(owned instanceof Folder)) {
-        return owned instanceof MissingEntry ? owned : new MissingEntry(true);
+        return owned instanceof MissingValue ? owned : new MissingValue(true);
       }
-      long ref = ((Folder)owned).top.getLong(0);
+      long ref = ((Folder)owned).getTop();
       if (Null != ref) {
         int depth = 0;
         while (true) {
@@ -617,20 +606,17 @@ public final class Trie implements org.k2v.K2V {
           }
         }
       }
-      return new MissingEntry(((Folder)owned).isAbsolute);
+      return new MissingValue(((Folder)owned).isAbsolute());
     }
 
-    Entry readEntry(final Folder folder, final ByteBuffer child,
+    Value readEntry(final Folder folder, final ByteBuffer child,
                     final short type, final long at) throws IOException {
       switch (type) {
-        case TypeOfFolder: {
-          final ByteBuffer record = read(SizeOfFolder, at);
-          return folder.nest(child, isAbsoluteFolder(record),
-              ByteBuffer.allocate(8).putLong(0, value(record, FolderTop)),
-              value(record, FolderVersion));
-        }
+        case TypeOfFolder: {return folder.nest(child, read(SizeOfFolder, at));}
         case TypeOfDocument: {
-          final long length = read(DocumentLength, at).getLong();
+          final long length = ref(type, at) == folder.getTop() ?
+            folder.getBytes() - SizeOfFolder - DocumentLength :
+            read(DocumentLength, at).getLong();
           return new Document(length, at - DocumentLength - length);
         }
         default: {
@@ -755,13 +741,16 @@ public final class Trie implements org.k2v.K2V {
       }
     }
     
-    private Entry own(final Folder folder) throws IOException {
-      if (brand == folder.brand && lastVersion >= folder.version) return folder;
-      if (null == folder.parent) return root;
-      final byte[] parentKey = new byte[folder.key.limit()];
-      folder.key.position(0);
-      folder.key.get(parentKey);
-      return find(folder.parent, parentKey);
+    private Value own(final Folder folder) throws IOException {
+      if (brand == folder.brand && lastVersion >= folder.getVersion()) {
+        return folder;
+      }
+      if (null == folder.parent) { return root; }
+      final ByteBuffer key = folder.key.duplicate();
+      final byte[] keyBytes = new byte[key.limit()];
+      key.rewind();
+      key.get(keyBytes);
+      return find(folder.parent, keyBytes);
     }
     
     /**
@@ -769,16 +758,16 @@ public final class Trie implements org.k2v.K2V {
      * <p>A key {@code byte} is compared as an unsigned number; consequently,
      * UTF-8 keys are returned in lexicographical order.
      */
-    public Iterator list(final Folder folder) throws IOException {
+    protected Iterator list(final Folder folder) throws IOException {
       if (closed) { throw new IOException(); }
-      final Entry owned = own(folder);
+      final Value owned = own(folder);
       if (!(owned instanceof Folder)) { return new Iterator(folder); }
-      final ByteBuffer top = ((Folder)owned).top;
+      final long top = ((Folder)owned).getTop();
       if (TypeOfNull == type(top)) { return new Iterator(folder); }
-      return new Iterator(folder, top.duplicate());
+      return new Iterator(folder, ByteBuffer.allocate(8).putLong(0, top));
     }
     
-    public final class Iterator implements java.util.Iterator<ByteBuffer> {
+    protected final class Iterator implements java.util.Iterator<ByteBuffer> {
       private final Folder folder;
       private final ArrayList<Node> stack = new ArrayList<Node>();
       private       ByteBuffer rwkey = ByteBuffer.allocate(16);
@@ -798,17 +787,20 @@ public final class Trie implements org.k2v.K2V {
       protected short getValueType() { return type; }
       protected long getValueAddress() { return at; }
       /**
-       * Reads the {@link Entry} for the last {@linkplain #readNext read key}.
+       * Reads the {@link Value} for the last {@linkplain #readNext read key}.
        */
-      public Entry readValue() throws IOException {
+      public Value readValue() throws IOException {
         if (closed) { throw new IOException(); }
+        rokey.rewind();
         return readEntry(folder, rokey, type, at);
       }
       protected long transferValueTo(final WritableByteChannel target
                                      ) throws IOException {
         if (closed) { throw new IOException(); }
         final long size = TypeOfDocument == type ?
-          sizeOfDocument(read(DocumentLength, at).getLong()) :
+          (ref(type, at) == folder.getTop() ?
+             folder.getBytes() - SizeOfFolder :
+             sizeOfDocument(read(DocumentLength, at).getLong())) :
           sizeOfSmallDocument(lengthOfSmallDocument(type));
         if (size != cursor.getChannel().transferTo(at - size, size, target)) {
           throw new IOException();
@@ -817,8 +809,8 @@ public final class Trie implements org.k2v.K2V {
       }
 
       /**
-       * Moves to the next {@link Entry}.
-       * @return key of the next {@link Entry}
+       * Moves to the next {@link Value}.
+       * @return key of the next {@link Value}
        */
       public ByteBuffer readNext() throws IOException {
         if (closed) { throw new IOException(); }
@@ -951,7 +943,8 @@ public final class Trie implements org.k2v.K2V {
     
     Update(final Version prior) throws IOException {
       this.prior = prior;
-      this.version = Math.max(prior.root.version+1, System.currentTimeMillis());
+      this.version = Math.max(prior.root.getVersion() + 1,
+                              System.currentTimeMillis());
       this.address = prior.fileLength;
       
       // Revert any previously failed update.
@@ -1049,11 +1042,8 @@ public final class Trie implements org.k2v.K2V {
       }
       
       // commit the update
-      final ByteBuffer rootFolder = nodes[nodes.length - 4];
-      final Version next = new Version(address, value(rootFolder, FolderBytes),
-        prior.root.version(brand, false, var(rootFolder, FolderTop),
-                           value(rootFolder, FolderVersion)));
-      pending = next;
+      final Version next = pending =
+        new Version(address, prior.root.version(brand, nodes[nodes.length-4]));
       dirty = false;
       close();          // allow a concurrent update while waiting for the sync
       channel.force(false);
@@ -1151,9 +1141,7 @@ public final class Trie implements org.k2v.K2V {
       if (corrupted) { throw new IOException(); }
       corrupted = true;
       descend((Folder)folder, null);
-      lastTouched = lastTouched.version(brand,
-          isAbsoluteFolder(lastTouchedSlot.record),
-          var(lastTouchedSlot.record, FolderTop), version);
+      lastTouched = lastTouched.version(brand, lastTouchedSlot.record);
       corrupted = false;
       return lastTouched;
     }
@@ -1163,10 +1151,8 @@ public final class Trie implements org.k2v.K2V {
       if (corrupted) { throw new IOException(); }
       corrupted = true;
       descend(((Folder)folder).nest(ByteBuffer.wrap(key),
-          false, ByteBuffer.allocate(8), version), null);
-      lastTouched = lastTouched.version(brand,
-          isAbsoluteFolder(lastTouchedSlot.record),
-          var(lastTouchedSlot.record, FolderTop), version);
+                                    ByteBuffer.allocate(0)), null);
+      lastTouched = lastTouched.version(brand, lastTouchedSlot.record);
       corrupted = false;
       return lastTouched;
     }
@@ -1174,8 +1160,8 @@ public final class Trie implements org.k2v.K2V {
     /**
      * Get the corresponding variable for a {@link Folder} key.
      * @param folder  {@link Folder} to update
-     * @param key     key for {@link Entry} to create or update
-     * @return corresponding variable for the {@link Entry}
+     * @param key     key for {@link Value} to create or update
+     * @return corresponding variable for the {@link Value}
      * @throws IOException  any I/O problem
      */
     protected ByteBuffer descend(final Folder folder,
@@ -1235,9 +1221,9 @@ public final class Trie implements org.k2v.K2V {
         } else if (TypeOfNull == type) {
           // create a new Run to store remaining key bytes
           final int length = Math.min(key.limit() - depth, RunMaxLength);
-          key.position(depth);
-          final ByteBuffer segment = key.slice();
-          segment.limit(length);
+          final ByteBuffer segment = key.duplicate();
+          segment.position(depth);
+          segment.limit(depth + length);
           final ByteBuffer run = allocateRun(segment);
           var.putLong(0, newRef(typeOfRun(length),
                                 new Slot(folderSlot, var, run)));
@@ -1488,7 +1474,7 @@ public final class Trie implements org.k2v.K2V {
           replace(descend(to, key), size, ref);
         }
       }
-      var(toSlot.record, FolderVersion).putLong(0, from.version);
+      var(toSlot.record, FolderVersion).putLong(0, from.getVersion());
     }
 
     protected void
@@ -1522,7 +1508,7 @@ public final class Trie implements org.k2v.K2V {
   public Trie compact(final File to) throws IOException {
     if (!to.createNewFile()) { throw new IOException(); }
     final Trie compact = new Trie(to, separator.duplicate(), firstVersion);
-    final Query query = query();
+    final Query query = (Query)query();
     try {
       compact.patch(query, (Folder)query.root);
     } finally {
@@ -1547,7 +1533,7 @@ public final class Trie implements org.k2v.K2V {
    * @param patch {@link Trie} to copy
    */
   public void merge(final Trie patch) throws IOException {
-    final Query query = patch.query();
+    final Query query = (Query)patch.query();
     try {
       patch(query, (Folder)query.root);
     } finally {

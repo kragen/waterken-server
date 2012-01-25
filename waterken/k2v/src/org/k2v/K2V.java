@@ -6,8 +6,8 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * A {@link Folder} where an {@link Entry} can be added or overwritten.
- * <p>Instances of this type are thread-safe.</p>
+ * Transactional interface to a {@link Folder}.
+ * <p>Instances of this type are thread-safe.
  */
 public interface K2V extends Closeable {
   
@@ -20,12 +20,10 @@ public interface K2V extends Closeable {
   /**
    * Creates a {@link Query} transaction that includes the results of the last
    * {@link #update()} to {@link Update#commit()}.
-   * <p>
-   * {@link Query} results will not be affected by any {@link #update()} whose
-   * {@link Update#commit()} occurs after the returned transaction object is
-   * created.
-   * <p>
-   * The returned transaction object is not thread-safe.
+   * <p>{@link Query} results will not be affected by any {@link #update()}
+   * whose {@link Update#commit()} occurs after the returned transaction object
+   * is created.
+   * <p>The returned transaction object is not thread-safe.
    */
   Query query() throws IOException;
   

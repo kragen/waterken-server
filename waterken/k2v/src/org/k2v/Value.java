@@ -3,6 +3,6 @@
 package org.k2v;
 
 /**
- * Indicates a {@linkplain Query#find searched for} {@link Entry} was not found.
+ * Something associated with a key.
  */
-public class MissingEntry implements Entry {}
+public interface Value {}

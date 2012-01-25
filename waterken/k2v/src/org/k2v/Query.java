@@ -35,14 +35,13 @@ public abstract class Query implements Closeable {
   public abstract void close();
 
   /**
-   * Finds a child {@link Entry}.
-   * <p>
-   * If the specified {@link Folder} is a saved result from a past {@link Query}
-   * or {@link Update}, the return value might reflect that version of the
-   * {@link Folder} or a subsequent update of it.
+   * Finds a child {@link Value}.
+   * <p>If the specified {@link Folder} is a saved result from a past
+   * {@link Query} or {@link Update}, the return value might reflect that
+   * version of the {@link Folder} or a subsequent update of it.
    * @param folder  {@link Folder} to search
-   * @param key     {@link Entry} to search for
-   * @return corresponding {@link Entry}, or {@link MissingEntry} if none
+   * @param key     key to search for
+   * @return corresponding {@link Value}, or {@link MissingValue} if none
    */
-  public abstract Entry find(Folder folder, byte[] key) throws IOException;
+  public abstract Value find(Folder folder, byte[] key) throws IOException;
 }

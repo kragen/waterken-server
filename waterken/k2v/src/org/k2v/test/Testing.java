@@ -2,6 +2,7 @@
 // http://www.opensource.org/licenses/mit-license.html
 package org.k2v.test;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -9,10 +10,9 @@ import java.io.OutputStream;
 import java.util.Random;
 
 import org.k2v.Document;
-import org.k2v.Entry;
 import org.k2v.Folder;
 import org.k2v.K2V;
-import org.k2v.MissingEntry;
+import org.k2v.MissingValue;
 import org.k2v.Query;
 import org.k2v.Update;
 import org.k2v.trie.Trie;
@@ -37,44 +37,55 @@ public final class Testing {
   
   static public void
   test(final K2V db) throws Exception {
-    testSimple(db);
+    testLarge(db);
     testFanout(db);
     testZigZag(db);
     testTrails(db);
   }
   
   static private void
-  testSimple(final K2V db) throws Exception {
+  testLarge(final K2V db) throws Exception {
     final byte[] folderKey = { 1, 2 };
-    final byte[] docKey = { 3, 4 };
+    final byte[] docKey = {};
     final Query pre = db.query();
     try {
-      ((MissingEntry)pre.find(pre.root, folderKey)).getClass();
+      ((MissingValue)pre.find(pre.root, folderKey)).getClass();
     } finally {
       pre.close();
     }
-    final Update update = db.update();
+    final byte[] docValue = new byte[0xFFFF];
+    for (int i = docValue.length; 0 != i--;) {
+      docValue[i] = (byte)i;
+    }
+    final Update create = db.update();
     final Folder folder;
     try {
-      folder = update.nest(pre.root, folderKey);
-      final OutputStream doc = update.open(folder, docKey);
-      doc.write(docKey);
+      folder = create.nest(pre.root, folderKey);
+      final OutputStream doc = create.open(folder, docKey);
+      doc.write(docValue);
       doc.close();
-      update.commit();
+      create.commit();
     } finally {
-      update.close();
+      create.close();
     }
     final Query post = db.query();
     try {
-      final Entry entry = post.find(folder, docKey);
-      final Document doc = (Document)entry;
-      if (docKey.length != doc.length) throw new RuntimeException();
-      for (final byte head : docKey) {
-        if (head != doc.read()) throw new RuntimeException();
+      final Document doc = (Document)post.find(folder, docKey);
+      if (docValue.length != doc.length) { throw new RuntimeException(); }
+      final BufferedInputStream buffer = new BufferedInputStream(doc);
+      for (final byte head : docValue) {
+        if ((head & 0xFF) != buffer.read()) { throw new RuntimeException(); }
       }
-      if (-1 != doc.read()) throw new RuntimeException();
+      if (-1 != buffer.read()) { throw new RuntimeException(); }
     } finally {
       post.close();
+    }
+    final Update delete = db.update();
+    try {
+      delete.open(post.root, folderKey).close();
+     // delete.commit();
+    } finally {
+      delete.close();
     }
   }
   
@@ -91,9 +102,9 @@ public final class Testing {
               
               final Query pre = db.query();
               try {
-                ((MissingEntry)pre.find(pre.root,
+                ((MissingValue)pre.find(pre.root,
                                         new byte[] { (byte)key })).getClass();
-                ((MissingEntry)pre.find(pre.root,
+                ((MissingValue)pre.find(pre.root,
                                         new byte[] { (byte)~key })).getClass();
               } finally {
                 pre.close();

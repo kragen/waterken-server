@@ -3,6 +3,6 @@
 package org.k2v;
 
 /**
- * A {@link Folder} entry.
+ * Indicates a {@linkplain Query#find searched for} {@link Value} was not found.
  */
-public interface Entry {}
+public class MissingValue implements Value {}
