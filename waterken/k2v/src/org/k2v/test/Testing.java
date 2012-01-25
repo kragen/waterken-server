@@ -83,7 +83,7 @@ public final class Testing {
     final Update delete = db.update();
     try {
       delete.open(post.root, folderKey).close();
-     // delete.commit();
+      delete.commit();
     } finally {
       delete.close();
     }
