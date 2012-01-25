@@ -264,9 +264,9 @@ public final class Trie implements org.k2v.K2V {
       return 0 != (record.get(SizeOfFolder - FolderFlags) & FolderAbsoluteFlag);
     }
     
-    Folder nest(final ByteBuffer k, final ByteBuffer v) {
+    Folder nest(final ByteBuffer k, final Object b, final ByteBuffer v) {
       return new Folder(this, ByteBuffer.allocate(k.remaining()).put(k),
-                        brand, ByteBuffer.allocate(v.remaining()).put(v));
+                        b, ByteBuffer.allocate(v.remaining()).put(v));
     }
     
     Folder version(final Object newBrand, final ByteBuffer newRecord) {
@@ -617,12 +617,10 @@ public final class Trie implements org.k2v.K2V {
       } else if (isAMicroDocument(type)) {
         return new MicroDocument(lengthOfMicroDocument(type), at);
       } else if (TypeOfDocument == type) {
-        final long length = ref(type, at) == folder.getTop() ?
-          folder.getBytes() - SizeOfFolder - DocumentLength :
-          read(DocumentLength, at).getLong();
+        final long length = read(DocumentLength, at).getLong();
         return new Document(length, at - DocumentLength - length);
       } else if (TypeOfFolder == type) {
-        return folder.nest(child, read(SizeOfFolder, at));
+        return folder.nest(child, brand, read(SizeOfFolder, at));
       } else if (TypeOfNull == type) {
         return new Null(true);
       } else {
@@ -798,9 +796,7 @@ public final class Trie implements org.k2v.K2V {
                                      ) throws IOException {
         if (closed) { throw new IOException(); }
         final long size = TypeOfDocument == type ?
-          (ref(type, at) == folder.getTop() ?
-             folder.getBytes() - SizeOfFolder :
-             sizeOfDocument(read(DocumentLength, at).getLong())) :
+          sizeOfDocument(read(DocumentLength, at).getLong()) :
           sizeOfSmallDocument(lengthOfSmallDocument(type));
         if (size != cursor.getChannel().transferTo(at - size, size, target)) {
           throw new IOException();
@@ -1150,7 +1146,7 @@ public final class Trie implements org.k2v.K2V {
                        final byte[] key) throws IOException {
       if (corrupted) { throw new IOException(); }
       corrupted = true;
-      descend(((Folder)folder).nest(ByteBuffer.wrap(key),
+      descend(((Folder)folder).nest(ByteBuffer.wrap(key), brand,
                                     ByteBuffer.allocate(0)), null);
       lastTouched = lastTouched.version(brand, lastTouchedSlot.record);
       corrupted = false;
@@ -1464,7 +1460,7 @@ public final class Trie implements org.k2v.K2V {
           key.get(child);
           patch(channel, nest(to, child), lastTouchedSlot,
                 query, (Folder)i.readValue());
-        } else if (isAMicroDocument(type)) {
+        } else if (isAMicroDocument(type) || TypeOfNull == type) {
           replace(descend(to, key), 0, ref(type, i.getValueAddress()));
         } else {
           final long size = i.transferValueTo(channel); 
