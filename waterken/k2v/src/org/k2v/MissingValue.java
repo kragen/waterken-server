@@ -3,6 +3,6 @@
 package org.k2v;
 
 /**
- * Indicates a {@linkplain Query#find searched for} {@link Value} was not found.
+ * Indicates a {@linkplain Query#find searched for} key had no {@link Value}.
  */
 public class MissingValue implements Value {}
