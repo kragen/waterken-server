@@ -102,10 +102,8 @@ public final class Testing {
               
               final Query pre = db.query();
               try {
-                ((Null)pre.find(pre.root,
-                                        new byte[] { (byte)key })).getClass();
-                ((Null)pre.find(pre.root,
-                                        new byte[] { (byte)~key })).getClass();
+                ((Null)pre.find(pre.root, new byte[] {(byte)key})).getClass();
+                ((Null)pre.find(pre.root, new byte[] {(byte)~key})).getClass();
               } finally {
                 pre.close();
               }
