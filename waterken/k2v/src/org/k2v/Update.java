@@ -35,7 +35,7 @@ public interface Update extends Closeable {
   void commit() throws IOException;
 
   /**
-   * Updates a {@link Value}.
+   * Updates a {@link Document}.
    * <p>If the {@link Folder} does not exist, it and its parents will be
    * created.
    * @param folder  {@link Folder} to update
