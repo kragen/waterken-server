@@ -695,8 +695,7 @@ public final class Trie implements org.k2v.K2V {
         if (null == box || box.array() != b) {
           box = ByteBuffer.wrap(b, off, max);
         } else {
-          box.position(off);
-          box.limit(off + max);
+          box.limit(off + max).position(off);
         }
         final int d = body.read(box, position);
         if (0 > d) { throw new EOFException(); }
@@ -950,7 +949,7 @@ public final class Trie implements org.k2v.K2V {
         header.flip();
         buffer.put(header);
         checksum.update(header.array(), 0, header.limit());
-        address = buffer.position();
+        address = header.limit();
         modified.put(data(prior.rootRef), todo.size());
         todo.add(new Slot(null, ByteBuffer.allocate(8),
                           allocateFolder(FolderDefaultFlags, version)));
@@ -975,7 +974,7 @@ public final class Trie implements org.k2v.K2V {
         dirty = false;
         return;
       }
-      if (buffer.flip().limit() != out.write(buffer)) {throw new IOException();}
+      if (buffer.flip().limit() != out.write(buffer)) throw new IOException();
 
       // allocate addresses for all the pending nodes
       final long startAddress = address;
@@ -1070,7 +1069,7 @@ public final class Trie implements org.k2v.K2V {
         
         private void expect(final int n) throws IOException {
           if (buffer.remaining() < n) {
-            if (buffer.flip().remaining() != out.write(buffer)) {
+            if (buffer.flip().limit() != out.write(buffer)) {
               throw new IOException();
             }
             buffer.clear();
@@ -1452,7 +1451,7 @@ public final class Trie implements org.k2v.K2V {
     protected void
     patch(final Query query, final Folder base) throws IOException {
       checksumming = false;
-      if (buffer.flip().limit() != out.write(buffer)) {throw new IOException();}
+      if (buffer.flip().limit() != out.write(buffer)) throw new IOException();
       buffer.clear();
       descend(base, null);
       patch(base, lastTouchedSlot, query, base);
