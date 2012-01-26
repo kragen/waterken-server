@@ -906,6 +906,7 @@ public final class Trie implements org.k2v.K2V {
     protected       long address;
     protected final CRC32 checksum;
     protected final FileChannel out;
+    protected final byte[] box = new byte[1];
     protected final ByteBuffer microBuffer =
       ByteBuffer.wrap(new byte[TypeBytes + DataBytes], TypeBytes, DataBytes);
     
@@ -1099,7 +1100,8 @@ public final class Trie implements org.k2v.K2V {
           incomplete = false;
         }
         @Override public void write(final int b) throws IOException {
-          write(new byte[] { (byte)b }, 0, 1);
+          box[0] = (byte)b;
+          write(box, 0, 1);
         }
       };
     }
