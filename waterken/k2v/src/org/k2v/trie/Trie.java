@@ -685,13 +685,20 @@ public final class Trie implements org.k2v.K2V {
         position = markedPosition;
       }
 
+      private ByteBuffer box = null;
       public @Override int
       read(final byte[] b, final int off, final int len) throws IOException {
         if (closed) { throw new IOException(); }
         if (0 == len) { return 0; }
         if (last == position) { return -1; }
-        final int d = body.read(
-          ByteBuffer.wrap(b, off, (int)Math.min(len, last-position)), position);
+        final int max = (int)Math.min(len, last - position);
+        if (null == box || box.array() != b) {
+          box = ByteBuffer.wrap(b, off, max);
+        } else {
+          box.position(off);
+          box.limit(off + max);
+        }
+        final int d = body.read(box, position);
         if (0 > d) { throw new EOFException(); }
         position += d;
         return d;
