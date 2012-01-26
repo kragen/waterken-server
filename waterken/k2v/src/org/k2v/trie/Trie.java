@@ -423,12 +423,12 @@ public final class Trie implements org.k2v.K2V {
   static public Trie open(final File file) throws IOException {
     if (!file.isFile()) { throw new EOFException(); }
     final RandomAccessFile stream = new RandomAccessFile(file, "r");
-    final FileChannel out = stream.getChannel();
-    final long capacity = out.size();
+    final FileChannel body = stream.getChannel();
+    final long capacity = body.size();
     if (SizeOfMinVersion > capacity) { throw new EOFException(); }
     final ByteBuffer tmp = ByteBuffer.allocate(1024);
     tmp.rewind().limit(SizeOfHeader);
-    if (SizeOfHeader != out.read(tmp, 0)) { throw new IOException(); }
+    if (SizeOfHeader != body.read(tmp, 0)) { throw new IOException(); }
     tmp.rewind();
     if (MagicNumber != tmp.getLong()) { throw new EOFException(); }
     final long firstVersion = tmp.getLong();
@@ -439,7 +439,7 @@ public final class Trie implements org.k2v.K2V {
     for (long length = capacity; true; length -= 1) {
       if (SizeOfMinVersion > length) { throw new EOFException(); }
       tmp.rewind().limit(SizeOfCommit);
-      if (SizeOfCommit != out.read(tmp, length - SizeOfCommit)) {
+      if (SizeOfCommit != body.read(tmp, length - SizeOfCommit)) {
         throw new IOException();
       }
       tmp.rewind();
@@ -452,7 +452,7 @@ public final class Trie implements org.k2v.K2V {
         final CRC32 checksum = new CRC32();
         for (long i = priorFileLength; end != i;) {
           tmp.rewind().limit((int)Math.min(tmp.capacity(), end - i));
-          final int d = out.read(tmp, i);
+          final int d = body.read(tmp, i);
           if (0 > d) { throw new IOException(); }
           checksum.update(tmp.array(), tmp.arrayOffset(), d);
           i += d;
@@ -460,7 +460,7 @@ public final class Trie implements org.k2v.K2V {
         if (checksumValue != (int)checksum.getValue()) { continue; }
       }
       final ByteBuffer root = ByteBuffer.allocate(SizeOfFolder);
-      if (SizeOfFolder != out.read(root, length-SizeOfCommit-SizeOfFolder)) {
+      if (SizeOfFolder != body.read(root, length-SizeOfCommit-SizeOfFolder)) {
         throw new IOException();
       }
       return new Trie(file, stream, separator, firstVersion, length != capacity,
