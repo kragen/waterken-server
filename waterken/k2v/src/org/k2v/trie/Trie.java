@@ -3,6 +3,7 @@
 package org.k2v.trie;
 
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -266,7 +267,7 @@ public final class Trie implements org.k2v.K2V {
     
     Folder nest(final ByteBuffer k, final Object b, final ByteBuffer v) {
       return new Folder(this, ByteBuffer.allocate(k.remaining()).put(k),
-                        b, ByteBuffer.allocate(v.remaining()).put(v));
+                        b, ByteBuffer.allocate(v.rewind().remaining()).put(v));
     }
     
     Folder version(final Object newBrand, final ByteBuffer newRecord) {
@@ -335,7 +336,7 @@ public final class Trie implements org.k2v.K2V {
   static long sizeOfVersion(final long rootBytes) {
     return SizeOfHeader + rootBytes + SizeOfCommit;
   }
-  static final long sizeOfMinVersion = sizeOfVersion(SizeOfFolder);
+  static final long SizeOfMinVersion = sizeOfVersion(SizeOfFolder);
 
   /**
    * Folder root
@@ -368,11 +369,9 @@ public final class Trie implements org.k2v.K2V {
   /** first version number */
   public    final    long firstVersion;
   protected final    Object brand;
-
+  private   final    Closeable stream;
   /** committed bytes shared cursor */
-  protected final    RandomAccessFile cursor; 
-  /** object that last used the cursor */
-  protected          Object reading = null;
+  protected final    FileChannel body; 
 
   protected final    Object queryLock = new Object();
   protected          int querying = 0;
@@ -383,7 +382,7 @@ public final class Trie implements org.k2v.K2V {
   protected          boolean dirty;
   protected          Version pending;
 
-  private Trie(final File file, final RandomAccessFile cursor,
+  private Trie(final File file, final RandomAccessFile stream,
                final ByteBuffer separator, final long firstVersion,
                final boolean dirty, final Version committed) {
     this.file = file;
@@ -391,15 +390,16 @@ public final class Trie implements org.k2v.K2V {
     this.separator = separator.asReadOnlyBuffer();
     this.firstVersion = firstVersion;
     this.brand = committed.root.brand;
-    this.cursor = cursor;
+    this.stream = stream;
+    this.body = stream.getChannel();
     this.dirty = dirty;
     this.pending = this.committed = committed;
   }
 
   private Trie(final File file, final ByteBuffer separator,
                final long firstVersion) throws IOException {
-    this(file, new RandomAccessFile(file, "r"), separator, firstVersion, false,
-         new Version(firstVersion));
+    this(file, new RandomAccessFile(file, "r"),
+         separator, firstVersion, false, new Version(firstVersion));
   }
   
   /**
@@ -424,40 +424,48 @@ public final class Trie implements org.k2v.K2V {
    */
   static public Trie open(final File file) throws IOException {
     if (!file.isFile()) { throw new EOFException(); }
-    final RandomAccessFile cursor = new RandomAccessFile(file, "r");
-    if (MagicNumber != cursor.readLong()) { throw new EOFException(); }
-    final long firstVersion = cursor.readLong();
-    final ByteBuffer separator = ByteBuffer.allocate(SizeOfSeparator);
-    cursor.readFully(separator.array());
+    final RandomAccessFile stream = new RandomAccessFile(file, "r");
+    final FileChannel channel = stream.getChannel();
+    final long capacity = channel.size();
+    if (SizeOfMinVersion > capacity) { throw new EOFException(); }
+    final ByteBuffer buffer = ByteBuffer.allocate(1024);
+    buffer.rewind().limit(SizeOfHeader);
+    if (SizeOfHeader != channel.read(buffer, 0)) { throw new IOException(); }
+    buffer.rewind();
+    if (MagicNumber != buffer.getLong()) { throw new EOFException(); }
+    final long firstVersion = buffer.getLong();
+    final ByteBuffer separator=ByteBuffer.allocate(SizeOfSeparator).put(buffer);
+    separator.rewind();
+
     // Search backwards through the file for a checkpoint separator.
-    final ByteBuffer segment = ByteBuffer.allocate(SizeOfSeparator);
-    final long capacity = cursor.length();
     for (long length = capacity; true; length -= 1) {
-      if (sizeOfMinVersion > length) { throw new EOFException(); }
-      cursor.seek(length - SizeOfCommit);
-      final long priorFileLength = cursor.readLong();
-      cursor.readFully(segment.array());
-      if (!separator.equals(segment)) { continue; }
-      final int checksumValue = cursor.readInt();
+      if (SizeOfMinVersion > length) { throw new EOFException(); }
+      buffer.rewind().limit(SizeOfCommit);
+      if (SizeOfCommit != channel.read(buffer, length - SizeOfCommit)) {
+        throw new IOException();
+      }
+      buffer.rewind();
+      final long priorFileLength = buffer.getLong();
+      if (!separator.equals(buffer.slice().limit(SizeOfSeparator))) {continue;}
+      final int checksumValue = buffer.getInt(buffer.limit() - 4);
       if (DoubleSyncInsteadOfChecksum != checksumValue) {
-        if (0 > priorFileLength || length - SizeOfChecksum < priorFileLength) {
-          continue;
-        }
-        cursor.seek(priorFileLength);
+        final long end = length - SizeOfChecksum;
+        if (0 > priorFileLength || end < priorFileLength) { continue; }
         final CRC32 checksum = new CRC32();
-        final byte[] buffer = new byte[1024];
-        for (long n = length - SizeOfChecksum - priorFileLength; 0 != n;){
-          final int d = cursor.read(buffer, 0, (int)Math.min(n, buffer.length));
-          if (-1 == d) { throw new EOFException(); }
-          checksum.update(buffer, 0, d);
-          n -= d;
+        for (long i = priorFileLength; end != i;) {
+          buffer.rewind().limit((int)Math.min(buffer.capacity(), end - i));
+          final int d = channel.read(buffer, i);
+          if (0 > d) { throw new IOException(); }
+          checksum.update(buffer.array(), buffer.arrayOffset(), d);
+          i += d;
         }
         if (checksumValue != (int)checksum.getValue()) { continue; }
       }
       final ByteBuffer root = ByteBuffer.allocate(SizeOfFolder);
-      cursor.seek(length - SizeOfCommit - SizeOfFolder);
-      cursor.readFully(root.array());
-      return new Trie(file, cursor, separator, firstVersion, length != capacity,
+      if (SizeOfFolder != channel.read(root, length-SizeOfCommit-SizeOfFolder)){
+        throw new IOException();
+      }
+      return new Trie(file, stream, separator, firstVersion, length != capacity,
                       new Version(length, new Folder(root)));
     }
   }
@@ -482,7 +490,7 @@ public final class Trie implements org.k2v.K2V {
         tail.getChannel().force(true);
         tail.close();
       }
-      cursor.close();
+      stream.close();
     } finally {
       updateLock.release();
     }
@@ -554,9 +562,6 @@ public final class Trie implements org.k2v.K2V {
           }
         }
       }
-      synchronized (cursor) {
-        reading = null;
-      }
     }
 
     public Value
@@ -617,7 +622,7 @@ public final class Trie implements org.k2v.K2V {
       } else if (isAMicroDocument(type)) {
         return new MicroDocument(lengthOfMicroDocument(type), at);
       } else if (TypeOfDocument == type) {
-        final long length = read(DocumentLength, at).getLong();
+        final long length = read(DocumentLength, at).getLong(0);
         return new Document(length, at - DocumentLength - length);
       } else if (TypeOfFolder == type) {
         return folder.nest(child, brand, read(SizeOfFolder, at));
@@ -631,12 +636,8 @@ public final class Trie implements org.k2v.K2V {
     private final ByteBuffer buffer =
       ByteBuffer.allocate(Math.max(SizeOfMapMax, SizeOfRunMax));
     ByteBuffer read(final int size, final long address) throws IOException {
-      synchronized (cursor) {
-        reading = null;
-        cursor.seek(address - size);
-        cursor.readFully(buffer.array(), 0, size);
-      }
       buffer.rewind().limit(size);
+      if (size != body.read(buffer, address-size)) { throw new IOException(); }
       return buffer;
     }
     
@@ -678,36 +679,20 @@ public final class Trie implements org.k2v.K2V {
         markedPosition = position;
       }
 
-      private void restore() throws IOException {
-        if (this != reading) {
-          if (closed) { throw new IOException(); }
-          cursor.seek(position);
-          reading = this;
-        }
-      }
-
       public @Override boolean markSupported() { return true; }
       public @Override void mark(final int readlimit) {
         markedPosition = position;
       }
       public @Override void reset() {
-        synchronized (cursor) {
-          if (this == reading) {
-            reading = null;
-          }
-        }
         position = markedPosition;
       }
 
       public @Override int read() throws IOException {
-        if (last == position) { return -1; }
-        synchronized (cursor) {
-          restore();
-          reading = null;
-          final byte r = cursor.readByte();
-          reading = this;
-          position += 1;
-          return r & 0xFF;
+        final byte[] b = new byte[1];
+        while (true) {
+          final int d = read(b, 0, 1);
+          if (0 > d) { return -1; }
+          if (0 < d) { return b[0] & 0xFF; }
         }
       }
 
@@ -715,24 +700,15 @@ public final class Trie implements org.k2v.K2V {
       read(final byte[] b, final int off, final int len) throws IOException {
         if (0 == len) { return 0; }
         if (last == position) { return -1; }
-        synchronized (cursor) {
-          restore();
-          reading = null;
-          final int d = cursor.read(b, off, (int)Math.min(len, last-position));
-          if (-1 == d) { throw new EOFException(); }
-          reading = this;
-          position += d;
-          return d;
-        }
+        final int d = body.read(
+          ByteBuffer.wrap(b, off, (int)Math.min(len, last-position)), position);
+        if (0 > d) { throw new EOFException(); }
+        position += d;
+        return d;
       }
 
       public @Override long skip(final long n) throws IOException {
         if (0 >= n) { return 0; }
-        synchronized (cursor) {
-          if (this == reading) {
-            reading = null;
-          }
-        }
         final long d = Math.min(n, last - position);
         position += d;
         return d;
@@ -796,9 +772,9 @@ public final class Trie implements org.k2v.K2V {
                                      ) throws IOException {
         if (closed) { throw new IOException(); }
         final long size = TypeOfDocument == type ?
-          sizeOfDocument(read(DocumentLength, at).getLong()) :
+          sizeOfDocument(read(DocumentLength, at).getLong(0)) :
           sizeOfSmallDocument(lengthOfSmallDocument(type));
-        if (size != cursor.getChannel().transferTo(at - size, size, target)) {
+        if (size != body.transferTo(at - size, size, target)) {
           throw new IOException();
         }
         return size;
@@ -835,29 +811,29 @@ public final class Trie implements org.k2v.K2V {
             }
             rwkey.limit(rwkey.limit() + length);
             rokey.limit(rwkey.limit());
-            run.limit(length);
+            run.rewind().limit(length);
             rwkey.put(run);
           }
           if (isAMap(type)) {
-            final int arity = arityOfMap(type);
-            final int size = sizeOfMap(arity);
-            final ByteBuffer map = read(size, at);
             if (rwkey.limit() == rwkey.capacity()) {
               rwkey = ByteBuffer.allocate(2 * (rwkey.limit() + 1)).put(rwkey);
               rokey = rwkey.asReadOnlyBuffer();
             }
+            final int arity = arityOfMap(type);
+            final int size = sizeOfMap(arity);
+            final ByteBuffer map = read(size, at);
             stack.add(new Node(rwkey.limit() + 1, listMap(map, arity),
                                (ByteBuffer)ByteBuffer.allocate(map.remaining()).
                                  put(map).rewind()));
           } else if (TypeOfLeaf == type) {
             final ByteBuffer leaf = read(SizeOfLeaf, at);
-            final long child = leaf.getLong();
+            final long child = value(leaf, LeafChild);
             type = type(child);
             at = data(child);
             final int depth = rwkey.limit();
             stack.add(new Node(depth, 0 == depth ? null :
                 ByteBuffer.allocate(1).put(0, rwkey.get(depth - 1)),
-                ByteBuffer.allocate(8).putLong(0, leaf.getLong())));
+                ByteBuffer.allocate(8).putLong(0, value(leaf, LeafBranch))));
             rokey.rewind();
             return rokey;
           } else {
@@ -1366,7 +1342,9 @@ public final class Trie implements org.k2v.K2V {
             slot.var = ByteBuffer.allocate(8);
           } else {
             record = ByteBuffer.allocate(SizeOfFolder);
-            read(at, record);
+            if (SizeOfFolder != body.read(record, at - SizeOfFolder)) {
+              throw new IOException();
+            }
           }
           garbage = value(record, FolderBytes);
           break;
@@ -1376,8 +1354,10 @@ public final class Trie implements org.k2v.K2V {
           Long oldSize = written.get(old);
           if (null == oldSize) {
             final ByteBuffer length = ByteBuffer.allocate(DocumentLength);
-            read(data(old), length);
-            oldSize = sizeOfDocument(length.getLong());
+            if (DocumentLength != body.read(length, data(old)-DocumentLength)) {
+              throw new IOException();
+            }
+            oldSize = sizeOfDocument(length.getLong(0));
           }
           garbage = oldSize;
           break;
@@ -1395,9 +1375,9 @@ public final class Trie implements org.k2v.K2V {
     }
     
     /** Allocates a temporary address from the end of the file. */
-    private long newRef(final short type, final Slot slot) {
+    private long newRef(final short type, final Slot slot) throws IOException {
       final long at = MaxAddress - todo.size();
-      if (at <= address) { throw new AssertionError(); }
+      if (at <= address) { throw new IOException(); }
       modified.put(at, todo.size());
       todo.add(slot);
       return ref(type, at);
@@ -1431,23 +1411,12 @@ public final class Trie implements org.k2v.K2V {
       if (null != index) { return todo.get(index); }
       final Slot slot = new Slot(folderSlot, var, ByteBuffer.wrap(
           new byte[capacity], capacity - size, size).slice());
-      read(at, slot.record);
+      if (size != body.read(slot.record, at - size)) {throw new IOException();}
       modified.put(at, todo.size());
       todo.add(slot);
       return slot;
     }
 
-    private void read(final long at, final ByteBuffer record)throws IOException{
-      synchronized (cursor) {
-        reading = null;
-        cursor.seek(at - record.remaining());
-        cursor.readFully(record.array(),
-                         record.arrayOffset() + record.position(),
-                         record.remaining());
-        record.position(record.limit());
-      }
-    }
-    
     private void patch(final FileChannel channel,
                        final Folder to, final Slot toSlot,
                        final Query query, final Folder from) throws IOException{
