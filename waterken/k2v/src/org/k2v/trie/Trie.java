@@ -687,6 +687,7 @@ public final class Trie implements org.k2v.K2V {
 
       public @Override int
       read(final byte[] b, final int off, final int len) throws IOException {
+        if (closed) { throw new IOException(); }
         if (0 == len) { return 0; }
         if (last == position) { return -1; }
         final int d = body.read(
