@@ -685,15 +685,6 @@ public final class Trie implements org.k2v.K2V {
         position = markedPosition;
       }
 
-      public @Override int read() throws IOException {
-        final byte[] b = new byte[1];
-        while (true) {
-          final int d = read(b, 0, 1);
-          if (0 > d) { return -1; }
-          if (0 < d) { return b[0] & 0xFF; }
-        }
-      }
-
       public @Override int
       read(final byte[] b, final int off, final int len) throws IOException {
         if (0 == len) { return 0; }
@@ -704,7 +695,14 @@ public final class Trie implements org.k2v.K2V {
         position += d;
         return d;
       }
-
+      public @Override int read() throws IOException {
+        final byte[] b = new byte[1];
+        while (true) {
+          final int d = read(b, 0, 1);
+          if (0 > d) { return -1; }
+          if (0 < d) { return b[0] & 0xFF; }
+        }
+      }
       public @Override long skip(final long n) throws IOException {
         if (0 >= n) { return 0; }
         final long d = Math.min(n, last - position);
@@ -1069,10 +1067,6 @@ public final class Trie implements org.k2v.K2V {
             buffer.clear();
           }
         }
-
-        @Override public void write(final int b) throws IOException {
-          write(new byte[] { (byte)b }, 0, 1);
-        }
         
         @Override public void write(final byte[] b, final int off,
                                     final int len) throws IOException {
@@ -1103,6 +1097,9 @@ public final class Trie implements org.k2v.K2V {
           checksum.update(b, off, len);
           address += len;
           incomplete = false;
+        }
+        @Override public void write(final int b) throws IOException {
+          write(new byte[] { (byte)b }, 0, 1);
         }
       };
     }
