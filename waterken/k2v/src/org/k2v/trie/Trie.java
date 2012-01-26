@@ -370,7 +370,6 @@ public final class Trie implements org.k2v.K2V {
   public    final    long firstVersion;
   protected final    Object brand;
   private   final    Closeable stream;
-  /** committed bytes shared cursor */
   protected final    FileChannel body; 
 
   protected final    Object queryLock = new Object();
