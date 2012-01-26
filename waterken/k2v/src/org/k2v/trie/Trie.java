@@ -2,7 +2,6 @@
 // http://www.opensource.org/licenses/mit-license.html
 package org.k2v.trie;
 
-import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.File;
@@ -20,10 +19,9 @@ import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Semaphore;
 import java.util.zip.CRC32;
-import java.util.zip.CheckedOutputStream;
 
-import org.k2v.Value;
 import org.k2v.K2V;
+import org.k2v.Value;
 
 /**
  * A monotonically increasing trie file format.
@@ -85,7 +83,7 @@ public final class Trie implements org.k2v.K2V {
   }
   static final int SizeOfMapMax = sizeOfMap(MapMaxArity);
   static ByteBuffer allocateMap() {
-    // leave room in the allocated buffer to grow the map to capacity
+    // leave room to grow the map to capacity
     final ByteBuffer map = ByteBuffer.allocate(SizeOfMapMax);
     map.position(SizeOfMapMax - sizeOfMap(0));
     return map.slice();
@@ -377,6 +375,7 @@ public final class Trie implements org.k2v.K2V {
   protected volatile Version committed;
 
   protected final    Semaphore updateLock = new Semaphore(1, true);
+  protected final    ByteBuffer buffer = ByteBuffer.allocateDirect(256 * 1024);
   protected          FileOutputStream tail = null;
   protected          boolean dirty;
   protected          Version pending;
@@ -427,35 +426,35 @@ public final class Trie implements org.k2v.K2V {
     final FileChannel channel = stream.getChannel();
     final long capacity = channel.size();
     if (SizeOfMinVersion > capacity) { throw new EOFException(); }
-    final ByteBuffer buffer = ByteBuffer.allocate(1024);
-    buffer.rewind().limit(SizeOfHeader);
-    if (SizeOfHeader != channel.read(buffer, 0)) { throw new IOException(); }
-    buffer.rewind();
-    if (MagicNumber != buffer.getLong()) { throw new EOFException(); }
-    final long firstVersion = buffer.getLong();
-    final ByteBuffer separator=ByteBuffer.allocate(SizeOfSeparator).put(buffer);
+    final ByteBuffer tmp = ByteBuffer.allocate(1024);
+    tmp.rewind().limit(SizeOfHeader);
+    if (SizeOfHeader != channel.read(tmp, 0)) { throw new IOException(); }
+    tmp.rewind();
+    if (MagicNumber != tmp.getLong()) { throw new EOFException(); }
+    final long firstVersion = tmp.getLong();
+    final ByteBuffer separator=ByteBuffer.allocate(SizeOfSeparator).put(tmp);
     separator.rewind();
 
     // Search backwards through the file for a checkpoint separator.
     for (long length = capacity; true; length -= 1) {
       if (SizeOfMinVersion > length) { throw new EOFException(); }
-      buffer.rewind().limit(SizeOfCommit);
-      if (SizeOfCommit != channel.read(buffer, length - SizeOfCommit)) {
+      tmp.rewind().limit(SizeOfCommit);
+      if (SizeOfCommit != channel.read(tmp, length - SizeOfCommit)) {
         throw new IOException();
       }
-      buffer.rewind();
-      final long priorFileLength = buffer.getLong();
-      if (!separator.equals(buffer.slice().limit(SizeOfSeparator))) {continue;}
-      final int checksumValue = buffer.getInt(buffer.limit() - 4);
+      tmp.rewind();
+      final long priorFileLength = tmp.getLong();
+      if (!separator.equals(tmp.slice().limit(SizeOfSeparator))) {continue;}
+      final int checksumValue = tmp.getInt(tmp.limit() - 4);
       if (DoubleSyncInsteadOfChecksum != checksumValue) {
         final long end = length - SizeOfChecksum;
         if (0 > priorFileLength || end < priorFileLength) { continue; }
         final CRC32 checksum = new CRC32();
         for (long i = priorFileLength; end != i;) {
-          buffer.rewind().limit((int)Math.min(buffer.capacity(), end - i));
-          final int d = channel.read(buffer, i);
+          tmp.rewind().limit((int)Math.min(tmp.capacity(), end - i));
+          final int d = channel.read(tmp, i);
           if (0 > d) { throw new IOException(); }
-          checksum.update(buffer.array(), buffer.arrayOffset(), d);
+          checksum.update(tmp.array(), tmp.arrayOffset(), d);
           i += d;
         }
         if (checksumValue != (int)checksum.getValue()) { continue; }
@@ -632,12 +631,12 @@ public final class Trie implements org.k2v.K2V {
       }
     }
 
-    private final ByteBuffer buffer =
+    private final ByteBuffer shared =
       ByteBuffer.allocate(Math.max(SizeOfMapMax, SizeOfRunMax));
     ByteBuffer read(final int size, final long address) throws IOException {
-      buffer.rewind().limit(size);
-      if (size != body.read(buffer, address-size)) { throw new IOException(); }
-      return buffer;
+      shared.rewind().limit(size);
+      if (size != body.read(shared, address-size)) { throw new IOException(); }
+      return shared;
     }
     
     final class MicroDocument extends org.k2v.Document {
@@ -907,8 +906,8 @@ public final class Trie implements org.k2v.K2V {
     private   final Version prior;
     protected final long version; 
     protected       long address;
-    private   final CRC32 checksum;
-    protected final OutputStream out;
+    protected final CRC32 checksum;
+    protected final FileChannel out;
     protected final ByteBuffer microBuffer =
       ByteBuffer.wrap(new byte[TypeBytes + DataBytes], TypeBytes, DataBytes);
     
@@ -934,15 +933,17 @@ public final class Trie implements org.k2v.K2V {
         tail = new FileOutputStream(file, true);
       }
       checksum = new CRC32();
-      out = new BufferedOutputStream(new CheckedOutputStream(tail, checksum));
+      out = tail.getChannel();
+      buffer.clear();
       if (0 == address) {
         // Initialize a new file.
-        out.write(ByteBuffer.allocate(8).putLong(MagicNumber).array());
-        out.write(ByteBuffer.allocate(8).putLong(firstVersion).array());
         separator.rewind();
-        out.write(
-            ByteBuffer.allocate(separator.remaining()).put(separator).array());
-        address = 8 + 8 + separator.limit();
+        final ByteBuffer header = ByteBuffer.allocate(SizeOfHeader).
+          putLong(MagicNumber).putLong(firstVersion).put(separator);
+        header.flip();
+        buffer.put(header);
+        checksum.update(header.array(), 0, header.limit());
+        address = buffer.position();
         modified.put(data(prior.rootRef), todo.size());
         todo.add(new Slot(null, ByteBuffer.allocate(8),
                           allocateFolder(FolderDefaultFlags, version)));
@@ -967,7 +968,7 @@ public final class Trie implements org.k2v.K2V {
         dirty = false;
         return;
       }
-      out.flush();
+      if (buffer.flip().limit() != out.write(buffer)) {throw new IOException();}
 
       // allocate addresses for all the pending nodes
       final long startAddress = address;
@@ -999,17 +1000,14 @@ public final class Trie implements org.k2v.K2V {
       }
       address += nodes[nodes.length - 1].limit(SizeOfChecksum).remaining(); 
       nodes[nodes.length - 1].putInt(0, checksumValue);
-      final FileChannel channel = tail.getChannel();
       if (DoubleSyncInsteadOfChecksum == checksumValue) {
         if (address - SizeOfChecksum - SizeOfSeparator - startAddress !=
-          channel.write(nodes, 0, nodes.length - 2)) {throw new IOException();}
-        channel.force(false);
+          out.write(nodes, 0, nodes.length - 2)) { throw new IOException(); }
+        out.force(false);
         if (SizeOfSeparator + SizeOfChecksum !=
-            channel.write(nodes, nodes.length-2, 2)) {throw new IOException();}
+            out.write(nodes, nodes.length-2, 2)) { throw new IOException(); }
       } else {
-        if (address - startAddress != channel.write(nodes)) {
-          throw new IOException();
-        }
+        if (address-startAddress != out.write(nodes)) {throw new IOException();}
       }
       
       // commit the update
@@ -1017,7 +1015,7 @@ public final class Trie implements org.k2v.K2V {
         new Version(address, prior.root.version(brand, nodes[nodes.length-4]));
       dirty = false;
       close();          // allow a concurrent update while waiting for the sync
-      channel.force(false);
+      out.force(false);
       synchronized (queryLock) {
         if (next.fileLength > committed.fileLength) {
           committed = next;
@@ -1051,7 +1049,10 @@ public final class Trie implements org.k2v.K2V {
             written.put(ref, length);
             replace(descend(parent, ByteBuffer.wrap(key)), length, ref);
           } else {
-            out.write(ByteBuffer.allocate(8).putLong(length).array());
+            final ByteBuffer tmp = ByteBuffer.allocate(8).putLong(0, length);
+            expect(8);
+            buffer.put(tmp);
+            checksum.update(tmp.array());
             address += 8;
             final long ref = ref(TypeOfDocument, address); 
             written.put(ref, length + 8);
@@ -1059,24 +1060,18 @@ public final class Trie implements org.k2v.K2V {
           }
           corrupted = false;
         }
+        
+        private void expect(final int n) throws IOException {
+          if (buffer.remaining() < n) {
+            if (buffer.flip().remaining() != out.write(buffer)) {
+              throw new IOException();
+            }
+            buffer.clear();
+          }
+        }
 
         @Override public void write(final int b) throws IOException {
-          if (incomplete) { throw new IOException(); }
-          incomplete = true;
-          if (startAddress == address) {
-            if (microBuffer.hasRemaining()) {
-              microBuffer.put((byte)b);
-            } else {
-              out.write(microBuffer.array(), TypeBytes, DataBytes);
-              address += DataBytes;
-              out.write(b);
-              address += 1;
-            }
-          } else {
-            out.write(b);
-            address += 1;
-          }
-          incomplete = false;
+          write(new byte[] { (byte)b }, 0, 1);
         }
         
         @Override public void write(final byte[] b, final int off,
@@ -1084,21 +1079,29 @@ public final class Trie implements org.k2v.K2V {
           if (incomplete) { throw new IOException(); }
           incomplete = true;
           if (startAddress == address) {
-            if (microBuffer.position() + len <= microBuffer.limit()) {
+            if (microBuffer.remaining() >= len) {
               microBuffer.put(b, off, len);
-            } else {
-              final int n = microBuffer.position() - TypeBytes;
-              if (0 != n) {
-                out.write(microBuffer.array(), TypeBytes, n);
-                address += n;
-              }
-              out.write(b, off, len);
-              address += len;
+              incomplete = false;
+              return;
+            }
+            final int n = microBuffer.position() - TypeBytes;
+            if (0 != n) {
+              expect(n);
+              buffer.put(microBuffer.array(), TypeBytes, n);
+              checksum.update(microBuffer.array(), TypeBytes, n);
+              address += n;
+            }
+          }
+          expect(len);
+          if (buffer.remaining() < len) {
+            if (len != out.write(ByteBuffer.wrap(b, off, len))) {
+              throw new IOException();
             }
           } else {
-            out.write(b, off, len);
-            address += len;
+            buffer.put(b, off, len);
           }
+          checksum.update(b, off, len);
+          address += len;
           incomplete = false;
         }
       };
@@ -1416,8 +1419,7 @@ public final class Trie implements org.k2v.K2V {
       return slot;
     }
 
-    private void patch(final FileChannel channel,
-                       final Folder to, final Slot toSlot,
+    private void patch(final Folder to, final Slot toSlot,
                        final Query query, final Folder from) throws IOException{
       final Query.Iterator i = query.list(from);
       while (i.hasNext()) {
@@ -1426,12 +1428,11 @@ public final class Trie implements org.k2v.K2V {
         if (TypeOfFolder == type) {
           final byte[] child = new byte[key.limit()];
           key.get(child);
-          patch(channel, nest(to, child), lastTouchedSlot,
-                query, (Folder)i.readValue());
+          patch(nest(to, child), lastTouchedSlot, query, (Folder)i.readValue());
         } else if (isAMicroDocument(type) || TypeOfNull == type) {
           replace(descend(to, key), 0, ref(type, i.getValueAddress()));
         } else {
-          final long size = i.transferValueTo(channel); 
+          final long size = i.transferValueTo(out); 
           address += size;
           final long ref = ref(type, address);
           written.put(ref, size);
@@ -1444,9 +1445,10 @@ public final class Trie implements org.k2v.K2V {
     protected void
     patch(final Query query, final Folder base) throws IOException {
       checksumming = false;
+      if (buffer.flip().limit() != out.write(buffer)) {throw new IOException();}
+      buffer.clear();
       descend(base, null);
-      out.flush();
-      patch(tail.getChannel(), base, lastTouchedSlot, query, base);
+      patch(base, lastTouchedSlot, query, base);
     }
   }
   

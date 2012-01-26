@@ -158,6 +158,7 @@ public final class Testing {
             (Document)done.find(done.root, new byte[] { (byte)i });
           if (doc.length != 1) { throw new RuntimeException(); }
           if (doc.read() != (i & 0x0F)) { throw new RuntimeException(); }
+          if (doc.read() != -1) { throw new RuntimeException(); }
         }
         for (int i = 0x80; i != 0x100; ++i) {
           final Document doc =
@@ -295,12 +296,11 @@ public final class Testing {
             out.write(key);
             out.flush();
             out.close();
-            final Folder done = update.touch(root);
             update.commit();
             update.close();
 
             final Query query = db.query();
-            final Document doc = (Document)query.find(done, key);
+            final Document doc = (Document)query.find(query.root, key);
             if (key.length != doc.length) { throw new RuntimeException(); }
             for (int i = 0; i != key.length; ++i) {
               if ((key[i] & 0xFF) != doc.read()) {
