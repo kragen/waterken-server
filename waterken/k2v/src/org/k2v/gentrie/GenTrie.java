@@ -117,15 +117,14 @@ public final class GenTrie implements K2V {
           return new GenTrie(dir,
               new Trie[] { Trie.open(new File(dir, youngFatOldDead[0])) });
         }
-        Trie young;
         try {
-          young = Trie.open(new File(dir, youngFatOldDead[0])); 
+          final Trie young = Trie.open(new File(dir, youngFatOldDead[0])); 
+          return new GenTrie(dir, new Trie[] { young, old });
         } catch (final EOFException e) {
           final File file = new File(dir, youngFatOldDead[0]); 
           file.delete();
-          young = old.spawn(file);
+          return new GenTrie(dir, new Trie[] { old });
         }
-        return new GenTrie(dir, new Trie[] { young, old });
       }
     } else {
       if (null == youngFatOldDead[2]) {
@@ -202,11 +201,11 @@ public final class GenTrie implements K2V {
   public Update update() throws IOException {
     while (true) {
       final Trie head = generations[0];
-      final Update base = head.update();
+      final Trie.Update base = (Trie.Update)head.update();
       if (head == generations[0]) {
         if (head.getLoadFactor() > 0.1F || null != compacting) { return base; }
         try {
-          final Trie young = head.spawn(reuse(new File(dir, turn(head.name))));
+          final Trie young = base.spawn(reuse(new File(dir, turn(head.name))));
           final Trie old = 1 == generations.length ? null : generations[1];
           compact(young, head, old);
           generations = null == old ? new Trie[] { young, head } :

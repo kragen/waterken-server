@@ -375,7 +375,7 @@ public final class Trie implements org.k2v.K2V {
   protected volatile Version committed;
 
   protected final    Semaphore updateLock = new Semaphore(1, true);
-  protected final    ByteBuffer buffer = ByteBuffer.allocateDirect(256 * 1024);
+  protected          ByteBuffer buffer = null;
   protected          FileOutputStream tail = null;
   protected          boolean dirty;
   protected          Version pending;
@@ -394,8 +394,8 @@ public final class Trie implements org.k2v.K2V {
     this.pending = this.committed = committed;
   }
 
-  private Trie(final File file, final ByteBuffer separator,
-               final long firstVersion) throws IOException {
+  protected Trie(final File file, final ByteBuffer separator,
+                 final long firstVersion) throws IOException {
     this(file, new RandomAccessFile(file, "r"),
          separator, firstVersion, false, new Version(firstVersion));
   }
@@ -501,7 +501,7 @@ public final class Trie implements org.k2v.K2V {
   }
   
   /** Gets the last version number. */
-  private long getLastVersion() { return committed.root.getVersion(); }
+  protected long getLastVersion() { return committed.root.getVersion(); }
 
   public org.k2v.Query query() throws IOException {
     return new Query(committed.root);
@@ -874,7 +874,7 @@ public final class Trie implements org.k2v.K2V {
     }
   }
 
-  public org.k2v.Update update() throws IOException {
+  public Update update() throws IOException {
     try {
       updateLock.acquire();
     } catch (final InterruptedException e) {
@@ -891,7 +891,7 @@ public final class Trie implements org.k2v.K2V {
     return r;
   }
   
-  final class Update implements org.k2v.Update {
+  public final class Update implements org.k2v.Update {
     
     /** All Trie nodes that need to be written out. */
     private final ArrayList<Slot> todo = new ArrayList<Slot>();
@@ -940,19 +940,26 @@ public final class Trie implements org.k2v.K2V {
       }
       checksum = new CRC32();
       out = tail.getChannel();
-      buffer.clear();
+      if (null != buffer) { buffer.clear(); }
       if (0 == address) {
         // Initialize a new file.
         separator.rewind();
         final ByteBuffer header = ByteBuffer.allocate(SizeOfHeader).
           putLong(MagicNumber).putLong(firstVersion).put(separator);
         header.flip();
-        buffer.put(header);
+        out.write(header);
         checksum.update(header.array(), 0, header.limit());
         address = header.limit();
         modified.put(data(prior.rootRef), todo.size());
         todo.add(new Slot(null, ByteBuffer.allocate(8),
                           allocateFolder(FolderDefaultFlags, version)));
+      }
+    }
+    
+    protected void flush() throws IOException {
+      if (null != buffer && 0 != buffer.position()) {
+        if (buffer.flip().limit() != out.write(buffer)) throw new IOException();
+        buffer.clear();
       }
     }
 
@@ -974,7 +981,7 @@ public final class Trie implements org.k2v.K2V {
         dirty = false;
         return;
       }
-      if (buffer.flip().limit() != out.write(buffer)) throw new IOException();
+      flush();
 
       // allocate addresses for all the pending nodes
       final long startAddress = address;
@@ -1068,11 +1075,10 @@ public final class Trie implements org.k2v.K2V {
         }
         
         private void expect(final int n) throws IOException {
-          if (buffer.remaining() < n) {
-            if (buffer.flip().limit() != out.write(buffer)) {
-              throw new IOException();
-            }
-            buffer.clear();
+          if (null == buffer) {
+            buffer = ByteBuffer.allocateDirect(256 * 1024);
+          } else if (buffer.remaining() < n) {
+            Update.this.flush();
           }
         }
         
@@ -1451,10 +1457,25 @@ public final class Trie implements org.k2v.K2V {
     protected void
     patch(final Query query, final Folder base) throws IOException {
       checksumming = false;
-      if (buffer.flip().limit() != out.write(buffer)) throw new IOException();
-      buffer.clear();
+      flush();
       descend(base, null);
       patch(base, lastTouchedSlot, query, base);
+    }
+    
+    /**
+     * Creates a patch file that can {@link #merge} into this one.
+     * @param to  file location
+     * @return empty {@link Trie} that MUST have an {@link #update()} applied
+     */
+    public Trie spawn(final File to) throws IOException {
+      if (!to.createNewFile()) { throw new IOException(); }
+      final Trie spawned = new Trie(to, separator.duplicate(),
+                                    Math.max(getLastVersion() + 1,
+                                             System.currentTimeMillis()));
+      flush();
+      spawned.buffer = buffer;
+      buffer = null;
+      return spawned;
     }
   }
   
@@ -1463,7 +1484,7 @@ public final class Trie implements org.k2v.K2V {
    * @param base  base {@link Folder} to copy to this {@link K2V}
    */
   private void patch(final Query query, final Folder base) throws IOException {
-    final Update update = (Update)update();
+    final Update update = update();
     try {
       update.patch(query, base);
       update.commit();
@@ -1487,17 +1508,6 @@ public final class Trie implements org.k2v.K2V {
       query.close();
     }
     return compact;
-  }
-  
-  /**
-   * Creates a patch file that can be {@linkplain #merge merged} into this one.
-   * @param to  file location
-   * @return empty {@link Trie} that MUST be {@linkplain #update() updated}
-   */
-  public Trie spawn(final File to) throws IOException {
-    if (!to.createNewFile()) { throw new IOException(); }
-    return new Trie(to, separator.duplicate(),
-                    Math.max(getLastVersion() + 1, System.currentTimeMillis()));
   }
 
   /**
