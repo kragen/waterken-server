@@ -375,6 +375,7 @@ public final class Trie implements org.k2v.K2V {
   protected volatile Version committed;
 
   protected final    Semaphore updateLock = new Semaphore(1, true);
+  protected final    Object commitLock = new Object();
   protected          ByteBuffer buffer = null;
   protected          FileOutputStream tail = null;
   protected          boolean dirty;
@@ -1029,7 +1030,7 @@ public final class Trie implements org.k2v.K2V {
       dirty = false;
       close();          // allow a concurrent update while waiting for the sync
       out.force(false);
-      synchronized (queryLock) {
+      synchronized (commitLock) {
         if (next.fileLength > committed.fileLength) {
           committed = next;
         }
