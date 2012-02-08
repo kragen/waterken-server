@@ -234,7 +234,7 @@ public final class Trie implements org.k2v.K2V {
     protected final Folder parent;
     protected final ByteBuffer key;
     protected final Object brand;
-    private   final ByteBuffer record;
+    protected final ByteBuffer record;
 
     private
     Folder(final Folder parent, final ByteBuffer key,
@@ -316,7 +316,7 @@ public final class Trie implements org.k2v.K2V {
   static final int SizeOfChecksum   = 4;
   static final int SizeOfSeparator  = 128 / Byte.SIZE;
   /**
-   * long priorFileLength > 0
+   * long priorFileLength >= 0
    * byte separator[{@link #SizeOfSeparator}]
    * int  crc32SincePriorFileLength or {@link #DoubleSyncInsteadOfChecksum}
    */
@@ -772,13 +772,13 @@ public final class Trie implements org.k2v.K2V {
         rokey.rewind();
         return readEntry(folder, rokey, type, at);
       }
-      protected long transferValueTo(final WritableByteChannel target
-                                     ) throws IOException {
+      protected long
+      transferValueTo(final WritableByteChannel out) throws IOException {
         if (closed) { throw new IOException(); }
         final long size = TypeOfDocument == type ?
           sizeOfDocument(read(DocumentLength, at).getLong(0)) :
           sizeOfSmallDocument(lengthOfSmallDocument(type));
-        if (size != body.transferTo(at - size, size, target)) {
+        if (size != body.transferTo(at - size, size, out)) {
           throw new IOException();
         }
         return size;
@@ -1493,23 +1493,6 @@ public final class Trie implements org.k2v.K2V {
       update.close();
     }
   }
-  
-  /**
-   * Copies the current state to a new file.
-   * @param to  file location
-   * @return compacted {@link Trie} ready for use
-   */
-  public Trie compact(final File to) throws IOException {
-    if (!to.createNewFile()) { throw new IOException(); }
-    final Trie compact = new Trie(to, separator.duplicate(), firstVersion);
-    final Query query = (Query)query();
-    try {
-      compact.patch(query, (Folder)query.root);
-    } finally {
-      query.close();
-    }
-    return compact;
-  }
 
   /**
    * Copies the current content of another {@link Trie} into this one.
@@ -1522,5 +1505,132 @@ public final class Trie implements org.k2v.K2V {
     } finally {
       query.close();
     }
+  }
+  
+  /**
+   * Copies the current state to a new file.
+   * @param to  file location
+   * @return compacted {@link Trie} ready for use
+   */
+  public Trie compact(final File to) throws IOException {
+    if (!to.createNewFile()) { throw new IOException(); }
+    final Query query = (Query)query();
+    try {
+      final FileOutputStream fout = new FileOutputStream(to, true);
+      try {
+        final FileChannel out = fout.getChannel();
+        long address = 0;
+        final ByteBuffer reseparator = separator.duplicate();
+        reseparator.rewind();
+        final ByteBuffer header = ByteBuffer.allocate(SizeOfHeader).
+          putLong(MagicNumber).putLong(firstVersion).put(reseparator);
+        header.flip();
+        if (SizeOfHeader != out.write(header)) throw new IOException();
+        address += SizeOfHeader;
+        final ByteBuffer root = ByteBuffer.allocate(SizeOfFolder).
+          put((ByteBuffer)((Folder)query.root).record.duplicate().rewind());
+        root.position(SizeOfFolder - FolderTop);
+        address = copy(address, out, root);
+        root.rewind();
+        if (SizeOfFolder != out.write(root)) throw new IOException();
+        address += SizeOfFolder;
+        if (8 != out.write(ByteBuffer.allocate(8))) throw new IOException();
+        address += 8;
+        out.force(false);
+        reseparator.rewind();
+        if (SizeOfSeparator != out.write(reseparator)) throw new IOException();
+        address += SizeOfSeparator;
+        final ByteBuffer checksum = 
+          ByteBuffer.allocate(4).putInt(DoubleSyncInsteadOfChecksum);
+        checksum.flip();
+        if (SizeOfChecksum != out.write(checksum)) throw new IOException();
+        address += SizeOfChecksum;
+        out.force(false);
+        return new Trie(to, new RandomAccessFile(to, "r"),
+                        reseparator, firstVersion, false,
+                        new Version(address, new Folder(root)));
+      } finally {
+        fout.close();
+      }
+    } finally {
+      query.close();
+    }
+  }
+  
+  private long copy(long address, final FileChannel out,
+                    final ByteBuffer branch) throws IOException {
+    final long ref = branch.getLong();
+    final short type = type(ref);
+    if (isASmallDocument(type)) {
+      final long at = data(ref);
+      final long size = sizeOfSmallDocument(lengthOfSmallDocument(type));
+      if (size != body.transferTo(at-size, size, out)) throw new IOException();
+      address += size;
+      branch.putLong(branch.position() - 8, ref(type, address));
+    } else if (isAMicroDocument(type)) {
+    } else if (TypeOfDocument == type) {
+      final long at = data(ref);
+      final ByteBuffer length = ByteBuffer.allocate(8);
+      if (8 != body.read(length, at - DocumentLength)) throw new IOException();
+      final long size = sizeOfDocument(length.getLong(0));
+      if (size != body.transferTo(at-size, size, out)) throw new IOException();
+      address += size;
+      branch.putLong(branch.position() - 8, ref(type, address));
+    } else if (TypeOfFolder == type) {
+      final long at = data(ref);
+      final int size = SizeOfFolder;
+      final ByteBuffer record = ByteBuffer.allocate(size);
+      if (size != body.read(record, at - size)) throw new IOException();
+      record.position(size - FolderTop);
+      address = copy(address, out, record);
+      record.rewind();
+      if (size != out.write(record)) throw new IOException();
+      address += size;
+      branch.putLong(branch.position() - 8, ref(type, address));
+    } else if (isAMap(type)) {
+      final long at = data(ref);
+      final int arity = arityOfMap(type);
+      final int size = sizeOfMap(arity);
+      final ByteBuffer record = ByteBuffer.allocate(size);
+      if (size != body.read(record, at - size)) throw new IOException();
+      record.position(size - arity * 8);
+      for (int i = 0; i != arity; ++i) {
+        address = copy(address, out, record);
+      }
+      record.rewind();
+      if (size != out.write(record)) throw new IOException();
+      address += size;
+      branch.putLong(branch.position() - 8, ref(type, address));
+    } else if (isARun(type)) {
+      final long at = data(ref);
+      final ByteBuffer child = ByteBuffer.allocate(8);
+      if (8 != body.read(child, at - RunBranch)) throw new IOException();
+      child.rewind();
+      address = copy(address, out, child);
+      final int len = lengthOfRun(type);
+      final int size = sizeOfRun(len);
+      if (len != body.transferTo(at - size, len, out)) throw new IOException();
+      address += len;
+      child.rewind();
+      if (8 != out.write(child)) throw new IOException();
+      address += 8;
+      branch.putLong(branch.position() - 8, ref(type, address));
+    } else if (TypeOfLeaf == type) {
+      final long at = data(ref);
+      final int size = SizeOfLeaf;
+      final ByteBuffer record = ByteBuffer.allocate(size);
+      if (size != body.read(record, at - size)) throw new IOException();
+      record.rewind();
+      address = copy(address, out, record);
+      address = copy(address, out, record);
+      record.rewind();
+      if (size != out.write(record)) throw new IOException();
+      address += size;
+      branch.putLong(branch.position() - 8, ref(type, address));
+    } else if (TypeOfNull == type) {
+    } else {
+      throw new AssertionError();
+    }
+    return address;
   }
 }
