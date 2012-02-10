@@ -1603,17 +1603,15 @@ public final class Trie implements org.k2v.K2V {
       branch.putLong(branch.position() - 8, ref(type, address));
     } else if (isARun(type)) {
       final long at = data(ref);
-      final ByteBuffer child = ByteBuffer.allocate(8);
-      if (8 != body.read(child, at - RunBranch)) throw new IOException();
-      child.rewind();
-      address = copy(address, out, child);
       final int len = lengthOfRun(type);
       final int size = sizeOfRun(len);
-      if (len != body.transferTo(at - size, len, out)) throw new IOException();
-      address += len;
-      child.rewind();
-      if (8 != out.write(child)) throw new IOException();
-      address += 8;
+      final ByteBuffer record = ByteBuffer.allocate(size);
+      if (size != body.read(record, at - size)) throw new IOException();
+      record.position(size - LeafBranch);
+      address = copy(address, out, record);
+      record.rewind();
+      if (size != out.write(record)) throw new IOException();
+      address += size;
       branch.putLong(branch.position() - 8, ref(type, address));
     } else if (TypeOfLeaf == type) {
       final long at = data(ref);
