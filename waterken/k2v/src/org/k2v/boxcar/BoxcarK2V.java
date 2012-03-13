@@ -28,9 +28,10 @@ public final class BoxcarK2V implements K2V {
     /** once */ Update update = null;
     /** once */ IOException failure = null;
   }
-  public BoxcarK2V(final K2V base) {
+  private BoxcarK2V(final K2V base) {
     this.base = base;
   }
+  static K2V make(final K2V base) { return new BoxcarK2V(base); }
 
   public void   close()  throws IOException { base.close(); }
   public Query  query()  throws IOException { return base.query(); }

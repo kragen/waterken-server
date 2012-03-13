@@ -7,10 +7,12 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Random;
 
 import org.k2v.Document;
 import org.k2v.Folder;
+import org.k2v.Iterator;
 import org.k2v.K2V;
 import org.k2v.Null;
 import org.k2v.Query;
@@ -77,6 +79,12 @@ public final class Testing {
         if ((head & 0xFF) != buffer.read()) { throw new RuntimeException(); }
       }
       if (-1 != buffer.read()) { throw new RuntimeException(); }
+      final Iterator i = post.list(folder);
+      if (!i.hasNext()) { throw new RuntimeException(); }
+      if (!ByteBuffer.wrap(new byte[] {}).equals(i.readNext())) {
+        throw new RuntimeException();
+      }
+      if (i.hasNext()) { throw new RuntimeException(); }
     } finally {
       post.close();
     }
@@ -165,6 +173,27 @@ public final class Testing {
             (Document)done.find(done.root, new byte[] { (byte)i });
           if (doc.length != 0) { throw new RuntimeException(); }
           if (doc.read() != -1) { throw new RuntimeException(); }
+        }
+        final boolean[] found = new boolean[0x100];
+        for (final Iterator i = done.list(done.root); i.hasNext();) {
+          final ByteBuffer key = i.readNext();
+          if (key.remaining() == 1) {
+            final int index = key.get() & 0xFF;
+            if (found[index]) { throw new RuntimeException(); }
+            found[index] = true;
+            final Document doc = (Document)i.readValue();
+            if (index < 0x80) {
+              if (doc.length != 1) { throw new RuntimeException(); }
+              if (doc.read() != (index & 0x0F)) { throw new RuntimeException();}
+              if (doc.read() != -1) { throw new RuntimeException(); }
+            } else {
+              if (doc.length != 0) { throw new RuntimeException(); }
+              if (doc.read() != -1) { throw new RuntimeException(); }
+            }
+          }
+        }
+        for (final boolean flag : found) {
+          if (!flag) { throw new RuntimeException(); }
         }
       } finally {
         done.close();

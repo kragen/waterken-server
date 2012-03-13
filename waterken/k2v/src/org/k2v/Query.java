@@ -44,4 +44,9 @@ public abstract class Query implements Closeable {
    * @return corresponding {@link Value}, or {@link Null} if none
    */
   public abstract Value find(Folder folder, byte[] key) throws IOException;
+
+  /**
+   * Iterates over a {@link Folder}'s keys.
+   */
+  public abstract Iterator list(Folder folder) throws IOException;
 }

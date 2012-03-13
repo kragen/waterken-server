@@ -18,7 +18,7 @@ final class Test {
   static public void main(String[] args) throws Exception {
     final File dir = new File("").getCanonicalFile();
     Testing.clean(dir);
-    final K2V db = new BoxcarK2V(GenTrie.create(dir, new SecureRandom()));
+    final K2V db = BoxcarK2V.make(GenTrie.create(dir, new SecureRandom()));
     final long startTime = System.currentTimeMillis();
     Testing.test(db);
     db.close();

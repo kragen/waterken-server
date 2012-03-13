@@ -26,7 +26,7 @@ import org.k2v.Value;
 /**
  * A monotonically increasing trie file format.
  */
-public final class Trie implements org.k2v.K2V {
+public final class Trie implements K2V {
   
   /** default file extension */
   static public final String Ext = ".k2v";
@@ -733,10 +733,13 @@ public final class Trie implements org.k2v.K2V {
     
     /**
      * Lexicographical listing of a {@link Folder}'s keys.
-     * <p>A key {@code byte} is compared as an unsigned number; consequently,
+     * <p>Each key {@code byte} is compared as an unsigned number; consequently,
      * UTF-8 keys are returned in lexicographical order.
      */
-    protected Iterator list(final Folder folder) throws IOException {
+    public Iterator list(final org.k2v.Folder folder) throws IOException {
+      return list((Folder)folder);
+    }
+    Iterator list(final Folder folder) throws IOException {
       if (closed) { throw new IOException(); }
       final Value owned = own(folder);
       if (!(owned instanceof Folder)) { return new Iterator(folder); }
@@ -745,7 +748,7 @@ public final class Trie implements org.k2v.K2V {
       return new Iterator(folder, ByteBuffer.allocate(8).putLong(0, top));
     }
     
-    protected final class Iterator implements java.util.Iterator<ByteBuffer> {
+    protected final class Iterator implements org.k2v.Iterator {
       private final Folder folder;
       private final ArrayList<Node> stack = new ArrayList<Node>();
       private       ByteBuffer rwkey = ByteBuffer.allocate(16);
@@ -764,9 +767,6 @@ public final class Trie implements org.k2v.K2V {
       
       protected short getValueType() { return type; }
       protected long getValueAddress() { return at; }
-      /**
-       * Reads the {@link Value} for the last {@linkplain #readNext read key}.
-       */
       public Value readValue() throws IOException {
         if (closed) { throw new IOException(); }
         rokey.rewind();
@@ -784,10 +784,6 @@ public final class Trie implements org.k2v.K2V {
         return size;
       }
 
-      /**
-       * Moves to the next {@link Value}.
-       * @return key of the next {@link Value}
-       */
       public ByteBuffer readNext() throws IOException {
         if (closed) { throw new IOException(); }
         while (true) {

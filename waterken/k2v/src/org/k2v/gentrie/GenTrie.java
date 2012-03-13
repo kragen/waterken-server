@@ -7,9 +7,12 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
+import org.k2v.Iterator;
 import org.k2v.Value;
 import org.k2v.Folder;
 import org.k2v.K2V;
@@ -176,18 +179,18 @@ public final class GenTrie implements K2V {
   }
 
   public Query query() throws IOException {
-    final Trie[] current = generations;
-    final Query[] base = new Query[current.length];
+    final Trie[] snapshot = generations;
+    final Query[] base = new Query[snapshot.length];
     for (int i = base.length; 0 != i--;) {
-      base[i] = current[i].query();
+      base[i] = snapshot[i].query();
     }
     return new Query(base[0].root) {
       public void close() { for (final Query x : base) { x.close(); } }
       public Value
       find(final Folder folder, final byte[] key) throws IOException {
         final long version = ((Trie.Folder)folder).getVersion();
-        for (int i = 0; i != current.length; ++i) {
-          if (version >= current[i].firstVersion) {
+        for (int i = 0; i != snapshot.length; ++i) {
+          if (version >= snapshot[i].firstVersion) {
             final Value r = base[i].find(folder, key);
             if (!(r instanceof Trie.Null)) { return r; }
             if (((Trie.Null)r).absolute)   { return r; }
@@ -195,7 +198,73 @@ public final class GenTrie implements K2V {
         }
         return new Trie.Null(false);
       }
+      public Iterator list(final Folder folder) throws IOException {
+        final Iterator[] i = new Iterator[base.length];
+        final ByteBuffer[] top = new ByteBuffer[i.length];
+        for (int n = 0; n != base.length; ++n) {
+          i[n] = base[n].list(folder);
+          top[n] = i[n].hasNext() ? i[n].readNext() : null;
+        }
+        return new Iterator() {
+          private int current = -1;
+
+          public boolean hasNext() {
+            for (int n = 0; n != top.length; ++n) {
+              if (n == current) {
+                if (i[n].hasNext()) { return true; }
+              } else {
+                if (null != top[n]) { return true; }
+              }
+            }
+            return false;
+          }
+
+          public ByteBuffer readNext() throws IOException {
+            if (0 <= current) {
+              top[current]= i[current].hasNext() ? i[current].readNext() : null;
+              current = -1;
+            }
+            for (int n = 0; n != top.length; ++n) {
+              if (null != top[n]) {
+                if (0 > current) {
+                  current = n;
+                } else {
+                  final int d = compare(top[n], top[current]); 
+                  if (d < 0) {
+                    current = n;
+                  } else if (d == 0) {
+                    top[n] = i[n].hasNext() ? i[n].readNext() : null;
+                  }
+                }
+              }
+            }
+            if (0 > current) { throw new NoSuchElementException(); }
+            return top[current];
+          }
+
+          public Value readValue() throws IOException {
+            return i[current].readValue();
+          }
+
+          public ByteBuffer next() {
+            try {
+              return readNext();
+            } catch (final IOException e) { throw new RuntimeException(e); }
+          }
+          public void remove() { throw new UnsupportedOperationException(); }
+        };
+      }
     };
+  }
+
+  static int compare(final ByteBuffer a, final ByteBuffer b) {
+    for (int ai = a.position(), aj = a.limit(),
+             bi = b.position(), bj = b.limit(); true; ++ai, ++bi) {
+      if (ai == aj) { return bi == bj ? 0 : -1; }
+      if (bi == bj) { return 1; }
+      final int d = (a.get(ai) & 0xFF) - (b.get(bi) & 0xFF);
+      if (0 != d) { return d; }
+    }
   }
 
   public Update update() throws IOException {
