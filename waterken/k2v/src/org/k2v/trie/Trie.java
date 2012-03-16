@@ -258,14 +258,13 @@ public final class Trie implements K2V {
      */
     public long getVersion(){return record.getLong(SizeOfFolder-FolderVersion);}
     protected long getBytes(){return record.getLong(SizeOfFolder-FolderBytes);}
-    protected long getTop() {return record.getLong(SizeOfFolder-FolderTop);}
-    protected boolean isAbsolute() {
-      return 0 != (record.get(SizeOfFolder - FolderFlags) & FolderAbsoluteFlag);
-    }
+    protected long getTop() { return record.getLong(SizeOfFolder - FolderTop); }
+    protected byte getFlags() { return record.get(SizeOfFolder - FolderFlags); } 
+    protected boolean isAbsolute(){return 0 != (getFlags()&FolderAbsoluteFlag);}
     
     Folder nest(final ByteBuffer k, final Object b, final ByteBuffer v) {
       return new Folder(this, ByteBuffer.allocate(k.remaining()).put(k),
-                        b, ByteBuffer.allocate(v.rewind().remaining()).put(v));
+                        b, ByteBuffer.allocate(v.remaining()).put(v));
     }
     
     Folder version(final Object newBrand, final ByteBuffer newRecord) {
@@ -312,6 +311,7 @@ public final class Trie implements K2V {
     return type & 0xFFFF;
   }
   static long sizeOfSmallDocument(final int length) { return length; }
+  static final long ZeroDocument = 0;
   
   static final int SizeOfChecksum   = 4;
   static final int SizeOfSeparator  = 128 / Byte.SIZE;
@@ -624,7 +624,9 @@ public final class Trie implements K2V {
         final long length = read(DocumentLength, at).getLong(0);
         return new Document(length, at - DocumentLength - length);
       } else if (TypeOfFolder == type) {
-        return folder.nest(child, brand, read(SizeOfFolder, at));
+        final Folder r = folder.nest(child, brand, read(SizeOfFolder, at));
+        child.rewind();
+        return r;
       } else if (TypeOfNull == type) {
         return new Null(true);
       } else {
@@ -637,6 +639,7 @@ public final class Trie implements K2V {
     ByteBuffer read(final int size, final long address) throws IOException {
       shared.rewind().limit(size);
       if (size != body.read(shared, address-size)) { throw new IOException(); }
+      shared.rewind();
       return shared;
     }
     
@@ -1435,9 +1438,11 @@ public final class Trie implements K2V {
         final ByteBuffer key = i.readNext();
         final short type = i.getValueType();
         if (TypeOfFolder == type) {
-          final byte[] child = new byte[key.limit()];
-          key.get(child);
-          patch(nest(to, child), lastTouchedSlot, query, (Folder)i.readValue());
+          final Folder child = (Folder)i.readValue();
+          if (child.isAbsolute()) {replace(descend(to, key), 0, ZeroDocument);}
+          final byte[] keyBytes = new byte[key.limit()];
+          key.get(keyBytes);
+          patch(nest(to, keyBytes), lastTouchedSlot, query, child);
         } else if (isAMicroDocument(type) || TypeOfNull == type) {
           replace(descend(to, key), 0, ref(type, i.getValueAddress()));
         } else {
