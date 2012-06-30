@@ -326,7 +326,7 @@ ADSAFE.lib('web', function (lib) {
             }
 
             var http;
-            if (this.XMLHttpRequest) {
+            if (XMLHttpRequest) {
                 http = new XMLHttpRequest();
             } else {
                 http = new ActiveXObject('Microsoft.XMLHTTP');
