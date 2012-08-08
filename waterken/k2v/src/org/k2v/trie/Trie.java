@@ -947,7 +947,7 @@ public final class Trie implements K2V {
         final ByteBuffer header = ByteBuffer.allocate(SizeOfHeader).
           putLong(MagicNumber).putLong(firstVersion).put(separator);
         header.flip();
-        out.write(header);
+        writeFully(out, header);
         checksum.update(header.array(), 0, header.limit());
         address = header.limit();
         modified.put(data(prior.rootRef), todo.size());
@@ -958,7 +958,8 @@ public final class Trie implements K2V {
     
     protected void flush() throws IOException {
       if (null != buffer && 0 != buffer.position()) {
-        if (buffer.flip().limit() != out.write(buffer)) throw new IOException();
+        buffer.flip();
+        writeFully(out, buffer);
         buffer.clear();
       }
     }
@@ -984,7 +985,6 @@ public final class Trie implements K2V {
       flush();
 
       // allocate addresses for all the pending nodes
-      final long startAddress = address;
       final ByteBuffer[] nodes = new ByteBuffer[todo.size() + 3];
       for (int i = todo.size(), j = 0; 0 != i--; ++j) {
         final Slot slot = todo.get(i);
@@ -1014,13 +1014,11 @@ public final class Trie implements K2V {
       address += nodes[nodes.length - 1].limit(SizeOfChecksum).remaining(); 
       nodes[nodes.length - 1].putInt(0, checksumValue);
       if (DoubleSyncInsteadOfChecksum == checksumValue) {
-        if (address - SizeOfChecksum - SizeOfSeparator - startAddress !=
-          out.write(nodes, 0, nodes.length - 2)) { throw new IOException(); }
+        writeFully(out, nodes, 0, nodes.length - 2);
         out.force(false);
-        if (SizeOfSeparator + SizeOfChecksum !=
-            out.write(nodes, nodes.length-2, 2)) { throw new IOException(); }
+        writeFully(out, nodes, nodes.length - 2, 2);
       } else {
-        if (address-startAddress != out.write(nodes)) {throw new IOException();}
+        writeFully(out, nodes, 0, nodes.length);
       }
       
       // commit the update
@@ -1102,9 +1100,7 @@ public final class Trie implements K2V {
           }
           expect(len);
           if (buffer.remaining() < len) {
-            if (len != out.write(ByteBuffer.wrap(b, off, len))) {
-              throw new IOException();
-            }
+            writeFully(out, ByteBuffer.wrap(b, off, len));
           } else {
             buffer.put(b, off, len);
           }
@@ -1526,25 +1522,25 @@ public final class Trie implements K2V {
         final ByteBuffer header = ByteBuffer.allocate(SizeOfHeader).
           putLong(MagicNumber).putLong(firstVersion).put(reseparator);
         header.flip();
-        if (SizeOfHeader != out.write(header)) throw new IOException();
+        writeFully(out, header);
         address += SizeOfHeader;
         final ByteBuffer root = ByteBuffer.allocate(SizeOfFolder).
           put((ByteBuffer)((Folder)query.root).record.duplicate().rewind());
         root.position(SizeOfFolder - FolderTop);
         address = copy(address, out, root);
         root.rewind();
-        if (SizeOfFolder != out.write(root)) throw new IOException();
+        writeFully(out, root);
         address += SizeOfFolder;
-        if (8 != out.write(ByteBuffer.allocate(8))) throw new IOException();
+        writeFully(out, ByteBuffer.allocate(8));
         address += 8;
         out.force(false);
         reseparator.rewind();
-        if (SizeOfSeparator != out.write(reseparator)) throw new IOException();
+        writeFully(out, reseparator);
         address += SizeOfSeparator;
         final ByteBuffer checksum = 
           ByteBuffer.allocate(4).putInt(DoubleSyncInsteadOfChecksum);
         checksum.flip();
-        if (SizeOfChecksum != out.write(checksum)) throw new IOException();
+        writeFully(out, checksum);
         address += SizeOfChecksum;
         out.force(false);
         return new Trie(to, new RandomAccessFile(to, "r"),
@@ -1585,7 +1581,7 @@ public final class Trie implements K2V {
       record.position(size - FolderTop);
       address = copy(address, out, record);
       record.rewind();
-      if (size != out.write(record)) throw new IOException();
+      writeFully(out, record);
       address += size;
       branch.putLong(branch.position() - 8, ref(type, address));
     } else if (isAMap(type)) {
@@ -1599,7 +1595,7 @@ public final class Trie implements K2V {
         address = copy(address, out, record);
       }
       record.rewind();
-      if (size != out.write(record)) throw new IOException();
+      writeFully(out, record);
       address += size;
       branch.putLong(branch.position() - 8, ref(type, address));
     } else if (isARun(type)) {
@@ -1611,7 +1607,7 @@ public final class Trie implements K2V {
       record.position(size - LeafBranch);
       address = copy(address, out, record);
       record.rewind();
-      if (size != out.write(record)) throw new IOException();
+      writeFully(out, record);
       address += size;
       branch.putLong(branch.position() - 8, ref(type, address));
     } else if (TypeOfLeaf == type) {
@@ -1623,7 +1619,7 @@ public final class Trie implements K2V {
       address = copy(address, out, record);
       address = copy(address, out, record);
       record.rewind();
-      if (size != out.write(record)) throw new IOException();
+      writeFully(out, record);
       address += size;
       branch.putLong(branch.position() - 8, ref(type, address));
     } else if (TypeOfNull == type) {
@@ -1631,5 +1627,24 @@ public final class Trie implements K2V {
       throw new AssertionError();
     }
     return address;
+  }
+  
+  static protected void writeFully(final FileChannel out,
+                                   final ByteBuffer src) throws IOException {
+    do { out.write(src); } while (src.hasRemaining());
+  }
+  
+  static protected void
+  writeFully(final FileChannel out, final ByteBuffer[] srcs,
+             int offset, int length) throws IOException {
+    while (true) {
+      out.write(srcs, offset, length);
+      while (true) {
+        if (0 == length) { return; }
+        if (srcs[offset].hasRemaining()) { break; }
+        offset += 1;
+        length -= 1;
+      }
+    }
   }
 }
